@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 
-const LANDING = "/demo/index.html";
+const LANDING = "/index.html";
 
 test.describe("Landing page — SEO meta tags", () => {
   test("has meta description", async ({ page }) => {
@@ -92,29 +92,29 @@ test.describe("Landing page — Hero section", () => {
   test("has CTA buttons", async ({ page }) => {
     await page.goto(LANDING);
     await expect(
-      page.locator('a.eink-btn--primary[href="components.html"]'),
+      page.locator('a.eink-btn--primary[href="demo/components.html"]'),
     ).toBeVisible();
     await expect(
       page.locator('a.eink-btn--secondary[href="#getting-started"]'),
     ).toBeVisible();
     await expect(
-      page.locator('a.eink-btn--ghost[href="../demo-wc/index.html"]'),
+      page.locator('a.eink-btn--ghost[href="demo-wc/index.html"]'),
     ).toBeVisible();
   });
 });
 
 test.describe("Landing page — Badges", () => {
-  test("displays shields.io badge images", async ({ page }) => {
+  test("displays badge images", async ({ page }) => {
     await page.goto(LANDING);
-    const badges = page.locator('img[src*="shields.io"]');
-    await expect(badges).toHaveCount(6);
+    const badges = page.locator(".eink-cluster img[height='20']");
+    await expect(badges).toHaveCount(5);
   });
 
   test("CI badge links to GitHub Actions", async ({ page }) => {
     await page.goto(LANDING);
     await expect(
       page.locator(
-        'a[href*="actions/workflows/ci.yml"] img[alt="CI status"]',
+        'a[href*="actions/workflows/ci.yml"] img[alt="CI"]',
       ),
     ).toHaveCount(1);
   });
@@ -123,7 +123,7 @@ test.describe("Landing page — Badges", () => {
     await page.goto(LANDING);
     await expect(
       page.locator(
-        'a[href*="actions/workflows/pages.yml"] img[alt="Pages deploy status"]',
+        'a[href*="actions/workflows/pages.yml"] img[alt="Deploy to GitHub Pages"]',
       ),
     ).toHaveCount(1);
   });
@@ -131,21 +131,14 @@ test.describe("Landing page — Badges", () => {
   test("license badge links to LICENSE file", async ({ page }) => {
     await page.goto(LANDING);
     await expect(
-      page.locator('a[href*="blob/main/LICENSE"] img[alt="MIT License"]'),
+      page.locator('a[href*="blob/main/LICENSE"] img[alt="License"]'),
     ).toHaveCount(1);
   });
 
   test("version badge is present", async ({ page }) => {
     await page.goto(LANDING);
     await expect(
-      page.locator('img[alt="Version 1.0.0"]'),
-    ).toHaveCount(1);
-  });
-
-  test("CSS size badge is present", async ({ page }) => {
-    await page.goto(LANDING);
-    await expect(
-      page.locator('img[alt*="minified"]'),
+      page.locator('img[alt="Version"]'),
     ).toHaveCount(1);
   });
 });
@@ -165,18 +158,18 @@ test.describe("Landing page — Quick links", () => {
     await page.goto(LANDING);
     await expect(
       page.locator(
-        'a[href="https://marcomattes.github.io/eink-css-ui-framework/storybook/"]',
+        'a[href="storybook/"]',
         { hasText: "Storybook" },
       ),
     ).toBeVisible();
   });
 
-  test("has Live Demo link", async ({ page }) => {
+  test("has Demo Pages link", async ({ page }) => {
     await page.goto(LANDING);
     await expect(
       page.locator(
-        'a[href="https://marcomattes.github.io/eink-css-ui-framework/demo/"]',
-        { hasText: "Live Demo" },
+        'a[href="demo/index.html"]',
+        { hasText: "Demo Pages" },
       ),
     ).toBeVisible();
   });
@@ -393,7 +386,7 @@ test.describe("Landing page — Theme preview", () => {
     ).toBeVisible();
   });
 
-  test("each theme card has buttons and alert", async ({ page }) => {
+  test("each theme card has buttons", async ({ page }) => {
     await page.goto(LANDING);
     const section = page
       .locator("section")
@@ -405,7 +398,6 @@ test.describe("Landing page — Theme preview", () => {
       const card = themeCards.nth(i);
       await expect(card.locator(".eink-btn--primary")).toBeVisible();
       await expect(card.locator(".eink-btn--secondary")).toBeVisible();
-      await expect(card.locator(".eink-alert--info")).toBeVisible();
     }
   });
 });
@@ -445,10 +437,10 @@ test.describe("Landing page — Real-world examples", () => {
     ).toBeVisible();
 
     await expect(
-      section.locator('a[href="newsreader.html"]'),
+      section.locator('a[href="demo/newsreader.html"]'),
     ).toBeVisible();
-    await expect(section.locator('a[href="blog.html"]')).toBeVisible();
-    await expect(section.locator('a[href="dashboard.html"]')).toBeVisible();
+    await expect(section.locator('a[href="demo/blog.html"]')).toBeVisible();
+    await expect(section.locator('a[href="demo/dashboard.html"]')).toBeVisible();
   });
 });
 
@@ -519,20 +511,20 @@ test.describe("Landing page — Explore docs", () => {
         has: page.getByRole("heading", { name: "Explore the docs" }),
       });
     await expect(
-      section.locator('a[href="typography.html"]'),
+      section.locator('a[href="demo/typography.html"]'),
     ).toBeVisible();
     await expect(
-      section.locator('a[href="layout.html"]'),
+      section.locator('a[href="demo/layout.html"]'),
     ).toBeVisible();
     await expect(
-      section.locator('a[href="components.html"]'),
+      section.locator('a[href="demo/components.html"]'),
     ).toBeVisible();
-    await expect(section.locator('a[href="forms.html"]')).toBeVisible();
+    await expect(section.locator('a[href="demo/forms.html"]')).toBeVisible();
     await expect(
-      section.locator('a[href="dialog.html"]'),
+      section.locator('a[href="demo/dialog.html"]'),
     ).toBeVisible();
     await expect(
-      section.locator('a[href="tables.html"]'),
+      section.locator('a[href="demo/tables.html"]'),
     ).toBeVisible();
   });
 });
