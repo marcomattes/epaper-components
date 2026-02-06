@@ -3,7 +3,7 @@ import type { StorybookConfig } from "@storybook/html-vite";
 const config: StorybookConfig = {
   stories: ["../src/stories/**/*.stories.ts", "../src/stories/**/*.mdx"],
   framework: "@storybook/html-vite",
-  addons: ["@storybook/addon-a11y", "@storybook/addon-docs"],
+  addons: ["@storybook/addon-a11y", "@storybook/addon-docs", "@storybook/addon-themes"],
   docs: {
     autodocs: "tag",
   },
