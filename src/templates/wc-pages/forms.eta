@@ -1,0 +1,299 @@
+<% layout("../_wc-layout", { title: "Forms", current: "forms" }) %>
+
+    <main class="eink-container eink-stack">
+      <!-- TEXT INPUT -->
+      <eink-section>
+        <h2>Text input</h2>
+        <p class="eink-note">
+          <code>&lt;eink-input&gt;</code> wraps a native
+          <code>&lt;input&gt;</code> and applies the <code>.eink-input</code>
+          class automatically. Attributes like <code>type</code>,
+          <code>placeholder</code>, and <code>disabled</code> are forwarded to the
+          inner element.
+        </p>
+
+        <div class="eink-stack eink-stack--sm" style="margin-top: var(--eink-space-3)">
+          <div>
+            <span class="eink-badge">CSS-only</span>
+            <pre style="margin-top: var(--eink-space-2)"><code>&lt;input type="text" class="eink-input" placeholder="..." /&gt;</code></pre>
+          </div>
+          <div>
+            <span class="eink-badge">Web Component</span>
+            <pre style="margin-top: var(--eink-space-2)"><code>&lt;eink-input type="text" placeholder="..."&gt;&lt;/eink-input&gt;</code></pre>
+          </div>
+        </div>
+
+        <div
+          class="eink-stack eink-stack--sm"
+          style="max-width: 24rem; margin-top: var(--eink-space-4)"
+        >
+          <div class="eink-field">
+            <label class="eink-label" for="wc-input-default">Default input</label>
+            <eink-input
+              type="text"
+              placeholder="Placeholder text"
+            ></eink-input>
+          </div>
+
+          <div class="eink-field">
+            <label class="eink-label" for="wc-input-disabled">Disabled input</label>
+            <eink-input
+              type="text"
+              value="Cannot edit"
+              disabled
+            ></eink-input>
+          </div>
+
+          <div class="eink-field">
+            <label class="eink-label" for="wc-input-invalid">Invalid input</label>
+            <eink-input
+              type="text"
+              aria-invalid="true"
+              value="Bad value"
+            ></eink-input>
+            <span class="eink-error-message">This field contains an error.</span>
+          </div>
+        </div>
+      </eink-section>
+
+      <!-- TEXTAREA -->
+      <eink-section>
+        <h2>Textarea</h2>
+        <p class="eink-note">
+          <code>&lt;eink-textarea&gt;</code> wraps a native
+          <code>&lt;textarea&gt;</code>.
+        </p>
+
+        <div
+          class="eink-stack eink-stack--sm"
+          style="max-width: 24rem; margin-top: var(--eink-space-4)"
+        >
+          <div class="eink-field">
+            <label class="eink-label">Default textarea</label>
+            <eink-textarea placeholder="Enter long-form text"></eink-textarea>
+          </div>
+
+          <div class="eink-field">
+            <label class="eink-label">Disabled textarea</label>
+            <eink-textarea disabled>Cannot edit this content.</eink-textarea>
+          </div>
+
+          <div class="eink-field">
+            <label class="eink-label">Invalid textarea</label>
+            <eink-textarea aria-invalid="true">Invalid content</eink-textarea>
+            <span class="eink-error-message">Content does not meet requirements.</span>
+          </div>
+        </div>
+      </eink-section>
+
+      <!-- SELECT -->
+      <eink-section>
+        <h2>Select</h2>
+        <p class="eink-note">
+          <code>&lt;eink-select&gt;</code> wraps a native
+          <code>&lt;select&gt;</code>. Place <code>&lt;option&gt;</code> elements
+          inside — they are moved into the generated select.
+        </p>
+
+        <div
+          class="eink-stack eink-stack--sm"
+          style="max-width: 24rem; margin-top: var(--eink-space-4)"
+        >
+          <div class="eink-field">
+            <label class="eink-label">Default select</label>
+            <eink-select>
+              <option value="">Choose an option</option>
+              <option value="1">Option one</option>
+              <option value="2">Option two</option>
+              <option value="3">Option three</option>
+            </eink-select>
+          </div>
+
+          <div class="eink-field">
+            <label class="eink-label">Disabled select</label>
+            <eink-select disabled>
+              <option>Cannot change</option>
+            </eink-select>
+          </div>
+
+          <div class="eink-field">
+            <label class="eink-label">Invalid select</label>
+            <eink-select aria-invalid="true">
+              <option value="">Please select</option>
+            </eink-select>
+            <span class="eink-error-message">A selection is required.</span>
+          </div>
+        </div>
+      </eink-section>
+
+      <!-- CHECKBOX -->
+      <eink-section>
+        <h2>Checkbox</h2>
+        <p class="eink-note">
+          <code>&lt;eink-checkbox&gt;</code> creates a styled checkbox. Text
+          content placed inside becomes the label.
+        </p>
+
+        <div class="eink-stack eink-stack--sm" style="margin-top: var(--eink-space-3)">
+          <div>
+            <span class="eink-badge">CSS-only</span>
+            <pre style="margin-top: var(--eink-space-2)"><code>&lt;input type="checkbox" class="eink-checkbox" id="cb" /&gt;
+&lt;label for="cb"&gt;Label&lt;/label&gt;</code></pre>
+          </div>
+          <div>
+            <span class="eink-badge">Web Component</span>
+            <pre style="margin-top: var(--eink-space-2)"><code>&lt;eink-checkbox name="cb"&gt;Label&lt;/eink-checkbox&gt;</code></pre>
+          </div>
+        </div>
+
+        <div class="eink-stack eink-stack--sm" style="margin-top: var(--eink-space-4)">
+          <div class="eink-field eink-field--inline">
+            <eink-checkbox name="wc-check-default">Default checkbox</eink-checkbox>
+          </div>
+          <div class="eink-field eink-field--inline">
+            <eink-checkbox name="wc-check-checked" checked>Checked checkbox</eink-checkbox>
+          </div>
+          <div class="eink-field eink-field--inline">
+            <eink-checkbox name="wc-check-disabled" disabled>Disabled checkbox</eink-checkbox>
+          </div>
+          <div class="eink-field eink-field--inline">
+            <eink-checkbox name="wc-check-both" disabled checked>Disabled &amp; checked</eink-checkbox>
+          </div>
+        </div>
+      </eink-section>
+
+      <!-- RADIO -->
+      <eink-section>
+        <h2>Radio</h2>
+        <p class="eink-note">
+          <code>&lt;eink-radio&gt;</code> creates a styled radio button. Use the
+          same <code>name</code> attribute to group them.
+        </p>
+
+        <fieldset style="border: none; padding: 0; margin-top: var(--eink-space-4)">
+          <legend class="eink-label" style="margin-bottom: var(--eink-space-2)">
+            Choose a size
+          </legend>
+          <div class="eink-stack eink-stack--sm">
+            <div class="eink-field eink-field--inline">
+              <eink-radio name="wc-size" value="sm">Small</eink-radio>
+            </div>
+            <div class="eink-field eink-field--inline">
+              <eink-radio name="wc-size" value="md" checked>Medium (selected)</eink-radio>
+            </div>
+            <div class="eink-field eink-field--inline">
+              <eink-radio name="wc-size" value="lg">Large</eink-radio>
+            </div>
+            <div class="eink-field eink-field--inline">
+              <eink-radio name="wc-size" value="xl" disabled>Extra large (disabled)</eink-radio>
+            </div>
+          </div>
+        </fieldset>
+      </eink-section>
+
+      <!-- COMPLETE FORM -->
+      <eink-section>
+        <h2>Complete form example</h2>
+        <p class="eink-text-sm eink-text-muted">
+          A full form using web components for all input types.
+        </p>
+
+        <form novalidate style="max-width: 28rem; margin-top: var(--eink-space-4)">
+          <eink-stack>
+            <div class="eink-field">
+              <label class="eink-label eink-label--required">Full name</label>
+              <eink-input
+                type="text"
+                aria-invalid="true"
+                value=""
+                required
+              ></eink-input>
+              <span class="eink-error-message">Full name is required.</span>
+            </div>
+
+            <div class="eink-field">
+              <label class="eink-label eink-label--required">Email address</label>
+              <eink-input
+                type="email"
+                aria-invalid="true"
+                value="not-an-email"
+                required
+              ></eink-input>
+              <span class="eink-help">We'll use this to send your confirmation.</span>
+              <span class="eink-error-message">Enter a valid email address.</span>
+            </div>
+
+            <div class="eink-field">
+              <label class="eink-label">Country</label>
+              <eink-select required>
+                <option value="">Select your country</option>
+                <option value="de">Germany</option>
+                <option value="fr">France</option>
+                <option value="uk">United Kingdom</option>
+                <option value="us">United States</option>
+              </eink-select>
+            </div>
+
+            <div class="eink-field">
+              <label class="eink-label">Short bio
+                <span class="eink-text-xs eink-text-muted">(optional)</span>
+              </label>
+              <eink-textarea placeholder="Tell us about yourself"></eink-textarea>
+              <span class="eink-help">Maximum 200 characters.</span>
+            </div>
+
+            <div class="eink-field">
+              <label class="eink-label">Referral code</label>
+              <eink-input type="text" value="AUTO-APPLIED-2024" disabled></eink-input>
+              <span class="eink-help">This code was automatically applied and cannot be changed.</span>
+            </div>
+
+            <fieldset style="border: none; padding: 0">
+              <legend class="eink-label" style="margin-bottom: var(--eink-space-2)">
+                Notification preferences
+              </legend>
+              <eink-stack gap="sm">
+                <div class="eink-field eink-field--inline">
+                  <eink-checkbox name="notif" value="email" checked>Email notifications</eink-checkbox>
+                </div>
+                <div class="eink-field eink-field--inline">
+                  <eink-checkbox name="notif" value="sms">SMS notifications</eink-checkbox>
+                </div>
+                <div class="eink-field eink-field--inline">
+                  <eink-checkbox name="notif" value="push" disabled>Push notifications (not available)</eink-checkbox>
+                </div>
+              </eink-stack>
+            </fieldset>
+
+            <fieldset style="border: none; padding: 0">
+              <legend class="eink-label" style="margin-bottom: var(--eink-space-2)">
+                Notification frequency
+              </legend>
+              <eink-stack gap="sm">
+                <div class="eink-field eink-field--inline">
+                  <eink-radio name="wc-freq" value="instant" checked>Instant</eink-radio>
+                </div>
+                <div class="eink-field eink-field--inline">
+                  <eink-radio name="wc-freq" value="daily">Daily digest</eink-radio>
+                </div>
+                <div class="eink-field eink-field--inline">
+                  <eink-radio name="wc-freq" value="weekly">Weekly summary</eink-radio>
+                </div>
+              </eink-stack>
+            </fieldset>
+
+            <div class="eink-field">
+              <div class="eink-field eink-field--inline">
+                <eink-checkbox name="terms" aria-invalid="true" required>I accept the terms and conditions</eink-checkbox>
+              </div>
+              <span class="eink-error-message">You must accept the terms to continue.</span>
+            </div>
+
+            <eink-cluster style="margin-top: var(--eink-space-3)">
+              <eink-button variant="primary">Submit</eink-button>
+              <eink-button variant="ghost">Reset</eink-button>
+            </eink-cluster>
+          </eink-stack>
+        </form>
+      </eink-section>
+    </main>

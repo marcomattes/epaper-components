@@ -1,0 +1,60 @@
+/* ===========================================
+   DETAILS / ACCORDION
+   =========================================== */
+
+@use "../mixins" as *;
+
+:where(.eink-details, .eink-accordion) {
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+}
+
+:where(.eink-details__summary, .eink-accordion__summary) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--eink-space-3) var(--eink-space-4);
+  font-weight: var(--eink-weight-medium);
+  cursor: pointer;
+  list-style: none;
+}
+
+/* Remove default marker */
+
+:where(
+  .eink-details__summary::-webkit-details-marker,
+  .eink-accordion__summary::-webkit-details-marker
+) {
+  display: none;
+}
+
+:where(.eink-details__summary)::after,
+:where(.eink-accordion__summary)::after {
+  content: "+";
+  font-size: var(--eink-text-lg);
+  font-weight: var(--eink-weight-normal);
+  color: var(--eink-fg-muted);
+  flex-shrink: 0;
+  margin-left: var(--eink-space-3);
+}
+
+:where(.eink-details[open] > .eink-details__summary)::after,
+:where(.eink-accordion[open] > .eink-accordion__summary)::after {
+  content: "\2212"; /* minus sign */
+}
+
+:where(.eink-details__summary:focus-visible, .eink-accordion__summary:focus-visible) {
+  @include focus-ring;
+  outline-offset: calc(-1 * var(--eink-focus-width));
+}
+
+:where(.eink-details__body, .eink-accordion__body) {
+  padding: var(--eink-space-3) var(--eink-space-4) var(--eink-space-4);
+  border-top: var(--eink-border-thin) solid var(--eink-border-color);
+}
+
+/* Accordion group — stacked details without double borders */
+
+:where(.eink-details-group > .eink-details + .eink-details),
+:where(.eink-accordion-group > .eink-accordion + .eink-accordion) {
+  border-top: none;
+}

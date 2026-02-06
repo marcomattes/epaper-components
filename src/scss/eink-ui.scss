@@ -1,0 +1,8 @@
+/* ============================================
+   eink-ui.scss — Bundle entry (tokens + base + components)
+   Compiles to dist/eink-ui.css and dist/eink-ui.min.css
+   ============================================ */
+
+@use "eink-ui.tokens" as tokens;
+@use "eink-ui.base" as base;
+@use "eink-ui.components" as components;

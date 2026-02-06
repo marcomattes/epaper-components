@@ -1,0 +1,356 @@
+<% layout("../_layout", { title: "Newsreader", current: "newsreader", fullHeader: false }) %>
+
+    <main class="eink-container eink-stack">
+      <h2>Newsreader Pattern</h2>
+      <p class="eink-note">
+        This page demonstrates how to compose eink-ui components into a news reader
+        layout. Components shown: Breadcrumb, Article, Byline, Avatar, Tag, Blockquote,
+        Timeline, Pagination.
+      </p>
+
+      <!-- BREADCRUMB -->
+      <section class="eink-section">
+        <h3>Breadcrumb</h3>
+        <p class="eink-note">
+          E-Ink rationale: Breadcrumbs use a simple "/" separator rendered via CSS
+          pseudo-element. No icons or images means zero extra repaint cost.
+        </p>
+        <nav
+          aria-label="Breadcrumb"
+          class="eink-breadcrumb"
+          style="margin-top: var(--eink-space-3)"
+        >
+          <ol class="eink-breadcrumb__list">
+            <li class="eink-breadcrumb__item"><a href="#">Home</a></li>
+            <li class="eink-breadcrumb__item"><a href="#">Technology</a></li>
+            <li class="eink-breadcrumb__item"><a href="#">Hardware</a></li>
+            <li class="eink-breadcrumb__item" aria-current="page">E-Ink Advances</li>
+          </ol>
+        </nav>
+      </section>
+
+      <!-- ARTICLE -->
+      <section class="eink-section">
+        <h3>Article with Byline</h3>
+        <p class="eink-note">
+          E-Ink rationale: Article layout uses generous vertical spacing and a
+          constrained measure (line length) for comfortable reading on low-refresh
+          displays.
+        </p>
+
+        <article class="eink-article" style="margin-top: var(--eink-space-4)">
+          <div class="eink-article__header">
+            <h2 class="eink-article__title">
+              New E-Ink Panels Achieve 300 PPI with Faster Refresh
+            </h2>
+            <div class="eink-article__meta">
+              <div class="eink-byline">
+                <span class="eink-avatar eink-avatar--sm">JD</span>
+                <span class="eink-byline__name">Jane Doe</span>
+              </div>
+              <time datetime="2025-01-15">January 15, 2025</time>
+              <span>5 min read</span>
+            </div>
+          </div>
+
+          <div class="eink-article__body">
+            <p>
+              The latest generation of electrophoretic displays has reached a milestone
+              in both resolution and responsiveness. At 300 pixels per inch, text
+              rendering approaches the crispness of printed paper, making these panels
+              suitable for extended reading sessions without eye fatigue.
+            </p>
+
+            <blockquote class="eink-blockquote">
+              <p>
+                The key breakthrough was reducing the particle migration time from 450ms
+                to under 120ms, enabling partial-refresh rates that feel nearly
+                instantaneous for page turns.
+              </p>
+              <cite class="eink-blockquote__cite"
+                >Dr. Maria Chen, E-Ink Corporation</cite
+              >
+            </blockquote>
+
+            <p>
+              This advancement matters particularly for interface designers. With faster
+              refresh rates, interactive elements like buttons and form controls become
+              viable on E-Ink devices. The traditional limitation of "static content
+              only" is gradually being replaced by a new paradigm of thoughtful,
+              low-frequency interaction design.
+            </p>
+
+            <h3>What This Means for Developers</h3>
+            <p>
+              Web developers targeting E-Ink devices should still prioritize minimal
+              repaints and avoid animations. However, the improved refresh rates mean
+              that carefully designed form interactions, navigation patterns, and even
+              simple dashboards can now provide acceptable user experiences.
+            </p>
+          </div>
+
+          <div class="eink-article__footer">
+            <div class="eink-tag-group">
+              <span class="eink-tag">E-Ink</span>
+              <span class="eink-tag">Hardware</span>
+              <span class="eink-tag">Display Technology</span>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- AVATAR -->
+      <section class="eink-section">
+        <h3>Avatar</h3>
+        <p class="eink-note">
+          E-Ink rationale: Avatars use a simple bordered circle with a muted background.
+          When images are unavailable, initials provide identification without loading
+          external assets.
+        </p>
+
+        <div class="eink-cluster" style="margin-top: var(--eink-space-3)">
+          <span class="eink-avatar eink-avatar--sm">S</span>
+          <span class="eink-avatar">JD</span>
+          <span class="eink-avatar eink-avatar--lg">AK</span>
+          <span class="eink-avatar eink-avatar--lg">
+            <img
+              src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' fill='%23d4d4d4'%3E%3Crect width='56' height='56'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23525252' font-family='sans-serif' font-size='11'%3Ephoto%3C/text%3E%3C/svg%3E"
+              alt="User photo"
+            />
+          </span>
+        </div>
+      </section>
+
+      <!-- TAGS -->
+      <section class="eink-section">
+        <h3>Tags</h3>
+        <p class="eink-note">
+          E-Ink rationale: Tags use border outlines by default, avoiding filled
+          backgrounds that cause full-pixel repaints. The filled variant is available
+          for emphasis.
+        </p>
+
+        <div style="margin-top: var(--eink-space-3)">
+          <h4 style="margin-bottom: var(--eink-space-2)">Default (outline)</h4>
+          <div class="eink-tag-group">
+            <span class="eink-tag">Technology</span>
+            <span class="eink-tag">E-Ink</span>
+            <span class="eink-tag">Hardware</span>
+            <span class="eink-tag">Opinion</span>
+          </div>
+
+          <h4
+            style="margin-top: var(--eink-space-4); margin-bottom: var(--eink-space-2)"
+          >
+            Filled
+          </h4>
+          <div class="eink-tag-group">
+            <span class="eink-tag eink-tag--filled">Featured</span>
+            <span class="eink-tag eink-tag--filled">Breaking</span>
+          </div>
+
+          <h4
+            style="margin-top: var(--eink-space-4); margin-bottom: var(--eink-space-2)"
+          >
+            Muted
+          </h4>
+          <div class="eink-tag-group">
+            <span class="eink-tag eink-tag--muted">Archive</span>
+            <span class="eink-tag eink-tag--muted">Draft</span>
+          </div>
+
+          <h4
+            style="margin-top: var(--eink-space-4); margin-bottom: var(--eink-space-2)"
+          >
+            As links
+          </h4>
+          <div class="eink-tag-group">
+            <a href="#" class="eink-tag">Technology</a>
+            <a href="#" class="eink-tag">Science</a>
+            <a href="#" class="eink-tag">Culture</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- BLOCKQUOTE -->
+      <section class="eink-section">
+        <h3>Blockquote</h3>
+        <p class="eink-note">
+          E-Ink rationale: Blockquotes use a thick left border for visual distinction.
+          The pullquote variant uses top/bottom rules instead — both avoid filled
+          backgrounds.
+        </p>
+
+        <div
+          class="eink-stack"
+          style="margin-top: var(--eink-space-4); max-width: var(--eink-measure)"
+        >
+          <blockquote class="eink-blockquote">
+            <p>
+              Good design is as little design as possible. Less, but better, because it
+              concentrates on the essential aspects.
+            </p>
+            <cite class="eink-blockquote__cite">Dieter Rams</cite>
+          </blockquote>
+
+          <blockquote class="eink-blockquote eink-blockquote--pull">
+            <p>The screen should be invisible. The content should speak.</p>
+          </blockquote>
+        </div>
+      </section>
+
+      <!-- TIMELINE -->
+      <section class="eink-section">
+        <h3>Timeline</h3>
+        <p class="eink-note">
+          E-Ink rationale: The timeline uses a thin vertical line and small circular
+          markers rendered with CSS borders. No images or SVGs needed.
+        </p>
+
+        <ol
+          class="eink-timeline"
+          style="margin-top: var(--eink-space-4); max-width: var(--eink-measure)"
+        >
+          <li class="eink-timeline__item eink-timeline__item--active">
+            <time class="eink-timeline__time" datetime="2025-01-15T14:30">14:30</time>
+            <div class="eink-timeline__title">E-Ink Corp announces 300 PPI display</div>
+            <div class="eink-timeline__body">
+              New panel achieves print-level resolution with 120ms partial refresh.
+            </div>
+          </li>
+          <li class="eink-timeline__item">
+            <time class="eink-timeline__time" datetime="2025-01-15T12:00">12:00</time>
+            <div class="eink-timeline__title">Kobo unveils next-gen reader</div>
+            <div class="eink-timeline__body">
+              The Kobo Sage successor features the new high-resolution panel.
+            </div>
+          </li>
+          <li class="eink-timeline__item">
+            <time class="eink-timeline__time" datetime="2025-01-15T09:15">09:15</time>
+            <div class="eink-timeline__title">CES 2025 keynote covers display tech</div>
+            <div class="eink-timeline__body">
+              Opening keynote highlights advances in low-power display technology.
+            </div>
+          </li>
+          <li class="eink-timeline__item">
+            <time class="eink-timeline__time" datetime="2025-01-14T18:00"
+              >Yesterday 18:00</time
+            >
+            <div class="eink-timeline__title">Industry analysis published</div>
+            <div class="eink-timeline__body">
+              Annual report on E-Ink market growth released by DisplaySearch.
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <!-- ARTICLE LIST (Feed) -->
+      <section class="eink-section">
+        <h3>Article Feed</h3>
+        <p class="eink-note">
+          Composing cards, bylines, and tags into a news feed. Uses the grid layout with
+          card components to create a scannable article listing.
+        </p>
+
+        <div class="eink-stack" style="margin-top: var(--eink-space-4)">
+          <article class="eink-card">
+            <div class="eink-card__title">
+              Kindle Scribe Gets Handwriting-to-Text Conversion
+            </div>
+            <div class="eink-card__body">
+              <p>
+                Amazon's latest firmware update brings real-time handwriting recognition
+                to the Kindle Scribe, making note-taking significantly more practical.
+              </p>
+              <div class="eink-article__meta" style="margin-top: var(--eink-space-3)">
+                <div class="eink-byline">
+                  <span class="eink-avatar eink-avatar--sm">MK</span>
+                  <span class="eink-byline__name">M. Kim</span>
+                </div>
+                <time datetime="2025-01-14">Jan 14</time>
+                <div class="eink-tag-group">
+                  <span class="eink-tag">Kindle</span>
+                  <span class="eink-tag">Software</span>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="eink-card">
+            <div class="eink-card__title">
+              Open-Source E-Ink Dashboard Framework Released
+            </div>
+            <div class="eink-card__body">
+              <p>
+                A new CSS-only framework specifically targets E-Ink displays, offering
+                optimized components for dashboards and reading interfaces.
+              </p>
+              <div class="eink-article__meta" style="margin-top: var(--eink-space-3)">
+                <div class="eink-byline">
+                  <span class="eink-avatar eink-avatar--sm">AL</span>
+                  <span class="eink-byline__name">A. Lee</span>
+                </div>
+                <time datetime="2025-01-13">Jan 13</time>
+                <div class="eink-tag-group">
+                  <span class="eink-tag">Open Source</span>
+                  <span class="eink-tag">CSS</span>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="eink-card">
+            <div class="eink-card__title">
+              Why E-Ink Tablets Are Replacing Paper Notebooks
+            </div>
+            <div class="eink-card__body">
+              <p>
+                The combination of low eye strain, week-long battery life, and improving
+                stylus technology is driving adoption among professionals.
+              </p>
+              <div class="eink-article__meta" style="margin-top: var(--eink-space-3)">
+                <div class="eink-byline">
+                  <span class="eink-avatar eink-avatar--sm">SR</span>
+                  <span class="eink-byline__name">S. Rivera</span>
+                </div>
+                <time datetime="2025-01-12">Jan 12</time>
+                <div class="eink-tag-group">
+                  <span class="eink-tag">Opinion</span>
+                  <span class="eink-tag">Productivity</span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- PAGINATION -->
+      <section class="eink-section">
+        <h3>Pagination</h3>
+        <p class="eink-note">
+          E-Ink rationale: Pagination uses bordered boxes with clear hit targets. The
+          current page inverts foreground/background for maximum contrast
+          identification.
+        </p>
+
+        <nav
+          aria-label="Pagination"
+          class="eink-pagination"
+          style="margin-top: var(--eink-space-4)"
+        >
+          <ol class="eink-pagination__list">
+            <li>
+              <a href="#" class="eink-pagination__link" aria-disabled="true"
+                >&laquo; Prev</a
+              >
+            </li>
+            <li><a href="#" class="eink-pagination__link" aria-current="page">1</a></li>
+            <li><a href="#" class="eink-pagination__link">2</a></li>
+            <li><a href="#" class="eink-pagination__link">3</a></li>
+            <li><a href="#" class="eink-pagination__link">4</a></li>
+            <li><a href="#" class="eink-pagination__link">5</a></li>
+            <li><a href="#" class="eink-pagination__link">Next &raquo;</a></li>
+          </ol>
+        </nav>
+      </section>
+    </main>

@@ -1,0 +1,53 @@
+/* ===========================================
+   TABLE
+   =========================================== */
+
+/* Responsive wrapper: horizontal scroll */
+
+:where(.eink-table-wrap) {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+}
+
+:where(.eink-table) {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 100%;
+}
+
+:where(.eink-table th),
+:where(.eink-table td) {
+  text-align: left;
+  padding: var(--eink-space-2) var(--eink-space-3);
+  border-bottom: var(--eink-border-thin) solid var(--eink-border-color);
+  white-space: nowrap;
+}
+
+:where(.eink-table th) {
+  font-weight: var(--eink-weight-bold);
+  border-bottom-width: var(--eink-border-medium);
+  background-color: var(--eink-bg-muted);
+}
+
+:where(.eink-table--striped tbody tr:nth-child(even)) {
+  background-color: var(--eink-table-stripe);
+}
+
+:where(.eink-table--bordered th),
+:where(.eink-table--bordered td) {
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+}
+
+:where(.eink-table--compact th),
+:where(.eink-table--compact td) {
+  padding: var(--eink-space-1) var(--eink-space-2);
+  font-size: var(--eink-text-sm);
+}
+
+:where(.eink-table caption) {
+  text-align: left;
+  font-weight: var(--eink-weight-bold);
+  padding: var(--eink-space-2) var(--eink-space-3);
+  caption-side: top;
+}

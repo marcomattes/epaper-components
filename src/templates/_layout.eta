@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en" data-theme="default">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title><%= it.title %> — eink-ui</title>
+    <link rel="stylesheet" href="../dist/eink-ui.css" />
+    <link rel="icon" href="../assets/eink-ui-logo.svg" type="image/svg+xml" />
+<% if (it.fullHeader) { %>
+    <script src="./theme.js" defer></script>
+<% } %>
+<% if (it.headExtra) { %>
+<%~ it.headExtra + '\n' %><% } %>
+  </head>
+  <body>
+    <header class="eink-page-header">
+      <div class="eink-container<%= it.wide ? ' eink-container--wide' : '' %>">
+<% if (it.fullHeader) { %>
+        <div class="eink-cluster" style="align-items: center; gap: var(--eink-space-3)">
+          <img
+            src="../assets/eink-ui-logo.svg"
+            alt="eink-ui"
+            width="120"
+            height="32"
+            loading="lazy"
+          />
+          <h1 style="font-size: var(--eink-text-2xl); margin: 0">eink-ui</h1>
+        </div>
+<% } else { %>
+        <h1 style="font-size: var(--eink-text-2xl); margin-bottom: var(--eink-space-2)">
+          eink-ui
+        </h1>
+<% } %>
+        <nav class="eink-nav" aria-label="Main navigation">
+          <a href="index.html"<%= it.current === 'index' ? ' aria-current="page"' : '' %>>Overview</a>
+          <a href="typography.html"<%= it.current === 'typography' ? ' aria-current="page"' : '' %>>Typography</a>
+          <a href="layout.html"<%= it.current === 'layout' ? ' aria-current="page"' : '' %>>Layout</a>
+          <a href="components.html"<%= it.current === 'components' ? ' aria-current="page"' : '' %>>Components</a>
+          <a href="forms.html"<%= it.current === 'forms' ? ' aria-current="page"' : '' %>>Forms</a>
+          <a href="dialog.html"<%= it.current === 'dialog' ? ' aria-current="page"' : '' %>>Dialog</a>
+          <a href="tables.html"<%= it.current === 'tables' ? ' aria-current="page"' : '' %>>Tables</a>
+          <a href="newsreader.html"<%= it.current === 'newsreader' ? ' aria-current="page"' : '' %>>Newsreader</a>
+          <a href="blog.html"<%= it.current === 'blog' ? ' aria-current="page"' : '' %>>Blog</a>
+          <a href="dashboard.html"<%= it.current === 'dashboard' ? ' aria-current="page"' : '' %>>Dashboard</a>
+        </nav>
+        <p class="eink-text-xs" style="margin-top: var(--eink-space-1); display: flex; gap: var(--eink-space-3); align-items: center; flex-wrap: wrap;">
+          <a href="../demo-wc/index.html"><strong>Switch to Web Component demos</strong></a>
+          <span aria-hidden="true">·</span>
+          <a href="https://marcomattes.github.io/eink-css-ui-framework/storybook/"><strong>View Storybook</strong></a>
+        </p>
+<% if (it.fullHeader) { %>
+        <p
+          class="eink-text-xs eink-text-muted"
+          style="
+            margin-top: var(--eink-space-2);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+            align-items: center;
+          "
+        >
+          <span>Theme: <code data-theme-label>default</code></span>
+          <span aria-hidden="true">·</span>
+          <a href="?theme=default">Default</a>
+          <a href="?theme=inverted">Inverted</a>
+          <a href="?theme=high-contrast">High-contrast</a>
+          <span aria-hidden="true">·</span>
+          <span
+            >Set <code>data-theme="..."</code> on <code>&lt;html&gt;</code> for no-JS
+            use.</span
+          >
+        </p>
+<% } else { %>
+        <p class="eink-text-xs eink-text-muted" style="margin-top: var(--eink-space-2)">
+          Theme: <code>default</code>
+        </p>
+<% } %>
+      </div>
+    </header>
+<%~ it.body %>
+
+    <footer class="eink-page-footer">
+      <div class="eink-container<%= it.wide ? ' eink-container--wide' : '' %>">
+        <small><%= it.footerText || 'eink-ui — CSS-only component library for E-Ink devices.' %></small>
+      </div>
+    </footer>
+<% if (it.bodyEnd) { %>
+
+<%~ it.bodyEnd + '\n' %><% } %>
+  </body>
+</html>

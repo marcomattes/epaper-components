@@ -1,0 +1,36 @@
+/* ===========================================
+   BLOCKQUOTE
+   =========================================== */
+
+:where(.eink-blockquote) {
+  border-left: var(--eink-border-thick) solid var(--eink-border-strong);
+  padding-left: var(--eink-space-4);
+  margin-inline: 0;
+  font-size: var(--eink-text-lg);
+  font-style: italic;
+  line-height: var(--eink-leading-relaxed);
+}
+
+:where(.eink-blockquote__cite) {
+  display: block;
+  margin-top: var(--eink-space-2);
+  font-size: var(--eink-text-sm);
+  font-style: normal;
+  color: var(--eink-fg-muted);
+}
+
+:where(.eink-blockquote__cite)::before {
+  content: "\2014\00a0";
+}
+
+/* Pullquote variant — centered, larger, no border */
+
+:where(.eink-blockquote--pull) {
+  border-left: none;
+  text-align: center;
+  padding-left: 0;
+  padding-block: var(--eink-space-4);
+  border-top: var(--eink-border-medium) solid var(--eink-border-color);
+  border-bottom: var(--eink-border-medium) solid var(--eink-border-color);
+  font-size: var(--eink-text-xl);
+}

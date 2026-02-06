@@ -1,0 +1,78 @@
+/* ===========================================
+   TABS (CSS-only via radio inputs)
+   =========================================== */
+
+@use "../mixins" as *;
+
+/*
+  HTML structure (flat siblings required for CSS selectors):
+
+  <div class="eink-tabs">
+    <input type="radio" name="t" id="t1" class="eink-tabs__input" checked>
+    <label for="t1" class="eink-tabs__tab">Tab 1</label>
+    <input type="radio" name="t" id="t2" class="eink-tabs__input">
+    <label for="t2" class="eink-tabs__tab">Tab 2</label>
+    <div class="eink-tabs__panel">Panel 1</div>
+    <div class="eink-tabs__panel">Panel 2</div>
+  </div>
+*/
+
+:where(.eink-tabs) {
+  display: grid;
+  grid-template-columns: repeat(var(--eink-tabs-count, 3), auto) 1fr;
+  grid-template-rows: auto 1fr;
+}
+
+:where(.eink-tabs__input) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+:where(.eink-tabs__tab) {
+  grid-row: 1;
+  padding: var(--eink-space-2) var(--eink-space-4);
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+  border-bottom: none;
+  margin-right: calc(-1 * var(--eink-border-thin));
+  font-size: var(--eink-text-sm);
+  font-weight: var(--eink-weight-medium);
+  color: var(--eink-fg-muted);
+  cursor: pointer;
+}
+
+:where(.eink-tabs__input:checked + .eink-tabs__tab) {
+  font-weight: var(--eink-weight-bold);
+  color: var(--eink-fg);
+  background-color: var(--eink-surface);
+  border-bottom: var(--eink-border-thin) solid var(--eink-surface);
+  position: relative;
+}
+
+:where(.eink-tabs__input:focus-visible + .eink-tabs__tab) {
+  @include focus-ring;
+}
+
+:where(.eink-tabs__panel) {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  display: none;
+  padding: var(--eink-space-4);
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+}
+
+/* Show active panel: up to 5 tabs supported */
+
+:where(.eink-tabs__input:nth-of-type(1):checked ~ .eink-tabs__panel:nth-of-type(1)),
+:where(.eink-tabs__input:nth-of-type(2):checked ~ .eink-tabs__panel:nth-of-type(2)),
+:where(.eink-tabs__input:nth-of-type(3):checked ~ .eink-tabs__panel:nth-of-type(3)),
+:where(.eink-tabs__input:nth-of-type(4):checked ~ .eink-tabs__panel:nth-of-type(4)),
+:where(.eink-tabs__input:nth-of-type(5):checked ~ .eink-tabs__panel:nth-of-type(5)) {
+  display: block;
+}

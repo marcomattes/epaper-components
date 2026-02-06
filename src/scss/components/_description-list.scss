@@ -1,0 +1,50 @@
+/* ===========================================
+   DESCRIPTION LIST
+   =========================================== */
+
+:where(.eink-dl) {
+  margin: 0;
+}
+
+:where(.eink-dl__term) {
+  font-weight: var(--eink-weight-bold);
+  font-size: var(--eink-text-sm);
+  color: var(--eink-fg-muted);
+}
+
+:where(.eink-dl__detail) {
+  margin-left: 0;
+  margin-bottom: var(--eink-space-4);
+}
+
+:where(.eink-dl__detail:last-child) {
+  margin-bottom: 0;
+}
+
+/* Horizontal layout — term and detail side by side */
+
+:where(.eink-dl--horizontal) {
+  display: grid;
+  grid-template-columns: minmax(8rem, auto) 1fr;
+  gap: var(--eink-space-2) var(--eink-space-4);
+  align-items: baseline;
+}
+
+:where(.eink-dl--horizontal > .eink-dl__detail) {
+  margin-bottom: 0;
+}
+
+/* Bordered variant — rows separated by lines */
+
+:where(.eink-dl--bordered > .eink-dl__term),
+:where(.eink-dl--bordered > .eink-dl__detail) {
+  padding-block: var(--eink-space-2);
+}
+
+:where(.eink-dl--bordered > .eink-dl__term) {
+  border-top: var(--eink-border-thin) solid var(--eink-border-color);
+}
+
+:where(.eink-dl--bordered.eink-dl--horizontal > .eink-dl__detail) {
+  border-top: var(--eink-border-thin) solid var(--eink-border-color);
+}

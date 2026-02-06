@@ -1,0 +1,51 @@
+/* ===========================================
+   LOADER (STATIC, NO ANIMATION)
+   =========================================== */
+
+@use "../mixins" as *;
+
+:where(.eink-loader) {
+  display: flex;
+  align-items: center;
+  gap: var(--eink-space-3);
+  color: var(--eink-fg-muted);
+}
+
+:where(.eink-loader__label) {
+  font-size: var(--eink-text-sm);
+  font-weight: var(--eink-weight-medium);
+}
+
+:where(.eink-loader__track) {
+  position: relative;
+  flex: 1;
+  min-width: 6rem;
+  height: 0.75rem;
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+  background-color: var(--eink-bg);
+}
+
+:where(.eink-loader__fill) {
+  --eink-loader-value: 100%;
+  width: var(--eink-loader-value);
+  height: 100%;
+  background: repeating-linear-gradient(
+    135deg,
+    var(--eink-fg) 0 6px,
+    transparent 6px 12px
+  );
+}
+
+/* State variants */
+
+:where(.eink-loader[data-state="complete"] .eink-loader__fill) {
+  background: var(--eink-fg);
+}
+
+:where(.eink-loader[data-state="paused"] .eink-loader__fill) {
+  background: var(--eink-border-color);
+}
+
+:where(.eink-loader--thin > .eink-loader__track) {
+  height: 0.5rem;
+}

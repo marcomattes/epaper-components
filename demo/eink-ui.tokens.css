@@ -1,0 +1,147 @@
+@charset "UTF-8";
+/* ============================================
+   eink-ui.tokens.scss — Design Tokens (SCSS source)
+   Compiles to eink-ui.tokens.css
+   ============================================ */
+/* --- Primitive scale (theme-independent) --- */
+:root {
+  /* Primitive grayscale palette */
+  --eink-color-black: #000;
+  --eink-color-white: #fff;
+  --eink-color-gray-50: #fafafa;
+  --eink-color-gray-100: #f5f5f5;
+  --eink-color-gray-200: #e5e5e5;
+  --eink-color-gray-300: #d4d4d4;
+  --eink-color-gray-400: #a3a3a3;
+  --eink-color-gray-500: #737373;
+  --eink-color-gray-600: #525252;
+  --eink-color-gray-700: #404040;
+  --eink-color-gray-800: #262626;
+  --eink-color-gray-900: #171717;
+  /* Spacing scale (4px base) */
+  --eink-space-0: 0;
+  --eink-space-1: 0.25rem;
+  --eink-space-2: 0.5rem;
+  --eink-space-3: 0.75rem;
+  --eink-space-4: 1rem;
+  --eink-space-5: 1.5rem;
+  --eink-space-6: 2rem;
+  --eink-space-7: 3rem;
+  --eink-space-8: 4rem;
+  /* Typography — system font stack (no webfonts for e-ink stability) */
+  --eink-font-sans:
+    -apple-system, blinkmacsystemfont, "Segoe UI", roboto, "Helvetica Neue", arial,
+    "Noto Sans", sans-serif;
+  --eink-font-serif:
+    "Iowan Old Style", "Palatino Linotype", "URW Palladio L", p052, serif;
+  --eink-font-mono:
+    ui-monospace, sfmono-regular, "SF Mono", menlo, consolas, "Liberation Mono",
+    monospace;
+  /* Type scale */
+  --eink-text-xs: 0.75rem;
+  --eink-text-sm: 0.875rem;
+  --eink-text-base: 1rem;
+  --eink-text-lg: 1.125rem;
+  --eink-text-xl: 1.25rem;
+  --eink-text-2xl: 1.5rem;
+  --eink-text-3xl: 1.875rem;
+  --eink-text-4xl: 2.25rem;
+  /* Line heights */
+  --eink-leading-tight: 1.25;
+  --eink-leading-normal: 1.5;
+  --eink-leading-relaxed: 1.625;
+  /* Font weights */
+  --eink-weight-normal: 400;
+  --eink-weight-medium: 500;
+  --eink-weight-bold: 700;
+  /* Borders */
+  --eink-border-thin: 1px;
+  --eink-border-medium: 2px;
+  --eink-border-thick: 3px;
+  --eink-radius-sm: 2px;
+  --eink-radius-md: 4px;
+  /* Line length (measure) */
+  --eink-measure: 65ch;
+  --eink-measure-narrow: 45ch;
+  --eink-measure-wide: 80ch;
+  /* Focus ring */
+  --eink-focus-width: 3px;
+  --eink-focus-offset: 2px;
+}
+
+/* -----------------------------------------------
+   Default theme
+   ----------------------------------------------- */
+:root,
+[data-theme=default] {
+  --eink-fg: var(--eink-color-gray-900);
+  --eink-fg-muted: var(--eink-color-gray-600);
+  --eink-fg-subtle: var(--eink-color-gray-400);
+  --eink-bg: var(--eink-color-white);
+  --eink-bg-subtle: var(--eink-color-gray-50);
+  --eink-bg-muted: var(--eink-color-gray-100);
+  --eink-border-color: var(--eink-color-gray-300);
+  --eink-border-strong: var(--eink-color-gray-600);
+  --eink-surface: var(--eink-color-white);
+  --eink-focus-color: var(--eink-color-black);
+  --eink-error-fg: var(--eink-color-black);
+  --eink-error-border: var(--eink-color-gray-700);
+  --eink-error-bg: var(--eink-color-gray-100);
+  --eink-disabled-fg: var(--eink-color-gray-400);
+  --eink-disabled-bg: var(--eink-color-gray-100);
+  --eink-disabled-border: var(--eink-color-gray-200);
+  --eink-mark-bg: var(--eink-color-gray-200);
+  --eink-selection-bg: var(--eink-color-gray-300);
+  --eink-table-stripe: var(--eink-color-gray-50);
+}
+
+/* -----------------------------------------------
+   Inverted theme
+   ----------------------------------------------- */
+[data-theme=inverted] {
+  --eink-fg: var(--eink-color-gray-100);
+  --eink-fg-muted: var(--eink-color-gray-400);
+  --eink-fg-subtle: var(--eink-color-gray-500);
+  --eink-bg: var(--eink-color-gray-900);
+  --eink-bg-subtle: var(--eink-color-gray-800);
+  --eink-bg-muted: var(--eink-color-gray-700);
+  --eink-border-color: var(--eink-color-gray-600);
+  --eink-border-strong: var(--eink-color-gray-400);
+  --eink-surface: var(--eink-color-gray-800);
+  --eink-focus-color: var(--eink-color-white);
+  --eink-error-fg: var(--eink-color-white);
+  --eink-error-border: var(--eink-color-gray-400);
+  --eink-error-bg: var(--eink-color-gray-700);
+  --eink-disabled-fg: var(--eink-color-gray-600);
+  --eink-disabled-bg: var(--eink-color-gray-800);
+  --eink-disabled-border: var(--eink-color-gray-700);
+  --eink-mark-bg: var(--eink-color-gray-700);
+  --eink-selection-bg: var(--eink-color-gray-600);
+  --eink-table-stripe: var(--eink-color-gray-800);
+}
+
+/* -----------------------------------------------
+   High-contrast theme
+   ----------------------------------------------- */
+[data-theme=high-contrast] {
+  --eink-fg: var(--eink-color-black);
+  --eink-fg-muted: var(--eink-color-black);
+  --eink-fg-subtle: var(--eink-color-gray-700);
+  --eink-bg: var(--eink-color-white);
+  --eink-bg-subtle: var(--eink-color-white);
+  --eink-bg-muted: var(--eink-color-white);
+  --eink-border-color: var(--eink-color-black);
+  --eink-border-strong: var(--eink-color-black);
+  --eink-surface: var(--eink-color-white);
+  --eink-focus-color: var(--eink-color-black);
+  --eink-error-fg: var(--eink-color-black);
+  --eink-error-border: var(--eink-color-black);
+  --eink-error-bg: var(--eink-color-white);
+  --eink-disabled-fg: var(--eink-color-gray-500);
+  --eink-disabled-bg: var(--eink-color-white);
+  --eink-disabled-border: var(--eink-color-gray-500);
+  --eink-mark-bg: var(--eink-color-gray-300);
+  --eink-selection-bg: var(--eink-color-black);
+  --eink-table-stripe: var(--eink-color-white);
+}
+/*# sourceMappingURL=eink-ui.tokens.css.map */

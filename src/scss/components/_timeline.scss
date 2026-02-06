@@ -1,0 +1,70 @@
+/* ===========================================
+   TIMELINE
+   =========================================== */
+
+:where(.eink-timeline) {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  position: relative;
+}
+
+/* Vertical line */
+
+:where(.eink-timeline)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0.5rem;
+  width: var(--eink-border-thin);
+  background-color: var(--eink-border-color);
+}
+
+:where(.eink-timeline__item) {
+  position: relative;
+  padding-left: var(--eink-space-6);
+  padding-bottom: var(--eink-space-5);
+}
+
+:where(.eink-timeline__item:last-child) {
+  padding-bottom: 0;
+}
+
+/* Marker dot */
+
+:where(.eink-timeline__item)::before {
+  content: "";
+  position: absolute;
+  left: calc(0.5rem - 3px);
+  top: 0.35rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border: var(--eink-border-medium) solid var(--eink-border-strong);
+  border-radius: 50%;
+  background-color: var(--eink-bg);
+}
+
+/* Filled marker for emphasis */
+
+:where(.eink-timeline__item--active)::before {
+  background-color: var(--eink-fg);
+  border-color: var(--eink-fg);
+}
+
+:where(.eink-timeline__time) {
+  display: block;
+  font-size: var(--eink-text-xs);
+  color: var(--eink-fg-muted);
+  margin-bottom: var(--eink-space-1);
+}
+
+:where(.eink-timeline__title) {
+  font-weight: var(--eink-weight-bold);
+  margin-bottom: var(--eink-space-1);
+}
+
+:where(.eink-timeline__body) {
+  font-size: var(--eink-text-sm);
+  color: var(--eink-fg-muted);
+}

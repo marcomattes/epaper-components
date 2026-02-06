@@ -1,0 +1,49 @@
+/* ===========================================
+   PROGRESS BAR
+   =========================================== */
+
+:where(.eink-progress) {
+  display: flex;
+  align-items: center;
+  gap: var(--eink-space-3);
+}
+
+:where(.eink-progress__track) {
+  flex: 1;
+  height: 0.5rem;
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+  background-color: var(--eink-bg);
+}
+
+:where(.eink-progress__bar) {
+  height: 100%;
+  background-color: var(--eink-fg);
+
+  /* width set via inline style, e.g. style="width:60%" */
+}
+
+:where(.eink-progress__label) {
+  font-size: var(--eink-text-xs);
+  font-weight: var(--eink-weight-medium);
+  flex-shrink: 0;
+  min-width: 3ch;
+  text-align: right;
+}
+
+/* Thick variant for dashboard emphasis */
+
+:where(.eink-progress--thick > .eink-progress__track) {
+  height: 1rem;
+}
+
+/* Labeled variant — label above the bar */
+
+:where(.eink-progress--labeled) {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--eink-space-1);
+}
+
+:where(.eink-progress--labeled > .eink-progress__label) {
+  text-align: left;
+}

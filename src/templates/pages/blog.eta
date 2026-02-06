@@ -1,0 +1,349 @@
+<% layout("../_layout", { title: "Blog", current: "blog", fullHeader: false }) %>
+
+    <main class="eink-container eink-stack">
+      <h2>Blog Pattern</h2>
+      <p class="eink-note">
+        This page demonstrates a blog layout using the sidebar, article,
+        details/accordion, list group, and other components composed together.
+      </p>
+
+      <!-- SIDEBAR LAYOUT -->
+      <section class="eink-section">
+        <h3>Sidebar Layout</h3>
+        <p class="eink-note">
+          E-Ink rationale: The sidebar layout uses CSS flexbox wrapping. On narrow E-Ink
+          screens, the sidebar stacks below the main content — no JavaScript breakpoint
+          detection needed.
+        </p>
+
+        <div class="eink-with-sidebar" style="margin-top: var(--eink-space-4)">
+          <!-- Main content area -->
+          <div class="eink-with-sidebar__main">
+            <!-- Breadcrumb -->
+            <nav
+              aria-label="Breadcrumb"
+              class="eink-breadcrumb"
+              style="margin-bottom: var(--eink-space-4)"
+            >
+              <ol class="eink-breadcrumb__list">
+                <li class="eink-breadcrumb__item"><a href="#">Home</a></li>
+                <li class="eink-breadcrumb__item"><a href="#">Blog</a></li>
+                <li class="eink-breadcrumb__item" aria-current="page">
+                  Building for E-Ink
+                </li>
+              </ol>
+            </nav>
+
+            <!-- Full blog post -->
+            <article class="eink-article">
+              <div class="eink-article__header">
+                <h2 class="eink-article__title">
+                  Building Interfaces for E-Ink: A Practical Guide
+                </h2>
+                <div class="eink-article__meta">
+                  <div class="eink-byline">
+                    <span class="eink-avatar eink-avatar--sm">AT</span>
+                    <span class="eink-byline__name">Alex Thompson</span>
+                  </div>
+                  <time datetime="2025-01-10">January 10, 2025</time>
+                  <span>8 min read</span>
+                </div>
+              </div>
+
+              <div class="eink-article__body">
+                <p>
+                  Designing for E-Ink displays requires a fundamental shift in thinking.
+                  The constraints of electrophoretic technology — slow refresh rates,
+                  monochrome rendering, and no backlight — become advantages when
+                  embraced rather than fought against.
+                </p>
+
+                <h3>The Core Principles</h3>
+                <p>
+                  Every design decision should minimize screen repaints. This means
+                  avoiding animations, transitions, hover effects, and large filled
+                  areas. Instead, rely on borders, whitespace, and typography to create
+                  visual hierarchy.
+                </p>
+
+                <blockquote class="eink-blockquote">
+                  <p>
+                    Design for the constraint, not against it. E-Ink's limitations are
+                    also its strengths: zero eye strain, week-long battery, and readable
+                    in direct sunlight.
+                  </p>
+                </blockquote>
+
+                <h3>Typography First</h3>
+                <p>
+                  On E-Ink, typography does the heavy lifting. Use a system font stack
+                  to avoid network requests and ensure instant rendering. Set
+                  comfortable line heights (1.5 or greater) and constrain line length to
+                  45–75 characters for optimal readability.
+                </p>
+
+                <p>
+                  Font weight variations (normal, medium, bold) provide clear hierarchy
+                  without requiring color differences — essential on a grayscale
+                  display.
+                </p>
+
+                <h3>Interaction Patterns</h3>
+                <p>
+                  Touch targets should be generous (at least 44px). Focus states must
+                  use outlines rather than background color changes to reduce repaint
+                  area. Form validation should be inline and persistent, not ephemeral
+                  tooltips that require rapid screen updates.
+                </p>
+              </div>
+
+              <div class="eink-article__footer">
+                <div class="eink-cluster" style="justify-content: space-between">
+                  <div class="eink-tag-group">
+                    <a href="#" class="eink-tag">Design</a>
+                    <a href="#" class="eink-tag">E-Ink</a>
+                    <a href="#" class="eink-tag">CSS</a>
+                    <a href="#" class="eink-tag">Accessibility</a>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <!-- Sidebar -->
+          <aside class="eink-with-sidebar__sidebar">
+            <div class="eink-stack">
+              <div>
+                <h4 style="margin-bottom: var(--eink-space-2)">About the Author</h4>
+                <div class="eink-card">
+                  <div class="eink-byline" style="margin-bottom: var(--eink-space-2)">
+                    <span class="eink-avatar">AT</span>
+                    <div>
+                      <span class="eink-byline__name">Alex Thompson</span>
+                      <div class="eink-text-xs eink-text-muted">Design Engineer</div>
+                    </div>
+                  </div>
+                  <p class="eink-text-sm eink-text-muted">
+                    Building accessible interfaces since 2015. Focused on low-power and
+                    assistive display technologies.
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <h4 style="margin-bottom: var(--eink-space-2)">Recent Posts</h4>
+                <ul class="eink-list-group">
+                  <li>
+                    <a
+                      href="#"
+                      class="eink-list-group__item eink-list-group__item--active"
+                      >Building for E-Ink</a
+                    >
+                  </li>
+                  <li>
+                    <a href="#" class="eink-list-group__item"
+                      >CSS Variables Deep Dive</a
+                    >
+                  </li>
+                  <li>
+                    <a href="#" class="eink-list-group__item">Semantic HTML in 2025</a>
+                  </li>
+                  <li>
+                    <a href="#" class="eink-list-group__item">System Font Stacks</a>
+                  </li>
+                  <li>
+                    <a href="#" class="eink-list-group__item"
+                      >Accessible Form Patterns</a
+                    >
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 style="margin-bottom: var(--eink-space-2)">Categories</h4>
+                <div class="eink-tag-group">
+                  <a href="#" class="eink-tag">Design</a>
+                  <a href="#" class="eink-tag">CSS</a>
+                  <a href="#" class="eink-tag">HTML</a>
+                  <a href="#" class="eink-tag">E-Ink</a>
+                  <a href="#" class="eink-tag">A11y</a>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- LIST GROUP -->
+      <section class="eink-section">
+        <h3>List Group</h3>
+        <p class="eink-note">
+          E-Ink rationale: List groups use thin borders between items. The active item
+          gets a thick left border for identification without background fill.
+        </p>
+
+        <div
+          class="eink-grid"
+          style="--eink-grid-min: 16rem; margin-top: var(--eink-space-4)"
+        >
+          <div>
+            <h4 style="margin-bottom: var(--eink-space-2)">Default</h4>
+            <ul class="eink-list-group">
+              <li class="eink-list-group__item">First item</li>
+              <li class="eink-list-group__item eink-list-group__item--active">
+                Active item
+              </li>
+              <li class="eink-list-group__item">Third item</li>
+              <li class="eink-list-group__item">Fourth item</li>
+            </ul>
+          </div>
+          <div>
+            <h4 style="margin-bottom: var(--eink-space-2)">As links</h4>
+            <div class="eink-list-group">
+              <a href="#" class="eink-list-group__item">Dashboard</a>
+              <a href="#" class="eink-list-group__item eink-list-group__item--active"
+                >Posts</a
+              >
+              <a href="#" class="eink-list-group__item">Comments</a>
+              <a href="#" class="eink-list-group__item">Settings</a>
+            </div>
+          </div>
+          <div>
+            <h4 style="margin-bottom: var(--eink-space-2)">Flush (no outer border)</h4>
+            <ul class="eink-list-group eink-list-group--flush">
+              <li class="eink-list-group__item">First item</li>
+              <li class="eink-list-group__item">Second item</li>
+              <li class="eink-list-group__item">Third item</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- DETAILS / ACCORDION -->
+      <section class="eink-section">
+        <h3>Details / Accordion</h3>
+        <p class="eink-note">
+          E-Ink rationale: Uses the native <code>&lt;details&gt;</code> element for
+          no-JavaScript expand/collapse. The +/&minus; indicator is rendered with CSS
+          content — no icon fonts or SVGs.
+        </p>
+
+        <div style="margin-top: var(--eink-space-4); max-width: var(--eink-measure)">
+          <h4 style="margin-bottom: var(--eink-space-2)">Single</h4>
+          <details class="eink-details">
+            <summary class="eink-details__summary">What is E-Ink?</summary>
+            <div class="eink-details__body">
+              <p>
+                E-Ink (electrophoretic ink) is a display technology that mimics the
+                appearance of ordinary ink on paper. It reflects ambient light like
+                paper does, making it comfortable for prolonged reading.
+              </p>
+            </div>
+          </details>
+
+          <h4
+            style="margin-top: var(--eink-space-5); margin-bottom: var(--eink-space-2)"
+          >
+            Accordion group
+          </h4>
+          <div class="eink-details-group">
+            <details class="eink-details" open>
+              <summary class="eink-details__summary">Getting Started</summary>
+              <div class="eink-details__body">
+                <p>
+                  Include the CSS file in your HTML and start using the component
+                  classes. No build step or JavaScript required.
+                </p>
+              </div>
+            </details>
+            <details class="eink-details">
+              <summary class="eink-details__summary">Browser Support</summary>
+              <div class="eink-details__body">
+                <p>
+                  The library targets modern browsers found on E-Ink devices:
+                  Chromium-based WebView, Firefox, and WebKit. All features use
+                  progressive enhancement.
+                </p>
+              </div>
+            </details>
+            <details class="eink-details">
+              <summary class="eink-details__summary">Theming</summary>
+              <div class="eink-details__body">
+                <p>
+                  Three themes are included: default (light), inverted (dark), and
+                  high-contrast. Set the <code>data-theme</code> attribute on your
+                  <code>&lt;html&gt;</code> element.
+                </p>
+              </div>
+            </details>
+            <details class="eink-details">
+              <summary class="eink-details__summary">Customization</summary>
+              <div class="eink-details__body">
+                <p>
+                  Override any CSS variable in the token layer to customize colors,
+                  spacing, and typography. The zero-specificity selectors
+                  (<code>:where()</code>) make overrides straightforward.
+                </p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <!-- ALERT -->
+      <section class="eink-section">
+        <h3>Alert / Banner</h3>
+        <p class="eink-note">
+          E-Ink rationale: Alerts differentiate severity through border weight and style
+          rather than color. On grayscale displays, a dashed border (warning) reads
+          differently from a thick solid border (error).
+        </p>
+
+        <div
+          class="eink-stack eink-stack--sm"
+          style="margin-top: var(--eink-space-4); max-width: var(--eink-measure)"
+        >
+          <div class="eink-alert eink-alert--info">
+            <div class="eink-alert__title">Information</div>
+            <div class="eink-alert__body">
+              This blog post was last updated 3 days ago.
+            </div>
+          </div>
+          <div class="eink-alert eink-alert--success">
+            <div class="eink-alert__title">Success</div>
+            <div class="eink-alert__body">Your comment has been published.</div>
+          </div>
+          <div class="eink-alert eink-alert--warning">
+            <div class="eink-alert__title">Warning</div>
+            <div class="eink-alert__body">
+              This article contains outdated information. Check the updated version.
+            </div>
+          </div>
+          <div class="eink-alert eink-alert--error">
+            <div class="eink-alert__title">Error</div>
+            <div class="eink-alert__body">
+              Failed to load comments. Please refresh the page.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAGINATION -->
+      <section class="eink-section">
+        <h3>Blog Pagination</h3>
+
+        <nav
+          aria-label="Blog pagination"
+          class="eink-pagination"
+          style="margin-top: var(--eink-space-3)"
+        >
+          <ol class="eink-pagination__list">
+            <li><a href="#" class="eink-pagination__link">&laquo; Prev</a></li>
+            <li><a href="#" class="eink-pagination__link">1</a></li>
+            <li><a href="#" class="eink-pagination__link" aria-current="page">2</a></li>
+            <li><a href="#" class="eink-pagination__link">3</a></li>
+            <li><a href="#" class="eink-pagination__link">Next &raquo;</a></li>
+          </ol>
+        </nav>
+      </section>
+    </main>

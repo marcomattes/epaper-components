@@ -1,0 +1,49 @@
+/* ===========================================
+   PAGINATION
+   =========================================== */
+
+@use "../mixins" as *;
+
+:where(.eink-pagination) {
+  display: flex;
+  justify-content: center;
+}
+
+:where(.eink-pagination__list) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--eink-space-1);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+:where(.eink-pagination__link) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  padding-inline: var(--eink-space-2);
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+  text-decoration: none;
+  font-size: var(--eink-text-sm);
+  color: var(--eink-fg);
+}
+
+:where(.eink-pagination__link:focus-visible) {
+  @include focus-ring;
+}
+
+:where(.eink-pagination__link[aria-current="page"]) {
+  background-color: var(--eink-fg);
+  color: var(--eink-bg);
+  font-weight: var(--eink-weight-bold);
+  border-color: var(--eink-fg);
+}
+
+:where(.eink-pagination__link[aria-disabled="true"]) {
+  color: var(--eink-disabled-fg);
+  border-color: var(--eink-disabled-border);
+  pointer-events: none;
+}

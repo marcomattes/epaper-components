@@ -1,0 +1,30 @@
+/* ===========================================
+   ERROR SUMMARY
+   =========================================== */
+
+:where(.eink-error-summary) {
+  border: var(--eink-border-medium) solid var(--eink-error-border);
+  padding: var(--eink-space-4);
+  background-color: var(--eink-error-bg);
+}
+
+:where(.eink-error-summary__title) {
+  font-size: var(--eink-text-lg);
+  font-weight: var(--eink-weight-bold);
+  margin-bottom: var(--eink-space-3);
+}
+
+:where(.eink-error-summary ul) {
+  list-style: disc;
+  padding-left: var(--eink-space-5);
+  margin: 0;
+}
+
+:where(.eink-error-summary li) {
+  margin-bottom: var(--eink-space-1);
+}
+
+:where(.eink-error-summary a) {
+  color: var(--eink-error-fg);
+  font-weight: var(--eink-weight-medium);
+}

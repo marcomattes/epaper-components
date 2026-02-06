@@ -1,0 +1,61 @@
+/* ===========================================
+   RESPONSIVE (max two breakpoints)
+   =========================================== */
+
+/* Small screens (up to 600px) */
+@media (width <= 37.5em) {
+  :where(.eink-container, eink-container) {
+    padding-inline: var(--eink-space-3);
+  }
+
+  :where(.eink-grid, eink-grid) {
+    --eink-grid-min: 100%;
+  }
+
+  :where(.eink-dialog) {
+    max-width: 100%;
+    padding: var(--eink-space-4);
+  }
+
+  :where(.eink-table th),
+  :where(.eink-table td) {
+    padding: var(--eink-space-1) var(--eink-space-2);
+    font-size: var(--eink-text-sm);
+  }
+
+  :where(.eink-with-sidebar) {
+    flex-direction: column;
+  }
+
+  :where(.eink-with-sidebar__sidebar) {
+    flex-basis: auto;
+  }
+
+  :where(.eink-article__title) {
+    font-size: var(--eink-text-2xl);
+  }
+
+  :where(.eink-tabs__tab) {
+    padding: var(--eink-space-2) var(--eink-space-3);
+    font-size: var(--eink-text-xs);
+  }
+
+  :where(.eink-dl--horizontal) {
+    grid-template-columns: 1fr;
+  }
+
+  :where(.eink-toolbar) {
+    padding: var(--eink-space-2);
+  }
+
+  :where(.eink-stat__value) {
+    font-size: var(--eink-text-2xl);
+  }
+}
+
+/* Large screens (above 900px) */
+@media (width >= 56.25em) {
+  :where(.eink-container--wide, eink-container[width="wide"]) {
+    padding-inline: var(--eink-space-6);
+  }
+}

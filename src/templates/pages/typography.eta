@@ -1,0 +1,247 @@
+<% layout("../_layout", { title: "Typography", current: "typography", fullHeader: true, footerText: "eink-ui — CSS-only component library for E-Ink devices." }) %>
+
+    <main class="eink-container eink-stack">
+      <!-- TYPE SCALE -->
+      <section class="eink-section">
+        <h2>Type scale</h2>
+        <p class="eink-note">
+          E-Ink rationale: System fonts avoid FOUT/FOIT and the full-page repaint that
+          webfont loading would trigger. The scale is generous — E-Ink screens typically
+          run at 150–300 PPI, so slightly larger text improves legibility.
+        </p>
+
+        <div class="eink-stack eink-stack--sm" style="margin-top: var(--eink-space-4)">
+          <div>
+            <span class="eink-text-xs eink-text-muted eink-text-mono"
+              >--eink-text-4xl (2.25rem)</span
+            >
+            <h1>Heading 1</h1>
+          </div>
+          <hr class="eink-divider" />
+          <div>
+            <span class="eink-text-xs eink-text-muted eink-text-mono"
+              >--eink-text-3xl (1.875rem)</span
+            >
+            <h2>Heading 2</h2>
+          </div>
+          <hr class="eink-divider" />
+          <div>
+            <span class="eink-text-xs eink-text-muted eink-text-mono"
+              >--eink-text-2xl (1.5rem)</span
+            >
+            <h3>Heading 3</h3>
+          </div>
+          <hr class="eink-divider" />
+          <div>
+            <span class="eink-text-xs eink-text-muted eink-text-mono"
+              >--eink-text-xl (1.25rem)</span
+            >
+            <h4>Heading 4</h4>
+          </div>
+          <hr class="eink-divider" />
+          <div>
+            <span class="eink-text-xs eink-text-muted eink-text-mono"
+              >--eink-text-base (1rem)</span
+            >
+            <p>Body text — the default size for paragraphs and general content.</p>
+          </div>
+          <hr class="eink-divider" />
+          <div>
+            <span class="eink-text-xs eink-text-muted eink-text-mono"
+              >--eink-text-sm (0.875rem)</span
+            >
+            <p class="eink-text-sm">Small text — captions, help text, labels.</p>
+          </div>
+          <hr class="eink-divider" />
+          <div>
+            <span class="eink-text-xs eink-text-muted eink-text-mono"
+              >--eink-text-xs (0.75rem)</span
+            >
+            <p class="eink-text-xs">Extra small — fine print, metadata, timestamps.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- FONT STACKS -->
+      <section class="eink-section">
+        <h2>Font stacks</h2>
+
+        <div class="eink-stack eink-stack--sm" style="margin-top: var(--eink-space-4)">
+          <div>
+            <span class="eink-badge">Sans-serif</span>
+            <p style="margin-top: var(--eink-space-2)">
+              The quick brown fox jumps over the lazy dog. 0123456789.
+            </p>
+          </div>
+          <hr class="eink-divider" />
+          <div>
+            <span class="eink-badge">Serif</span>
+            <p class="eink-text-serif" style="margin-top: var(--eink-space-2)">
+              The quick brown fox jumps over the lazy dog. 0123456789.
+            </p>
+          </div>
+          <hr class="eink-divider" />
+          <div>
+            <span class="eink-badge">Monospace</span>
+            <p class="eink-text-mono" style="margin-top: var(--eink-space-2)">
+              The quick brown fox jumps over the lazy dog. 0123456789.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- LINE LENGTH -->
+      <section class="eink-section">
+        <h2>Line length (measure)</h2>
+        <p class="eink-note">
+          E-Ink rationale: Controlled line length prevents eye-tracking loss on wide
+          screens and avoids reflow/re-pagination on narrow ones. The 65ch default
+          matches typographic best practice.
+        </p>
+
+        <div class="eink-stack" style="margin-top: var(--eink-space-4)">
+          <div>
+            <span class="eink-badge">Narrow (45ch)</span>
+            <p
+              class="eink-measure-narrow"
+              style="
+                margin-top: var(--eink-space-2);
+                border: var(--eink-border-thin) solid var(--eink-border-color);
+                padding: var(--eink-space-3);
+              "
+            >
+              This paragraph is constrained to 45 characters wide. It's suitable for
+              single-column reading on smaller E-Ink screens or sidebar content.
+            </p>
+          </div>
+          <div>
+            <span class="eink-badge">Default (65ch)</span>
+            <p
+              class="eink-measure"
+              style="
+                margin-top: var(--eink-space-2);
+                border: var(--eink-border-thin) solid var(--eink-border-color);
+                padding: var(--eink-space-3);
+              "
+            >
+              This paragraph uses the default measure of 65 characters. It provides a
+              comfortable reading experience for body text, balancing line length with
+              information density on standard 6–8 inch E-Ink displays.
+            </p>
+          </div>
+          <div>
+            <span class="eink-badge">Wide (80ch)</span>
+            <p
+              class="eink-measure-wide"
+              style="
+                margin-top: var(--eink-space-2);
+                border: var(--eink-border-thin) solid var(--eink-border-color);
+                padding: var(--eink-space-3);
+              "
+            >
+              This paragraph uses the wide measure of 80 characters. Use sparingly —
+              only for data-dense content like tables or code where horizontal space is
+              needed. Most E-Ink readers are too narrow for this to matter, but it caps
+              width on larger devices like the Kindle Scribe.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- PROSE -->
+      <section class="eink-section">
+        <h2>Prose block</h2>
+        <p class="eink-text-sm eink-text-muted">
+          The <code>.eink-prose</code> class adds vertical rhythm between child
+          elements.
+        </p>
+
+        <div class="eink-prose" style="margin-top: var(--eink-space-4)">
+          <h3>On the legibility of electronic paper</h3>
+          <p>
+            Electronic paper displays — commonly called E-Ink after the dominant
+            manufacturer — use electrophoretic technology to rearrange charged pigment
+            particles between two electrode layers. The result is a reflective display
+            that closely mimics paper.
+          </p>
+          <p>
+            Unlike LCD or OLED screens, E-Ink requires no backlight. The display is
+            perfectly legible in direct sunlight, making it ideal for extended reading.
+            However, the slow refresh rate (typically 250–450ms for a full page update)
+            demands careful UI design.
+          </p>
+          <blockquote>
+            "The best interface for a reading device is one that disappears entirely."
+          </blockquote>
+          <p>
+            Design constraints for E-Ink include: no animations, no hover effects (most
+            E-Ink devices are touch-only or use D-pad navigation), minimal use of filled
+            backgrounds, and generous spacing to avoid ghosting artifacts.
+          </p>
+        </div>
+      </section>
+
+      <!-- INLINE ELEMENTS -->
+      <section class="eink-section">
+        <h2>Inline elements</h2>
+
+        <div class="eink-stack eink-stack--sm" style="margin-top: var(--eink-space-4)">
+          <p><strong>Bold text</strong> using <code>&lt;strong&gt;</code></p>
+          <p><em>Italic text</em> using <code>&lt;em&gt;</code></p>
+          <p><small>Small text</small> using <code>&lt;small&gt;</code></p>
+          <p><mark>Marked/highlighted text</mark> using <code>&lt;mark&gt;</code></p>
+          <p><code>Inline code</code> using <code>&lt;code&gt;</code></p>
+          <p><kbd>Ctrl</kbd> + <kbd>S</kbd> using <code>&lt;kbd&gt;</code></p>
+          <p>
+            <abbr title="Electronic Ink">E-Ink</abbr> using <code>&lt;abbr&gt;</code>
+          </p>
+          <p><a href="#">A link to somewhere</a> using <code>&lt;a&gt;</code></p>
+        </div>
+      </section>
+
+      <!-- CODE BLOCK -->
+      <section class="eink-section">
+        <h2>Code block</h2>
+        <p class="eink-note">
+          E-Ink rationale: Code blocks use a subtle background border rather than a
+          filled background to minimize the repainted area on page render.
+        </p>
+
+        <pre
+          style="margin-top: var(--eink-space-4)"
+        ><code>/* Example: using eink-ui tokens */
+.my-component {
+  color: var(--eink-fg);
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+  padding: var(--eink-space-4);
+  font-family: var(--eink-font-sans);
+}</code></pre>
+      </section>
+
+      <!-- HYPHENATION -->
+      <section class="eink-section">
+        <h2>Hyphenation &amp; word-break</h2>
+        <p class="eink-note">
+          E-Ink rationale: Hyphenation is intentionally NOT enabled by default. On E-Ink
+          devices, hyphenation triggers re-layout during pagination which causes visible
+          ghosting. Use
+          <code>hyphens: auto</code> only if the reading system handles pagination
+          (e.g., embedded book readers). For UI text,
+          <code>overflow-wrap: break-word</code>
+          is a safer fallback.
+        </p>
+        <div
+          style="
+            max-width: 20ch;
+            border: var(--eink-border-thin) solid var(--eink-border-color);
+            padding: var(--eink-space-3);
+            margin-top: var(--eink-space-4);
+          "
+        >
+          <p style="overflow-wrap: break-word">
+            Supercalifragilisticexpialidocious and other extraordinarily long words
+            handled with overflow-wrap: break-word.
+          </p>
+        </div>
+      </section>
+    </main>

@@ -1,0 +1,38 @@
+/* ===========================================
+   TOOLBAR
+   =========================================== */
+
+:where(.eink-toolbar) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--eink-space-2);
+  padding: var(--eink-space-2) var(--eink-space-3);
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+}
+
+:where(.eink-toolbar__group) {
+  display: flex;
+  align-items: center;
+  gap: var(--eink-space-1);
+}
+
+:where(.eink-toolbar__separator) {
+  width: var(--eink-border-thin);
+  height: 1.5rem;
+  background-color: var(--eink-border-color);
+  margin-inline: var(--eink-space-1);
+  flex-shrink: 0;
+}
+
+:where(.eink-toolbar__label) {
+  font-size: var(--eink-text-xs);
+  color: var(--eink-fg-muted);
+  margin-right: var(--eink-space-2);
+}
+
+/* Push items right */
+
+:where(.eink-toolbar__spacer) {
+  flex: 1;
+}

@@ -1,0 +1,23 @@
+/* ===========================================
+   PICTURE
+   =========================================== */
+
+:where(.eink-picture) {
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+  padding: var(--eink-space-2);
+  background-color: var(--eink-surface);
+}
+
+:where(.eink-picture img) {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+:where(.eink-picture figcaption) {
+  padding-top: var(--eink-space-2);
+  border-top: var(--eink-border-thin) solid var(--eink-border-color);
+  margin-top: var(--eink-space-2);
+  font-size: var(--eink-text-sm);
+  color: var(--eink-fg-muted);
+}

@@ -1,0 +1,37 @@
+/* ===========================================
+   AVATAR
+   =========================================== */
+
+:where(.eink-avatar) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background-color: var(--eink-bg-muted);
+  font-size: var(--eink-text-sm);
+  font-weight: var(--eink-weight-bold);
+  color: var(--eink-fg-muted);
+}
+
+:where(.eink-avatar img) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+:where(.eink-avatar--sm) {
+  width: 1.75rem;
+  height: 1.75rem;
+  font-size: var(--eink-text-xs);
+}
+
+:where(.eink-avatar--lg) {
+  width: 3.5rem;
+  height: 3.5rem;
+  font-size: var(--eink-text-lg);
+}

@@ -1,0 +1,89 @@
+/* ===========================================
+   UTILITIES & NOTES
+   =========================================== */
+
+:where(.eink-sr-only) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+:where(.eink-text-muted) {
+  color: var(--eink-fg-muted);
+}
+
+:where(.eink-text-sm) {
+  font-size: var(--eink-text-sm);
+}
+
+:where(.eink-text-xs) {
+  font-size: var(--eink-text-xs);
+}
+
+:where(.eink-text-lg) {
+  font-size: var(--eink-text-lg);
+}
+
+:where(.eink-text-center) {
+  text-align: center;
+}
+
+:where(.eink-text-mono) {
+  font-family: var(--eink-font-mono);
+}
+
+:where(.eink-text-serif) {
+  font-family: var(--eink-font-serif);
+}
+
+:where(.eink-text-bold) {
+  font-weight: var(--eink-weight-bold);
+}
+
+:where(.eink-measure) {
+  max-width: var(--eink-measure);
+}
+
+:where(.eink-measure-narrow) {
+  max-width: var(--eink-measure-narrow);
+}
+
+:where(.eink-measure-wide) {
+  max-width: var(--eink-measure-wide);
+}
+
+:where(.eink-note) {
+  font-size: var(--eink-text-xs);
+  color: var(--eink-fg-muted);
+  border-left: var(--eink-border-medium) solid var(--eink-border-color);
+  padding-left: var(--eink-space-3);
+  margin-top: var(--eink-space-3);
+  font-style: italic;
+}
+
+:where(.eink-badge, eink-badge) {
+  display: inline-block;
+  font-size: var(--eink-text-xs);
+  font-weight: var(--eink-weight-medium);
+  padding: var(--eink-space-1) var(--eink-space-2);
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+  line-height: 1;
+}
+
+:where(.eink-prose) {
+  max-width: var(--eink-measure);
+}
+
+:where(.eink-prose > * + *) {
+  margin-top: var(--eink-space-4);
+}
+
+:where(.eink-prose h2, .eink-prose h3, .eink-prose h4) {
+  margin-top: var(--eink-space-6);
+}

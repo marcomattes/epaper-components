@@ -1,0 +1,33 @@
+/* ===========================================
+   CARD
+   =========================================== */
+
+:where(.eink-card, eink-card) {
+  display: block;
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+  padding: var(--eink-space-4);
+  background-color: var(--eink-surface);
+}
+
+:where(.eink-card__title) {
+  font-size: var(--eink-text-lg);
+  font-weight: var(--eink-weight-bold);
+  line-height: var(--eink-leading-tight);
+  margin-bottom: var(--eink-space-2);
+}
+
+:where(.eink-card__body) {
+  color: var(--eink-fg-muted);
+  font-size: var(--eink-text-sm);
+}
+
+:where(.eink-card__footer) {
+  margin-top: var(--eink-space-4);
+  padding-top: var(--eink-space-3);
+  border-top: var(--eink-border-thin) solid var(--eink-border-color);
+}
+
+:where(.eink-card--raised, eink-card[raised]) {
+  border-width: var(--eink-border-medium);
+  border-color: var(--eink-border-strong);
+}

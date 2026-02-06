@@ -1,0 +1,320 @@
+<% layout("../_layout", { title: "Forms", current: "forms", fullHeader: true }) %>
+
+    <main class="eink-container eink-stack">
+      <!-- ERROR SUMMARY -->
+      <section class="eink-section">
+        <h2>Error summary</h2>
+        <p class="eink-note">
+          E-Ink rationale: The error summary uses a thick border (not a filled
+          background) to draw attention without causing a large repaint region. Anchor
+          links within the summary let users jump to specific fields — critical on E-Ink
+          where scrolling is slow.
+        </p>
+
+        <div
+          class="eink-error-summary"
+          role="alert"
+          style="margin-top: var(--eink-space-4)"
+        >
+          <div class="eink-error-summary__title">There are 3 errors in this form</div>
+          <ul>
+            <li><a href="#form-name">Full name is required</a></li>
+            <li><a href="#form-email">Enter a valid email address</a></li>
+            <li><a href="#form-terms">You must accept the terms</a></li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- COMPLETE FORM -->
+      <section class="eink-section">
+        <h2>Complete form example</h2>
+        <p class="eink-text-sm eink-text-muted">
+          This form demonstrates labels, help text, required fields, disabled fields,
+          and validation error states.
+        </p>
+
+        <form novalidate style="max-width: 28rem; margin-top: var(--eink-space-4)">
+          <div class="eink-stack">
+            <!-- Name (required, error) -->
+            <div class="eink-field">
+              <label class="eink-label eink-label--required" for="form-name"
+                >Full name</label
+              >
+              <input
+                type="text"
+                id="form-name"
+                class="eink-input"
+                aria-invalid="true"
+                aria-describedby="form-name-error"
+                value=""
+                required
+              />
+              <span class="eink-error-message" id="form-name-error"
+                >Full name is required.</span
+              >
+            </div>
+
+            <!-- Email (required, error) -->
+            <div class="eink-field">
+              <label class="eink-label eink-label--required" for="form-email"
+                >Email address</label
+              >
+              <input
+                type="email"
+                id="form-email"
+                class="eink-input"
+                aria-invalid="true"
+                aria-describedby="form-email-help form-email-error"
+                value="not-an-email"
+                required
+              />
+              <span class="eink-help" id="form-email-help"
+                >We'll use this to send your confirmation.</span
+              >
+              <span class="eink-error-message" id="form-email-error"
+                >Enter a valid email address.</span
+              >
+            </div>
+
+            <!-- Phone (optional, valid) -->
+            <div class="eink-field">
+              <label class="eink-label" for="form-phone"
+                >Phone number
+                <span class="eink-text-xs eink-text-muted">(optional)</span></label
+              >
+              <input
+                type="tel"
+                id="form-phone"
+                class="eink-input"
+                aria-describedby="form-phone-help"
+                placeholder="+1 (555) 000-0000"
+              />
+              <span class="eink-help" id="form-phone-help"
+                >Include country code for international numbers.</span
+              >
+            </div>
+
+            <!-- Country (select, valid) -->
+            <div class="eink-field">
+              <label class="eink-label eink-label--required" for="form-country"
+                >Country</label
+              >
+              <select id="form-country" class="eink-select" required>
+                <option value="">Select your country</option>
+                <option value="de">Germany</option>
+                <option value="fr">France</option>
+                <option value="uk">United Kingdom</option>
+                <option value="us">United States</option>
+              </select>
+            </div>
+
+            <!-- Bio (textarea, valid) -->
+            <div class="eink-field">
+              <label class="eink-label" for="form-bio"
+                >Short bio
+                <span class="eink-text-xs eink-text-muted">(optional)</span></label
+              >
+              <textarea
+                id="form-bio"
+                class="eink-textarea"
+                aria-describedby="form-bio-help"
+                placeholder="Tell us about yourself"
+              ></textarea>
+              <span class="eink-help" id="form-bio-help">Maximum 200 characters.</span>
+            </div>
+
+            <!-- Disabled field -->
+            <div class="eink-field">
+              <label class="eink-label" for="form-referral">Referral code</label>
+              <input
+                type="text"
+                id="form-referral"
+                class="eink-input"
+                value="AUTO-APPLIED-2024"
+                disabled
+              />
+              <span class="eink-help"
+                >This code was automatically applied and cannot be changed.</span
+              >
+            </div>
+
+            <!-- Notifications (checkbox group) -->
+            <fieldset style="border: none; padding: 0">
+              <legend class="eink-label" style="margin-bottom: var(--eink-space-2)">
+                Notification preferences
+              </legend>
+              <div class="eink-stack eink-stack--sm">
+                <div class="eink-field eink-field--inline">
+                  <input
+                    type="checkbox"
+                    class="eink-checkbox"
+                    id="form-notif-email"
+                    checked
+                  />
+                  <label for="form-notif-email">Email notifications</label>
+                </div>
+                <div class="eink-field eink-field--inline">
+                  <input type="checkbox" class="eink-checkbox" id="form-notif-sms" />
+                  <label for="form-notif-sms">SMS notifications</label>
+                </div>
+                <div class="eink-field eink-field--inline">
+                  <input
+                    type="checkbox"
+                    class="eink-checkbox"
+                    id="form-notif-push"
+                    disabled
+                  />
+                  <label for="form-notif-push"
+                    >Push notifications (not available on this device)</label
+                  >
+                </div>
+              </div>
+            </fieldset>
+
+            <!-- Frequency (radio group) -->
+            <fieldset style="border: none; padding: 0">
+              <legend class="eink-label" style="margin-bottom: var(--eink-space-2)">
+                Notification frequency
+              </legend>
+              <div class="eink-stack eink-stack--sm">
+                <div class="eink-field eink-field--inline">
+                  <input
+                    type="radio"
+                    class="eink-radio"
+                    name="freq"
+                    id="freq-instant"
+                    value="instant"
+                    checked
+                  />
+                  <label for="freq-instant">Instant</label>
+                </div>
+                <div class="eink-field eink-field--inline">
+                  <input
+                    type="radio"
+                    class="eink-radio"
+                    name="freq"
+                    id="freq-daily"
+                    value="daily"
+                  />
+                  <label for="freq-daily">Daily digest</label>
+                </div>
+                <div class="eink-field eink-field--inline">
+                  <input
+                    type="radio"
+                    class="eink-radio"
+                    name="freq"
+                    id="freq-weekly"
+                    value="weekly"
+                  />
+                  <label for="freq-weekly">Weekly summary</label>
+                </div>
+              </div>
+            </fieldset>
+
+            <!-- Terms (checkbox, error) -->
+            <div class="eink-field">
+              <div class="eink-field eink-field--inline">
+                <input
+                  type="checkbox"
+                  class="eink-checkbox"
+                  id="form-terms"
+                  aria-invalid="true"
+                  aria-describedby="form-terms-error"
+                  required
+                />
+                <label for="form-terms">I accept the terms and conditions</label>
+              </div>
+              <span class="eink-error-message" id="form-terms-error"
+                >You must accept the terms to continue.</span
+              >
+            </div>
+
+            <!-- Actions -->
+            <div class="eink-cluster" style="margin-top: var(--eink-space-3)">
+              <button type="submit" class="eink-btn eink-btn--primary">Submit</button>
+              <button type="reset" class="eink-btn eink-btn--ghost">Reset</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <!-- FIELDSET GROUPING -->
+      <section class="eink-section">
+        <h2>Fieldset grouping</h2>
+        <p class="eink-text-sm eink-text-muted">
+          Use native <code>&lt;fieldset&gt;</code> and <code>&lt;legend&gt;</code> for
+          logical groups.
+        </p>
+
+        <fieldset style="margin-top: var(--eink-space-4); max-width: 28rem">
+          <legend>Shipping address</legend>
+          <div class="eink-stack eink-stack--sm">
+            <div class="eink-field">
+              <label class="eink-label" for="ship-street">Street</label>
+              <input
+                type="text"
+                id="ship-street"
+                class="eink-input"
+                placeholder="123 Main St"
+              />
+            </div>
+            <div class="eink-field">
+              <label class="eink-label" for="ship-city">City</label>
+              <input
+                type="text"
+                id="ship-city"
+                class="eink-input"
+                placeholder="Berlin"
+              />
+            </div>
+            <div class="eink-field">
+              <label class="eink-label" for="ship-zip">Postal code</label>
+              <input
+                type="text"
+                id="ship-zip"
+                class="eink-input"
+                placeholder="10115"
+                style="max-width: 10rem"
+              />
+            </div>
+          </div>
+        </fieldset>
+      </section>
+
+      <!-- FORM LAYOUT PATTERNS -->
+      <section class="eink-section">
+        <h2>Layout patterns</h2>
+        <p class="eink-note">
+          E-Ink rationale: Forms should always be single-column on E-Ink devices.
+          Multi-column form layouts cause confusion on 6" screens and trigger more
+          partial refreshes when navigating between fields. Side-by-side fields are only
+          appropriate for very short inputs (e.g., city + zip code on wide screens).
+        </p>
+
+        <h3 style="margin-top: var(--eink-space-4)">
+          Side-by-side fields (wide screens only)
+        </h3>
+        <div
+          class="eink-grid"
+          style="
+            --eink-grid-min: 12rem;
+            margin-top: var(--eink-space-3);
+            max-width: 28rem;
+          "
+        >
+          <div class="eink-field">
+            <label class="eink-label" for="layout-first">First name</label>
+            <input
+              type="text"
+              id="layout-first"
+              class="eink-input"
+              placeholder="Jane"
+            />
+          </div>
+          <div class="eink-field">
+            <label class="eink-label" for="layout-last">Last name</label>
+            <input type="text" id="layout-last" class="eink-input" placeholder="Doe" />
+          </div>
+        </div>
+      </section>
+    </main>

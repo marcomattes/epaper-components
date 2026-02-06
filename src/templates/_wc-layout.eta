@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en" data-theme="default">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title><%= it.title %> (Web Components) — eink-ui</title>
+    <link rel="stylesheet" href="../dist/eink-ui.css" />
+    <link rel="icon" href="../assets/eink-ui-logo.svg" type="image/svg+xml" />
+    <script src="../demo/theme.js" defer></script>
+    <script type="module">
+      import { defineEinkElements } from "../dist/wc/index.js";
+      defineEinkElements();
+    </script>
+<% if (it.headExtra) { %>
+<%~ it.headExtra + '\n' %><% } %>
+  </head>
+  <body>
+    <header class="eink-page-header">
+      <div class="eink-container<%= it.wide ? ' eink-container--wide' : '' %>">
+        <div class="eink-cluster" style="align-items: center; gap: var(--eink-space-3)">
+          <img
+            src="../assets/eink-ui-logo.svg"
+            alt="eink-ui"
+            width="120"
+            height="32"
+            loading="lazy"
+          />
+          <h1 style="font-size: var(--eink-text-2xl); margin: 0">eink-ui</h1>
+          <span class="eink-badge">Web Components</span>
+        </div>
+        <nav class="eink-nav" aria-label="Main navigation">
+          <a href="index.html"<%= it.current === 'index' ? ' aria-current="page"' : '' %>>Overview</a>
+          <a href="layout.html"<%= it.current === 'layout' ? ' aria-current="page"' : '' %>>Layout</a>
+          <a href="components.html"<%= it.current === 'components' ? ' aria-current="page"' : '' %>>Components</a>
+          <a href="forms.html"<%= it.current === 'forms' ? ' aria-current="page"' : '' %>>Forms</a>
+        </nav>
+        <p
+          class="eink-text-xs eink-text-muted"
+          style="
+            margin-top: var(--eink-space-2);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+            align-items: center;
+          "
+        >
+          <a href="../demo/<%= it.current === 'index' ? 'index' : it.current %>.html"><strong>Switch to CSS-only demos</strong></a>
+          <span aria-hidden="true">·</span>
+          <span>Theme: <code data-theme-label>default</code></span>
+          <span aria-hidden="true">·</span>
+          <a href="?theme=default">Default</a>
+          <a href="?theme=inverted">Inverted</a>
+          <a href="?theme=high-contrast">High-contrast</a>
+          <span aria-hidden="true">·</span>
+          <a href="https://marcomattes.github.io/eink-css-ui-framework/storybook/"><strong>View Storybook</strong></a>
+        </p>
+      </div>
+    </header>
+<%~ it.body %>
+
+    <footer class="eink-page-footer">
+      <div class="eink-container<%= it.wide ? ' eink-container--wide' : '' %>">
+        <small><%= it.footerText || 'eink-ui — Web Component demos for E-Ink devices.' %></small>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+/* ============================================
+   Web Component defaults — form & button wrappers
+   (Layout, card, alert, tag, badge display rules
+   are co-located in their own partials.)
+   ============================================ */
+
+// Form wrappers — block so they fill their .eink-field container
+:where(eink-input, eink-textarea, eink-select) {
+  display: block;
+}
+
+// Button wrapper — contents so the inner <button> is the layout box
+:where(eink-button) {
+  display: contents;
+}

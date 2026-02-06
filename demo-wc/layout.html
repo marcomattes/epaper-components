@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en" data-theme="default">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Layout (Web Components) — eink-ui</title>
+    <link rel="stylesheet" href="../dist/eink-ui.css" />
+    <link rel="icon" href="../assets/eink-ui-logo.svg" type="image/svg+xml" />
+    <script src="../demo/theme.js" defer></script>
+    <script type="module">
+      import { defineEinkElements } from "../dist/wc/index.js";
+      defineEinkElements();
+    </script>
+    <style>
+      /* Demo-only: visible outlines for layout boxes */
+      .demo-box {
+        border: 1px dashed var(--eink-border-color);
+        padding: var(--eink-space-3);
+        text-align: center;
+        font-size: var(--eink-text-sm);
+        color: var(--eink-fg-muted);
+        background: var(--eink-bg-subtle);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="eink-page-header">
+      <div class="eink-container">
+        <div class="eink-cluster" style="align-items: center; gap: var(--eink-space-3)">
+          <img
+            src="../assets/eink-ui-logo.svg"
+            alt="eink-ui"
+            width="120"
+            height="32"
+            loading="lazy"
+          />
+          <h1 style="font-size: var(--eink-text-2xl); margin: 0">eink-ui</h1>
+          <span class="eink-badge">Web Components</span>
+        </div>
+        <nav class="eink-nav" aria-label="Main navigation">
+          <a href="index.html">Overview</a>
+          <a href="layout.html" aria-current="page">Layout</a>
+          <a href="components.html">Components</a>
+          <a href="forms.html">Forms</a>
+        </nav>
+        <p
+          class="eink-text-xs eink-text-muted"
+          style="
+            margin-top: var(--eink-space-2);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+            align-items: center;
+          "
+        >
+          <a href="../demo/layout.html"><strong>Switch to CSS-only demos</strong></a>
+          <span aria-hidden="true">·</span>
+          <span>Theme: <code data-theme-label>default</code></span>
+          <span aria-hidden="true">·</span>
+          <a href="?theme=default">Default</a>
+          <a href="?theme=inverted">Inverted</a>
+          <a href="?theme=high-contrast">High-contrast</a>
+          <span aria-hidden="true">·</span>
+          <a href="https://marcomattes.github.io/eink-css-ui-framework/storybook/"><strong>View Storybook</strong></a>
+        </p>
+      </div>
+    </header>
+
+    <main class="eink-container eink-stack">
+      <!-- CONTAINER -->
+      <eink-section>
+        <h2>Container</h2>
+        <p class="eink-note">
+          <code>&lt;eink-container&gt;</code> replaces
+          <code>&lt;div class="eink-container"&gt;</code>. Use the
+          <code>width</code> attribute for variants.
+        </p>
+
+        <div class="eink-stack eink-stack--sm" style="margin-top: var(--eink-space-4)">
+          <div>
+            <span class="eink-badge">CSS-only</span>
+            <pre style="margin-top: var(--eink-space-2)"><code>&lt;div class="eink-container eink-container--narrow"&gt;...&lt;/div&gt;</code></pre>
+          </div>
+          <div>
+            <span class="eink-badge">Web Component</span>
+            <pre style="margin-top: var(--eink-space-2)"><code>&lt;eink-container width="narrow"&gt;...&lt;/eink-container&gt;</code></pre>
+          </div>
+        </div>
+
+        <div
+          style="
+            margin-top: var(--eink-space-4);
+            border: var(--eink-border-thin) solid var(--eink-border-color);
+          "
+        >
+          <eink-container width="narrow" style="padding-block: var(--eink-space-3)">
+            <div class="demo-box">Narrow container (eink-container width="narrow")</div>
+          </eink-container>
+        </div>
+        <div
+          style="
+            margin-top: var(--eink-space-3);
+            border: var(--eink-border-thin) solid var(--eink-border-color);
+          "
+        >
+          <eink-container style="padding-block: var(--eink-space-3)">
+            <div class="demo-box">Default container (eink-container)</div>
+          </eink-container>
+        </div>
+        <div
+          style="
+            margin-top: var(--eink-space-3);
+            border: var(--eink-border-thin) solid var(--eink-border-color);
+          "
+        >
+          <eink-container width="wide" style="padding-block: var(--eink-space-3)">
+            <div class="demo-box">Wide container (eink-container width="wide")</div>
+          </eink-container>
+        </div>
+      </eink-section>
+
+      <!-- STACK -->
+      <eink-section>
+        <h2>Stack</h2>
+        <p class="eink-note">
+          <code>&lt;eink-stack&gt;</code> with optional <code>gap="sm|lg"</code>
+          attribute.
+        </p>
+
+        <div class="eink-stack eink-stack--sm" style="margin-top: var(--eink-space-3)">
+          <div>
+            <span class="eink-badge">CSS-only</span>
+            <pre style="margin-top: var(--eink-space-2)"><code>&lt;div class="eink-stack eink-stack--sm"&gt;...&lt;/div&gt;</code></pre>
+          </div>
+          <div>
+            <span class="eink-badge">Web Component</span>
+            <pre style="margin-top: var(--eink-space-2)"><code>&lt;eink-stack gap="sm"&gt;...&lt;/eink-stack&gt;</code></pre>
+          </div>
+        </div>
+
+        <eink-grid min="14rem" style="margin-top: var(--eink-space-4)">
+          <div>
+            <span class="eink-badge">gap="sm"</span>
+            <eink-stack gap="sm" style="margin-top: var(--eink-space-2)">
+              <div class="demo-box">Item 1</div>
+              <div class="demo-box">Item 2</div>
+              <div class="demo-box">Item 3</div>
+            </eink-stack>
+          </div>
+          <div>
+            <span class="eink-badge">default</span>
+            <eink-stack style="margin-top: var(--eink-space-2)">
+              <div class="demo-box">Item 1</div>
+              <div class="demo-box">Item 2</div>
+              <div class="demo-box">Item 3</div>
+            </eink-stack>
+          </div>
+          <div>
+            <span class="eink-badge">gap="lg"</span>
+            <eink-stack gap="lg" style="margin-top: var(--eink-space-2)">
+              <div class="demo-box">Item 1</div>
+              <div class="demo-box">Item 2</div>
+              <div class="demo-box">Item 3</div>
+            </eink-stack>
+          </div>
+        </eink-grid>
+      </eink-section>
+
+      <!-- CLUSTER -->
+      <eink-section>
+        <h2>Cluster</h2>
+        <p class="eink-note">
+          <code>&lt;eink-cluster&gt;</code> with optional <code>gap</code>
+          attribute (any CSS length value). The gap is applied via the
+          <code>--eink-cluster-gap</code> CSS variable.
+        </p>
+
+        <eink-cluster style="margin-top: var(--eink-space-4)">
+          <div class="demo-box">Alpha</div>
+          <div class="demo-box">Bravo</div>
+          <div class="demo-box">Charlie</div>
+          <div class="demo-box">Delta</div>
+          <div class="demo-box">Echo</div>
+          <div class="demo-box">Foxtrot</div>
+          <div class="demo-box">Golf</div>
+        </eink-cluster>
+      </eink-section>
+
+      <!-- GRID -->
+      <eink-section>
+        <h2>Grid</h2>
+        <p class="eink-note">
+          <code>&lt;eink-grid&gt;</code> with optional <code>min</code>
+          attribute to set the minimum column width via
+          <code>--eink-grid-min</code>.
+        </p>
+
+        <div style="margin-top: var(--eink-space-4)">
+          <span class="eink-badge">Default (16rem min)</span>
+          <eink-grid style="margin-top: var(--eink-space-2)">
+            <div class="demo-box">Cell 1</div>
+            <div class="demo-box">Cell 2</div>
+            <div class="demo-box">Cell 3</div>
+            <div class="demo-box">Cell 4</div>
+            <div class="demo-box">Cell 5</div>
+            <div class="demo-box">Cell 6</div>
+          </eink-grid>
+        </div>
+
+        <div style="margin-top: var(--eink-space-5)">
+          <span class="eink-badge">min="22rem"</span>
+          <eink-grid min="22rem" style="margin-top: var(--eink-space-2)">
+            <div class="demo-box">Cell 1</div>
+            <div class="demo-box">Cell 2</div>
+            <div class="demo-box">Cell 3</div>
+            <div class="demo-box">Cell 4</div>
+          </eink-grid>
+        </div>
+      </eink-section>
+
+      <!-- DIVIDER -->
+      <eink-section>
+        <h2>Divider</h2>
+        <p class="eink-note">
+          <code>&lt;eink-divider&gt;</code> replaces
+          <code>&lt;hr class="eink-divider"&gt;</code>. Add the
+          <code>strong</code> attribute for heavier separators.
+        </p>
+
+        <div style="margin-top: var(--eink-space-4)">
+          <p>Content above the default divider.</p>
+          <eink-divider></eink-divider>
+          <p>Content between dividers.</p>
+          <eink-divider strong></eink-divider>
+          <p>Content below the strong divider.</p>
+        </div>
+      </eink-section>
+
+      <!-- PAGE STRUCTURE -->
+      <eink-section>
+        <h2>Page structure</h2>
+        <p class="eink-note">
+          <code>&lt;eink-page-header&gt;</code>,
+          <code>&lt;eink-section&gt;</code>, and
+          <code>&lt;eink-page-footer&gt;</code> provide semantic page structure.
+        </p>
+
+        <div
+          style="
+            margin-top: var(--eink-space-4);
+            border: var(--eink-border-thin) solid var(--eink-border-color);
+          "
+        >
+          <eink-page-header style="margin-bottom: 0">
+            <div style="padding-inline: var(--eink-space-4)">
+              <strong>Page Header</strong>
+              <span class="eink-text-sm eink-text-muted">
+                — &lt;eink-page-header&gt;</span
+              >
+            </div>
+          </eink-page-header>
+          <eink-section style="padding-inline: var(--eink-space-4)">
+            <p>Section 1 content — &lt;eink-section&gt;</p>
+          </eink-section>
+          <eink-section style="padding-inline: var(--eink-space-4)">
+            <p>Section 2 content</p>
+          </eink-section>
+          <eink-page-footer style="margin-top: 0">
+            <div style="padding-inline: var(--eink-space-4)">
+              <small>Page Footer — &lt;eink-page-footer&gt;</small>
+            </div>
+          </eink-page-footer>
+        </div>
+      </eink-section>
+    </main>
+
+    <footer class="eink-page-footer">
+      <div class="eink-container">
+        <small>eink-ui — Web Component demos for E-Ink devices.</small>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,77 @@
+/* ===========================================
+   TEXT INPUT & TEXTAREA
+   =========================================== */
+
+@use "../mixins" as *;
+
+:where(.eink-input) {
+  @include control-base;
+  @include control-placeholder;
+}
+
+:where(.eink-input:focus-visible) {
+  @include focus-ring;
+  border-color: var(--eink-border-strong);
+}
+
+:where(.eink-input:disabled) {
+  @include control-disabled;
+}
+
+:where(.eink-input[aria-invalid="true"]),
+:where(.eink-input:invalid:not(:placeholder-shown)) {
+  @include control-invalid;
+}
+
+:where(.eink-textarea) {
+  @include control-base;
+  min-height: 6rem;
+  resize: vertical;
+}
+
+:where(.eink-textarea:focus-visible) {
+  @include focus-ring;
+  border-color: var(--eink-border-strong);
+}
+
+:where(.eink-textarea:disabled) {
+  @include control-disabled;
+}
+
+:where(.eink-textarea[aria-invalid="true"]) {
+  @include control-invalid;
+}
+
+/* Search input with inline icon (CSS only) */
+
+:where(.eink-input--search) {
+  position: relative;
+  padding-left: calc(var(--eink-space-6));
+}
+
+:where(.eink-input--search)::before,
+:where(.eink-input--search)::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  color: currentColor;
+}
+
+:where(.eink-input--search)::before {
+  width: 0.9rem;
+  height: 0.9rem;
+  border: var(--eink-border-thin) solid currentColor;
+  border-radius: 999px;
+  left: var(--eink-space-2);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+:where(.eink-input--search)::after {
+  width: 0.45rem;
+  height: 0;
+  border-top: var(--eink-border-thin) solid currentColor;
+  transform: rotate(45deg);
+  left: calc(var(--eink-space-2) + 0.65rem);
+  top: calc(50% + 0.3rem);
+}

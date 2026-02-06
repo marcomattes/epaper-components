@@ -1,0 +1,41 @@
+/* ===========================================
+   STAT / KPI
+   =========================================== */
+
+:where(.eink-stat) {
+  padding: var(--eink-space-4);
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+}
+
+:where(.eink-stat__value) {
+  font-size: var(--eink-text-3xl);
+  font-weight: var(--eink-weight-bold);
+  line-height: 1;
+  margin-bottom: var(--eink-space-1);
+}
+
+:where(.eink-stat__label) {
+  font-size: var(--eink-text-sm);
+  color: var(--eink-fg-muted);
+}
+
+:where(.eink-stat__delta) {
+  display: inline-block;
+  font-size: var(--eink-text-xs);
+  font-weight: var(--eink-weight-medium);
+  margin-top: var(--eink-space-2);
+  padding: var(--eink-space-1) var(--eink-space-2);
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+}
+
+/* Compact variant — inline value + label */
+
+:where(.eink-stat--compact) {
+  display: flex;
+  align-items: baseline;
+  gap: var(--eink-space-2);
+}
+
+:where(.eink-stat--compact > .eink-stat__value) {
+  margin-bottom: 0;
+}

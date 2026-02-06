@@ -1,0 +1,37 @@
+/* ===========================================
+   TAG
+   =========================================== */
+
+@use "../mixins" as *;
+
+:where(.eink-tag, eink-tag) {
+  display: inline-block;
+  font-size: var(--eink-text-xs);
+  font-weight: var(--eink-weight-medium);
+  padding: var(--eink-space-1) var(--eink-space-2);
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+  line-height: 1;
+  text-decoration: none;
+  color: var(--eink-fg);
+}
+
+:where(a.eink-tag:focus-visible) {
+  @include focus-ring;
+}
+
+:where(.eink-tag--filled, eink-tag[variant="filled"]) {
+  background-color: var(--eink-fg);
+  color: var(--eink-bg);
+  border-color: var(--eink-fg);
+}
+
+:where(.eink-tag--muted, eink-tag[variant="muted"]) {
+  background-color: var(--eink-bg-muted);
+  color: var(--eink-fg-muted);
+}
+
+:where(.eink-tag-group) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--eink-space-1);
+}

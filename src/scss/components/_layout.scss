@@ -1,0 +1,85 @@
+/* ===========================================
+   LAYOUT
+   =========================================== */
+
+:where(.eink-container, eink-container) {
+  display: block;
+  width: 100%;
+  max-width: 52rem;
+  margin-inline: auto;
+  padding-inline: var(--eink-space-4);
+}
+
+:where(.eink-container--wide, eink-container[width="wide"]) {
+  max-width: 72rem;
+}
+
+:where(.eink-container--narrow, eink-container[width="narrow"]) {
+  max-width: 38rem;
+}
+
+:where(.eink-stack, eink-stack) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--eink-stack-gap, var(--eink-space-5));
+}
+
+:where(.eink-stack--sm, eink-stack[gap="sm"]) {
+  --eink-stack-gap: var(--eink-space-3);
+}
+
+:where(.eink-stack--lg, eink-stack[gap="lg"]) {
+  --eink-stack-gap: var(--eink-space-7);
+}
+
+:where(.eink-cluster, eink-cluster) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--eink-cluster-gap, var(--eink-space-3));
+  align-items: center;
+}
+
+:where(.eink-grid, eink-grid) {
+  display: grid;
+  gap: var(--eink-grid-gap, var(--eink-space-5));
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(var(--eink-grid-min, 16rem), 100%), 1fr)
+  );
+}
+
+:where(.eink-divider, eink-divider) {
+  display: block;
+  border: none;
+  border-top: var(--eink-border-thin) solid var(--eink-border-color);
+  margin-block: var(--eink-space-5);
+}
+
+:where(.eink-divider--strong, eink-divider[strong]) {
+  border-top-width: var(--eink-border-medium);
+  border-top-color: var(--eink-border-strong);
+}
+
+:where(.eink-page-header, eink-page-header) {
+  display: block;
+  border-bottom: var(--eink-border-medium) solid var(--eink-border-color);
+  padding-block: var(--eink-space-4);
+  margin-bottom: var(--eink-space-6);
+}
+
+:where(.eink-page-footer, eink-page-footer) {
+  display: block;
+  border-top: var(--eink-border-thin) solid var(--eink-border-color);
+  padding-block: var(--eink-space-4);
+  margin-top: var(--eink-space-7);
+  color: var(--eink-fg-muted);
+}
+
+:where(.eink-section, eink-section) {
+  display: block;
+  padding-block: var(--eink-space-5);
+}
+
+:where(.eink-section + .eink-section, eink-section + eink-section) {
+  border-top: var(--eink-border-thin) solid var(--eink-border-color);
+}

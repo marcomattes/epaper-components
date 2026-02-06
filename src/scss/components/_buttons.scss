@@ -1,0 +1,65 @@
+/* ===========================================
+   BUTTONS
+   =========================================== */
+
+@use "../mixins" as *;
+
+:where(.eink-btn) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--eink-space-2);
+  padding: var(--eink-space-2) var(--eink-space-4);
+  font-family: inherit;
+  font-size: var(--eink-text-base);
+  font-weight: var(--eink-weight-medium);
+  line-height: var(--eink-leading-normal);
+  text-decoration: none;
+  border: var(--eink-border-medium) solid var(--eink-border-color);
+  background-color: var(--eink-bg);
+  color: var(--eink-fg);
+  cursor: pointer;
+  appearance: none;
+}
+
+:where(.eink-btn--primary) {
+  background-color: var(--eink-fg);
+  color: var(--eink-bg);
+  border-color: var(--eink-fg);
+}
+
+:where(.eink-btn--secondary) {
+  background-color: var(--eink-bg);
+  color: var(--eink-fg);
+  border-color: var(--eink-border-strong);
+}
+
+:where(.eink-btn--ghost) {
+  background-color: transparent;
+  color: var(--eink-fg);
+  border-color: transparent;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+:where(.eink-btn--sm) {
+  font-size: var(--eink-text-sm);
+  padding: var(--eink-space-1) var(--eink-space-3);
+}
+
+:where(.eink-btn--lg) {
+  font-size: var(--eink-text-lg);
+  padding: var(--eink-space-3) var(--eink-space-5);
+}
+
+:where(.eink-btn:disabled),
+:where(.eink-btn[aria-disabled="true"]) {
+  color: var(--eink-disabled-fg);
+  background-color: var(--eink-disabled-bg);
+  border-color: var(--eink-disabled-border);
+  cursor: not-allowed;
+}
+
+:where(.eink-btn:focus-visible) {
+  @include focus-ring;
+}

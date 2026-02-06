@@ -1,0 +1,54 @@
+/* ===========================================
+   ALERT / BANNER
+   =========================================== */
+
+:where(.eink-alert, eink-alert) {
+  display: block;
+  padding: var(--eink-space-3) var(--eink-space-4);
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+  border-left-width: var(--eink-border-thick);
+}
+
+:where(.eink-alert__title) {
+  font-weight: var(--eink-weight-bold);
+  margin-bottom: var(--eink-space-1);
+}
+
+:where(.eink-alert__body) {
+  font-size: var(--eink-text-sm);
+  color: var(--eink-fg-muted);
+}
+
+/* Info — thin left border (default) */
+
+:where(.eink-alert--info, eink-alert[variant="info"]) {
+  border-left-color: var(--eink-fg-muted);
+}
+
+/* Success — medium left border */
+
+:where(.eink-alert--success, eink-alert[variant="success"]) {
+  border-left-width: var(--eink-border-thick);
+  border-left-color: var(--eink-fg);
+}
+
+/* Warning — dashed left border for visual distinction */
+
+:where(.eink-alert--warning, eink-alert[variant="warning"]) {
+  border-left-style: dashed;
+  border-left-color: var(--eink-border-strong);
+}
+
+/* Error — thick + strong border */
+
+:where(.eink-alert--error, eink-alert[variant="error"]) {
+  border-left-color: var(--eink-error-border);
+  background-color: var(--eink-error-bg);
+}
+
+:where(
+  .eink-alert--error > .eink-alert__title,
+  eink-alert[variant="error"] > .eink-alert__title
+) {
+  color: var(--eink-error-fg);
+}

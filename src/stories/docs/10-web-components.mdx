@@ -1,0 +1,50 @@
+import { Meta, Title, Description, Source } from "@storybook/blocks";
+
+<Meta title="Docs/Web Components" />
+
+<Title>Web Components (optional)</Title>
+<Description>
+  Light-DOM Custom Elements that wrap the existing CSS system. They reuse the same
+  tokens, themes, and classes; zero dependencies beyond this package.
+</Description>
+
+### Setup
+
+```js
+import "eink-ui/dist/eink-ui.css"; // tokens + base + components
+import { defineEinkElements } from "eink-ui/wc";
+
+defineEinkElements(); // call once at app bootstrap
+```
+
+### Button usage
+
+```html
+<eink-button variant="primary">Continue</eink-button>
+<eink-button variant="secondary" size="sm">Back</eink-button>
+<eink-button variant="ghost" disabled>Disabled</eink-button>
+```
+
+Attributes → classes:
+
+- `variant`: `primary | secondary | ghost` → `.eink-btn--*`
+- `size`: `sm | lg` (default = base size) → `.eink-btn--*`
+- `disabled`: reflects to native button disabled
+
+### Design choices
+
+- **Light DOM first**: keeps repaint cost low and lets existing `.eink-*` CSS apply directly.
+- **Tokens & themes**: inherit `data-theme`/CSS variables from ancestors—same theming as the CSS-only path.
+- **Interop**: no framework runtime; just call `defineEinkElements()`.
+
+### Roadmap
+
+- Additional elements (inputs, select, dialog, tabs) mapping attributes/slots to existing structures.
+- Optional Shadow DOM build guarded by capability checks for projects that need full encapsulation.
+
+### Supported elements (today)
+
+- Layout: `<eink-container width="wide|narrow">`, `<eink-stack gap="sm|lg">`, `<eink-cluster gap="1rem">`, `<eink-grid min="18rem">`, `<eink-divider strong>`, `<eink-section>`, `<eink-page-header>`, `<eink-page-footer>`, `<eink-card raised>`
+- Buttons: `<eink-button variant="primary|secondary|ghost" size="sm|lg" disabled>`
+- Forms: `<eink-input type="text|email|...">`, `<eink-textarea>`, `<eink-select> ... </eink-select>`, `<eink-checkbox checked disabled>Label</eink-checkbox>`, `<eink-radio name="group" value="a" checked>Label</eink-radio>`
+- Tokens/components reuse all existing CSS—no visual drift from the class-based API.

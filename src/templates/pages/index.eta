@@ -1,0 +1,148 @@
+<% layout("../_layout", { title: "Overview", current: "index", fullHeader: true, footerText: "eink-ui — CSS-only component library for E-Ink devices. No JavaScript. No build step." }) %>
+
+    <main class="eink-container eink-stack">
+      <section class="eink-section">
+        <h2>About</h2>
+        <p>
+          <strong>eink-ui</strong> is a CSS-only component library optimized for E-Ink
+          displays (Kindle, Tolino, Kobo, and similar devices). It uses zero JavaScript,
+          no animations, and no hover-only affordances. Every value is a CSS custom
+          property. Specificity is kept at zero via <code>:where()</code> selectors.
+        </p>
+        <p class="eink-note">
+          E-Ink rationale: E-Ink screens have slow refresh rates (~300ms full, ~120ms
+          partial). This library avoids large filled surfaces, animations, and layout
+          shifts that cause unpleasant ghosting.
+        </p>
+      </section>
+
+      <section class="eink-section">
+        <h2>File structure</h2>
+        <pre><code>eink-ui.tokens.css     — Design tokens (colors, spacing, type scale, themes)
+eink-ui.base.css       — Reset and base HTML element styles
+eink-ui.components.css — All component selectors
+demo/                  — Demo pages (this site)</code></pre>
+      </section>
+
+      <section class="eink-section">
+        <h2>Getting started</h2>
+        <pre><code>&lt;link rel="stylesheet" href="eink-ui.tokens.css"&gt;
+&lt;link rel="stylesheet" href="eink-ui.base.css"&gt;
+&lt;link rel="stylesheet" href="eink-ui.components.css"&gt;</code></pre>
+        <p>
+          Add <code>data-theme="default"</code> (or <code>inverted</code> /
+          <code>high-contrast</code>) to <code>&lt;html&gt;</code>. That's it.
+        </p>
+      </section>
+
+      <section class="eink-section">
+        <h2>Theme preview</h2>
+        <p class="eink-text-sm eink-text-muted">
+          Each box below is scoped with its own <code>data-theme</code>.
+        </p>
+
+        <div class="eink-grid" style="--eink-grid-min: 14rem">
+          <div
+            data-theme="default"
+            class="eink-card"
+            style="background-color: var(--eink-bg); color: var(--eink-fg)"
+          >
+            <div class="eink-card__title">Default</div>
+            <div class="eink-card__body">
+              <p>
+                Dark text on light background. Standard grayscale borders and muted
+                text.
+              </p>
+              <p style="margin-top: var(--eink-space-2)">
+                <button class="eink-btn eink-btn--primary eink-btn--sm">Primary</button>
+                <button class="eink-btn eink-btn--secondary eink-btn--sm">
+                  Secondary
+                </button>
+              </p>
+            </div>
+          </div>
+
+          <div
+            data-theme="inverted"
+            class="eink-card"
+            style="background-color: var(--eink-bg); color: var(--eink-fg)"
+          >
+            <div class="eink-card__title">Inverted</div>
+            <div class="eink-card__body">
+              <p>
+                Light text on dark background. Good for night-mode on backlit E-Ink.
+              </p>
+              <p style="margin-top: var(--eink-space-2)">
+                <button class="eink-btn eink-btn--primary eink-btn--sm">Primary</button>
+                <button class="eink-btn eink-btn--secondary eink-btn--sm">
+                  Secondary
+                </button>
+              </p>
+            </div>
+          </div>
+
+          <div
+            data-theme="high-contrast"
+            class="eink-card"
+            style="background-color: var(--eink-bg); color: var(--eink-fg)"
+          >
+            <div class="eink-card__title">High Contrast</div>
+            <div class="eink-card__body">
+              <p>
+                Pure black and white only. Thicker borders. Maximum legibility on
+                low-DPI E-Ink.
+              </p>
+              <p style="margin-top: var(--eink-space-2)">
+                <button class="eink-btn eink-btn--primary eink-btn--sm">Primary</button>
+                <button class="eink-btn eink-btn--secondary eink-btn--sm">
+                  Secondary
+                </button>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="eink-section">
+        <h2>Demo pages</h2>
+        <ul>
+          <li>
+            <a href="typography.html">Typography</a> — type scale, line length, prose
+          </li>
+          <li>
+            <a href="layout.html">Layout</a> — container, stack, cluster, grid, divider
+          </li>
+          <li>
+            <a href="components.html">Components</a> — card, button, inputs, select,
+            checkbox, radio, picture
+          </li>
+          <li>
+            <a href="forms.html">Forms</a> — validation, errors, help text,
+            disabled/required
+          </li>
+          <li>
+            <a href="dialog.html">Dialog</a> — native
+            <code>&lt;dialog&gt;</code> patterns
+          </li>
+          <li>
+            <a href="tables.html">Tables</a> — striped, bordered, responsive scroll
+          </li>
+        </ul>
+      </section>
+
+      <section class="eink-section">
+        <h2>Selector strategy</h2>
+        <p>
+          All component selectors are <strong>class-based</strong> with the
+          <code>.eink-*</code> prefix. Every selector is wrapped in
+          <code>:where()</code> so specificity is always <code>0-0-0</code>, making
+          overrides trivial without <code>!important</code>.
+        </p>
+        <p class="eink-note">
+          Classes were chosen over <code>data-*</code> attributes because they are more
+          widely familiar, easier to search, and lint-friendly. The
+          <code>:where()</code> wrapper ensures the same low specificity benefit that
+          attribute selectors would provide.
+        </p>
+      </section>
+    </main>

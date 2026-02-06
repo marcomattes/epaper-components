@@ -1,0 +1,160 @@
+<% layout("../_wc-layout", { title: "Components", current: "components" }) %>
+
+    <main class="eink-container eink-stack">
+      <!-- CARDS -->
+      <eink-section>
+        <h2>Card</h2>
+        <p class="eink-note">
+          <code>&lt;eink-card&gt;</code> replaces
+          <code>&lt;div class="eink-card"&gt;</code>. Add the
+          <code>raised</code> attribute for emphasis.
+        </p>
+
+        <div class="eink-stack eink-stack--sm" style="margin-top: var(--eink-space-3)">
+          <div>
+            <span class="eink-badge">CSS-only</span>
+            <pre style="margin-top: var(--eink-space-2)"><code>&lt;div class="eink-card eink-card--raised"&gt;...&lt;/div&gt;</code></pre>
+          </div>
+          <div>
+            <span class="eink-badge">Web Component</span>
+            <pre style="margin-top: var(--eink-space-2)"><code>&lt;eink-card raised&gt;...&lt;/eink-card&gt;</code></pre>
+          </div>
+        </div>
+
+        <eink-grid min="16rem" style="margin-top: var(--eink-space-4)">
+          <eink-card>
+            <div class="eink-card__title">Default card</div>
+            <div class="eink-card__body">
+              <p>Standard card with thin border. Good for grouping related content.</p>
+            </div>
+            <div class="eink-card__footer">
+              <span class="eink-text-xs eink-text-muted">Footer area</span>
+            </div>
+          </eink-card>
+
+          <eink-card raised>
+            <div class="eink-card__title">Raised card</div>
+            <div class="eink-card__body">
+              <p>
+                Medium border weight for emphasis. Use sparingly — no more than one per
+                section.
+              </p>
+            </div>
+            <div class="eink-card__footer">
+              <eink-button variant="secondary" size="sm">Action</eink-button>
+            </div>
+          </eink-card>
+
+          <eink-card>
+            <div class="eink-card__title">Card without footer</div>
+            <div class="eink-card__body">
+              <p>The footer is optional. Cards work fine with just a title and body.</p>
+            </div>
+          </eink-card>
+        </eink-grid>
+      </eink-section>
+
+      <!-- BUTTONS -->
+      <eink-section>
+        <h2>Button</h2>
+        <p class="eink-note">
+          <code>&lt;eink-button&gt;</code> wraps a native
+          <code>&lt;button&gt;</code> and maps <code>variant</code>,
+          <code>size</code>, and <code>disabled</code> attributes to CSS classes.
+        </p>
+
+        <div class="eink-stack eink-stack--sm" style="margin-top: var(--eink-space-3)">
+          <div>
+            <span class="eink-badge">CSS-only</span>
+            <pre style="margin-top: var(--eink-space-2)"><code>&lt;button class="eink-btn eink-btn--primary"&gt;Primary&lt;/button&gt;</code></pre>
+          </div>
+          <div>
+            <span class="eink-badge">Web Component</span>
+            <pre style="margin-top: var(--eink-space-2)"><code>&lt;eink-button variant="primary"&gt;Primary&lt;/eink-button&gt;</code></pre>
+          </div>
+        </div>
+
+        <h3 style="margin-top: var(--eink-space-4)">Variants</h3>
+        <eink-cluster style="margin-top: var(--eink-space-3)">
+          <eink-button variant="primary">Primary</eink-button>
+          <eink-button variant="secondary">Secondary</eink-button>
+          <eink-button variant="ghost">Ghost</eink-button>
+        </eink-cluster>
+
+        <h3 style="margin-top: var(--eink-space-5)">Sizes</h3>
+        <eink-cluster style="margin-top: var(--eink-space-3)">
+          <eink-button variant="primary" size="sm">Small</eink-button>
+          <eink-button variant="primary">Default</eink-button>
+          <eink-button variant="primary" size="lg">Large</eink-button>
+        </eink-cluster>
+
+        <h3 style="margin-top: var(--eink-space-5)">Disabled state</h3>
+        <eink-cluster style="margin-top: var(--eink-space-3)">
+          <eink-button variant="primary" disabled>Primary (disabled)</eink-button>
+          <eink-button variant="secondary" disabled>Secondary (disabled)</eink-button>
+          <eink-button variant="ghost" disabled>Ghost (disabled)</eink-button>
+        </eink-cluster>
+
+        <h3 style="margin-top: var(--eink-space-5)">Focus state</h3>
+        <p class="eink-text-sm eink-text-muted">
+          Tab through the buttons below to see the focus ring.
+        </p>
+        <eink-cluster style="margin-top: var(--eink-space-3)">
+          <eink-button variant="primary">Tab to me</eink-button>
+          <eink-button variant="secondary">Then to me</eink-button>
+          <eink-button variant="ghost">And me</eink-button>
+        </eink-cluster>
+      </eink-section>
+
+      <!-- ALERTS -->
+      <eink-section>
+        <h2>Alert</h2>
+        <p class="eink-note">
+          <code>&lt;eink-alert&gt;</code> with
+          <code>variant="info|success|warning|error"</code>.
+        </p>
+
+        <eink-stack gap="sm" style="margin-top: var(--eink-space-4)">
+          <eink-alert variant="info">
+            <div class="eink-alert__title">Info</div>
+            <div class="eink-alert__body">Thin left rule; minimal repaint.</div>
+          </eink-alert>
+          <eink-alert variant="success">
+            <div class="eink-alert__title">Success</div>
+            <div class="eink-alert__body">Thicker rule for emphasis.</div>
+          </eink-alert>
+          <eink-alert variant="warning">
+            <div class="eink-alert__title">Warning</div>
+            <div class="eink-alert__body">Dashed rule reads well on low DPI.</div>
+          </eink-alert>
+          <eink-alert variant="error">
+            <div class="eink-alert__title">Error</div>
+            <div class="eink-alert__body">Error background uses light gray instead of fill.</div>
+          </eink-alert>
+        </eink-stack>
+      </eink-section>
+
+      <!-- TAGS & BADGES -->
+      <eink-section>
+        <h2>Tag &amp; Badge</h2>
+        <p class="eink-note">
+          <code>&lt;eink-tag&gt;</code> with optional
+          <code>variant="filled|muted"</code>, and
+          <code>&lt;eink-badge&gt;</code>.
+        </p>
+
+        <h3 style="margin-top: var(--eink-space-4)">Tags</h3>
+        <eink-cluster style="margin-top: var(--eink-space-3)">
+          <eink-tag>Default</eink-tag>
+          <eink-tag variant="filled">Filled</eink-tag>
+          <eink-tag variant="muted">Muted</eink-tag>
+        </eink-cluster>
+
+        <h3 style="margin-top: var(--eink-space-5)">Badges</h3>
+        <eink-cluster style="margin-top: var(--eink-space-3)">
+          <eink-badge>Badge</eink-badge>
+          <eink-badge>New</eink-badge>
+          <eink-badge>3</eink-badge>
+        </eink-cluster>
+      </eink-section>
+    </main>

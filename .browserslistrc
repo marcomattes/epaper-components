@@ -1,0 +1,11 @@
+# Targets for E-Ink oriented builds (Autoprefixer, minifiers, Storybook)
+>0.25%
+not dead
+not op_mini all
+safari >= 12
+ios_saf >= 12
+android >= 9
+chrome >= 90
+edge >= 90
+firefox >= 102
+samsung >= 15

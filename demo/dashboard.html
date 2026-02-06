@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en" data-theme="default">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard — eink-ui</title>
+    <link rel="stylesheet" href="../dist/eink-ui.css" />
+    <link rel="icon" href="../assets/eink-ui-logo.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <header class="eink-page-header">
+      <div class="eink-container eink-container--wide">
+        <h1 style="font-size: var(--eink-text-2xl); margin-bottom: var(--eink-space-2)">
+          eink-ui
+        </h1>
+        <nav class="eink-nav" aria-label="Main navigation">
+          <a href="index.html">Overview</a>
+          <a href="typography.html">Typography</a>
+          <a href="layout.html">Layout</a>
+          <a href="components.html">Components</a>
+          <a href="forms.html">Forms</a>
+          <a href="dialog.html">Dialog</a>
+          <a href="tables.html">Tables</a>
+          <a href="newsreader.html">Newsreader</a>
+          <a href="blog.html">Blog</a>
+          <a href="dashboard.html" aria-current="page">Dashboard</a>
+        </nav>
+        <p class="eink-text-xs" style="margin-top: var(--eink-space-1); display: flex; gap: var(--eink-space-3); align-items: center; flex-wrap: wrap;">
+          <a href="../demo-wc/index.html"><strong>Switch to Web Component demos</strong></a>
+          <span aria-hidden="true">·</span>
+          <a href="https://marcomattes.github.io/eink-css-ui-framework/storybook/"><strong>View Storybook</strong></a>
+        </p>
+        <p class="eink-text-xs eink-text-muted" style="margin-top: var(--eink-space-2)">
+          Theme: <code>default</code>
+        </p>
+      </div>
+    </header>
+
+    <main class="eink-container eink-container--wide eink-stack">
+      <h2>Dashboard Pattern</h2>
+      <p class="eink-note">
+        This page demonstrates dashboard components: stats/KPIs, progress bars, tabs,
+        toolbars, description lists, and sidebar navigation — all CSS-only, optimized
+        for E-Ink.
+      </p>
+
+      <!-- STATS / KPI -->
+      <section class="eink-section">
+        <h3>Stat / KPI Cards</h3>
+        <p class="eink-note">
+          E-Ink rationale: Stats use large bold numbers with thin borders. The value
+          stands out through font size and weight rather than color fills, keeping
+          repaints minimal.
+        </p>
+
+        <div
+          class="eink-grid"
+          style="--eink-grid-min: 12rem; margin-top: var(--eink-space-4)"
+        >
+          <div class="eink-stat">
+            <div class="eink-stat__value">1,247</div>
+            <div class="eink-stat__label">Total articles</div>
+            <div class="eink-stat__delta">+12 this week</div>
+          </div>
+          <div class="eink-stat">
+            <div class="eink-stat__value">89%</div>
+            <div class="eink-stat__label">Uptime</div>
+            <div class="eink-stat__delta">-2% from last month</div>
+          </div>
+          <div class="eink-stat">
+            <div class="eink-stat__value">342</div>
+            <div class="eink-stat__label">Active readers</div>
+          </div>
+          <div class="eink-stat">
+            <div class="eink-stat__value">4.2s</div>
+            <div class="eink-stat__label">Avg. load time</div>
+            <div class="eink-stat__delta">-0.8s improved</div>
+          </div>
+        </div>
+
+        <h4 style="margin-top: var(--eink-space-5)">Compact variant</h4>
+        <div
+          class="eink-stack eink-stack--sm"
+          style="margin-top: var(--eink-space-3); max-width: 20rem"
+        >
+          <div class="eink-stat eink-stat--compact">
+            <div class="eink-stat__value">128</div>
+            <div class="eink-stat__label">pending reviews</div>
+          </div>
+          <div class="eink-stat eink-stat--compact">
+            <div class="eink-stat__value">7</div>
+            <div class="eink-stat__label">critical issues</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PROGRESS BAR -->
+      <section class="eink-section">
+        <h3>Progress Bar</h3>
+        <p class="eink-note">
+          E-Ink rationale: Progress bars use a bordered track with a solid fill. The
+          track border ensures visibility even at 0% — no filled background needed for
+          the container.
+        </p>
+
+        <div
+          class="eink-stack"
+          style="margin-top: var(--eink-space-4); max-width: var(--eink-measure)"
+        >
+          <div>
+            <div class="eink-text-sm" style="margin-bottom: var(--eink-space-1)">
+              Storage used
+            </div>
+            <div class="eink-progress">
+              <div class="eink-progress__track">
+                <div class="eink-progress__bar" style="width: 72%"></div>
+              </div>
+              <span class="eink-progress__label">72%</span>
+            </div>
+          </div>
+
+          <div>
+            <div class="eink-text-sm" style="margin-bottom: var(--eink-space-1)">
+              Articles indexed
+            </div>
+            <div class="eink-progress">
+              <div class="eink-progress__track">
+                <div class="eink-progress__bar" style="width: 45%"></div>
+              </div>
+              <span class="eink-progress__label">45%</span>
+            </div>
+          </div>
+
+          <div>
+            <div class="eink-text-sm" style="margin-bottom: var(--eink-space-1)">
+              Migration complete
+            </div>
+            <div class="eink-progress">
+              <div class="eink-progress__track">
+                <div class="eink-progress__bar" style="width: 100%"></div>
+              </div>
+              <span class="eink-progress__label">100%</span>
+            </div>
+          </div>
+
+          <h4 style="margin-top: var(--eink-space-4)">Thick variant</h4>
+          <div class="eink-progress eink-progress--thick">
+            <div class="eink-progress__track">
+              <div class="eink-progress__bar" style="width: 60%"></div>
+            </div>
+            <span class="eink-progress__label">60%</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- TABS -->
+      <section class="eink-section">
+        <h3>Tabs (CSS-only)</h3>
+        <p class="eink-note">
+          E-Ink rationale: Tabs switch content without page navigation, reducing
+          full-page repaints. Uses hidden radio inputs — the native browser handles
+          state with zero JavaScript. Set <code>--eink-tabs-count</code> to match the
+          number of tabs.
+        </p>
+
+        <div
+          class="eink-tabs"
+          style="margin-top: var(--eink-space-4); --eink-tabs-count: 3"
+        >
+          <input
+            type="radio"
+            name="dashboard-tabs"
+            id="tab-overview"
+            class="eink-tabs__input"
+            checked
+          />
+          <label for="tab-overview" class="eink-tabs__tab">Overview</label>
+          <input
+            type="radio"
+            name="dashboard-tabs"
+            id="tab-analytics"
+            class="eink-tabs__input"
+          />
+          <label for="tab-analytics" class="eink-tabs__tab">Analytics</label>
+          <input
+            type="radio"
+            name="dashboard-tabs"
+            id="tab-settings"
+            class="eink-tabs__input"
+          />
+          <label for="tab-settings" class="eink-tabs__tab">Settings</label>
+
+          <div class="eink-tabs__panel">
+            <div class="eink-stack eink-stack--sm">
+              <h4>System Overview</h4>
+              <div class="eink-grid" style="--eink-grid-min: 12rem">
+                <div class="eink-stat">
+                  <div class="eink-stat__value">OK</div>
+                  <div class="eink-stat__label">System status</div>
+                </div>
+                <div class="eink-stat">
+                  <div class="eink-stat__value">99.7%</div>
+                  <div class="eink-stat__label">Availability</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="eink-tabs__panel">
+            <div class="eink-stack eink-stack--sm">
+              <h4>Analytics</h4>
+              <p>
+                Page views, unique visitors, and engagement metrics would appear here.
+                On E-Ink, data tables and stat cards work better than charts.
+              </p>
+              <table class="eink-table eink-table--striped">
+                <thead>
+                  <tr>
+                    <th>Page</th>
+                    <th>Views</th>
+                    <th>Avg. Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>/home</td>
+                    <td>3,421</td>
+                    <td>2m 15s</td>
+                  </tr>
+                  <tr>
+                    <td>/articles</td>
+                    <td>1,892</td>
+                    <td>4m 30s</td>
+                  </tr>
+                  <tr>
+                    <td>/about</td>
+                    <td>634</td>
+                    <td>1m 05s</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="eink-tabs__panel">
+            <div class="eink-stack eink-stack--sm">
+              <h4>Settings</h4>
+              <p>Dashboard configuration options.</p>
+              <div class="eink-field eink-field--inline">
+                <input
+                  type="checkbox"
+                  class="eink-checkbox"
+                  id="setting-notify"
+                  checked
+                />
+                <label for="setting-notify">Email notifications</label>
+              </div>
+              <div class="eink-field eink-field--inline">
+                <input type="checkbox" class="eink-checkbox" id="setting-public" />
+                <label for="setting-public">Public profile</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TOOLBAR -->
+      <section class="eink-section">
+        <h3>Toolbar</h3>
+        <p class="eink-note">
+          E-Ink rationale: Toolbars group actions horizontally with thin separators.
+          Uses the same button components — no new visual patterns to render.
+        </p>
+
+        <div style="margin-top: var(--eink-space-4)">
+          <div class="eink-toolbar">
+            <span class="eink-toolbar__label">Actions:</span>
+            <div class="eink-toolbar__group">
+              <button class="eink-btn eink-btn--sm eink-btn--secondary">New</button>
+              <button class="eink-btn eink-btn--sm eink-btn--secondary">Edit</button>
+              <button class="eink-btn eink-btn--sm eink-btn--ghost">Delete</button>
+            </div>
+            <span class="eink-toolbar__separator"></span>
+            <div class="eink-toolbar__group">
+              <button class="eink-btn eink-btn--sm eink-btn--ghost">Export</button>
+            </div>
+            <span class="eink-toolbar__spacer"></span>
+            <div class="eink-toolbar__group">
+              <label for="toolbar-search" class="eink-sr-only">Search</label>
+              <input
+                type="search"
+                id="toolbar-search"
+                class="eink-input"
+                placeholder="Search..."
+                style="
+                  width: 12rem;
+                  padding: var(--eink-space-1) var(--eink-space-2);
+                  font-size: var(--eink-text-sm);
+                "
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DESCRIPTION LIST -->
+      <section class="eink-section">
+        <h3>Description List</h3>
+        <p class="eink-note">
+          E-Ink rationale: Description lists present key-value data cleanly without
+          requiring table markup. The horizontal variant uses CSS grid for alignment.
+        </p>
+
+        <div
+          class="eink-grid"
+          style="--eink-grid-min: 18rem; margin-top: var(--eink-space-4)"
+        >
+          <div>
+            <h4 style="margin-bottom: var(--eink-space-3)">Stacked (default)</h4>
+            <dl class="eink-dl">
+              <dt class="eink-dl__term">Server</dt>
+              <dd class="eink-dl__detail">eink-prod-01</dd>
+              <dt class="eink-dl__term">Region</dt>
+              <dd class="eink-dl__detail">EU West (Frankfurt)</dd>
+              <dt class="eink-dl__term">Last deploy</dt>
+              <dd class="eink-dl__detail">2025-01-15 14:30 UTC</dd>
+              <dt class="eink-dl__term">Version</dt>
+              <dd class="eink-dl__detail">2.4.1</dd>
+            </dl>
+          </div>
+
+          <div>
+            <h4 style="margin-bottom: var(--eink-space-3)">Horizontal</h4>
+            <dl class="eink-dl eink-dl--horizontal">
+              <dt class="eink-dl__term">Status</dt>
+              <dd class="eink-dl__detail"><span class="eink-badge">Active</span></dd>
+              <dt class="eink-dl__term">Plan</dt>
+              <dd class="eink-dl__detail">Pro</dd>
+              <dt class="eink-dl__term">Storage</dt>
+              <dd class="eink-dl__detail">14.2 GB / 20 GB</dd>
+              <dt class="eink-dl__term">API calls</dt>
+              <dd class="eink-dl__detail">82,341 this month</dd>
+            </dl>
+          </div>
+        </div>
+
+        <h4 style="margin-top: var(--eink-space-5)">Horizontal + bordered</h4>
+        <dl
+          class="eink-dl eink-dl--horizontal eink-dl--bordered"
+          style="max-width: var(--eink-measure); margin-top: var(--eink-space-3)"
+        >
+          <dt class="eink-dl__term">Name</dt>
+          <dd class="eink-dl__detail">eink-ui Library</dd>
+          <dt class="eink-dl__term">License</dt>
+          <dd class="eink-dl__detail">MIT</dd>
+          <dt class="eink-dl__term">Dependencies</dt>
+          <dd class="eink-dl__detail">None (CSS only)</dd>
+          <dt class="eink-dl__term">Size</dt>
+          <dd class="eink-dl__detail">~33 KB minified</dd>
+        </dl>
+      </section>
+
+      <!-- DASHBOARD LAYOUT (sidebar + content) -->
+      <section class="eink-section">
+        <h3>Dashboard Layout Example</h3>
+        <p class="eink-note">
+          Full dashboard composition: sidebar navigation + main content area with stats,
+          alerts, tables, and a toolbar.
+        </p>
+
+        <div
+          class="eink-with-sidebar eink-with-sidebar--left"
+          style="margin-top: var(--eink-space-4)"
+        >
+          <!-- Sidebar nav -->
+          <nav class="eink-with-sidebar__sidebar" aria-label="Dashboard navigation">
+            <div class="eink-list-group">
+              <a href="#" class="eink-list-group__item eink-list-group__item--active"
+                >Dashboard</a
+              >
+              <a href="#" class="eink-list-group__item">Content</a>
+              <a href="#" class="eink-list-group__item">Users</a>
+              <a href="#" class="eink-list-group__item">Analytics</a>
+              <a href="#" class="eink-list-group__item">Settings</a>
+            </div>
+          </nav>
+
+          <!-- Main dashboard content -->
+          <div class="eink-with-sidebar__main">
+            <div class="eink-stack">
+              <div class="eink-alert eink-alert--warning">
+                <div class="eink-alert__title">Maintenance scheduled</div>
+                <div class="eink-alert__body">
+                  System maintenance planned for Sunday 02:00–04:00 UTC.
+                </div>
+              </div>
+
+              <div class="eink-grid" style="--eink-grid-min: 10rem">
+                <div class="eink-stat">
+                  <div class="eink-stat__value">56</div>
+                  <div class="eink-stat__label">Published</div>
+                </div>
+                <div class="eink-stat">
+                  <div class="eink-stat__value">12</div>
+                  <div class="eink-stat__label">Drafts</div>
+                </div>
+                <div class="eink-stat">
+                  <div class="eink-stat__value">3</div>
+                  <div class="eink-stat__label">Pending review</div>
+                </div>
+              </div>
+
+              <div class="eink-toolbar">
+                <div class="eink-toolbar__group">
+                  <button class="eink-btn eink-btn--sm eink-btn--primary">
+                    New article
+                  </button>
+                  <button class="eink-btn eink-btn--sm eink-btn--secondary">
+                    Import
+                  </button>
+                </div>
+                <span class="eink-toolbar__spacer"></span>
+                <span class="eink-text-xs eink-text-muted">Showing 1–10 of 56</span>
+              </div>
+
+              <table class="eink-table eink-table--striped eink-table--bordered">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Building for E-Ink Displays</td>
+                    <td><span class="eink-tag eink-tag--filled">Published</span></td>
+                    <td>Jan 15</td>
+                  </tr>
+                  <tr>
+                    <td>CSS Variables Deep Dive</td>
+                    <td><span class="eink-tag eink-tag--filled">Published</span></td>
+                    <td>Jan 12</td>
+                  </tr>
+                  <tr>
+                    <td>Accessible Form Patterns</td>
+                    <td><span class="eink-tag eink-tag--muted">Draft</span></td>
+                    <td>Jan 10</td>
+                  </tr>
+                  <tr>
+                    <td>E-Ink Market Report 2025</td>
+                    <td><span class="eink-tag">Review</span></td>
+                    <td>Jan 8</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <nav aria-label="Table pagination" class="eink-pagination">
+                <ol class="eink-pagination__list">
+                  <li>
+                    <a href="#" class="eink-pagination__link" aria-disabled="true"
+                      >&laquo;</a
+                    >
+                  </li>
+                  <li>
+                    <a href="#" class="eink-pagination__link" aria-current="page">1</a>
+                  </li>
+                  <li><a href="#" class="eink-pagination__link">2</a></li>
+                  <li><a href="#" class="eink-pagination__link">3</a></li>
+                  <li><a href="#" class="eink-pagination__link">&raquo;</a></li>
+                </ol>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="eink-page-footer">
+      <div class="eink-container eink-container--wide">
+        <small>eink-ui — CSS-only component library for E-Ink devices.</small>
+      </div>
+    </footer>
+  </body>
+</html>

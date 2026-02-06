@@ -1,0 +1,65 @@
+/* ===========================================
+   CHECKBOX & RADIO
+   =========================================== */
+
+@use "../mixins" as *;
+
+:where(.eink-checkbox) {
+  appearance: none;
+  width: 1.25em;
+  height: 1.25em;
+  border: var(--eink-border-medium) solid var(--eink-border-color);
+  background-color: var(--eink-bg);
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+:where(.eink-checkbox:checked) {
+  background-color: var(--eink-fg);
+  border-color: var(--eink-fg);
+}
+
+:where(.eink-checkbox:focus-visible) {
+  @include focus-ring;
+}
+
+:where(.eink-checkbox:disabled) {
+  border-color: var(--eink-disabled-border);
+  background-color: var(--eink-disabled-bg);
+  cursor: not-allowed;
+}
+
+:where(.eink-checkbox:disabled:checked) {
+  background-color: var(--eink-disabled-fg);
+  border-color: var(--eink-disabled-border);
+}
+
+:where(.eink-radio) {
+  appearance: none;
+  width: 1.25em;
+  height: 1.25em;
+  border: var(--eink-border-medium) solid var(--eink-border-color);
+  border-radius: 50%;
+  background-color: var(--eink-bg);
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+:where(.eink-radio:checked) {
+  border-width: 0.35em;
+  border-color: var(--eink-fg);
+}
+
+:where(.eink-radio:focus-visible) {
+  @include focus-ring;
+}
+
+:where(.eink-radio:disabled) {
+  border-color: var(--eink-disabled-border);
+  background-color: var(--eink-disabled-bg);
+  cursor: not-allowed;
+}
+
+:where(.eink-radio:disabled:checked) {
+  border-color: var(--eink-disabled-fg);
+}

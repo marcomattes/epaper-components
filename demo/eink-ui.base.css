@@ -1,0 +1,211 @@
+@charset "UTF-8";
+/* ============================================
+   eink-ui.base.scss — Reset & Base Primitives
+   Compiles to eink-ui.base.css
+   ============================================ */
+/* --- Box sizing --- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* --- Margin reset --- */
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+figure,
+blockquote,
+dl,
+dd,
+fieldset,
+pre {
+  margin: 0;
+}
+
+/* --- Remove list styles when a class is present --- */
+:where(ul, ol)[class] {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* --- Body --- */
+body {
+  font-family: var(--eink-font-sans);
+  font-size: var(--eink-text-base);
+  line-height: var(--eink-leading-normal);
+  color: var(--eink-fg);
+  background-color: var(--eink-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizelegibility;
+}
+
+/* --- Headings (tag-level, :where for zero specificity) --- */
+:where(h1, h2, h3, h4) {
+  line-height: var(--eink-leading-tight);
+  font-weight: var(--eink-weight-bold);
+}
+
+:where(h1) {
+  font-size: var(--eink-text-4xl);
+}
+
+:where(h2) {
+  font-size: var(--eink-text-3xl);
+}
+
+:where(h3) {
+  font-size: var(--eink-text-2xl);
+}
+
+:where(h4) {
+  font-size: var(--eink-text-xl);
+}
+
+/* --- Prose elements --- */
+:where(p) {
+  max-width: var(--eink-measure);
+}
+
+/* --- Links --- */
+:where(a) {
+  color: var(--eink-fg);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: var(--eink-border-thin);
+}
+
+:where(a:visited) {
+  color: var(--eink-fg-muted);
+}
+
+/* --- Images --- */
+:where(img, picture, svg) {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* --- Code --- */
+:where(code, kbd, samp) {
+  font-family: var(--eink-font-mono);
+  font-size: 0.9em;
+}
+
+:where(pre) {
+  font-family: var(--eink-font-mono);
+  font-size: var(--eink-text-sm);
+  overflow-x: auto;
+  padding: var(--eink-space-4);
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+  background-color: var(--eink-bg-subtle);
+}
+
+:where(code:not(pre code)) {
+  padding: 0.125em 0.25em;
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+  background-color: var(--eink-bg-subtle);
+}
+
+/* --- Horizontal rule --- */
+:where(hr) {
+  border: none;
+  border-top: var(--eink-border-thin) solid var(--eink-border-color);
+  margin-block: var(--eink-space-5);
+}
+
+/* --- Blockquote --- */
+:where(blockquote) {
+  border-left: var(--eink-border-thick) solid var(--eink-border-color);
+  padding-left: var(--eink-space-4);
+  font-style: italic;
+  color: var(--eink-fg-muted);
+}
+
+/* --- Tables (base) --- */
+:where(table) {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+:where(th, td) {
+  text-align: left;
+  padding: var(--eink-space-2) var(--eink-space-3);
+  border-bottom: var(--eink-border-thin) solid var(--eink-border-color);
+}
+
+:where(th) {
+  font-weight: var(--eink-weight-bold);
+  border-bottom-width: var(--eink-border-medium);
+}
+
+/* --- Focus visible --- */
+:where(:focus-visible) {
+  outline: var(--eink-focus-width) solid var(--eink-focus-color);
+  outline-offset: var(--eink-focus-offset);
+}
+
+:where(:focus:not(:focus-visible)) {
+  outline: none;
+}
+
+/* --- Selection --- */
+::selection {
+  background-color: var(--eink-selection-bg);
+  color: var(--eink-fg);
+}
+
+/* --- Mark --- */
+:where(mark) {
+  background-color: var(--eink-mark-bg);
+  color: var(--eink-fg);
+  padding: 0.0625em 0.125em;
+}
+
+/* --- Small --- */
+:where(small) {
+  font-size: var(--eink-text-sm);
+}
+
+/* --- Fieldset --- */
+:where(fieldset) {
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+  padding: var(--eink-space-4);
+}
+
+:where(legend) {
+  font-weight: var(--eink-weight-bold);
+  padding-inline: var(--eink-space-2);
+}
+
+/* --- Details / Summary --- */
+:where(summary) {
+  cursor: pointer;
+  font-weight: var(--eink-weight-medium);
+}
+
+/* --- Abbreviation --- */
+:where(abbr[title]) {
+  text-decoration: underline dotted;
+  text-underline-offset: 0.15em;
+}
+
+/* --- Reduced motion (intent signal, even though no animations) --- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+/*# sourceMappingURL=eink-ui.base.css.map */

@@ -1,0 +1,112 @@
+import {
+  Meta,
+  Title,
+  Subtitle,
+  Description,
+  Source,
+  ArgsTable,
+  Primary,
+} from "@storybook/blocks";
+
+<Meta title="Docs/Tokens & Themes" />
+
+<Title>Design Tokens & Themes</Title>
+<Subtitle>Custom properties that drive every component — optimized for E-Ink.</Subtitle>
+
+<Description>
+  Set tokens on <code>html</code> or any ancestor. Three built-in themes switch via{" "}
+  <code>data-theme="default|inverted|high-contrast"</code> (also supported by the demo
+  query param).
+</Description>
+
+### Color roles
+
+<table class="eink-table eink-table--compact">
+  <thead>
+    <tr>
+      <th>Token</th>
+      <th>Purpose</th>
+      <th>Default theme</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>--eink-fg</code>
+      </td>
+      <td>Primary text / icons</td>
+      <td>#171717</td>
+    </tr>
+    <tr>
+      <td>
+        <code>--eink-fg-muted</code>
+      </td>
+      <td>Secondary text</td>
+      <td>#525252</td>
+    </tr>
+    <tr>
+      <td>
+        <code>--eink-bg</code>
+      </td>
+      <td>Page background</td>
+      <td>#fff</td>
+    </tr>
+    <tr>
+      <td>
+        <code>--eink-bg-muted</code>
+      </td>
+      <td>Subtle surfaces / stripes</td>
+      <td>#f5f5f5</td>
+    </tr>
+    <tr>
+      <td>
+        <code>--eink-border-color</code>
+      </td>
+      <td>Default borders</td>
+      <td>#d4d4d4</td>
+    </tr>
+    <tr>
+      <td>
+        <code>--eink-border-strong</code>
+      </td>
+      <td>Emphasis borders</td>
+      <td>#525252</td>
+    </tr>
+    <tr>
+      <td>
+        <code>--eink-error-*</code>
+      </td>
+      <td>Error text / border / bg</td>
+      <td>Gray-based for E-Ink</td>
+    </tr>
+    <tr>
+      <td>
+        <code>--eink-focus-color</code>
+      </td>
+      <td>Focus ring</td>
+      <td>#000</td>
+    </tr>
+  </tbody>
+</table>
+
+### Spacing & typography
+
+- Spacing: `--eink-space-1 … --eink-space-8` (4px base)
+- Type: `--eink-text-xs … --eink-text-4xl`; line heights `--eink-leading-*`
+- Fonts: `--eink-font-sans`, `--eink-font-serif`, `--eink-font-mono` (system stacks)
+- Focus: `--eink-focus-width`, `--eink-focus-offset`
+- Measure: `--eink-measure`, `--eink-measure-narrow`, `--eink-measure-wide`
+
+### Borders & radius
+
+`--eink-border-thin` (1px) · `--eink-border-medium` (2px) · `--eink-border-thick` (3px) · `--eink-radius-sm|md`.
+
+### Theme preview
+
+```html
+<div data-theme="default">…</div>
+<div data-theme="inverted">…</div>
+<div data-theme="high-contrast">…</div>
+```
+
+Tokens source: `demo/eink-ui.tokens.css`. Override per-surface if needed (e.g., nested `data-theme` on a card).

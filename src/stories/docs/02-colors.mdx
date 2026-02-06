@@ -1,0 +1,46 @@
+import { Meta, Title, Description } from "@storybook/blocks";
+
+<Meta title="Docs/Colors & Themes" />
+
+<Title>Colors & Themes</Title>
+<Description>
+  Theme the system via CSS variables; no JS required. Colors are grayscale-first to
+  minimize E-Ink ghosting and large repaints.
+</Description>
+
+### Theme cards
+
+<div class="eink-grid" style="--eink-grid-min:16rem">
+  {["default", "inverted", "high-contrast"].map((theme) => (
+    <div class="eink-card" data-theme={theme} key={theme}>
+      <div class="eink-card__title" style="text-transform:capitalize;">
+        {theme}
+      </div>
+      <div class="eink-stack eink-stack--sm">
+        <div class="eink-badge">fg/bg</div>
+        <div style="height:2.75rem; border:var(--eink-border-medium) solid var(--eink-fg); background:var(--eink-bg);"></div>
+        <div class="eink-badge">bg-muted</div>
+        <div style="height:2.75rem; border:var(--eink-border-thin) solid var(--eink-border-color); background:var(--eink-bg-muted);"></div>
+        <div class="eink-badge">border-strong</div>
+        <div style="height:2.75rem; border:var(--eink-border-thick) solid var(--eink-border-strong); background:var(--eink-bg);"></div>
+        <div class="eink-badge">focus</div>
+        <div style="height:2.75rem; border:var(--eink-border-thin) solid var(--eink-border-color); outline:var(--eink-focus-width) solid var(--eink-focus-color); outline-offset:var(--eink-focus-offset);"></div>
+      </div>
+    </div>
+  ))}
+</div>
+
+### Error & disabled roles
+
+- Error: `--eink-error-fg`, `--eink-error-border`, `--eink-error-bg`
+- Disabled: `--eink-disabled-fg`, `--eink-disabled-bg`, `--eink-disabled-border`
+
+### Selection & highlights
+
+- `::selection` uses `--eink-selection-bg`
+- `<mark>` uses `--eink-mark-bg`
+
+### Guidance
+
+- Prefer borders and whitespace over large fills to reduce ghosting.
+- For app-level theming, set `data-theme` on `<html>`; for scoped widgets, wrap in a `div data-theme="…">`.

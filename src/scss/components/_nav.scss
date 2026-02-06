@@ -1,0 +1,20 @@
+/* ===========================================
+   NAVIGATION
+   =========================================== */
+
+:where(.eink-nav) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--eink-space-2) var(--eink-space-4);
+  padding: 0;
+  list-style: none;
+}
+
+:where(.eink-nav a) {
+  text-decoration-thickness: var(--eink-border-thin);
+}
+
+:where(.eink-nav a[aria-current="page"]) {
+  font-weight: var(--eink-weight-bold);
+  text-decoration-thickness: var(--eink-border-medium);
+}

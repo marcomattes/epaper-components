@@ -1,0 +1,37 @@
+// Shared mixins for eink-ui SCSS
+
+@mixin focus-ring {
+  outline: var(--eink-focus-width) solid var(--eink-focus-color);
+  outline-offset: var(--eink-focus-offset);
+}
+
+@mixin control-base {
+  display: block;
+  width: 100%;
+  padding: var(--eink-space-2) var(--eink-space-3);
+  font-family: inherit;
+  font-size: var(--eink-text-base);
+  line-height: var(--eink-leading-normal);
+  color: var(--eink-fg);
+  background-color: var(--eink-bg);
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+  appearance: none;
+}
+
+@mixin control-disabled {
+  color: var(--eink-disabled-fg);
+  background-color: var(--eink-disabled-bg);
+  border-color: var(--eink-disabled-border);
+  cursor: not-allowed;
+}
+
+@mixin control-invalid {
+  border-color: var(--eink-error-border);
+  border-width: var(--eink-border-medium);
+}
+
+@mixin control-placeholder {
+  &::placeholder {
+    color: var(--eink-fg-subtle);
+  }
+}

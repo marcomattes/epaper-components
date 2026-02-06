@@ -1,0 +1,58 @@
+/* ===========================================
+   ARTICLE
+   =========================================== */
+
+:where(.eink-article) {
+  max-width: var(--eink-measure-wide);
+}
+
+:where(.eink-article__header) {
+  margin-bottom: var(--eink-space-5);
+}
+
+:where(.eink-article__title) {
+  font-size: var(--eink-text-3xl);
+  font-weight: var(--eink-weight-bold);
+  line-height: var(--eink-leading-tight);
+  margin-bottom: var(--eink-space-3);
+}
+
+:where(.eink-article__meta) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--eink-space-2) var(--eink-space-4);
+  font-size: var(--eink-text-sm);
+  color: var(--eink-fg-muted);
+}
+
+:where(.eink-article__body) {
+  max-width: var(--eink-measure);
+}
+
+:where(.eink-article__body > * + *) {
+  margin-top: var(--eink-space-4);
+}
+
+:where(.eink-article__body h2, .eink-article__body h3) {
+  margin-top: var(--eink-space-6);
+}
+
+:where(.eink-article__footer) {
+  margin-top: var(--eink-space-6);
+  padding-top: var(--eink-space-4);
+  border-top: var(--eink-border-thin) solid var(--eink-border-color);
+}
+
+/* Byline — author attribution within article meta */
+
+:where(.eink-byline) {
+  display: flex;
+  align-items: center;
+  gap: var(--eink-space-2);
+}
+
+:where(.eink-byline__name) {
+  font-weight: var(--eink-weight-medium);
+  color: var(--eink-fg);
+}

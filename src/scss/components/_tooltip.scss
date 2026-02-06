@@ -1,0 +1,54 @@
+/* ===========================================
+   TOOLTIP (FOCUS-FIRST, NO HOVER-ONLY)
+   =========================================== */
+
+:where(.eink-tooltip) {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--eink-space-2);
+  color: inherit;
+}
+
+:where(.eink-tooltip)::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + var(--eink-space-2));
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--eink-space-2) var(--eink-space-3);
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+  background: var(--eink-bg);
+  color: var(--eink-fg);
+  font-size: var(--eink-text-sm);
+  line-height: var(--eink-leading-snug);
+  white-space: nowrap;
+  max-width: 18rem;
+  box-shadow: none;
+  z-index: 2;
+  display: none;
+}
+
+:where(.eink-tooltip)::before {
+  content: "";
+  position: absolute;
+  top: calc(100% + var(--eink-space-2) - 1px);
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 0.6rem;
+  height: 0.6rem;
+  background: var(--eink-bg);
+  border-left: var(--eink-border-thin) solid var(--eink-border-color);
+  border-top: var(--eink-border-thin) solid var(--eink-border-color);
+  z-index: 1;
+  display: none;
+}
+
+:where(.eink-tooltip:focus-visible)::after,
+:where(.eink-tooltip:focus-visible)::before,
+:where(.eink-tooltip[data-show="true"])::after,
+:where(.eink-tooltip[data-show="true"])::before,
+:where(.eink-tooltip.eink-tooltip--persistent)::after,
+:where(.eink-tooltip.eink-tooltip--persistent)::before {
+  display: block;
+}
