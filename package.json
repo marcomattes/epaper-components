@@ -27,7 +27,7 @@
   ],
   "scripts": {
     "dev": "npx serve . -p 8080",
-    "build": "node build.ts && npm run build:wc",
+    "build": "tsx build.ts && npm run build:wc",
     "build:wc": "tsc -p tsconfig.wc.json",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
