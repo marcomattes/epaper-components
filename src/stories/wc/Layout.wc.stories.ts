@@ -18,7 +18,8 @@ const meta: Meta<GridArgs> = {
   argTypes: {
     min: {
       control: "text",
-      description: "Value for --eink-grid-min via the min attribute (e.g., 14rem, 220px)",
+      description:
+        "Value for --eink-grid-min via the min attribute (e.g., 14rem, 220px)",
     },
   },
   args: {

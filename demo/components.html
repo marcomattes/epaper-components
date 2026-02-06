@@ -33,10 +33,23 @@
           <a href="blog.html">Blog</a>
           <a href="dashboard.html">Dashboard</a>
         </nav>
-        <p class="eink-text-xs" style="margin-top: var(--eink-space-1); display: flex; gap: var(--eink-space-3); align-items: center; flex-wrap: wrap;">
-          <a href="../demo-wc/index.html"><strong>Switch to Web Component demos</strong></a>
+        <p
+          class="eink-text-xs"
+          style="
+            margin-top: var(--eink-space-1);
+            display: flex;
+            gap: var(--eink-space-3);
+            align-items: center;
+            flex-wrap: wrap;
+          "
+        >
+          <a href="../demo-wc/index.html"
+            ><strong>Switch to Web Component demos</strong></a
+          >
           <span aria-hidden="true">·</span>
-          <a href="https://marcomattes.github.io/eink-css-ui-framework/storybook/"><strong>View Storybook</strong></a>
+          <a href="https://marcomattes.github.io/eink-css-ui-framework/storybook/"
+            ><strong>View Storybook</strong></a
+          >
         </p>
         <p
           class="eink-text-xs eink-text-muted"
@@ -220,7 +233,9 @@
           </div>
 
           <div class="eink-field">
-            <label class="eink-label" for="input-search-disabled">Search (disabled)</label>
+            <label class="eink-label" for="input-search-disabled"
+              >Search (disabled)</label
+            >
             <input
               type="search"
               id="input-search-disabled"
@@ -405,11 +420,14 @@ Invalid content</textarea
       <section class="eink-section">
         <h2>Loader</h2>
         <p class="eink-note">
-          E-Ink rationale: No animation. The loader uses a hashed fill with thin borders,
-          so partial refreshes look clean and ghost-free.
+          E-Ink rationale: No animation. The loader uses a hashed fill with thin
+          borders, so partial refreshes look clean and ghost-free.
         </p>
 
-        <div class="eink-stack eink-stack--sm" style="max-width: 28rem; margin-top: var(--eink-space-4)">
+        <div
+          class="eink-stack eink-stack--sm"
+          style="max-width: 28rem; margin-top: var(--eink-space-4)"
+        >
           <div class="eink-loader" role="status" aria-live="polite">
             <span class="eink-loader__label">Syncing library</span>
             <div class="eink-loader__track">
@@ -418,7 +436,11 @@ Invalid content</textarea
             <span class="eink-loader__label" aria-hidden="true">60%</span>
           </div>
 
-          <div class="eink-loader eink-loader--thin" data-state="complete" aria-label="Complete">
+          <div
+            class="eink-loader eink-loader--thin"
+            data-state="complete"
+            aria-label="Complete"
+          >
             <span class="eink-loader__label">Download</span>
             <div class="eink-loader__track">
               <div class="eink-loader__fill"></div>
@@ -432,11 +454,14 @@ Invalid content</textarea
       <section class="eink-section">
         <h2>Tooltip</h2>
         <p class="eink-note">
-          E-Ink rationale: Tooltips appear on keyboard focus or when explicitly toggled —
-          never hover-only — avoiding accidental flashes on slow-refresh displays.
+          E-Ink rationale: Tooltips appear on keyboard focus or when explicitly toggled
+          — never hover-only — avoiding accidental flashes on slow-refresh displays.
         </p>
 
-        <div class="eink-cluster" style="align-items: center; margin-top: var(--eink-space-4)">
+        <div
+          class="eink-cluster"
+          style="align-items: center; margin-top: var(--eink-space-4)"
+        >
           <button
             class="eink-btn eink-btn--secondary eink-tooltip"
             data-tooltip="Shown on focus. No animation or shadow."
@@ -444,7 +469,9 @@ Invalid content</textarea
           >
             Focus me
           </button>
-          <span class="eink-sr-only" id="tooltip-1">Shown on focus. No animation or shadow.</span>
+          <span class="eink-sr-only" id="tooltip-1"
+            >Shown on focus. No animation or shadow.</span
+          >
 
           <button
             class="eink-btn eink-btn--ghost eink-tooltip eink-tooltip--persistent"
