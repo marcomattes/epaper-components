@@ -11,21 +11,46 @@ import * as DocsBase from "./docs.stories";
 
 ### Theme cards
 
-<div class="eink-grid" style="--eink-grid-min:16rem">
+<div className="eink-grid" style={{ "--eink-grid-min": "16rem" }}>
   {["default", "inverted", "high-contrast"].map((theme) => (
-    <div class="eink-card" data-theme={theme} key={theme}>
-      <div class="eink-card__title" style="text-transform:capitalize;">
+    <div className="eink-card" data-theme={theme} key={theme}>
+      <div className="eink-card__title" style={{ textTransform: "capitalize" }}>
         {theme}
       </div>
-      <div class="eink-stack eink-stack--sm">
-        <div class="eink-badge">fg/bg</div>
-        <div style="height:2.75rem; border:var(--eink-border-medium) solid var(--eink-fg); background:var(--eink-bg);"></div>
-        <div class="eink-badge">bg-muted</div>
-        <div style="height:2.75rem; border:var(--eink-border-thin) solid var(--eink-border-color); background:var(--eink-bg-muted);"></div>
-        <div class="eink-badge">border-strong</div>
-        <div style="height:2.75rem; border:var(--eink-border-thick) solid var(--eink-border-strong); background:var(--eink-bg);"></div>
-        <div class="eink-badge">focus</div>
-        <div style="height:2.75rem; border:var(--eink-border-thin) solid var(--eink-border-color); outline:var(--eink-focus-width) solid var(--eink-focus-color); outline-offset:var(--eink-focus-offset);"></div>
+      <div className="eink-stack eink-stack--sm">
+        <div className="eink-badge">fg/bg</div>
+        <div
+          style={{
+            height: "2.75rem",
+            border: "var(--eink-border-medium) solid var(--eink-fg)",
+            background: "var(--eink-bg)",
+          }}
+        ></div>
+        <div className="eink-badge">bg-muted</div>
+        <div
+          style={{
+            height: "2.75rem",
+            border: "var(--eink-border-thin) solid var(--eink-border-color)",
+            background: "var(--eink-bg-muted)",
+          }}
+        ></div>
+        <div className="eink-badge">border-strong</div>
+        <div
+          style={{
+            height: "2.75rem",
+            border: "var(--eink-border-thick) solid var(--eink-border-strong)",
+            background: "var(--eink-bg)",
+          }}
+        ></div>
+        <div className="eink-badge">focus</div>
+        <div
+          style={{
+            height: "2.75rem",
+            border: "var(--eink-border-thin) solid var(--eink-border-color)",
+            outline: "var(--eink-focus-width) solid var(--eink-focus-color)",
+            outlineOffset: "var(--eink-focus-offset)",
+          }}
+        ></div>
       </div>
     </div>
   ))}
