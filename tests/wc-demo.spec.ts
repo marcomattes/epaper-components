@@ -126,3 +126,30 @@ test.describe("WC demo — element rendering", () => {
     expect(display).toBe("block");
   });
 });
+
+// ARIA verification on WC demo pages
+test.describe("WC demo — ARIA attributes", () => {
+  test("alerts on components page have role attributes", async ({ page }) => {
+    await page.goto("/demo-wc/components.html", { waitUntil: "networkidle" });
+    const infoAlert = page.locator('eink-alert[variant="info"]');
+    await expect(infoAlert).toHaveAttribute("role", "status");
+    const errorAlert = page.locator('eink-alert[variant="error"]');
+    await expect(errorAlert).toHaveAttribute("role", "alert");
+  });
+
+  test("invalid input on forms page forwards aria-describedby to inner input", async ({
+    page,
+  }) => {
+    await page.goto("/demo-wc/forms.html", { waitUntil: "networkidle" });
+    const input = page.locator(
+      'eink-input[aria-describedby="wc-input-invalid-error"] input'
+    );
+    await expect(input).toHaveAttribute("aria-describedby", "wc-input-invalid-error");
+  });
+
+  test("dividers have role=separator", async ({ page }) => {
+    await page.goto("/demo-wc/layout.html", { waitUntil: "networkidle" });
+    const divider = page.locator("eink-divider").first();
+    await expect(divider).toHaveAttribute("role", "separator");
+  });
+});

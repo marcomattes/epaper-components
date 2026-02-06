@@ -13,7 +13,15 @@ const TAG = "eink-button";
 /** Light-DOM custom element that wraps a native <button> and maps attributes to eink classes. */
 export class EinkButtonElement extends HTMLElement {
   static get observedAttributes() {
-    return ["variant", "size", "disabled"];
+    return [
+      "variant",
+      "size",
+      "disabled",
+      "aria-label",
+      "aria-pressed",
+      "aria-expanded",
+      "aria-haspopup",
+    ];
   }
 
   #btn: HTMLButtonElement | null = null;
@@ -48,6 +56,17 @@ export class EinkButtonElement extends HTMLElement {
 
     syncClassList(this.#btn, classes);
     this.#btn.disabled = this.disabled;
+
+    for (const attr of [
+      "aria-label",
+      "aria-pressed",
+      "aria-expanded",
+      "aria-haspopup",
+    ] as const) {
+      const val = this.getAttribute(attr);
+      if (val !== null) this.#btn.setAttribute(attr, val);
+      else this.#btn.removeAttribute(attr);
+    }
   }
 
   get disabled(): boolean {

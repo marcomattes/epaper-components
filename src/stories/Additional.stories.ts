@@ -15,19 +15,19 @@ export const AlertsAndFeedback: Story = {
   name: "Alerts / Feedback",
   render: () => `
     <div class="eink-stack eink-stack--sm" style="max-width:32rem">
-      <div class="eink-alert eink-alert--info">
+      <div class="eink-alert eink-alert--info" role="status">
         <div class="eink-alert__title">Info</div>
         <div class="eink-alert__body">Thin left rule; minimal repaint.</div>
       </div>
-      <div class="eink-alert eink-alert--success">
+      <div class="eink-alert eink-alert--success" role="status">
         <div class="eink-alert__title">Success</div>
         <div class="eink-alert__body">Thicker rule for emphasis.</div>
       </div>
-      <div class="eink-alert eink-alert--warning">
+      <div class="eink-alert eink-alert--warning" role="status">
         <div class="eink-alert__title">Warning</div>
         <div class="eink-alert__body">Dashed rule stands out on E-Ink.</div>
       </div>
-      <div class="eink-alert eink-alert--error">
+      <div class="eink-alert eink-alert--error" role="alert">
         <div class="eink-alert__title">Error</div>
         <div class="eink-alert__body">Error state with muted fill.</div>
       </div>
@@ -77,7 +77,7 @@ export const DataAndLists: Story = {
           <div class="eink-stat__value">18m</div>
           <div class="eink-stat__delta">+3m vs. yesterday</div>
         </div>
-        <div class="eink-progress eink-progress--labeled">
+        <div class="eink-progress eink-progress--labeled" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" aria-label="Chapter progress">
           <div class="eink-progress__label">Chapter</div>
           <div class="eink-progress__track">
             <div class="eink-progress__bar" style="width:60%"></div>
@@ -134,11 +134,11 @@ export const TimelineAndToolbar: Story = {
           </li>
         </ol>
       </div>
-      <div class="eink-toolbar">
+      <div class="eink-toolbar" role="toolbar" aria-label="Font settings">
         <div class="eink-toolbar__group">
           <span class="eink-toolbar__label">Font</span>
-          <button class="eink-btn eink-btn--sm">-</button>
-          <button class="eink-btn eink-btn--sm">+</button>
+          <button class="eink-btn eink-btn--sm" aria-label="Decrease font size">-</button>
+          <button class="eink-btn eink-btn--sm" aria-label="Increase font size">+</button>
         </div>
         <span class="eink-toolbar__separator" aria-hidden="true"></span>
         <div class="eink-toolbar__group">

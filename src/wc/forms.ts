@@ -7,6 +7,10 @@ const inputAttrs = [
   "placeholder",
   "autocomplete",
   "aria-invalid",
+  "aria-describedby",
+  "aria-label",
+  "aria-labelledby",
+  "aria-required",
   "required",
 ];
 
@@ -91,7 +95,16 @@ export class EinkTextareaElement extends BaseInputElement {
 
 export class EinkSelectElement extends BaseInputElement {
   static override get observedAttributes() {
-    return ["disabled", "name", "aria-invalid", "required"];
+    return [
+      "disabled",
+      "name",
+      "aria-invalid",
+      "aria-describedby",
+      "aria-label",
+      "aria-labelledby",
+      "aria-required",
+      "required",
+    ];
   }
 
   protected createControl(): HTMLSelectElement {
@@ -104,7 +117,18 @@ export class EinkSelectElement extends BaseInputElement {
 
 export class EinkCheckboxElement extends HTMLElement {
   static get observedAttributes() {
-    return ["checked", "disabled", "name", "value", "aria-invalid", "required"];
+    return [
+      "checked",
+      "disabled",
+      "name",
+      "value",
+      "aria-invalid",
+      "aria-describedby",
+      "aria-label",
+      "aria-labelledby",
+      "aria-required",
+      "required",
+    ];
   }
 
   #input: HTMLInputElement | null = null;
@@ -136,7 +160,16 @@ export class EinkCheckboxElement extends HTMLElement {
     if (!this.#input) return;
     this.#input.checked = this.checked;
     this.#input.disabled = this.disabled;
-    ["name", "value", "aria-invalid", "required"].forEach((attr) => {
+    [
+      "name",
+      "value",
+      "aria-invalid",
+      "aria-describedby",
+      "aria-label",
+      "aria-labelledby",
+      "aria-required",
+      "required",
+    ].forEach((attr) => {
       const val = this.getAttribute(attr);
       if (val !== null) this.#input!.setAttribute(attr, val);
       else this.#input!.removeAttribute(attr);
@@ -161,7 +194,18 @@ export class EinkCheckboxElement extends HTMLElement {
 
 export class EinkRadioElement extends HTMLElement {
   static get observedAttributes() {
-    return ["checked", "disabled", "name", "value", "aria-invalid", "required"];
+    return [
+      "checked",
+      "disabled",
+      "name",
+      "value",
+      "aria-invalid",
+      "aria-describedby",
+      "aria-label",
+      "aria-labelledby",
+      "aria-required",
+      "required",
+    ];
   }
 
   #input: HTMLInputElement | null = null;
@@ -192,7 +236,16 @@ export class EinkRadioElement extends HTMLElement {
     if (!this.#input) return;
     this.#input.checked = this.checked;
     this.#input.disabled = this.disabled;
-    ["name", "value", "aria-invalid", "required"].forEach((attr) => {
+    [
+      "name",
+      "value",
+      "aria-invalid",
+      "aria-describedby",
+      "aria-label",
+      "aria-labelledby",
+      "aria-required",
+      "required",
+    ].forEach((attr) => {
       const val = this.getAttribute(attr);
       if (val !== null) this.#input!.setAttribute(attr, val);
       else this.#input!.removeAttribute(attr);

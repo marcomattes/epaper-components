@@ -49,9 +49,10 @@
             <eink-input
               type="text"
               aria-invalid="true"
+              aria-describedby="wc-input-invalid-error"
               value="Bad value"
             ></eink-input>
-            <span class="eink-error-message">This field contains an error.</span>
+            <span class="eink-error-message" id="wc-input-invalid-error">This field contains an error.</span>
           </div>
         </div>
       </eink-section>
@@ -80,8 +81,8 @@
 
           <div class="eink-field">
             <label class="eink-label">Invalid textarea</label>
-            <eink-textarea aria-invalid="true">Invalid content</eink-textarea>
-            <span class="eink-error-message">Content does not meet requirements.</span>
+            <eink-textarea aria-invalid="true" aria-describedby="wc-textarea-invalid-error">Invalid content</eink-textarea>
+            <span class="eink-error-message" id="wc-textarea-invalid-error">Content does not meet requirements.</span>
           </div>
         </div>
       </eink-section>
@@ -118,10 +119,10 @@
 
           <div class="eink-field">
             <label class="eink-label">Invalid select</label>
-            <eink-select aria-invalid="true">
+            <eink-select aria-invalid="true" aria-describedby="wc-select-invalid-error">
               <option value="">Please select</option>
             </eink-select>
-            <span class="eink-error-message">A selection is required.</span>
+            <span class="eink-error-message" id="wc-select-invalid-error">A selection is required.</span>
           </div>
         </div>
       </eink-section>
@@ -205,10 +206,11 @@
               <eink-input
                 type="text"
                 aria-invalid="true"
+                aria-describedby="wc-fullname-error"
                 value=""
                 required
               ></eink-input>
-              <span class="eink-error-message">Full name is required.</span>
+              <span class="eink-error-message" id="wc-fullname-error">Full name is required.</span>
             </div>
 
             <div class="eink-field">
@@ -216,11 +218,12 @@
               <eink-input
                 type="email"
                 aria-invalid="true"
+                aria-describedby="wc-email-help wc-email-error"
                 value="not-an-email"
                 required
               ></eink-input>
-              <span class="eink-help">We'll use this to send your confirmation.</span>
-              <span class="eink-error-message">Enter a valid email address.</span>
+              <span class="eink-help" id="wc-email-help">We'll use this to send your confirmation.</span>
+              <span class="eink-error-message" id="wc-email-error">Enter a valid email address.</span>
             </div>
 
             <div class="eink-field">
@@ -284,9 +287,9 @@
 
             <div class="eink-field">
               <div class="eink-field eink-field--inline">
-                <eink-checkbox name="terms" aria-invalid="true" required>I accept the terms and conditions</eink-checkbox>
+                <eink-checkbox name="terms" aria-invalid="true" aria-describedby="wc-terms-error" required>I accept the terms and conditions</eink-checkbox>
               </div>
-              <span class="eink-error-message">You must accept the terms to continue.</span>
+              <span class="eink-error-message" id="wc-terms-error">You must accept the terms to continue.</span>
             </div>
 
             <eink-cluster style="margin-top: var(--eink-space-3)">

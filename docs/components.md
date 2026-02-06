@@ -146,9 +146,12 @@ Implementation note: Uses `appearance: none` with thick `border-width` on `:chec
 ### Help + Error
 
 ```html
-<p class="eink-help">Helpful hint text</p>
-<p class="eink-error-message">This field is required</p>
+<input class="eink-input" aria-invalid="true" aria-describedby="help1 err1" />
+<p class="eink-help" id="help1">Helpful hint text</p>
+<p class="eink-error-message" id="err1">This field is required</p>
 ```
+
+**Accessibility:** Link error and help text to their inputs using `aria-describedby`. Give each message a unique `id`. Multiple IDs can be space-separated.
 
 ### Error Summary
 
@@ -191,8 +194,8 @@ Variants: `--striped`, `--bordered`, `--compact`. Always wrap in `.eink-table-wr
 ## Dialog
 
 ```html
-<dialog class="eink-dialog" open>
-  <div class="eink-dialog__title">Confirm</div>
+<dialog class="eink-dialog" open aria-labelledby="dialog-title">
+  <div class="eink-dialog__title" id="dialog-title">Confirm</div>
   <div class="eink-dialog__body">Are you sure?</div>
   <div class="eink-dialog__actions">
     <button class="eink-btn eink-btn--primary">Yes</button>
@@ -201,7 +204,7 @@ Variants: `--striped`, `--bordered`, `--compact`. Always wrap in `.eink-table-wr
 </dialog>
 ```
 
-Uses native `<dialog>` element. Demo pages use the `open` attribute for CSS-only display.
+**Accessibility:** Always add `aria-labelledby` pointing to an `id` on the `.eink-dialog__title` element. Uses native `<dialog>` element which provides built-in focus trapping and Escape-to-close. Demo pages use the `open` attribute for CSS-only display.
 
 ### Opening with the polyfill
 
@@ -232,15 +235,17 @@ The polyfill enables `data-dialog-target` (open by ID) and `data-dialog-close` (
 ## Alerts
 
 ```html
-<div class="eink-alert eink-alert--info">
+<div class="eink-alert eink-alert--info" role="status">
   <div class="eink-alert__title">Info</div>
   <div class="eink-alert__body">Thin left rule; minimal repaint.</div>
 </div>
-<div class="eink-alert eink-alert--warning">
-  <div class="eink-alert__title">Warning</div>
-  <div class="eink-alert__body">Dashed border reads well on low DPI.</div>
+<div class="eink-alert eink-alert--error" role="alert">
+  <div class="eink-alert__title">Error</div>
+  <div class="eink-alert__body">Error state uses role="alert".</div>
 </div>
 ```
+
+**Accessibility:** Use `role="status"` for info/success/warning alerts and `role="alert"` for errors. The `<eink-alert>` Web Component sets the role automatically based on `variant`.
 
 ## Breadcrumb
 
@@ -310,11 +315,11 @@ The polyfill enables `data-dialog-target` (open by ID) and `data-dialog-close` (
 ## Toolbar
 
 ```html
-<div class="eink-toolbar">
+<div class="eink-toolbar" role="toolbar" aria-label="Font settings">
   <div class="eink-toolbar__group">
     <span class="eink-toolbar__label">Font</span>
-    <button class="eink-btn eink-btn--sm">-</button>
-    <button class="eink-btn eink-btn--sm">+</button>
+    <button class="eink-btn eink-btn--sm" aria-label="Decrease font size">-</button>
+    <button class="eink-btn eink-btn--sm" aria-label="Increase font size">+</button>
   </div>
   <span class="eink-toolbar__separator" aria-hidden="true"></span>
   <div class="eink-toolbar__group">
@@ -326,17 +331,30 @@ The polyfill enables `data-dialog-target` (open by ID) and `data-dialog-close` (
 </div>
 ```
 
+**Accessibility:** Add `role="toolbar"` and `aria-label` to the toolbar container. Buttons with icon-only content (like `-` / `+`) need `aria-label` for screen readers.
+
 ## Progress & Stat
 
 ```html
-<div class="eink-progress eink-progress--labeled">
+<div
+  class="eink-progress eink-progress--labeled"
+  role="progressbar"
+  aria-valuenow="65"
+  aria-valuemin="0"
+  aria-valuemax="100"
+  aria-label="Chapter progress"
+>
   <div class="eink-progress__label">Chapter</div>
   <div class="eink-progress__track">
     <div class="eink-progress__bar" style="width:65%"></div>
   </div>
   <div class="eink-progress__label">65%</div>
 </div>
+```
 
+**Accessibility:** Add `role="progressbar"` with `aria-valuenow`, `aria-valuemin`, `aria-valuemax`, and `aria-label` to all progress bars.
+
+```html
 <div class="eink-stat">
   <div class="eink-stat__label">Reading time</div>
   <div class="eink-stat__value">18m</div>

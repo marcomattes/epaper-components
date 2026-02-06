@@ -34,14 +34,14 @@ export const CompleteForm: Story = {
       <div class="eink-stack">
         <div class="eink-field">
           <label class="eink-label eink-label--required" for="f-name">Full name</label>
-          <input type="text" id="f-name" class="eink-input" aria-invalid="true" required>
-          <span class="eink-error-message">Full name is required.</span>
+          <input type="text" id="f-name" class="eink-input" aria-invalid="true" aria-describedby="f-name-error" required>
+          <span class="eink-error-message" id="f-name-error">Full name is required.</span>
         </div>
         <div class="eink-field">
           <label class="eink-label eink-label--required" for="f-email">Email</label>
-          <input type="email" id="f-email" class="eink-input" value="not-an-email" aria-invalid="true" required>
-          <span class="eink-help">We'll send your confirmation here.</span>
-          <span class="eink-error-message">Enter a valid email address.</span>
+          <input type="email" id="f-email" class="eink-input" value="not-an-email" aria-invalid="true" aria-describedby="f-email-help f-email-error" required>
+          <span class="eink-help" id="f-email-help">We'll send your confirmation here.</span>
+          <span class="eink-error-message" id="f-email-error">Enter a valid email address.</span>
         </div>
         <div class="eink-field">
           <label class="eink-label" for="f-phone">Phone <span class="eink-text-xs eink-text-muted">(optional)</span></label>
@@ -80,10 +80,10 @@ export const CompleteForm: Story = {
           </div>
         </fieldset>
         <div class="eink-field eink-field--inline">
-          <input type="checkbox" class="eink-checkbox" id="f-terms" aria-invalid="true" required>
+          <input type="checkbox" class="eink-checkbox" id="f-terms" aria-invalid="true" aria-describedby="f-terms-error" required>
           <label for="f-terms">I accept the terms</label>
         </div>
-        <span class="eink-error-message">You must accept the terms.</span>
+        <span class="eink-error-message" id="f-terms-error">You must accept the terms.</span>
         <div class="eink-cluster">
           <button type="submit" class="eink-btn eink-btn--primary">Submit</button>
           <button type="reset" class="eink-btn eink-btn--ghost">Reset</button>

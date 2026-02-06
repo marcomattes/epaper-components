@@ -75,7 +75,7 @@
             <div class="eink-text-sm" style="margin-bottom: var(--eink-space-1)">
               Storage used
             </div>
-            <div class="eink-progress">
+            <div class="eink-progress" role="progressbar" aria-valuenow="72" aria-valuemin="0" aria-valuemax="100" aria-label="Storage used">
               <div class="eink-progress__track">
                 <div class="eink-progress__bar" style="width: 72%"></div>
               </div>
@@ -87,7 +87,7 @@
             <div class="eink-text-sm" style="margin-bottom: var(--eink-space-1)">
               Articles indexed
             </div>
-            <div class="eink-progress">
+            <div class="eink-progress" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" aria-label="Articles indexed">
               <div class="eink-progress__track">
                 <div class="eink-progress__bar" style="width: 45%"></div>
               </div>
@@ -99,7 +99,7 @@
             <div class="eink-text-sm" style="margin-bottom: var(--eink-space-1)">
               Migration complete
             </div>
-            <div class="eink-progress">
+            <div class="eink-progress" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" aria-label="Migration complete">
               <div class="eink-progress__track">
                 <div class="eink-progress__bar" style="width: 100%"></div>
               </div>
@@ -108,7 +108,7 @@
           </div>
 
           <h4 style="margin-top: var(--eink-space-4)">Thick variant</h4>
-          <div class="eink-progress eink-progress--thick">
+          <div class="eink-progress eink-progress--thick" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" aria-label="Thick progress">
             <div class="eink-progress__track">
               <div class="eink-progress__bar" style="width: 60%"></div>
             </div>
@@ -180,9 +180,9 @@
               <table class="eink-table eink-table--striped">
                 <thead>
                   <tr>
-                    <th>Page</th>
-                    <th>Views</th>
-                    <th>Avg. Time</th>
+                    <th scope="col">Page</th>
+                    <th scope="col">Views</th>
+                    <th scope="col">Avg. Time</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -237,7 +237,7 @@
         </p>
 
         <div style="margin-top: var(--eink-space-4)">
-          <div class="eink-toolbar">
+          <div class="eink-toolbar" role="toolbar" aria-label="Actions">
             <span class="eink-toolbar__label">Actions:</span>
             <div class="eink-toolbar__group">
               <button class="eink-btn eink-btn--sm eink-btn--secondary">New</button>
@@ -352,7 +352,7 @@
           <!-- Main dashboard content -->
           <div class="eink-with-sidebar__main">
             <div class="eink-stack">
-              <div class="eink-alert eink-alert--warning">
+              <div class="eink-alert eink-alert--warning" role="status">
                 <div class="eink-alert__title">Maintenance scheduled</div>
                 <div class="eink-alert__body">
                   System maintenance planned for Sunday 02:00–04:00 UTC.
@@ -374,7 +374,7 @@
                 </div>
               </div>
 
-              <div class="eink-toolbar">
+              <div class="eink-toolbar" role="toolbar" aria-label="Article actions">
                 <div class="eink-toolbar__group">
                   <button class="eink-btn eink-btn--sm eink-btn--primary">
                     New article
@@ -390,9 +390,9 @@
               <table class="eink-table eink-table--striped eink-table--bordered">
                 <thead>
                   <tr>
-                    <th>Title</th>
-                    <th>Status</th>
-                    <th>Date</th>
+                    <th scope="col">Title</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Date</th>
                   </tr>
                 </thead>
                 <tbody>

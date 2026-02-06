@@ -1,14 +1,7 @@
-import {
-  Meta,
-  Title,
-  Subtitle,
-  Description,
-  Source,
-  ArgsTable,
-  Primary,
-} from "@storybook/addon-docs/blocks";
+import { Meta, Title, Subtitle, Description } from "@storybook/addon-docs/blocks";
+import * as ButtonStories from "../Button.stories";
 
-<Meta title="Docs/Tokens & Themes" />
+<Meta of={ButtonStories} title="Tokens & Themes" />
 
 <Title>Design Tokens & Themes</Title>
 <Subtitle>Custom properties that drive every component — optimized for E-Ink.</Subtitle>

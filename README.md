@@ -155,10 +155,23 @@ The polyfill wires `data-dialog-target` + `data-dialog-close` for browsers that 
 
 `.eink-text-muted` `.eink-text-sm` `.eink-text-xs` `.eink-text-lg` `.eink-text-center` `.eink-text-mono` `.eink-text-serif` `.eink-text-bold` · `.eink-measure` (`--narrow` `--wide`) · `.eink-prose` · `.eink-badge` · `.eink-tag` (`--filled` `--muted`) · `.eink-note` · `.eink-sr-only`
 
+## Accessibility
+
+eink-ui follows WCAG 2.1 AA guidelines with E-Ink-specific adaptations. Key features:
+
+- **ARIA roles**: Alerts (`role="status"` / `role="alert"`), progress bars (`role="progressbar"`), toolbars (`role="toolbar"`), dividers (`role="separator"`)
+- **Error linking**: Invalid inputs linked to error messages via `aria-describedby`
+- **Dialog labelling**: All dialogs use `aria-labelledby` pointing to title elements
+- **Keyboard navigation**: `:focus-visible` styles, native `<dialog>` focus trapping, no hover-only affordances
+- **WC ARIA forwarding**: Web Components automatically forward ARIA attributes to inner native controls
+
+See [docs/accessibility.md](docs/accessibility.md) for the full guide.
+
 ## Documentation
 
 - [Architecture](docs/architecture.md) — file layout, build pipeline, selector strategy
 - [Components](docs/components.md) — all components with markup examples
+- [Accessibility](docs/accessibility.md) — ARIA attributes, keyboard navigation, form patterns
 - [Tokens & Themes](docs/tokens.md) — design tokens and theming system
 - [Development](docs/development.md) — build, test, Storybook, contributing
 - [Design Decisions](docs/design-decisions.md) — E-Ink constraints and technical trade-offs

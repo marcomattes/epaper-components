@@ -115,19 +115,19 @@
         </p>
 
         <eink-stack gap="sm" style="margin-top: var(--eink-space-4)">
-          <eink-alert variant="info">
+          <eink-alert variant="info" role="status">
             <div class="eink-alert__title">Info</div>
             <div class="eink-alert__body">Thin left rule; minimal repaint.</div>
           </eink-alert>
-          <eink-alert variant="success">
+          <eink-alert variant="success" role="status">
             <div class="eink-alert__title">Success</div>
             <div class="eink-alert__body">Thicker rule for emphasis.</div>
           </eink-alert>
-          <eink-alert variant="warning">
+          <eink-alert variant="warning" role="status">
             <div class="eink-alert__title">Warning</div>
             <div class="eink-alert__body">Dashed rule reads well on low DPI.</div>
           </eink-alert>
-          <eink-alert variant="error">
+          <eink-alert variant="error" role="alert">
             <div class="eink-alert__title">Error</div>
             <div class="eink-alert__body">Error background uses light gray instead of fill.</div>
           </eink-alert>

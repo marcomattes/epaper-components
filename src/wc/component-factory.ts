@@ -15,6 +15,7 @@ interface ComponentConfig {
   baseClass: string;
   modifiers?: readonly Modifier[];
   styleVars?: readonly StyleVar[];
+  ariaDefaults?: Record<string, string>;
 }
 
 const EINK_PREFIX = "eink-";
@@ -63,6 +64,11 @@ export const defineClassComponent = (config: ComponentConfig) => {
     }
 
     connectedCallback() {
+      if (config.ariaDefaults) {
+        for (const [attr, val] of Object.entries(config.ariaDefaults)) {
+          if (!this.hasAttribute(attr)) this.setAttribute(attr, val);
+        }
+      }
       this.#sync();
     }
 

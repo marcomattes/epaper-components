@@ -134,8 +134,14 @@
             Open dialog
           </button>
 
-          <dialog id="interactive-dialog" class="eink-dialog">
-            <div class="eink-dialog__title">Polyfilled dialog</div>
+          <dialog
+            id="interactive-dialog"
+            class="eink-dialog"
+            aria-labelledby="interactive-dialog-title"
+          >
+            <div class="eink-dialog__title" id="interactive-dialog-title">
+              Polyfilled dialog
+            </div>
             <div class="eink-dialog__body">
               <p>
                 This dialog opens and closes via <code>data-dialog-target</code> +
@@ -172,8 +178,15 @@
             justify-content: center;
           "
         >
-          <dialog class="eink-dialog" open style="position: relative">
-            <div class="eink-dialog__title">Confirm deletion</div>
+          <dialog
+            class="eink-dialog"
+            open
+            style="position: relative"
+            aria-labelledby="confirm-dialog-title"
+          >
+            <div class="eink-dialog__title" id="confirm-dialog-title">
+              Confirm deletion
+            </div>
             <div class="eink-dialog__body">
               <p>
                 Are you sure you want to delete this item? This action cannot be undone.
@@ -208,8 +221,13 @@
             justify-content: center;
           "
         >
-          <dialog class="eink-dialog" open style="position: relative">
-            <div class="eink-dialog__title">Add a note</div>
+          <dialog
+            class="eink-dialog"
+            open
+            style="position: relative"
+            aria-labelledby="form-dialog-title"
+          >
+            <div class="eink-dialog__title" id="form-dialog-title">Add a note</div>
             <div class="eink-dialog__body">
               <form method="dialog">
                 <div class="eink-stack eink-stack--sm">
@@ -271,8 +289,13 @@
               display: flex;
               flex-direction: column;
             "
+            aria-labelledby="scrollable-dialog-title"
           >
-            <div class="eink-dialog__title" style="flex-shrink: 0">
+            <div
+              class="eink-dialog__title"
+              id="scrollable-dialog-title"
+              style="flex-shrink: 0"
+            >
               Terms of service
             </div>
             <div class="eink-dialog__body" style="overflow-y: auto; flex: 1">
@@ -335,8 +358,11 @@
               class="eink-dialog"
               open
               style="position: relative; width: 100%; max-width: 100%"
+              aria-labelledby="default-theme-dialog-title"
             >
-              <div class="eink-dialog__title">Default theme</div>
+              <div class="eink-dialog__title" id="default-theme-dialog-title">
+                Default theme
+              </div>
               <div class="eink-dialog__body"><p>Standard dialog appearance.</p></div>
               <div class="eink-dialog__actions">
                 <button class="eink-btn eink-btn--primary eink-btn--sm">OK</button>
@@ -361,8 +387,11 @@
               class="eink-dialog"
               open
               style="position: relative; width: 100%; max-width: 100%"
+              aria-labelledby="inverted-theme-dialog-title"
             >
-              <div class="eink-dialog__title">Inverted theme</div>
+              <div class="eink-dialog__title" id="inverted-theme-dialog-title">
+                Inverted theme
+              </div>
               <div class="eink-dialog__body"><p>Light text on dark surface.</p></div>
               <div class="eink-dialog__actions">
                 <button class="eink-btn eink-btn--primary eink-btn--sm">OK</button>

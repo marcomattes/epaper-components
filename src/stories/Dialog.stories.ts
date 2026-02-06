@@ -9,8 +9,8 @@ type Story = StoryObj;
 
 export const Confirmation: Story = {
   render: () => `
-    <dialog class="eink-dialog" open style="position:relative">
-      <div class="eink-dialog__title">Confirm deletion</div>
+    <dialog class="eink-dialog" open style="position:relative" aria-labelledby="story-confirm-title">
+      <div class="eink-dialog__title" id="story-confirm-title">Confirm deletion</div>
       <div class="eink-dialog__body">
         <p>Are you sure you want to delete this item? This action cannot be undone.</p>
       </div>
@@ -23,8 +23,8 @@ export const Confirmation: Story = {
 
 export const WithForm: Story = {
   render: () => `
-    <dialog class="eink-dialog" open style="position:relative">
-      <div class="eink-dialog__title">Add a note</div>
+    <dialog class="eink-dialog" open style="position:relative" aria-labelledby="story-form-title">
+      <div class="eink-dialog__title" id="story-form-title">Add a note</div>
       <div class="eink-dialog__body">
         <div class="eink-stack eink-stack--sm">
           <div class="eink-field">
@@ -46,8 +46,8 @@ export const WithForm: Story = {
 
 export const Scrollable: Story = {
   render: () => `
-    <dialog class="eink-dialog" open style="position:relative;max-height:16rem;display:flex;flex-direction:column">
-      <div class="eink-dialog__title" style="flex-shrink:0">Terms of service</div>
+    <dialog class="eink-dialog" open style="position:relative;max-height:16rem;display:flex;flex-direction:column" aria-labelledby="story-scroll-title">
+      <div class="eink-dialog__title" id="story-scroll-title" style="flex-shrink:0">Terms of service</div>
       <div class="eink-dialog__body" style="overflow-y:auto;flex:1">
         <div class="eink-prose">
           <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>

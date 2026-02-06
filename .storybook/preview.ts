@@ -45,6 +45,21 @@ const preview: Preview = {
   ],
   parameters: {
     backgrounds: { disable: true },
+    options: {
+      storySort: {
+        order: [
+          "Layout (Docs)",
+          "Tokens & Themes",
+          "Colors & Themes",
+          "Web Components (Docs)",
+          "Foundations",
+          "Components",
+          "Forms",
+          "Tables",
+          "Web Components",
+        ],
+      },
+    },
   },
 };
 

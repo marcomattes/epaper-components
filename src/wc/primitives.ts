@@ -1,4 +1,5 @@
 import { defineClassComponent } from "./component-factory.js";
+import { defineIfNeeded, syncClassList } from "./base.js";
 
 export const definePrimitiveComponents = () => {
   defineClassComponent({
@@ -36,6 +37,7 @@ export const definePrimitiveComponents = () => {
     tag: "eink-divider",
     baseClass: "eink-divider",
     modifiers: [{ attr: "strong", type: "boolean", className: "eink-divider--strong" }],
+    ariaDefaults: { role: "separator" },
   });
 
   defineClassComponent({
@@ -59,17 +61,39 @@ export const definePrimitiveComponents = () => {
     modifiers: [{ attr: "raised", type: "boolean", className: "eink-card--raised" }],
   });
 
-  defineClassComponent({
-    tag: "eink-alert",
-    baseClass: "eink-alert",
-    modifiers: [
-      {
-        attr: "variant",
-        type: "enum",
-        values: ["info", "success", "warning", "error"],
-      },
-    ],
-  });
+  // eink-alert uses a custom class to set role dynamically based on variant
+  class EinkAlertElement extends HTMLElement {
+    static get observedAttributes() {
+      return ["variant"];
+    }
+
+    #userRole = false;
+
+    connectedCallback() {
+      // Track whether the user supplied a role in markup
+      this.#userRole = this.hasAttribute("role");
+      this.#sync();
+    }
+
+    attributeChangedCallback() {
+      this.#sync();
+    }
+
+    #sync() {
+      const classes = ["eink-alert"];
+      const variant = this.getAttribute("variant");
+      if (variant && ["info", "success", "warning", "error"].includes(variant)) {
+        classes.push(`eink-alert--${variant}`);
+      }
+      syncClassList(this, classes);
+
+      // Auto-set role: "alert" for error, "status" for everything else
+      if (!this.#userRole) {
+        this.setAttribute("role", variant === "error" ? "alert" : "status");
+      }
+    }
+  }
+  defineIfNeeded("eink-alert", EinkAlertElement);
 
   defineClassComponent({
     tag: "eink-tag",
