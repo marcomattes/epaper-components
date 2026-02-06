@@ -45,8 +45,7 @@ export const Placeholder = {
   render: () => {
     const links = quickLinks
       .map(
-        ({ label, storyPath }) =>
-          `<li><a href="?path=${storyPath}">${label}</a></li>`,
+        ({ label, storyPath }) => `<li><a href="?path=${storyPath}">${label}</a></li>`
       )
       .join("");
 
@@ -58,7 +57,7 @@ export const Placeholder = {
             <p>${description}</p>
             <pre><code>${snippet}</code></pre>
           </article>
-        `,
+        `
       )
       .join("");
 
