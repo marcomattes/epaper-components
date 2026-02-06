@@ -225,6 +225,211 @@
           <eink-badge>3</eink-badge>
         </eink-cluster>
       </eink-section>
+
+      <!-- FORM CONTROLS -->
+      <eink-section>
+        <h2>Form controls</h2>
+        <p class="eink-note">
+          Web Component wrappers for inputs reuse the same CSS classes and zero-specificity
+          tokens. Attributes like <code>disabled</code>, <code>aria-invalid</code>, and
+          <code>type</code> reflect onto the native control.
+        </p>
+
+        <div class="eink-stack eink-stack--sm" style="max-width: 26rem; margin-top: var(--eink-space-4)">
+          <label class="eink-field">
+            <span class="eink-label">Default input</span>
+            <eink-input placeholder="Placeholder text"></eink-input>
+          </label>
+          <label class="eink-field">
+            <span class="eink-label">Email</span>
+            <eink-input type="email" placeholder="you@example.com"></eink-input>
+          </label>
+          <label class="eink-field">
+            <span class="eink-label">Invalid input</span>
+            <eink-input aria-invalid="true" value="Bad value"></eink-input>
+            <span class="eink-error-message">Please fix this field.</span>
+          </label>
+          <label class="eink-field">
+            <span class="eink-label">Disabled input</span>
+            <eink-input disabled value="Read only"></eink-input>
+          </label>
+          <label class="eink-field">
+            <span class="eink-label">Textarea</span>
+            <eink-textarea rows="3" placeholder="Longer text"></eink-textarea>
+          </label>
+        </div>
+      </eink-section>
+
+      <!-- SELECT -->
+      <eink-section>
+        <h2>Select</h2>
+        <p class="eink-note">
+          Native dropdown UI is retained for best E-Ink performance. Arrow indicator is drawn
+          with CSS gradients—no SVG assets.
+        </p>
+
+        <div class="eink-stack eink-stack--sm" style="max-width: 24rem; margin-top: var(--eink-space-4)">
+          <label class="eink-field">
+            <span class="eink-label">Default select</span>
+            <eink-select>
+              <option value="">Choose</option>
+              <option>One</option>
+              <option>Two</option>
+              <option>Three</option>
+            </eink-select>
+          </label>
+          <label class="eink-field">
+            <span class="eink-label">Disabled select</span>
+            <eink-select disabled>
+              <option>Cannot change</option>
+            </eink-select>
+          </label>
+          <label class="eink-field">
+            <span class="eink-label">Invalid select</span>
+            <eink-select aria-invalid="true">
+              <option value="">Please select</option>
+            </eink-select>
+            <span class="eink-error-message">Selection required.</span>
+          </label>
+        </div>
+      </eink-section>
+
+      <!-- CHECKBOX & RADIO -->
+      <eink-section>
+        <h2>Checkbox &amp; Radio</h2>
+        <p class="eink-note">
+          Indicators are border-based (no shadows) to avoid ghosting on partial refresh.
+          States mirror <code>checked</code>, <code>disabled</code>, and
+          <code>aria-invalid</code>.
+        </p>
+
+        <div class="eink-grid" style="--eink-grid-min: 14rem; margin-top: var(--eink-space-4)">
+          <div class="eink-stack eink-stack--sm">
+            <div class="eink-label" style="margin-bottom: var(--eink-space-1)">Checkboxes</div>
+            <label class="eink-field eink-field--inline">
+              <eink-checkbox checked></eink-checkbox>
+              <span>Checked</span>
+            </label>
+            <label class="eink-field eink-field--inline">
+              <eink-checkbox aria-invalid="true"></eink-checkbox>
+              <span>Invalid</span>
+            </label>
+            <label class="eink-field eink-field--inline">
+              <eink-checkbox disabled></eink-checkbox>
+              <span>Disabled</span>
+            </label>
+          </div>
+
+          <div class="eink-stack eink-stack--sm">
+            <div class="eink-label" style="margin-bottom: var(--eink-space-1)">Radios</div>
+            <label class="eink-field eink-field--inline">
+              <eink-radio name="size-wc" value="s" checked></eink-radio>
+              <span>Small</span>
+            </label>
+            <label class="eink-field eink-field--inline">
+              <eink-radio name="size-wc" value="m"></eink-radio>
+              <span>Medium</span>
+            </label>
+            <label class="eink-field eink-field--inline">
+              <eink-radio name="size-wc" value="l" disabled></eink-radio>
+              <span>Disabled</span>
+            </label>
+          </div>
+        </div>
+      </eink-section>
+
+      <!-- LOADER -->
+      <eink-section>
+        <h2>Loader</h2>
+        <p class="eink-note">
+          No animation; progress is shown with hashed fill and thin borders to minimize
+          repaint on slow E-Ink refresh.
+        </p>
+
+        <div class="eink-stack eink-stack--sm" style="max-width: 28rem; margin-top: var(--eink-space-4)">
+          <div class="eink-loader" role="status" aria-live="polite">
+            <span class="eink-loader__label">Syncing library</span>
+            <div class="eink-loader__track">
+              <div class="eink-loader__fill" style="--eink-loader-value: 70%"></div>
+            </div>
+            <span class="eink-loader__label" aria-hidden="true">70%</span>
+          </div>
+
+          <div class="eink-loader eink-loader--thin" data-state="complete" aria-label="Download complete">
+            <span class="eink-loader__label">Download</span>
+            <div class="eink-loader__track">
+              <div class="eink-loader__fill"></div>
+            </div>
+            <span class="eink-badge">Done</span>
+          </div>
+        </div>
+      </eink-section>
+
+      <!-- DIALOG -->
+      <eink-section>
+        <h2>Dialog</h2>
+        <p class="eink-note">
+          Styled native <code>&lt;dialog&gt;</code>. Demo shown with the
+          <code>open</code> attribute to avoid JavaScript while preserving backdrop and
+          layout styles.
+        </p>
+
+        <div
+          style="
+            margin-top: var(--eink-space-4);
+            position: relative;
+            border: var(--eink-border-thin) solid var(--eink-border-color);
+            padding: var(--eink-space-5);
+            background: var(--eink-bg-muted);
+            min-height: 18rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          "
+        >
+          <dialog class="eink-dialog" open style="position: relative">
+            <div class="eink-dialog__title">Confirm sync</div>
+            <div class="eink-dialog__body">
+              <p>Start a full library sync? This may refresh several screens.</p>
+            </div>
+            <div class="eink-dialog__actions">
+              <button class="eink-btn eink-btn--ghost">Cancel</button>
+              <button class="eink-btn eink-btn--primary">Start sync</button>
+            </div>
+          </dialog>
+        </div>
+      </eink-section>
+
+      <!-- PICTURE -->
+      <eink-section>
+        <h2>Picture</h2>
+        <p class="eink-note">
+          Bordered frames and captions keep images legible when dithered on grayscale
+          screens.
+        </p>
+
+        <div class="eink-grid" style="--eink-grid-min: 16rem; margin-top: var(--eink-space-4)">
+          <figure class="eink-picture">
+            <img
+              src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='220' fill='%23e5e5e5'%3E%3Crect width='360' height='220'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23737373' font-family='sans-serif' font-size='16'%3E360 %C3%97 220%3C/text%3E%3C/svg%3E"
+              alt="Placeholder 360 by 220"
+              width="360"
+              height="220"
+            />
+            <figcaption>Figure 1 — Placeholder framed for E-Ink.</figcaption>
+          </figure>
+
+          <figure class="eink-picture">
+            <img
+              src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='220' fill='%23d4d4d4'%3E%3Crect width='360' height='220'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23525252' font-family='sans-serif' font-size='16'%3ENews photo%3C/text%3E%3C/svg%3E"
+              alt="Placeholder news photo"
+              width="360"
+              height="220"
+            />
+            <figcaption>Figure 2 — Captions stay readable on dithered imagery.</figcaption>
+          </figure>
+        </div>
+      </eink-section>
     </main>
 
     <footer class="eink-page-footer">
