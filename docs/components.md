@@ -546,3 +546,70 @@ Import and register all custom elements once:
 | `.eink-btn--ghost`        | `<eink-button>`    | `variant="ghost"`     |
 | `.eink-btn--sm`           | `<eink-button>`    | `size="sm"`           |
 | `.eink-btn--lg`           | `<eink-button>`    | `size="lg"`           |
+
+## Stepper
+
+### Vertical Stepper
+
+```html
+<ol class="eink-stepper eink-stepper--vertical" aria-label="Setup steps">
+  <li class="eink-stepper__item" data-state="done">
+    <span class="eink-stepper__marker" aria-hidden="true"></span>
+    <div class="eink-stepper__content">
+      <div class="eink-stepper__title">Connected</div>
+      <p class="eink-stepper__meta">Device paired</p>
+    </div>
+  </li>
+  <li class="eink-stepper__item" data-state="active">
+    <span class="eink-stepper__marker" aria-hidden="true">2</span>
+    <div class="eink-stepper__content">
+      <div class="eink-stepper__title">Syncing</div>
+    </div>
+  </li>
+</ol>
+```
+
+### Horizontal Stepper
+
+```html
+<ol
+  class="eink-stepper eink-stepper--horizontal"
+  style="--eink-stepper-count: 4"
+  aria-label="Workflow"
+>
+  <li class="eink-stepper__item" data-state="done">...</li>
+  <li class="eink-stepper__item" data-state="done">...</li>
+  <li class="eink-stepper__item" data-state="active">...</li>
+  <li class="eink-stepper__item" data-state="todo">...</li>
+</ol>
+```
+
+**E-Ink note:** Uses static lines and symbols (numbers/check) instead of animation, so updates stay legible on slow-refresh grayscale panels.
+
+## Snackbar
+
+```html
+<div class="eink-snackbar eink-snackbar--success" role="status">
+  <p class="eink-snackbar__message">Book synchronized for offline reading.</p>
+  <a href="#" class="eink-snackbar__action">Undo</a>
+</div>
+```
+
+Variants: `--success`, `--warning`, `--error`.
+
+**Accessibility:** `role="status"` is recommended for non-critical notices; use short, clear messages and a single optional action.
+
+## Skeleton
+
+```html
+<div class="eink-skeleton-frame" role="status" aria-label="Loading card preview">
+  <span class="eink-skeleton eink-skeleton--title" aria-hidden="true"></span>
+  <span class="eink-skeleton eink-skeleton--text" aria-hidden="true"></span>
+  <span class="eink-skeleton eink-skeleton--text" aria-hidden="true"></span>
+  <span class="eink-skeleton eink-skeleton--block" aria-hidden="true"></span>
+</div>
+```
+
+Variants: `--title`, `--text`, `--avatar`, `--block`.
+
+**E-Ink note:** Uses static striped patterns (no shimmer) to avoid continuous repaints.

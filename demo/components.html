@@ -4,20 +4,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Components — eink-ui</title>
-    <meta
-      name="description"
-      content="eink-ui is a CSS-only component library with 46+ components optimized for E-Ink displays. Zero JavaScript, three themes, optional Web Components."
-    />
+    <meta name="description" content="eink-ui is a CSS-only component library with 46+ components optimized for E-Ink displays. Zero JavaScript, three themes, optional Web Components." />
     <meta name="author" content="Marco Mattes" />
     <meta name="theme-color" content="#ffffff" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Components — eink-ui" />
-    <meta
-      property="og:description"
-      content="CSS-only component library with 46+ components optimized for E-Ink displays. Zero JavaScript, three themes, optional Web Components."
-    />
+    <meta property="og:description" content="CSS-only component library with 46+ components optimized for E-Ink displays. Zero JavaScript, three themes, optional Web Components." />
     <meta property="og:site_name" content="eink-ui" />
 
     <!-- Twitter Card -->
@@ -54,23 +48,10 @@
           <a href="blog.html">Blog</a>
           <a href="dashboard.html">Dashboard</a>
         </nav>
-        <p
-          class="eink-text-xs"
-          style="
-            margin-top: var(--eink-space-1);
-            display: flex;
-            gap: var(--eink-space-3);
-            align-items: center;
-            flex-wrap: wrap;
-          "
-        >
-          <a href="../demo-wc/index.html"
-            ><strong>Switch to Web Component demos</strong></a
-          >
+        <p class="eink-text-xs" style="margin-top: var(--eink-space-1); display: flex; gap: var(--eink-space-3); align-items: center; flex-wrap: wrap;">
+          <a href="../demo-wc/index.html"><strong>Switch to Web Component demos</strong></a>
           <span aria-hidden="true">·</span>
-          <a href="https://eink-components.dev/storybook/"
-            ><strong>View Storybook</strong></a
-          >
+          <a href="https://eink-components.dev/storybook/"><strong>View Storybook</strong></a>
         </p>
         <p
           class="eink-text-xs eink-text-muted"
@@ -237,9 +218,7 @@
               aria-describedby="input-invalid-error"
               value="Bad value"
             />
-            <span class="eink-error-message" id="input-invalid-error"
-              >This field contains an error.</span
-            >
+            <span class="eink-error-message" id="input-invalid-error">This field contains an error.</span>
           </div>
 
           <div class="eink-field">
@@ -257,9 +236,7 @@
           </div>
 
           <div class="eink-field">
-            <label class="eink-label" for="input-search-disabled"
-              >Search (disabled)</label
-            >
+            <label class="eink-label" for="input-search-disabled">Search (disabled)</label>
             <input
               type="search"
               id="input-search-disabled"
@@ -297,17 +274,10 @@ Cannot edit this content.</textarea
 
           <div class="eink-field">
             <label class="eink-label" for="textarea-invalid">Invalid textarea</label>
-            <textarea
-              id="textarea-invalid"
-              class="eink-textarea"
-              aria-invalid="true"
-              aria-describedby="textarea-invalid-error"
-            >
+            <textarea id="textarea-invalid" class="eink-textarea" aria-invalid="true" aria-describedby="textarea-invalid-error">
 Invalid content</textarea
             >
-            <span class="eink-error-message" id="textarea-invalid-error"
-              >Content does not meet requirements.</span
-            >
+            <span class="eink-error-message" id="textarea-invalid-error">Content does not meet requirements.</span>
           </div>
         </div>
       </section>
@@ -344,17 +314,10 @@ Invalid content</textarea
 
           <div class="eink-field">
             <label class="eink-label" for="select-invalid">Invalid select</label>
-            <select
-              id="select-invalid"
-              class="eink-select"
-              aria-invalid="true"
-              aria-describedby="select-invalid-error"
-            >
+            <select id="select-invalid" class="eink-select" aria-invalid="true" aria-describedby="select-invalid-error">
               <option value="">Please select</option>
             </select>
-            <span class="eink-error-message" id="select-invalid-error"
-              >A selection is required.</span
-            >
+            <span class="eink-error-message" id="select-invalid-error">A selection is required.</span>
           </div>
         </div>
       </section>
@@ -458,14 +421,11 @@ Invalid content</textarea
       <section class="eink-section">
         <h2>Loader</h2>
         <p class="eink-note">
-          E-Ink rationale: No animation. The loader uses a hashed fill with thin
-          borders, so partial refreshes look clean and ghost-free.
+          E-Ink rationale: No animation. The loader uses a hashed fill with thin borders,
+          so partial refreshes look clean and ghost-free.
         </p>
 
-        <div
-          class="eink-stack eink-stack--sm"
-          style="max-width: 28rem; margin-top: var(--eink-space-4)"
-        >
+        <div class="eink-stack eink-stack--sm" style="max-width: 28rem; margin-top: var(--eink-space-4)">
           <div class="eink-loader" role="status" aria-live="polite">
             <span class="eink-loader__label">Syncing library</span>
             <div class="eink-loader__track">
@@ -474,11 +434,7 @@ Invalid content</textarea
             <span class="eink-loader__label" aria-hidden="true">60%</span>
           </div>
 
-          <div
-            class="eink-loader eink-loader--thin"
-            data-state="complete"
-            aria-label="Complete"
-          >
+          <div class="eink-loader eink-loader--thin" data-state="complete" aria-label="Complete">
             <span class="eink-loader__label">Download</span>
             <div class="eink-loader__track">
               <div class="eink-loader__fill"></div>
@@ -492,24 +448,19 @@ Invalid content</textarea
       <section class="eink-section">
         <h2>Tooltip</h2>
         <p class="eink-note">
-          E-Ink rationale: Tooltips appear on keyboard focus or when explicitly toggled
-          — never hover-only — avoiding accidental flashes on slow-refresh displays.
+          E-Ink rationale: Tooltips appear on keyboard focus or when explicitly toggled —
+          never hover-only — avoiding accidental flashes on slow-refresh displays.
         </p>
 
         <div class="eink-stack eink-stack--sm" style="margin-top: var(--eink-space-4)">
-          <div
-            class="eink-cluster"
-            style="align-items: center; gap: var(--eink-space-3)"
-          >
+          <div class="eink-cluster" style="align-items: center; gap: var(--eink-space-3)">
             <button
               class="eink-btn eink-btn--secondary eink-tooltip"
               aria-describedby="tooltip-1"
             >
               Focus tooltip (legacy attr)
             </button>
-            <span class="eink-sr-only" id="tooltip-1"
-              >Shown on focus. No animation or shadow.</span
-            >
+            <span class="eink-sr-only" id="tooltip-1">Shown on focus. No animation or shadow.</span>
 
             <button
               class="eink-btn eink-btn--ghost eink-tooltip eink-tooltip--persistent"
@@ -522,16 +473,9 @@ Invalid content</textarea
 
           <div class="eink-tooltip" style="max-width: 28rem">
             <span>Inline note about Wi‑Fi sync</span>
-            <button
-              class="eink-tooltip__trigger"
-              type="button"
-              aria-describedby="tooltip-sync"
-            >
-              i
-            </button>
+            <button class="eink-tooltip__trigger" type="button" aria-describedby="tooltip-sync">i</button>
             <span class="eink-tooltip__bubble" id="tooltip-sync" role="tooltip">
-              Library sync runs in the background; keep Wi‑Fi on. Tap outside or the “i”
-              to hide.
+              Library sync runs in the background; keep Wi‑Fi on. Tap outside or the “i” to hide.
             </span>
             <span class="eink-tooltip__arrow" aria-hidden="true"></span>
           </div>
@@ -577,6 +521,100 @@ Invalid content</textarea
           </figure>
         </div>
       </section>
+
+      <!-- STEPPER / SNACKBAR / SKELETON -->
+      <section class="eink-section">
+        <h2>Stepper, snackbar &amp; skeleton</h2>
+        <p class="eink-note">
+          E-Ink rationale: These feedback components avoid animation and rely on borders,
+          symbols and patterned fills so state changes remain readable on Kindle/Tolino
+          class grayscale displays with slow refresh.
+        </p>
+
+        <div class="eink-grid" style="--eink-grid-min: 18rem; margin-top: var(--eink-space-4)">
+          <div class="eink-stack eink-stack--sm">
+            <h3>Vertical stepper</h3>
+            <ol class="eink-stepper eink-stepper--vertical" aria-label="Checkout steps">
+              <li class="eink-stepper__item" data-state="done">
+                <span class="eink-stepper__marker" aria-hidden="true"></span>
+                <div class="eink-stepper__content">
+                  <div class="eink-stepper__title">Device selected</div>
+                  <p class="eink-stepper__meta">Kindle Paperwhite</p>
+                </div>
+              </li>
+              <li class="eink-stepper__item" data-state="active">
+                <span class="eink-stepper__marker" aria-hidden="true">2</span>
+                <div class="eink-stepper__content">
+                  <div class="eink-stepper__title">Theme setup</div>
+                  <p class="eink-stepper__meta">Choose high contrast mode</p>
+                </div>
+              </li>
+              <li class="eink-stepper__item" data-state="todo">
+                <span class="eink-stepper__marker" aria-hidden="true">3</span>
+                <div class="eink-stepper__content">
+                  <div class="eink-stepper__title">Finish</div>
+                  <p class="eink-stepper__meta">Apply tokens and export profile</p>
+                </div>
+              </li>
+            </ol>
+          </div>
+
+          <div class="eink-stack eink-stack--sm">
+            <h3>Horizontal stepper</h3>
+            <ol
+              class="eink-stepper eink-stepper--horizontal"
+              style="--eink-stepper-count: 4"
+              aria-label="Reading workflow"
+            >
+              <li class="eink-stepper__item" data-state="done">
+                <span class="eink-stepper__marker" aria-hidden="true"></span>
+                <div class="eink-stepper__content">
+                  <div class="eink-stepper__title">Import</div>
+                </div>
+              </li>
+              <li class="eink-stepper__item" data-state="done">
+                <span class="eink-stepper__marker" aria-hidden="true"></span>
+                <div class="eink-stepper__content">
+                  <div class="eink-stepper__title">Parse</div>
+                </div>
+              </li>
+              <li class="eink-stepper__item" data-state="active">
+                <span class="eink-stepper__marker" aria-hidden="true">3</span>
+                <div class="eink-stepper__content">
+                  <div class="eink-stepper__title">Render</div>
+                </div>
+              </li>
+              <li class="eink-stepper__item" data-state="todo">
+                <span class="eink-stepper__marker" aria-hidden="true">4</span>
+                <div class="eink-stepper__content">
+                  <div class="eink-stepper__title">Publish</div>
+                </div>
+              </li>
+            </ol>
+          </div>
+
+          <div class="eink-stack eink-stack--sm">
+            <h3>Skeleton placeholders</h3>
+            <div class="eink-skeleton-frame" aria-label="Loading article preview" role="status">
+              <span class="eink-skeleton eink-skeleton--title" aria-hidden="true"></span>
+              <span class="eink-skeleton eink-skeleton--text" aria-hidden="true"></span>
+              <span class="eink-skeleton eink-skeleton--text" aria-hidden="true"></span>
+              <span class="eink-skeleton eink-skeleton--block" aria-hidden="true" style="margin-top: var(--eink-space-3)"></span>
+            </div>
+          </div>
+        </div>
+
+        <h3 style="margin-top: var(--eink-space-5)">Snackbar</h3>
+        <p class="eink-text-sm eink-text-muted">
+          Snackbar is shown as a static sample for no-JS environments. Keep messages short
+          and actionable to reduce screen refresh noise.
+        </p>
+        <div class="eink-snackbar eink-snackbar--success" role="status" style="position: static; margin-top: var(--eink-space-3)">
+          <p class="eink-snackbar__message">Book synchronized for offline reading.</p>
+          <a href="#" class="eink-snackbar__action">Undo</a>
+        </div>
+      </section>
+
 
       <!-- ADDITIONAL COMPONENTS -->
       <section class="eink-section">
@@ -664,14 +702,7 @@ Invalid content</textarea
               <div class="eink-stat__value">18m</div>
               <div class="eink-stat__delta">+3m vs. yesterday</div>
             </div>
-            <div
-              class="eink-progress eink-progress--labeled"
-              role="progressbar"
-              aria-valuenow="65"
-              aria-valuemin="0"
-              aria-valuemax="100"
-              aria-label="Chapter progress"
-            >
+            <div class="eink-progress eink-progress--labeled" role="progressbar" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100" aria-label="Chapter progress">
               <div class="eink-progress__label">Chapter progress</div>
               <div class="eink-progress__track">
                 <div class="eink-progress__bar" style="width: 65%"></div>
@@ -742,12 +773,8 @@ Invalid content</textarea
             <div class="eink-toolbar" role="toolbar" aria-label="Font settings">
               <div class="eink-toolbar__group">
                 <span class="eink-toolbar__label">Font</span>
-                <button class="eink-btn eink-btn--sm" aria-label="Decrease font size">
-                  -
-                </button>
-                <button class="eink-btn eink-btn--sm" aria-label="Increase font size">
-                  +
-                </button>
+                <button class="eink-btn eink-btn--sm" aria-label="Decrease font size">-</button>
+                <button class="eink-btn eink-btn--sm" aria-label="Increase font size">+</button>
               </div>
               <span class="eink-toolbar__separator" aria-hidden="true"></span>
               <div class="eink-toolbar__group">

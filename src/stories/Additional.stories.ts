@@ -191,3 +191,50 @@ export const LoaderAndTooltip: Story = {
     </div>
   `,
 };
+
+export const StepperSnackbarSkeleton: Story = {
+  name: "Stepper / Snackbar / Skeleton",
+  render: () => `
+    <div class="eink-stack eink-stack--sm" style="max-width:48rem">
+      <div class="eink-grid" style="--eink-grid-min:18rem">
+        <ol class="eink-stepper eink-stepper--vertical" aria-label="Vertical setup steps">
+          <li class="eink-stepper__item" data-state="done">
+            <span class="eink-stepper__marker" aria-hidden="true"></span>
+            <div class="eink-stepper__content">
+              <div class="eink-stepper__title">Pair device</div>
+              <div class="eink-stepper__meta">Tolino Vision connected</div>
+            </div>
+          </li>
+          <li class="eink-stepper__item" data-state="active">
+            <span class="eink-stepper__marker" aria-hidden="true">2</span>
+            <div class="eink-stepper__content">
+              <div class="eink-stepper__title">Sync books</div>
+              <div class="eink-stepper__meta">12 of 20 items</div>
+            </div>
+          </li>
+          <li class="eink-stepper__item" data-state="todo">
+            <span class="eink-stepper__marker" aria-hidden="true">3</span>
+            <div class="eink-stepper__content">
+              <div class="eink-stepper__title">Finish</div>
+            </div>
+          </li>
+        </ol>
+        <ol class="eink-stepper eink-stepper--horizontal" style="--eink-stepper-count:4" aria-label="Horizontal reading progress">
+          <li class="eink-stepper__item" data-state="done"><span class="eink-stepper__marker" aria-hidden="true"></span><div class="eink-stepper__content"><div class="eink-stepper__title">Import</div></div></li>
+          <li class="eink-stepper__item" data-state="done"><span class="eink-stepper__marker" aria-hidden="true"></span><div class="eink-stepper__content"><div class="eink-stepper__title">Analyze</div></div></li>
+          <li class="eink-stepper__item" data-state="active"><span class="eink-stepper__marker" aria-hidden="true">3</span><div class="eink-stepper__content"><div class="eink-stepper__title">Render</div></div></li>
+          <li class="eink-stepper__item" data-state="todo"><span class="eink-stepper__marker" aria-hidden="true">4</span><div class="eink-stepper__content"><div class="eink-stepper__title">Publish</div></div></li>
+        </ol>
+      </div>
+      <div class="eink-skeleton-frame" role="status" aria-label="Loading preview" style="max-width:22rem">
+        <span class="eink-skeleton eink-skeleton--title" aria-hidden="true"></span>
+        <span class="eink-skeleton eink-skeleton--text" aria-hidden="true"></span>
+        <span class="eink-skeleton eink-skeleton--text" aria-hidden="true"></span>
+      </div>
+      <div class="eink-snackbar eink-snackbar--warning" role="status" style="position:static">
+        <p class="eink-snackbar__message">Connection unstable. Cached content shown.</p>
+        <a class="eink-snackbar__action" href="#">Retry</a>
+      </div>
+    </div>
+  `,
+};

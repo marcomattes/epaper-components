@@ -131,3 +131,15 @@ This avoids style duplication. The `_wc-defaults.scss` partial only handles `dis
 
 1. A file tree.
 2. Each file, in order, headed `--- FILE: path ---` followed by full content. No extra commentary.
+
+## Projekterkenntnisse (Kindle/Tolino Fokus)
+
+- Das Projekt ist als **SCSS-basiertes, CSS-first Design-System** aufgebaut und erzeugt Artefakte nach `demo/` und `dist/` via `build.ts`.
+- Zielplattform sind **E-Ink Reader**: daher werden Interaktionen bewusst statisch gehalten (keine Animation/Transition), mit Fokus auf Kontrast, Linienführung und geringe Repaint-Flächen.
+- Komponenten liegen modular unter `src/scss/components/`; die zentrale Einbindung passiert über `src/scss/eink-ui.components.scss`.
+- Demos werden aus ETA-Templates (`src/templates/pages/*.eta`) generiert. Neue Komponenten sollten immer parallel in Doku + Demo erscheinen.
+- Storybook-Stories unter `src/stories/` dienen als schnelle visuelle Regression und API-Beispiele.
+- Bestehende Patterns bevorzugen:
+  - `:where(...)` für niedrige Spezifität,
+  - CSS-Variablen für Parameter/Theme,
+  - semantisches HTML + ARIA-Rollen für Feedback-Komponenten.

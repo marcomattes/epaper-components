@@ -445,6 +445,100 @@ Invalid content</textarea
         </div>
       </section>
 
+      <!-- STEPPER / SNACKBAR / SKELETON -->
+      <section class="eink-section">
+        <h2>Stepper, snackbar &amp; skeleton</h2>
+        <p class="eink-note">
+          E-Ink rationale: These feedback components avoid animation and rely on borders,
+          symbols and patterned fills so state changes remain readable on Kindle/Tolino
+          class grayscale displays with slow refresh.
+        </p>
+
+        <div class="eink-grid" style="--eink-grid-min: 18rem; margin-top: var(--eink-space-4)">
+          <div class="eink-stack eink-stack--sm">
+            <h3>Vertical stepper</h3>
+            <ol class="eink-stepper eink-stepper--vertical" aria-label="Checkout steps">
+              <li class="eink-stepper__item" data-state="done">
+                <span class="eink-stepper__marker" aria-hidden="true"></span>
+                <div class="eink-stepper__content">
+                  <div class="eink-stepper__title">Device selected</div>
+                  <p class="eink-stepper__meta">Kindle Paperwhite</p>
+                </div>
+              </li>
+              <li class="eink-stepper__item" data-state="active">
+                <span class="eink-stepper__marker" aria-hidden="true">2</span>
+                <div class="eink-stepper__content">
+                  <div class="eink-stepper__title">Theme setup</div>
+                  <p class="eink-stepper__meta">Choose high contrast mode</p>
+                </div>
+              </li>
+              <li class="eink-stepper__item" data-state="todo">
+                <span class="eink-stepper__marker" aria-hidden="true">3</span>
+                <div class="eink-stepper__content">
+                  <div class="eink-stepper__title">Finish</div>
+                  <p class="eink-stepper__meta">Apply tokens and export profile</p>
+                </div>
+              </li>
+            </ol>
+          </div>
+
+          <div class="eink-stack eink-stack--sm">
+            <h3>Horizontal stepper</h3>
+            <ol
+              class="eink-stepper eink-stepper--horizontal"
+              style="--eink-stepper-count: 4"
+              aria-label="Reading workflow"
+            >
+              <li class="eink-stepper__item" data-state="done">
+                <span class="eink-stepper__marker" aria-hidden="true"></span>
+                <div class="eink-stepper__content">
+                  <div class="eink-stepper__title">Import</div>
+                </div>
+              </li>
+              <li class="eink-stepper__item" data-state="done">
+                <span class="eink-stepper__marker" aria-hidden="true"></span>
+                <div class="eink-stepper__content">
+                  <div class="eink-stepper__title">Parse</div>
+                </div>
+              </li>
+              <li class="eink-stepper__item" data-state="active">
+                <span class="eink-stepper__marker" aria-hidden="true">3</span>
+                <div class="eink-stepper__content">
+                  <div class="eink-stepper__title">Render</div>
+                </div>
+              </li>
+              <li class="eink-stepper__item" data-state="todo">
+                <span class="eink-stepper__marker" aria-hidden="true">4</span>
+                <div class="eink-stepper__content">
+                  <div class="eink-stepper__title">Publish</div>
+                </div>
+              </li>
+            </ol>
+          </div>
+
+          <div class="eink-stack eink-stack--sm">
+            <h3>Skeleton placeholders</h3>
+            <div class="eink-skeleton-frame" aria-label="Loading article preview" role="status">
+              <span class="eink-skeleton eink-skeleton--title" aria-hidden="true"></span>
+              <span class="eink-skeleton eink-skeleton--text" aria-hidden="true"></span>
+              <span class="eink-skeleton eink-skeleton--text" aria-hidden="true"></span>
+              <span class="eink-skeleton eink-skeleton--block" aria-hidden="true" style="margin-top: var(--eink-space-3)"></span>
+            </div>
+          </div>
+        </div>
+
+        <h3 style="margin-top: var(--eink-space-5)">Snackbar</h3>
+        <p class="eink-text-sm eink-text-muted">
+          Snackbar is shown as a static sample for no-JS environments. Keep messages short
+          and actionable to reduce screen refresh noise.
+        </p>
+        <div class="eink-snackbar eink-snackbar--success" role="status" style="position: static; margin-top: var(--eink-space-3)">
+          <p class="eink-snackbar__message">Book synchronized for offline reading.</p>
+          <a href="#" class="eink-snackbar__action">Undo</a>
+        </div>
+      </section>
+
+
       <!-- ADDITIONAL COMPONENTS -->
       <section class="eink-section">
         <h2>Additional components</h2>

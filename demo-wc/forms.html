@@ -50,9 +50,7 @@
           <a href="?theme=inverted">Inverted</a>
           <a href="?theme=high-contrast">High-contrast</a>
           <span aria-hidden="true">·</span>
-          <a href="https://eink-components.dev/storybook/"
-            ><strong>View Storybook</strong></a
-          >
+          <a href="https://eink-components.dev/storybook/"><strong>View Storybook</strong></a>
         </p>
       </div>
     </header>
@@ -62,24 +60,21 @@
       <eink-section>
         <h2>Text input</h2>
         <p class="eink-note">
-          <code>&lt;eink-input&gt;</code> wraps a native <code>&lt;input&gt;</code> and
-          applies the <code>.eink-input</code> class automatically. Attributes like
-          <code>type</code>, <code>placeholder</code>, and <code>disabled</code> are
-          forwarded to the inner element.
+          <code>&lt;eink-input&gt;</code> wraps a native
+          <code>&lt;input&gt;</code> and applies the <code>.eink-input</code>
+          class automatically. Attributes like <code>type</code>,
+          <code>placeholder</code>, and <code>disabled</code> are forwarded to the
+          inner element.
         </p>
 
         <div class="eink-stack eink-stack--sm" style="margin-top: var(--eink-space-3)">
           <div>
             <span class="eink-badge">CSS-only</span>
-            <pre
-              style="margin-top: var(--eink-space-2)"
-            ><code>&lt;input type="text" class="eink-input" placeholder="..." /&gt;</code></pre>
+            <pre style="margin-top: var(--eink-space-2)"><code>&lt;input type="text" class="eink-input" placeholder="..." /&gt;</code></pre>
           </div>
           <div>
             <span class="eink-badge">Web Component</span>
-            <pre
-              style="margin-top: var(--eink-space-2)"
-            ><code>&lt;eink-input type="text" placeholder="..."&gt;&lt;/eink-input&gt;</code></pre>
+            <pre style="margin-top: var(--eink-space-2)"><code>&lt;eink-input type="text" placeholder="..."&gt;&lt;/eink-input&gt;</code></pre>
           </div>
         </div>
 
@@ -89,12 +84,19 @@
         >
           <div class="eink-field">
             <label class="eink-label" for="wc-input-default">Default input</label>
-            <eink-input type="text" placeholder="Placeholder text"></eink-input>
+            <eink-input
+              type="text"
+              placeholder="Placeholder text"
+            ></eink-input>
           </div>
 
           <div class="eink-field">
             <label class="eink-label" for="wc-input-disabled">Disabled input</label>
-            <eink-input type="text" value="Cannot edit" disabled></eink-input>
+            <eink-input
+              type="text"
+              value="Cannot edit"
+              disabled
+            ></eink-input>
           </div>
 
           <div class="eink-field">
@@ -105,9 +107,7 @@
               aria-describedby="wc-input-invalid-error"
               value="Bad value"
             ></eink-input>
-            <span class="eink-error-message" id="wc-input-invalid-error"
-              >This field contains an error.</span
-            >
+            <span class="eink-error-message" id="wc-input-invalid-error">This field contains an error.</span>
           </div>
         </div>
       </eink-section>
@@ -136,14 +136,8 @@
 
           <div class="eink-field">
             <label class="eink-label">Invalid textarea</label>
-            <eink-textarea
-              aria-invalid="true"
-              aria-describedby="wc-textarea-invalid-error"
-              >Invalid content</eink-textarea
-            >
-            <span class="eink-error-message" id="wc-textarea-invalid-error"
-              >Content does not meet requirements.</span
-            >
+            <eink-textarea aria-invalid="true" aria-describedby="wc-textarea-invalid-error">Invalid content</eink-textarea>
+            <span class="eink-error-message" id="wc-textarea-invalid-error">Content does not meet requirements.</span>
           </div>
         </div>
       </eink-section>
@@ -152,9 +146,9 @@
       <eink-section>
         <h2>Select</h2>
         <p class="eink-note">
-          <code>&lt;eink-select&gt;</code> wraps a native <code>&lt;select&gt;</code>.
-          Place <code>&lt;option&gt;</code> elements inside — they are moved into the
-          generated select.
+          <code>&lt;eink-select&gt;</code> wraps a native
+          <code>&lt;select&gt;</code>. Place <code>&lt;option&gt;</code> elements
+          inside — they are moved into the generated select.
         </p>
 
         <div
@@ -183,9 +177,7 @@
             <eink-select aria-invalid="true" aria-describedby="wc-select-invalid-error">
               <option value="">Please select</option>
             </eink-select>
-            <span class="eink-error-message" id="wc-select-invalid-error"
-              >A selection is required.</span
-            >
+            <span class="eink-error-message" id="wc-select-invalid-error">A selection is required.</span>
           </div>
         </div>
       </eink-section>
@@ -194,23 +186,19 @@
       <eink-section>
         <h2>Checkbox</h2>
         <p class="eink-note">
-          <code>&lt;eink-checkbox&gt;</code> creates a styled checkbox. Text content
-          placed inside becomes the label.
+          <code>&lt;eink-checkbox&gt;</code> creates a styled checkbox. Text
+          content placed inside becomes the label.
         </p>
 
         <div class="eink-stack eink-stack--sm" style="margin-top: var(--eink-space-3)">
           <div>
             <span class="eink-badge">CSS-only</span>
-            <pre
-              style="margin-top: var(--eink-space-2)"
-            ><code>&lt;input type="checkbox" class="eink-checkbox" id="cb" /&gt;
+            <pre style="margin-top: var(--eink-space-2)"><code>&lt;input type="checkbox" class="eink-checkbox" id="cb" /&gt;
 &lt;label for="cb"&gt;Label&lt;/label&gt;</code></pre>
           </div>
           <div>
             <span class="eink-badge">Web Component</span>
-            <pre
-              style="margin-top: var(--eink-space-2)"
-            ><code>&lt;eink-checkbox name="cb"&gt;Label&lt;/eink-checkbox&gt;</code></pre>
+            <pre style="margin-top: var(--eink-space-2)"><code>&lt;eink-checkbox name="cb"&gt;Label&lt;/eink-checkbox&gt;</code></pre>
           </div>
         </div>
 
@@ -219,19 +207,13 @@
             <eink-checkbox name="wc-check-default">Default checkbox</eink-checkbox>
           </div>
           <div class="eink-field eink-field--inline">
-            <eink-checkbox name="wc-check-checked" checked
-              >Checked checkbox</eink-checkbox
-            >
+            <eink-checkbox name="wc-check-checked" checked>Checked checkbox</eink-checkbox>
           </div>
           <div class="eink-field eink-field--inline">
-            <eink-checkbox name="wc-check-disabled" disabled
-              >Disabled checkbox</eink-checkbox
-            >
+            <eink-checkbox name="wc-check-disabled" disabled>Disabled checkbox</eink-checkbox>
           </div>
           <div class="eink-field eink-field--inline">
-            <eink-checkbox name="wc-check-both" disabled checked
-              >Disabled &amp; checked</eink-checkbox
-            >
+            <eink-checkbox name="wc-check-both" disabled checked>Disabled &amp; checked</eink-checkbox>
           </div>
         </div>
       </eink-section>
@@ -240,8 +222,8 @@
       <eink-section>
         <h2>Radio</h2>
         <p class="eink-note">
-          <code>&lt;eink-radio&gt;</code> creates a styled radio button. Use the same
-          <code>name</code> attribute to group them.
+          <code>&lt;eink-radio&gt;</code> creates a styled radio button. Use the
+          same <code>name</code> attribute to group them.
         </p>
 
         <fieldset style="border: none; padding: 0; margin-top: var(--eink-space-4)">
@@ -253,17 +235,13 @@
               <eink-radio name="wc-size" value="sm">Small</eink-radio>
             </div>
             <div class="eink-field eink-field--inline">
-              <eink-radio name="wc-size" value="md" checked
-                >Medium (selected)</eink-radio
-              >
+              <eink-radio name="wc-size" value="md" checked>Medium (selected)</eink-radio>
             </div>
             <div class="eink-field eink-field--inline">
               <eink-radio name="wc-size" value="lg">Large</eink-radio>
             </div>
             <div class="eink-field eink-field--inline">
-              <eink-radio name="wc-size" value="xl" disabled
-                >Extra large (disabled)</eink-radio
-              >
+              <eink-radio name="wc-size" value="xl" disabled>Extra large (disabled)</eink-radio>
             </div>
           </div>
         </fieldset>
@@ -287,9 +265,7 @@
                 value=""
                 required
               ></eink-input>
-              <span class="eink-error-message" id="wc-fullname-error"
-                >Full name is required.</span
-              >
+              <span class="eink-error-message" id="wc-fullname-error">Full name is required.</span>
             </div>
 
             <div class="eink-field">
@@ -301,12 +277,8 @@
                 value="not-an-email"
                 required
               ></eink-input>
-              <span class="eink-help" id="wc-email-help"
-                >We'll use this to send your confirmation.</span
-              >
-              <span class="eink-error-message" id="wc-email-error"
-                >Enter a valid email address.</span
-              >
+              <span class="eink-help" id="wc-email-help">We'll use this to send your confirmation.</span>
+              <span class="eink-error-message" id="wc-email-error">Enter a valid email address.</span>
             </div>
 
             <div class="eink-field">
@@ -321,8 +293,7 @@
             </div>
 
             <div class="eink-field">
-              <label class="eink-label"
-                >Short bio
+              <label class="eink-label">Short bio
                 <span class="eink-text-xs eink-text-muted">(optional)</span>
               </label>
               <eink-textarea placeholder="Tell us about yourself"></eink-textarea>
@@ -332,9 +303,7 @@
             <div class="eink-field">
               <label class="eink-label">Referral code</label>
               <eink-input type="text" value="AUTO-APPLIED-2024" disabled></eink-input>
-              <span class="eink-help"
-                >This code was automatically applied and cannot be changed.</span
-              >
+              <span class="eink-help">This code was automatically applied and cannot be changed.</span>
             </div>
 
             <fieldset style="border: none; padding: 0">
@@ -343,19 +312,13 @@
               </legend>
               <eink-stack gap="sm">
                 <div class="eink-field eink-field--inline">
-                  <eink-checkbox name="notif" value="email" checked
-                    >Email notifications</eink-checkbox
-                  >
+                  <eink-checkbox name="notif" value="email" checked>Email notifications</eink-checkbox>
                 </div>
                 <div class="eink-field eink-field--inline">
-                  <eink-checkbox name="notif" value="sms"
-                    >SMS notifications</eink-checkbox
-                  >
+                  <eink-checkbox name="notif" value="sms">SMS notifications</eink-checkbox>
                 </div>
                 <div class="eink-field eink-field--inline">
-                  <eink-checkbox name="notif" value="push" disabled
-                    >Push notifications (not available)</eink-checkbox
-                  >
+                  <eink-checkbox name="notif" value="push" disabled>Push notifications (not available)</eink-checkbox>
                 </div>
               </eink-stack>
             </fieldset>
@@ -366,9 +329,7 @@
               </legend>
               <eink-stack gap="sm">
                 <div class="eink-field eink-field--inline">
-                  <eink-radio name="wc-freq" value="instant" checked
-                    >Instant</eink-radio
-                  >
+                  <eink-radio name="wc-freq" value="instant" checked>Instant</eink-radio>
                 </div>
                 <div class="eink-field eink-field--inline">
                   <eink-radio name="wc-freq" value="daily">Daily digest</eink-radio>
@@ -381,17 +342,9 @@
 
             <div class="eink-field">
               <div class="eink-field eink-field--inline">
-                <eink-checkbox
-                  name="terms"
-                  aria-invalid="true"
-                  aria-describedby="wc-terms-error"
-                  required
-                  >I accept the terms and conditions</eink-checkbox
-                >
+                <eink-checkbox name="terms" aria-invalid="true" aria-describedby="wc-terms-error" required>I accept the terms and conditions</eink-checkbox>
               </div>
-              <span class="eink-error-message" id="wc-terms-error"
-                >You must accept the terms to continue.</span
-              >
+              <span class="eink-error-message" id="wc-terms-error">You must accept the terms to continue.</span>
             </div>
 
             <eink-cluster style="margin-top: var(--eink-space-3)">
