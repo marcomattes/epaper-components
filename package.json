@@ -17,12 +17,7 @@
   "homepage": "https://github.com/marcomattes/eink-css-ui-framework#readme",
   "copyright": "Copyright (c) 2026 Marco Mattes",
   "files": [
-    "dist/",
-    "src/scss/",
-    "assets/",
-    "README.md",
-    "LICENSE",
-    "CHANGELOG.md"
+    "dist/**/*"
   ],
   "scripts": {
     "dev": "npx serve . -p 8080",
