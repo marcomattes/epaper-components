@@ -52,7 +52,7 @@
           <a href="?theme=inverted">Inverted</a>
           <a href="?theme=high-contrast">High-contrast</a>
           <span aria-hidden="true">·</span>
-          <a href="https://marcomattes.github.io/eink-css-ui-framework/storybook/"><strong>View Storybook</strong></a>
+          <a href="https://eink-components.dev/storybook/"><strong>View Storybook</strong></a>
         </p>
       </div>
     </header>

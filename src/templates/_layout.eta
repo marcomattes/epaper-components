@@ -74,7 +74,7 @@
         <p class="eink-text-xs" style="margin-top: var(--eink-space-1); display: flex; gap: var(--eink-space-3); align-items: center; flex-wrap: wrap;">
           <a href="<%= pp %>demo-wc/index.html"><strong>Switch to Web Component demos</strong></a>
           <span aria-hidden="true">·</span>
-          <a href="https://marcomattes.github.io/eink-css-ui-framework/storybook/"><strong>View Storybook</strong></a>
+          <a href="https://eink-components.dev/storybook/"><strong>View Storybook</strong></a>
         </p>
 <% if (it.fullHeader) { %>
         <p

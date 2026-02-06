@@ -39,6 +39,11 @@
     "storybook": "storybook dev -p 6006",
     "storybook:build": "storybook build -o storybook-static",
     "lint:css": "stylelint \"src/**/*.scss\"",
+    "release": "commit-and-tag-version",
+    "release:minor": "commit-and-tag-version --release-as minor",
+    "release:major": "commit-and-tag-version --release-as major",
+    "release:patch": "commit-and-tag-version --release-as patch",
+    "release:first": "commit-and-tag-version --first-release",
     "prepublishOnly": "npm run build",
     "prepare": "husky install"
   },
@@ -55,6 +60,8 @@
     "./dist/*": "./dist/*"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.4.1",
+    "@commitlint/config-conventional": "^20.4.1",
     "@mdx-js/react": "^2.3.0",
     "@playwright/test": "^1.58.2",
     "@storybook/addon-a11y": "^10.2.7",
@@ -64,6 +71,7 @@
     "@types/clean-css": "^4.2.11",
     "@types/node": "^25.2.1",
     "clean-css": "^5.3.3",
+    "commit-and-tag-version": "^12.6.1",
     "eta": "^4.5.1",
     "husky": "^9.1.7",
     "prettier": "^3.2.5",

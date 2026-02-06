@@ -37,7 +37,7 @@ jobs:
         run: npm run build
 
       - name: Build Storybook
-        run: STORYBOOK_BASE=/eink-css-ui-framework/storybook/ npm run storybook:build
+        run: STORYBOOK_BASE=/storybook/ npm run storybook:build
 
       - name: Assemble site
         run: |

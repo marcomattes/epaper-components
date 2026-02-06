@@ -73,7 +73,7 @@
    Default theme
    ----------------------------------------------- */
 :root,
-[data-theme="default"] {
+[data-theme=default] {
   --eink-fg: var(--eink-color-gray-900);
   --eink-fg-muted: var(--eink-color-gray-600);
   --eink-fg-subtle: var(--eink-color-gray-400);
@@ -98,7 +98,7 @@
 /* -----------------------------------------------
    Inverted theme
    ----------------------------------------------- */
-[data-theme="inverted"] {
+[data-theme=inverted] {
   --eink-fg: var(--eink-color-gray-100);
   --eink-fg-muted: var(--eink-color-gray-400);
   --eink-fg-subtle: var(--eink-color-gray-500);
@@ -123,7 +123,7 @@
 /* -----------------------------------------------
    High-contrast theme
    ----------------------------------------------- */
-[data-theme="high-contrast"] {
+[data-theme=high-contrast] {
   --eink-fg: var(--eink-color-black);
   --eink-fg-muted: var(--eink-color-black);
   --eink-fg-subtle: var(--eink-color-gray-700);
