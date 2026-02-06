@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">eink-ui GitHub hero</title>
+  <desc id="desc">Monochrome hero showing cards, buttons, inputs, and layout primitives optimized for E-Ink.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#fafafa"/>
+      <stop offset="1" stop-color="#f2f2f2"/>
+    </linearGradient>
+    <style><![CDATA[
+      .frame { fill: url(#bg); stroke: #c7c7c7; }
+      .title { font: 700 42px "Helvetica Neue", Arial, sans-serif; fill: #111; }
+      .subtitle { font: 18px "Helvetica Neue", Arial, sans-serif; fill: #444; }
+      .tag { font: 14px "Helvetica Neue", Arial, sans-serif; fill: #111; }
+      .card { fill: #fff; stroke: #c7c7c7; }
+      .card-strong { stroke: #444; }
+      .muted { fill: #777; font: 13px "Helvetica Neue", Arial, sans-serif; }
+      .label { fill: #222; font: 13px "Helvetica Neue", Arial, sans-serif; }
+      .input { fill: #fff; stroke: #444; }
+      .btn { fill: #111; stroke: #111; font: 14px "Helvetica Neue", Arial, sans-serif; fill: #fff; }
+      .btn-secondary { fill: #fff; stroke: #444; font: 14px "Helvetica Neue", Arial, sans-serif; fill: #111; }
+      .dot { fill: #111; }
+      .grid-line { stroke: #e1e1e1; stroke-dasharray: 4 6; }
+      .badge { fill: #f5f5f5; stroke: #c7c7c7; font: 12px "Helvetica Neue", Arial, sans-serif; fill: #555; }
+    ]]></style>
+  </defs>
+
+  <rect class="frame" x="16" y="16" width="1168" height="598" rx="16" />
+
+  <!-- Header -->
+  <text class="title" x="64" y="96">eink-ui</text>
+  <text class="subtitle" x="64" y="128">CSS-first components for E-Ink: borders over fills, zero JS required.</text>
+
+  <!-- Tags -->
+  <rect class="badge" x="64" y="154" width="110" height="30" rx="6"/>
+  <text x="80" y="174" class="badge">CSS-only</text>
+  <rect class="badge" x="184" y="154" width="130" height="30" rx="6"/>
+  <text x="200" y="174" class="badge">Zero JS needed</text>
+  <rect class="badge" x="324" y="154" width="150" height="30" rx="6"/>
+  <text x="340" y="174" class="badge">High contrast</text>
+  <rect class="badge" x="484" y="154" width="120" height="30" rx="6"/>
+  <text x="500" y="174" class="badge">3 themes</text>
+
+  <!-- Grid guide -->
+  <g stroke-linecap="round">
+    <line class="grid-line" x1="64" y1="210" x2="1136" y2="210"/>
+    <line class="grid-line" x1="64" y1="420" x2="1136" y2="420"/>
+    <line class="grid-line" x1="400" y1="200" x2="400" y2="580"/>
+    <line class="grid-line" x1="750" y1="200" x2="750" y2="580"/>
+  </g>
+
+  <!-- Card cluster -->
+  <g transform="translate(80 230)">
+    <rect class="card" width="280" height="170" rx="10"/>
+    <text x="20" y="42" class="label" font-size="18">Card</text>
+    <text x="20" y="74" class="muted">Borders over shadows for clean</text>
+    <text x="20" y="94" class="muted">E-Ink refresh.</text>
+    <rect class="badge" x="20" y="116" width="90" height="26" rx="6"/>
+    <text x="36" y="134" class="badge">Footer tag</text>
+  </g>
+
+  <g transform="translate(420 230)">
+    <rect class="card card-strong" width="280" height="170" rx="10"/>
+    <text x="20" y="42" class="label" font-size="18">Raised card</text>
+    <text x="20" y="74" class="muted">Thicker stroke to signal</text>
+    <text x="20" y="94" class="muted">priority.</text>
+    <rect class="btn-secondary" x="20" y="120" width="100" height="34" rx="6"/>
+    <text x="42" y="143" class="btn-secondary">Secondary</text>
+  </g>
+
+  <g transform="translate(760 230)">
+    <rect class="card" width="280" height="170" rx="10"/>
+    <text x="20" y="42" class="label" font-size="18">Picture</text>
+    <rect x="20" y="62" width="240" height="90" fill="#f3f3f3" stroke="#c7c7c7"/>
+    <text x="48" y="115" class="muted">Framed image, no heavy fills.</text>
+  </g>
+
+  <!-- Form cluster -->
+  <g transform="translate(80 440)">
+    <text x="0" y="0" class="label" font-size="18">Forms</text>
+    <text x="0" y="22" class="muted">Inputs use single-line borders; focus is an outline.</text>
+    <text x="0" y="58" class="label">Email</text>
+    <rect class="input" x="0" y="70" width="260" height="36" rx="6"/>
+    <text x="10" y="93" class="muted">you@example.com</text>
+
+    <text x="280" y="58" class="label">Select</text>
+    <rect class="input" x="280" y="70" width="180" height="36" rx="6"/>
+    <polygon points="440,86 432,78 424,86 432,94" fill="#111"/>
+
+    <text x="500" y="58" class="label">Checkbox</text>
+    <rect class="input" x="500" y="70" width="22" height="22" rx="4"/>
+    <rect x="505" y="75" width="12" height="12" class="dot"/>
+    <text x="530" y="86" class="muted">Remember</text>
+  </g>
+
+  <!-- Buttons -->
+  <g transform="translate(760 440)">
+    <rect class="btn" x="0" y="0" width="140" height="42" rx="8"/>
+    <text x="36" y="27" class="btn">Primary</text>
+    <rect class="btn-secondary" x="158" y="0" width="140" height="42" rx="8"/>
+    <text x="192" y="27" class="btn-secondary">Secondary</text>
+    <rect class="btn-secondary" x="316" y="0" width="140" height="42" rx="8" fill="#fff" stroke="#aaa"/>
+    <text x="354" y="27" class="muted">Ghost</text>
+  </g>
+
+  <!-- Footer note -->
+  <text x="64" y="588" class="muted">eink-ui · Monochrome-friendly components · data-theme="default | inverted | high-contrast"</text>
+</svg>
