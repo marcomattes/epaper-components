@@ -37,10 +37,4 @@ jobs:
       - name: Build CSS bundle
         run: npm run build
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-
-      - name: Test (Playwright incl. WC)
-        env:
-          CI: true
-        run: npm test
+      # Playwright disabled per request; keep lint/type/build only
