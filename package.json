@@ -1,6 +1,6 @@
 {
   "name": "eink-ui",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "type": "module",
   "description": "CSS-only component library optimized for E-Ink displays",
   "main": "dist/eink-ui.css",
