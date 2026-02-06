@@ -18,12 +18,11 @@
   "copyright": "Copyright (c) 2026 Marco Mattes",
   "files": [
     "dist/",
-    "demo/",
-    "src/",
-    "docs/",
+    "src/scss/",
     "assets/",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "dev": "npx serve . -p 8080",

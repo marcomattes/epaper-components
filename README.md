@@ -2,6 +2,10 @@
 
 ![eink-ui logo](assets/eink-ui-logo.svg)
 
+[![npm version](https://img.shields.io/npm/v/eink-ui?style=flat-square)](https://www.npmjs.com/package/eink-ui)
+[![CI](https://github.com/marcomattes/eink-css-ui-framework/actions/workflows/ci.yml/badge.svg)](https://github.com/marcomattes/eink-css-ui-framework/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/marcomattes/eink-css-ui-framework?style=flat-square)](LICENSE)
+
 CSS-first component library optimized for E-Ink displays (Kindle, Tolino, Kobo, reMarkable). Zero-motion, border-driven visuals, optional JS only for progressive enhancements (dialog polyfill, theme helper, Web Components).
 
 ## Install

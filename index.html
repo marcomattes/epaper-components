@@ -195,6 +195,12 @@
             <a href="demo/index.html">Demo Pages</a>
             <span aria-hidden="true">·</span>
             <a href="https://www.npmjs.com/package/eink-ui">npm</a>
+            <span aria-hidden="true">·</span>
+            <img
+              src="https://img.shields.io/npm/v/eink-ui?style=flat-square&label=npm"
+              alt="npm version"
+              height="20"
+            />
           </div>
         </div>
       </section>
@@ -576,8 +582,22 @@
 
         <div class="eink-stack">
           <div class="eink-stack eink-stack--sm">
-            <h3>1. Include the CSS</h3>
-            <pre><code>&lt;link rel="stylesheet" href="eink-ui.css"&gt;</code></pre>
+            <h3>1. Install via npm</h3>
+            <pre><code>npm install eink-ui</code></pre>
+            <p class="eink-text-sm eink-text-muted">
+              Or skip npm entirely &mdash; download <code>eink-ui.css</code> from the
+              <a href="https://github.com/marcomattes/eink-css-ui-framework/releases">GitHub releases</a>
+              and drop it into your project.
+            </p>
+          </div>
+
+          <div class="eink-stack eink-stack--sm">
+            <h3>2. Include the CSS</h3>
+            <pre><code>// Bundler / Vite / Next.js
+import "eink-ui/dist/eink-ui.css";
+
+// Or link from node_modules
+&lt;link rel="stylesheet" href="node_modules/eink-ui/dist/eink-ui.css"&gt;</code></pre>
             <p class="eink-text-sm eink-text-muted">
               Or import the three individual files for finer control: tokens, base, and
               components.
@@ -585,7 +605,7 @@
           </div>
 
           <div class="eink-stack eink-stack--sm">
-            <h3>2. Set a theme</h3>
+            <h3>3. Set a theme</h3>
             <pre><code>&lt;html data-theme="default"&gt;</code></pre>
             <p class="eink-text-sm eink-text-muted">
               Choose from <code>default</code>, <code>inverted</code>, or
@@ -594,7 +614,7 @@
           </div>
 
           <div class="eink-stack eink-stack--sm">
-            <h3>3. Use components</h3>
+            <h3>4. Use components</h3>
             <pre><code>&lt;button class="eink-btn eink-btn--primary"&gt;Click me&lt;/button&gt;
 
 &lt;div class="eink-card"&gt;
@@ -604,7 +624,7 @@
           </div>
 
           <div class="eink-stack eink-stack--sm">
-            <h3>4. Optional: Add Web Components</h3>
+            <h3>5. Optional: Add Web Components</h3>
             <pre><code>&lt;script type="module"&gt;
   import { defineEinkElements } from "eink-ui/wc";
   defineEinkElements();
@@ -620,10 +640,10 @@
           class="eink-alert eink-alert--info"
           style="margin-top: var(--eink-space-3)"
         >
-          <div class="eink-alert__title">No build step required</div>
+          <div class="eink-alert__title">Works with or without a build step</div>
           <div class="eink-alert__body">
-            Copy the CSS file into your project and start using components immediately.
-            No npm, no bundler, no configuration.
+            Install via <code>npm install eink-ui</code> for bundler workflows, or just
+            copy the CSS file into your project. No configuration required either way.
           </div>
         </div>
       </section>

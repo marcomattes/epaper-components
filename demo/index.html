@@ -114,11 +114,60 @@
 
       <section class="eink-section">
         <h2>Getting started</h2>
-        <pre><code>&lt;link rel="stylesheet" href="eink-ui.css"&gt;</code></pre>
+        <pre><code>npm install eink-ui</code></pre>
+        <p>Then include the CSS:</p>
+        <pre><code>// Bundler / Vite / Next.js
+import "eink-ui/dist/eink-ui.css";
+
+// Or link directly
+&lt;link rel="stylesheet" href="node_modules/eink-ui/dist/eink-ui.css"&gt;</code></pre>
         <p>
           Add <code>data-theme="default"</code> (or <code>inverted</code> /
           <code>high-contrast</code>) to <code>&lt;html&gt;</code>. That's it.
         </p>
+        <p class="eink-text-sm eink-text-muted">
+          No bundler? Download <code>eink-ui.css</code> from
+          <a href="https://github.com/marcomattes/eink-css-ui-framework/releases">GitHub releases</a>
+          or <a href="https://www.npmjs.com/package/eink-ui">npmjs.com</a>.
+        </p>
+      </section>
+
+      <section class="eink-section">
+        <h2>npm</h2>
+        <div
+          class="eink-card"
+          style="display: flex; gap: var(--eink-space-3); align-items: center"
+        >
+          <div
+            aria-hidden="true"
+            style="
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              width: 2.75rem;
+              height: 2.75rem;
+              border: 1px solid var(--eink-border-strong);
+              border-radius: var(--eink-radius-sm);
+              font-weight: bold;
+              font-size: var(--eink-text-sm);
+            "
+          >npm</div>
+          <div class="eink-stack eink-stack--xs">
+            <p class="eink-text-sm eink-text-muted">
+              Install the package from the npm registry.
+            </p>
+            <div
+              class="eink-cluster"
+              style="gap: var(--eink-space-2); align-items: center"
+            >
+              <a href="https://www.npmjs.com/package/eink-ui"
+                ><strong>eink-ui on npm</strong></a
+              >
+              <span aria-hidden="true">·</span>
+              <code>npm install eink-ui</code>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section class="eink-section">
