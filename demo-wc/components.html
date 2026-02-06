@@ -230,12 +230,16 @@
       <eink-section>
         <h2>Form controls</h2>
         <p class="eink-note">
-          Web Component wrappers for inputs reuse the same CSS classes and zero-specificity
-          tokens. Attributes like <code>disabled</code>, <code>aria-invalid</code>, and
-          <code>type</code> reflect onto the native control.
+          Web Component wrappers for inputs reuse the same CSS classes and
+          zero-specificity tokens. Attributes like <code>disabled</code>,
+          <code>aria-invalid</code>, and <code>type</code> reflect onto the native
+          control.
         </p>
 
-        <div class="eink-stack eink-stack--sm" style="max-width: 26rem; margin-top: var(--eink-space-4)">
+        <div
+          class="eink-stack eink-stack--sm"
+          style="max-width: 26rem; margin-top: var(--eink-space-4)"
+        >
           <label class="eink-field">
             <span class="eink-label">Default input</span>
             <eink-input placeholder="Placeholder text"></eink-input>
@@ -264,11 +268,14 @@
       <eink-section>
         <h2>Select</h2>
         <p class="eink-note">
-          Native dropdown UI is retained for best E-Ink performance. Arrow indicator is drawn
-          with CSS gradients—no SVG assets.
+          Native dropdown UI is retained for best E-Ink performance. Arrow indicator is
+          drawn with CSS gradients—no SVG assets.
         </p>
 
-        <div class="eink-stack eink-stack--sm" style="max-width: 24rem; margin-top: var(--eink-space-4)">
+        <div
+          class="eink-stack eink-stack--sm"
+          style="max-width: 24rem; margin-top: var(--eink-space-4)"
+        >
           <label class="eink-field">
             <span class="eink-label">Default select</span>
             <eink-select>
@@ -303,9 +310,14 @@
           <code>aria-invalid</code>.
         </p>
 
-        <div class="eink-grid" style="--eink-grid-min: 14rem; margin-top: var(--eink-space-4)">
+        <div
+          class="eink-grid"
+          style="--eink-grid-min: 14rem; margin-top: var(--eink-space-4)"
+        >
           <div class="eink-stack eink-stack--sm">
-            <div class="eink-label" style="margin-bottom: var(--eink-space-1)">Checkboxes</div>
+            <div class="eink-label" style="margin-bottom: var(--eink-space-1)">
+              Checkboxes
+            </div>
             <label class="eink-field eink-field--inline">
               <eink-checkbox checked></eink-checkbox>
               <span>Checked</span>
@@ -321,7 +333,9 @@
           </div>
 
           <div class="eink-stack eink-stack--sm">
-            <div class="eink-label" style="margin-bottom: var(--eink-space-1)">Radios</div>
+            <div class="eink-label" style="margin-bottom: var(--eink-space-1)">
+              Radios
+            </div>
             <label class="eink-field eink-field--inline">
               <eink-radio name="size-wc" value="s" checked></eink-radio>
               <span>Small</span>
@@ -346,7 +360,10 @@
           repaint on slow E-Ink refresh.
         </p>
 
-        <div class="eink-stack eink-stack--sm" style="max-width: 28rem; margin-top: var(--eink-space-4)">
+        <div
+          class="eink-stack eink-stack--sm"
+          style="max-width: 28rem; margin-top: var(--eink-space-4)"
+        >
           <div class="eink-loader" role="status" aria-live="polite">
             <span class="eink-loader__label">Syncing library</span>
             <div class="eink-loader__track">
@@ -355,7 +372,11 @@
             <span class="eink-loader__label" aria-hidden="true">70%</span>
           </div>
 
-          <div class="eink-loader eink-loader--thin" data-state="complete" aria-label="Download complete">
+          <div
+            class="eink-loader eink-loader--thin"
+            data-state="complete"
+            aria-label="Download complete"
+          >
             <span class="eink-loader__label">Download</span>
             <div class="eink-loader__track">
               <div class="eink-loader__fill"></div>
@@ -408,7 +429,10 @@
           screens.
         </p>
 
-        <div class="eink-grid" style="--eink-grid-min: 16rem; margin-top: var(--eink-space-4)">
+        <div
+          class="eink-grid"
+          style="--eink-grid-min: 16rem; margin-top: var(--eink-space-4)"
+        >
           <figure class="eink-picture">
             <img
               src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='220' fill='%23e5e5e5'%3E%3Crect width='360' height='220'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23737373' font-family='sans-serif' font-size='16'%3E360 %C3%97 220%3C/text%3E%3C/svg%3E"
@@ -426,7 +450,9 @@
               width="360"
               height="220"
             />
-            <figcaption>Figure 2 — Captions stay readable on dithered imagery.</figcaption>
+            <figcaption>
+              Figure 2 — Captions stay readable on dithered imagery.
+            </figcaption>
           </figure>
         </div>
       </eink-section>
