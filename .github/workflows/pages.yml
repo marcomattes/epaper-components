@@ -1,4 +1,4 @@
-name: Deploy Storybook to Pages
+name: Deploy to GitHub Pages
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "storybook-pages"
+  group: "pages"
   cancel-in-progress: true
 
 jobs:
@@ -33,13 +33,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Storybook
-        run: STORYBOOK_BASE=/storybook/ npm run storybook:build
+      - name: Build demo + dist
+        run: npm run build
 
-      - name: Upload Storybook artifact
+      - name: Build Storybook
+        run: STORYBOOK_BASE=/eink-css-ui-framework/storybook/ npm run storybook:build
+
+      - name: Assemble site
+        run: |
+          mkdir -p site/storybook
+          cp -r demo demo-wc dist assets site/
+          cp -r storybook-static/* site/storybook/
+          cp index.html site/index.html
+
+      - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: storybook-static
+          path: site
 
   deploy:
     needs: build

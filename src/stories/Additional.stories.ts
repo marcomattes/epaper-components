@@ -169,13 +169,24 @@ export const LoaderAndTooltip: Story = {
         </div>
         <span class="eink-badge">Done</span>
       </div>
-      <div style="margin-top:var(--eink-space-4)">
-        <button class="eink-btn eink-btn--secondary eink-tooltip" data-tooltip="Focus to show tooltip. No hover-only, no animation.">
-          Focus for tooltip
-        </button>
-        <button class="eink-btn eink-btn--ghost eink-tooltip eink-tooltip--persistent" data-tooltip="Always visible tooltip via data attribute.">
-          Persistent tooltip
-        </button>
+      <div class="eink-stack eink-stack--sm" style="margin-top:var(--eink-space-4)">
+        <div class="eink-cluster" style="align-items:center">
+          <button class="eink-btn eink-btn--secondary eink-tooltip" aria-describedby="tt-2">
+            Focus tooltip (attr)
+          </button>
+          <span class="eink-sr-only" id="tt-2">Focus to show tooltip. No hover-only, no animation.</span>
+          <button class="eink-btn eink-btn--ghost eink-tooltip eink-tooltip--persistent" data-tooltip="Always visible tooltip via data attribute.">
+            Persistent tooltip
+          </button>
+        </div>
+        <div class="eink-tooltip">
+          <span>Inline help:</span>
+          <button class="eink-tooltip__trigger" type="button" aria-describedby="tt-3">i</button>
+          <span class="eink-tooltip__bubble" id="tt-3" role="tooltip">
+            Tooltip stays open until focus leaves or you tap outside. Optimized for E-Ink.
+          </span>
+          <span class="eink-tooltip__arrow" aria-hidden="true"></span>
+        </div>
       </div>
     </div>
   `,

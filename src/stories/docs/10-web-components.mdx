@@ -42,6 +42,10 @@ Attributes → classes:
 - Additional elements (inputs, select, dialog, tabs) mapping attributes/slots to existing structures.
 - Optional Shadow DOM build guarded by capability checks for projects that need full encapsulation.
 
+### Tooltip
+
+No JS needed; focus-first tooltips use the same class selectors as the CSS version. Use `.eink-tooltip__trigger` with an adjacent `.eink-tooltip__bubble` for inline “info” chips that stay open while the cluster is focused. Add `.eink-tooltip--persistent` or `data-show="true"` to force a default-open state.
+
 ### Supported elements (today)
 
 - Layout: `<eink-container width="wide|narrow">`, `<eink-stack gap="sm|lg">`, `<eink-cluster gap="1rem">`, `<eink-grid min="18rem">`, `<eink-divider strong>`, `<eink-section>`, `<eink-page-header>`, `<eink-page-footer>`, `<eink-card raised>`

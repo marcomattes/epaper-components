@@ -1,13 +1,41 @@
+<% /* pathPrefix: '../' for /demo/ pages, '' for root. navPrefix: '' for /demo/ pages, 'demo/' for root */ %>
+<% const pp = it.pathPrefix ?? '../'; const np = it.navPrefix ?? ''; %>
 <!doctype html>
 <html lang="en" data-theme="default">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title><%= it.title %> — eink-ui</title>
-    <link rel="stylesheet" href="../dist/eink-ui.css" />
-    <link rel="icon" href="../assets/eink-ui-logo.svg" type="image/svg+xml" />
+<% if (it.description) { %>
+    <meta name="description" content="<%= it.description %>" />
+<% } else { %>
+    <meta name="description" content="eink-ui is a CSS-only component library with 46+ components optimized for E-Ink displays. Zero JavaScript, three themes, optional Web Components." />
+<% } %>
+    <meta name="author" content="Marco Mattes" />
+    <meta name="theme-color" content="#ffffff" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="<%= it.title %> — eink-ui" />
+<% if (it.description) { %>
+    <meta property="og:description" content="<%= it.description %>" />
+<% } else { %>
+    <meta property="og:description" content="CSS-only component library with 46+ components optimized for E-Ink displays. Zero JavaScript, three themes, optional Web Components." />
+<% } %>
+    <meta property="og:site_name" content="eink-ui" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="<%= it.title %> — eink-ui" />
+<% if (it.description) { %>
+    <meta name="twitter:description" content="<%= it.description %>" />
+<% } %>
+
+    <link rel="stylesheet" href="<%= pp %>dist/eink-ui.css" />
+    <link rel="icon" href="<%= pp %>assets/eink-ui-logo.svg" type="image/svg+xml" />
+    <link rel="canonical" href="<%= it.canonical || '' %>" />
 <% if (it.fullHeader) { %>
-    <script src="./theme.js" defer></script>
+    <script src="<%= np %>theme.js" defer></script>
 <% } %>
 <% if (it.headExtra) { %>
 <%~ it.headExtra + '\n' %><% } %>
@@ -18,7 +46,7 @@
 <% if (it.fullHeader) { %>
         <div class="eink-cluster" style="align-items: center; gap: var(--eink-space-3)">
           <img
-            src="../assets/eink-ui-logo.svg"
+            src="<%= pp %>assets/eink-ui-logo.svg"
             alt="eink-ui"
             width="120"
             height="32"
@@ -32,19 +60,19 @@
         </h1>
 <% } %>
         <nav class="eink-nav" aria-label="Main navigation">
-          <a href="index.html"<%= it.current === 'index' ? ' aria-current="page"' : '' %>>Overview</a>
-          <a href="typography.html"<%= it.current === 'typography' ? ' aria-current="page"' : '' %>>Typography</a>
-          <a href="layout.html"<%= it.current === 'layout' ? ' aria-current="page"' : '' %>>Layout</a>
-          <a href="components.html"<%= it.current === 'components' ? ' aria-current="page"' : '' %>>Components</a>
-          <a href="forms.html"<%= it.current === 'forms' ? ' aria-current="page"' : '' %>>Forms</a>
-          <a href="dialog.html"<%= it.current === 'dialog' ? ' aria-current="page"' : '' %>>Dialog</a>
-          <a href="tables.html"<%= it.current === 'tables' ? ' aria-current="page"' : '' %>>Tables</a>
-          <a href="newsreader.html"<%= it.current === 'newsreader' ? ' aria-current="page"' : '' %>>Newsreader</a>
-          <a href="blog.html"<%= it.current === 'blog' ? ' aria-current="page"' : '' %>>Blog</a>
-          <a href="dashboard.html"<%= it.current === 'dashboard' ? ' aria-current="page"' : '' %>>Dashboard</a>
+          <a href="<%= np %>index.html"<%= it.current === 'index' ? ' aria-current="page"' : '' %>>Overview</a>
+          <a href="<%= np %>typography.html"<%= it.current === 'typography' ? ' aria-current="page"' : '' %>>Typography</a>
+          <a href="<%= np %>layout.html"<%= it.current === 'layout' ? ' aria-current="page"' : '' %>>Layout</a>
+          <a href="<%= np %>components.html"<%= it.current === 'components' ? ' aria-current="page"' : '' %>>Components</a>
+          <a href="<%= np %>forms.html"<%= it.current === 'forms' ? ' aria-current="page"' : '' %>>Forms</a>
+          <a href="<%= np %>dialog.html"<%= it.current === 'dialog' ? ' aria-current="page"' : '' %>>Dialog</a>
+          <a href="<%= np %>tables.html"<%= it.current === 'tables' ? ' aria-current="page"' : '' %>>Tables</a>
+          <a href="<%= np %>newsreader.html"<%= it.current === 'newsreader' ? ' aria-current="page"' : '' %>>Newsreader</a>
+          <a href="<%= np %>blog.html"<%= it.current === 'blog' ? ' aria-current="page"' : '' %>>Blog</a>
+          <a href="<%= np %>dashboard.html"<%= it.current === 'dashboard' ? ' aria-current="page"' : '' %>>Dashboard</a>
         </nav>
         <p class="eink-text-xs" style="margin-top: var(--eink-space-1); display: flex; gap: var(--eink-space-3); align-items: center; flex-wrap: wrap;">
-          <a href="../demo-wc/index.html"><strong>Switch to Web Component demos</strong></a>
+          <a href="<%= pp %>demo-wc/index.html"><strong>Switch to Web Component demos</strong></a>
           <span aria-hidden="true">·</span>
           <a href="https://marcomattes.github.io/eink-css-ui-framework/storybook/"><strong>View Storybook</strong></a>
         </p>

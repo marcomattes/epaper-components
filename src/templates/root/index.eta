@@ -1,0 +1,430 @@
+<% layout("../_layout", { title: "eink-ui", current: "landing", fullHeader: true, pathPrefix: "", navPrefix: "demo/", description: "eink-ui is a CSS-only component library with 46+ components optimized for E-Ink displays like Kindle, Tolino, and Kobo. Zero JavaScript, three themes, optional Web Components.", footerText: "eink-ui — CSS-only component library for E-Ink devices. No JavaScript. No build step." }) %>
+
+    <main class="eink-container eink-stack eink-stack--lg">
+
+      <!-- Hero -->
+      <section class="eink-section">
+        <div class="eink-stack">
+          <h2 style="font-size: var(--eink-text-3xl); line-height: 1.15">A CSS component library<br />built for E-Ink displays</h2>
+
+          <!-- Badges (GitHub native) -->
+          <div class="eink-cluster" style="gap: var(--eink-space-1)">
+            <a href="https://github.com/marcomattes/eink-css-ui-framework/actions/workflows/ci.yml"><img src="https://github.com/marcomattes/eink-css-ui-framework/actions/workflows/ci.yml/badge.svg" alt="CI" height="20" /></a>
+            <a href="https://github.com/marcomattes/eink-css-ui-framework/actions/workflows/pages.yml"><img src="https://github.com/marcomattes/eink-css-ui-framework/actions/workflows/pages.yml/badge.svg" alt="Deploy to GitHub Pages" height="20" /></a>
+            <a href="https://github.com/marcomattes/eink-css-ui-framework"><img src="https://img.shields.io/github/v/tag/marcomattes/eink-css-ui-framework?label=version&amp;style=flat-square" alt="Version" height="20" /></a>
+            <a href="https://github.com/marcomattes/eink-css-ui-framework/blob/main/LICENSE"><img src="https://img.shields.io/github/license/marcomattes/eink-css-ui-framework?style=flat-square" alt="License" height="20" /></a>
+            <img src="https://img.shields.io/github/languages/code-size/marcomattes/eink-css-ui-framework?style=flat-square&amp;label=code%20size" alt="Code size" height="20" />
+          </div>
+
+          <p class="eink-measure" style="font-size: var(--eink-text-lg)">
+            A CSS-first design system optimized for E-Ink readers like Kindle, Tolino, and Kobo.
+            46+ components with zero JavaScript required. Three built-in themes and optional
+            Web Components for progressive enhancement.
+          </p>
+          <div class="eink-tag-group">
+            <span class="eink-tag eink-tag--filled">CSS-only</span>
+            <span class="eink-tag eink-tag--filled">Zero JavaScript</span>
+            <span class="eink-tag">E-Ink Optimized</span>
+            <span class="eink-tag">WCAG Accessible</span>
+            <span class="eink-tag">3 Themes</span>
+            <span class="eink-tag">Web Components</span>
+          </div>
+          <div class="eink-cluster">
+            <a href="demo/components.html" class="eink-btn eink-btn--primary">Browse Components</a>
+            <a href="#getting-started" class="eink-btn eink-btn--secondary">Get Started</a>
+            <a href="demo-wc/index.html" class="eink-btn eink-btn--ghost">Web Components &rarr;</a>
+          </div>
+          <div class="eink-cluster eink-text-sm" style="gap: var(--eink-space-3)">
+            <a href="https://github.com/marcomattes/eink-css-ui-framework">GitHub</a>
+            <span aria-hidden="true">·</span>
+            <a href="storybook/">Storybook</a>
+            <span aria-hidden="true">·</span>
+            <a href="demo/index.html">Demo Pages</a>
+            <span aria-hidden="true">·</span>
+            <a href="https://www.npmjs.com/package/eink-ui">npm</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Stats -->
+      <section class="eink-section">
+        <div class="eink-grid" style="--eink-grid-min: 10rem">
+          <div class="eink-stat">
+            <div class="eink-stat__value">46+</div>
+            <div class="eink-stat__label">Components</div>
+          </div>
+          <div class="eink-stat">
+            <div class="eink-stat__value">0</div>
+            <div class="eink-stat__label">JavaScript Required</div>
+          </div>
+          <div class="eink-stat">
+            <div class="eink-stat__value">3</div>
+            <div class="eink-stat__label">Built-in Themes</div>
+          </div>
+          <div class="eink-stat">
+            <div class="eink-stat__value eink-text-mono">0,0,0</div>
+            <div class="eink-stat__label">CSS Specificity</div>
+          </div>
+        </div>
+      </section>
+
+      <hr class="eink-divider" />
+
+      <!-- Features -->
+      <section class="eink-section">
+        <h2>Built for E-Ink, useful everywhere</h2>
+        <p class="eink-text-muted">Every design decision optimized for slow-refresh, high-contrast displays.</p>
+
+        <div class="eink-grid" style="--eink-grid-min: 16rem">
+          <div class="eink-card">
+            <div class="eink-card__title">E-Ink Optimized</div>
+            <div class="eink-card__body">
+              <p>No animations, no hover-only affordances, no large filled surfaces. Designed to minimize ghosting and partial refreshes on 300ms screens.</p>
+            </div>
+          </div>
+
+          <div class="eink-card">
+            <div class="eink-card__title">Zero JavaScript</div>
+            <div class="eink-card__body">
+              <p>The entire CSS layer works without a single line of JavaScript. Progressive enhancement via optional Web Components.</p>
+            </div>
+          </div>
+
+          <div class="eink-card">
+            <div class="eink-card__title">Zero Specificity</div>
+            <div class="eink-card__body">
+              <p>Every selector wrapped in <code>:where()</code> for 0,0,0 specificity. Override anything without <code>!important</code>. Plays nice with your styles.</p>
+            </div>
+          </div>
+
+          <div class="eink-card">
+            <div class="eink-card__title">Semantic HTML</div>
+            <div class="eink-card__body">
+              <p>Built on native HTML elements: <code>&lt;dialog&gt;</code>, <code>&lt;details&gt;</code>, <code>&lt;fieldset&gt;</code>. No div soup. Accessible by default.</p>
+            </div>
+          </div>
+
+          <div class="eink-card">
+            <div class="eink-card__title">Three Themes</div>
+            <div class="eink-card__body">
+              <p>Default, inverted, and high-contrast themes via CSS custom properties. Switch with a single data attribute on <code>&lt;html&gt;</code>.</p>
+            </div>
+          </div>
+
+          <div class="eink-card">
+            <div class="eink-card__title">Web Components</div>
+            <div class="eink-card__body">
+              <p>Optional light-DOM custom elements map 1:1 to CSS classes. Same styles, cleaner markup. No Shadow DOM.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <hr class="eink-divider" />
+
+      <!-- Component Showcase -->
+      <section class="eink-section">
+        <h2>Component showcase</h2>
+        <p class="eink-text-muted">A sample of the 46+ components included. All rendered live with eink-ui CSS.</p>
+
+        <div class="eink-grid" style="--eink-grid-min: 18rem">
+          <div class="eink-card">
+            <div class="eink-card__title">Buttons</div>
+            <div class="eink-card__body">
+              <div class="eink-cluster">
+                <button class="eink-btn eink-btn--primary">Primary</button>
+                <button class="eink-btn eink-btn--secondary">Secondary</button>
+                <button class="eink-btn eink-btn--ghost">Ghost</button>
+              </div>
+              <div class="eink-cluster" style="margin-top: var(--eink-space-2)">
+                <button class="eink-btn eink-btn--primary eink-btn--sm">Small</button>
+                <button class="eink-btn eink-btn--secondary eink-btn--lg">Large</button>
+                <button class="eink-btn eink-btn--secondary" disabled>Disabled</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="eink-card">
+            <div class="eink-card__title">Form Controls</div>
+            <div class="eink-card__body">
+              <div class="eink-stack eink-stack--sm">
+                <div class="eink-field">
+                  <label class="eink-label" for="demo-input">Text input</label>
+                  <input id="demo-input" class="eink-input" type="text" placeholder="Type here..." />
+                </div>
+                <div class="eink-field">
+                  <label class="eink-label" for="demo-select">Select</label>
+                  <select id="demo-select" class="eink-select">
+                    <option>Option one</option>
+                    <option>Option two</option>
+                  </select>
+                </div>
+                <div class="eink-field eink-field--inline">
+                  <input type="checkbox" id="demo-cb" class="eink-checkbox" checked />
+                  <label class="eink-label" for="demo-cb">Checkbox</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="eink-card">
+            <div class="eink-card__title">Alerts</div>
+            <div class="eink-card__body">
+              <div class="eink-stack eink-stack--sm">
+                <div class="eink-alert eink-alert--info">
+                  <div class="eink-alert__title">Info</div>
+                  <div class="eink-alert__body">Informational message for the user.</div>
+                </div>
+                <div class="eink-alert eink-alert--success">
+                  <div class="eink-alert__title">Success</div>
+                  <div class="eink-alert__body">Operation completed successfully.</div>
+                </div>
+                <div class="eink-alert eink-alert--error">
+                  <div class="eink-alert__title">Error</div>
+                  <div class="eink-alert__body">Something went wrong.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="eink-card">
+            <div class="eink-card__title">Tags &amp; Data</div>
+            <div class="eink-card__body">
+              <div class="eink-tag-group">
+                <span class="eink-tag">Default</span>
+                <span class="eink-tag eink-tag--filled">Filled</span>
+                <span class="eink-tag eink-tag--muted">Muted</span>
+              </div>
+              <dl class="eink-dl eink-dl--horizontal eink-dl--bordered" style="margin-top: var(--eink-space-3)">
+                <dt class="eink-dl__term">Version</dt>
+                <dd class="eink-dl__detail">1.0.0</dd>
+                <dt class="eink-dl__term">License</dt>
+                <dd class="eink-dl__detail">MIT</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <hr class="eink-divider" />
+
+      <!-- Two Ways to Use -->
+      <section class="eink-section">
+        <h2>Two ways to use it</h2>
+        <p class="eink-text-muted">Use CSS classes directly, or opt into Web Components for cleaner markup. Same styles, your choice.</p>
+
+        <div class="eink-tabs" style="--eink-tabs-count: 2">
+          <input type="radio" name="code-tabs" id="code-tab-css" class="eink-tabs__input" checked />
+          <label for="code-tab-css" class="eink-tabs__tab">CSS Classes</label>
+          <input type="radio" name="code-tabs" id="code-tab-wc" class="eink-tabs__input" />
+          <label for="code-tab-wc" class="eink-tabs__tab">Web Components</label>
+          <div class="eink-tabs__panel">
+            <pre><code>&lt;div class="eink-card eink-card--raised"&gt;
+  &lt;div class="eink-card__title"&gt;Hello&lt;/div&gt;
+  &lt;div class="eink-card__body"&gt;
+    &lt;p&gt;A simple card component.&lt;/p&gt;
+    &lt;button class="eink-btn eink-btn--primary"&gt;
+      Action
+    &lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+          <div class="eink-tabs__panel">
+            <pre><code>&lt;eink-card raised&gt;
+  &lt;div class="eink-card__title"&gt;Hello&lt;/div&gt;
+  &lt;div class="eink-card__body"&gt;
+    &lt;p&gt;A simple card component.&lt;/p&gt;
+    &lt;eink-button variant="primary"&gt;
+      Action
+    &lt;/eink-button&gt;
+  &lt;/div&gt;
+&lt;/eink-card&gt;</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <hr class="eink-divider" />
+
+      <!-- Theme Preview -->
+      <section class="eink-section">
+        <h2>Three built-in themes</h2>
+        <p class="eink-text-muted">Switch themes with a single <code>data-theme</code> attribute. Every color is a CSS custom property.</p>
+
+        <div class="eink-grid" style="--eink-grid-min: 14rem">
+          <div data-theme="default" class="eink-card" style="background-color: var(--eink-bg); color: var(--eink-fg)">
+            <div class="eink-card__title">Default</div>
+            <div class="eink-card__body">
+              <p>Dark text on light background. Standard grayscale palette.</p>
+              <div class="eink-cluster" style="margin-top: var(--eink-space-2)">
+                <button class="eink-btn eink-btn--primary eink-btn--sm">Primary</button>
+                <button class="eink-btn eink-btn--secondary eink-btn--sm">Secondary</button>
+              </div>
+            </div>
+          </div>
+
+          <div data-theme="inverted" class="eink-card" style="background-color: var(--eink-bg); color: var(--eink-fg)">
+            <div class="eink-card__title">Inverted</div>
+            <div class="eink-card__body">
+              <p>Light text on dark background. Night mode for backlit E-Ink.</p>
+              <div class="eink-cluster" style="margin-top: var(--eink-space-2)">
+                <button class="eink-btn eink-btn--primary eink-btn--sm">Primary</button>
+                <button class="eink-btn eink-btn--secondary eink-btn--sm">Secondary</button>
+              </div>
+            </div>
+          </div>
+
+          <div data-theme="high-contrast" class="eink-card" style="background-color: var(--eink-bg); color: var(--eink-fg)">
+            <div class="eink-card__title">High Contrast</div>
+            <div class="eink-card__body">
+              <p>Pure black and white. Maximum legibility on low-DPI panels.</p>
+              <div class="eink-cluster" style="margin-top: var(--eink-space-2)">
+                <button class="eink-btn eink-btn--primary eink-btn--sm">Primary</button>
+                <button class="eink-btn eink-btn--secondary eink-btn--sm">Secondary</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <hr class="eink-divider" />
+
+      <!-- Philosophy -->
+      <section class="eink-section">
+        <blockquote class="eink-blockquote eink-blockquote--pull">
+          E-Ink screens refresh at 300ms. Every pixel matters, every repaint costs.
+          This library embraces those constraints &mdash; borders over fills, whitespace over color,
+          clarity over decoration.
+        </blockquote>
+      </section>
+
+      <!-- Real-World Examples -->
+      <section class="eink-section">
+        <h2>Real-world examples</h2>
+        <p class="eink-text-muted">Full-page demos built entirely with eink-ui components.</p>
+        <div class="eink-grid" style="--eink-grid-min: 14rem">
+          <div class="eink-card eink-card--raised">
+            <div class="eink-card__title">Newsreader</div>
+            <div class="eink-card__body">
+              <p>Article-style layout with sidebar, article cards, and navigation.</p>
+              <p style="margin-top: var(--eink-space-2)">
+                <a href="demo/newsreader.html" class="eink-btn eink-btn--secondary eink-btn--sm">View Demo</a>
+              </p>
+            </div>
+          </div>
+          <div class="eink-card eink-card--raised">
+            <div class="eink-card__title">Blog</div>
+            <div class="eink-card__body">
+              <p>Clean blog layout with articles, bylines, blockquotes, and tags.</p>
+              <p style="margin-top: var(--eink-space-2)">
+                <a href="demo/blog.html" class="eink-btn eink-btn--secondary eink-btn--sm">View Demo</a>
+              </p>
+            </div>
+          </div>
+          <div class="eink-card eink-card--raised">
+            <div class="eink-card__title">Dashboard</div>
+            <div class="eink-card__body">
+              <p>Data-rich dashboard with stat cards, tables, and toolbar patterns.</p>
+              <p style="margin-top: var(--eink-space-2)">
+                <a href="demo/dashboard.html" class="eink-btn eink-btn--secondary eink-btn--sm">View Demo</a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <hr class="eink-divider" />
+
+      <!-- Getting Started -->
+      <section class="eink-section" id="getting-started">
+        <h2>Getting started</h2>
+
+        <div class="eink-stack">
+          <div class="eink-stack eink-stack--sm">
+            <h3>1. Include the CSS</h3>
+            <pre><code>&lt;link rel="stylesheet" href="eink-ui.css"&gt;</code></pre>
+            <p class="eink-text-sm eink-text-muted">Or import the three individual files for finer control: tokens, base, and components.</p>
+          </div>
+
+          <div class="eink-stack eink-stack--sm">
+            <h3>2. Set a theme</h3>
+            <pre><code>&lt;html data-theme="default"&gt;</code></pre>
+            <p class="eink-text-sm eink-text-muted">Choose from <code>default</code>, <code>inverted</code>, or <code>high-contrast</code>.</p>
+          </div>
+
+          <div class="eink-stack eink-stack--sm">
+            <h3>3. Use components</h3>
+            <pre><code>&lt;button class="eink-btn eink-btn--primary"&gt;Click me&lt;/button&gt;
+
+&lt;div class="eink-card"&gt;
+  &lt;div class="eink-card__title"&gt;Title&lt;/div&gt;
+  &lt;div class="eink-card__body"&gt;Content&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+
+          <div class="eink-stack eink-stack--sm">
+            <h3>4. Optional: Add Web Components</h3>
+            <pre><code>&lt;script type="module"&gt;
+  import { defineEinkElements } from "eink-ui/wc";
+  defineEinkElements();
+&lt;/script&gt;</code></pre>
+            <p class="eink-text-sm eink-text-muted">Web Components are optional progressive enhancement. The CSS works without them.</p>
+          </div>
+        </div>
+
+        <div class="eink-alert eink-alert--info" style="margin-top: var(--eink-space-3)">
+          <div class="eink-alert__title">No build step required</div>
+          <div class="eink-alert__body">Copy the CSS file into your project and start using components immediately. No npm, no bundler, no configuration.</div>
+        </div>
+      </section>
+
+      <!-- Explore -->
+      <section class="eink-section">
+        <h2>Explore the docs</h2>
+        <p class="eink-text-muted">Detailed demos for every component category.</p>
+        <div class="eink-grid" style="--eink-grid-min: 14rem">
+          <div class="eink-card">
+            <div class="eink-card__body">
+              <p><strong>Typography</strong></p>
+              <p class="eink-text-sm eink-text-muted">Type scale, line length, prose styles</p>
+              <p style="margin-top: var(--eink-space-2)"><a href="demo/typography.html" class="eink-btn eink-btn--ghost eink-btn--sm">View &rarr;</a></p>
+            </div>
+          </div>
+          <div class="eink-card">
+            <div class="eink-card__body">
+              <p><strong>Layout</strong></p>
+              <p class="eink-text-sm eink-text-muted">Container, stack, cluster, grid, divider</p>
+              <p style="margin-top: var(--eink-space-2)"><a href="demo/layout.html" class="eink-btn eink-btn--ghost eink-btn--sm">View &rarr;</a></p>
+            </div>
+          </div>
+          <div class="eink-card">
+            <div class="eink-card__body">
+              <p><strong>Components</strong></p>
+              <p class="eink-text-sm eink-text-muted">Cards, buttons, alerts, tags, tooltips</p>
+              <p style="margin-top: var(--eink-space-2)"><a href="demo/components.html" class="eink-btn eink-btn--ghost eink-btn--sm">View &rarr;</a></p>
+            </div>
+          </div>
+          <div class="eink-card">
+            <div class="eink-card__body">
+              <p><strong>Forms</strong></p>
+              <p class="eink-text-sm eink-text-muted">Validation, errors, help text, patterns</p>
+              <p style="margin-top: var(--eink-space-2)"><a href="demo/forms.html" class="eink-btn eink-btn--ghost eink-btn--sm">View &rarr;</a></p>
+            </div>
+          </div>
+          <div class="eink-card">
+            <div class="eink-card__body">
+              <p><strong>Dialog</strong></p>
+              <p class="eink-text-sm eink-text-muted">Native &lt;dialog&gt; patterns</p>
+              <p style="margin-top: var(--eink-space-2)"><a href="demo/dialog.html" class="eink-btn eink-btn--ghost eink-btn--sm">View &rarr;</a></p>
+            </div>
+          </div>
+          <div class="eink-card">
+            <div class="eink-card__body">
+              <p><strong>Tables</strong></p>
+              <p class="eink-text-sm eink-text-muted">Striped, bordered, responsive scroll</p>
+              <p style="margin-top: var(--eink-space-2)"><a href="demo/tables.html" class="eink-btn eink-btn--ghost eink-btn--sm">View &rarr;</a></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>

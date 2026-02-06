@@ -31,16 +31,29 @@ export const Loader: Story = {
 
 export const Tooltip: Story = {
   render: () => `
-    <div class="eink-cluster" style="align-items:center">
-      <button class="eink-btn eink-btn--secondary eink-tooltip" data-tooltip="Appears on focus. No animation.">
-        Focus tooltip
-      </button>
-      <button class="eink-btn eink-btn--ghost eink-tooltip eink-tooltip--persistent" data-tooltip="Always visible tooltip.">
-        Persistent
-      </button>
+    <div class="eink-stack eink-stack--sm" style="max-width:32rem">
+      <div class="eink-cluster" style="align-items:center">
+        <button class="eink-btn eink-btn--secondary eink-tooltip" aria-describedby="tt-1">
+          Focus tooltip (attr)
+        </button>
+        <span class="eink-sr-only" id="tt-1">Appears on focus. No animation.</span>
+        <button class="eink-btn eink-btn--ghost eink-tooltip eink-tooltip--persistent" data-tooltip="Always visible tooltip.">
+          Persistent
+        </button>
+      </div>
+
+      <div class="eink-tooltip">
+        <span>Inline fact:</span>
+        <button class="eink-tooltip__trigger" type="button" aria-describedby="tt-inline">i</button>
+        <span class="eink-tooltip__bubble" id="tt-inline" role="tooltip">
+          Tap the “i” to toggle. Tooltip stays open until you click outside.
+        </span>
+        <span class="eink-tooltip__arrow" aria-hidden="true"></span>
+      </div>
+
+      <p class="eink-note">
+        Tooltips are focus-first; hover is optional. No motion to avoid ghosting on E-Ink.
+      </p>
     </div>
-    <p class="eink-note" style="max-width:32rem">
-      Tooltips are focus-first; hover is optional. No motion to avoid ghosting on E-Ink.
-    </p>
   `,
 };

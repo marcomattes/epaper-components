@@ -191,3 +191,16 @@ if (fs.existsSync(wcPagesDir)) {
     console.log(`demo-wc/${name}.html`);
   }
 }
+
+// Compile root-level pages (landing page)
+const rootPagesDir = path.join(TEMPLATES, "root");
+if (fs.existsSync(rootPagesDir)) {
+  for (const file of fs.readdirSync(rootPagesDir)) {
+    if (!file.endsWith(".eta")) continue;
+    const name = file.replace(/\.eta$/, "");
+    const html = eta.render(`root/${name}`, {});
+    const outPath = path.join(__dirname, `${name}.html`);
+    fs.writeFileSync(outPath, html);
+    console.log(`${name}.html (root)`);
+  }
+}

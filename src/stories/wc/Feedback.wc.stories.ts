@@ -38,13 +38,24 @@ export const Loader: Story = {
 
 export const Tooltip: Story = {
   render: () => `
-    <div class="eink-cluster" style="align-items:center">
-      <button class="eink-btn eink-btn--secondary eink-tooltip" data-tooltip="Focus to show. No animation.">
-        Focus tooltip
-      </button>
-      <button class="eink-btn eink-btn--ghost eink-tooltip eink-tooltip--persistent" data-tooltip="Always visible tooltip.">
-        Persistent
-      </button>
+    <div class="eink-stack eink-stack--sm" style="max-width:32rem">
+      <div class="eink-cluster" style="align-items:center">
+        <button class="eink-btn eink-btn--secondary eink-tooltip" aria-describedby="wc-tt-1">
+          Focus tooltip (attr)
+        </button>
+        <span class="eink-sr-only" id="wc-tt-1">Focus to show. No animation.</span>
+        <button class="eink-btn eink-btn--ghost eink-tooltip eink-tooltip--persistent" data-tooltip="Always visible tooltip.">
+          Persistent
+        </button>
+      </div>
+      <div class="eink-tooltip">
+        <span>Inline WC note</span>
+        <button class="eink-tooltip__trigger" type="button" aria-describedby="wc-tt-inline">i</button>
+        <span class="eink-tooltip__bubble" id="wc-tt-inline" role="tooltip">
+          Works with Web Components; stays visible until you tap outside the cluster.
+        </span>
+        <span class="eink-tooltip__arrow" aria-hidden="true"></span>
+      </div>
     </div>
   `,
 };

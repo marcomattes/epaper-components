@@ -6,11 +6,86 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: var(--eink-space-2);
+  gap: var(--eink-space-1);
   color: inherit;
 }
 
-:where(.eink-tooltip)::after {
+/* Inline trigger (clickable “i”) */
+:where(.eink-tooltip__trigger) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.55em;
+  height: 1.55em;
+  padding: 0;
+  font-size: var(--eink-text-sm);
+  font-weight: var(--eink-weight-medium);
+  line-height: 1;
+  border: var(--eink-border-medium) solid var(--eink-border-strong);
+  border-radius: 999px;
+  background: var(--eink-bg);
+  color: var(--eink-fg);
+  cursor: pointer;
+  appearance: none;
+}
+
+:where(.eink-tooltip__trigger:focus-visible) {
+  outline: var(--eink-focus-width) solid var(--eink-focus-color);
+  outline-offset: var(--eink-focus-offset);
+}
+
+:where(.eink-tooltip__trigger:disabled),
+:where(.eink-tooltip__trigger[aria-disabled="true"]) {
+  color: var(--eink-disabled-fg);
+  border-color: var(--eink-disabled-border);
+  cursor: not-allowed;
+}
+
+/* Bubble shown below trigger */
+:where(.eink-tooltip__bubble) {
+  position: absolute;
+  top: calc(100% + var(--eink-space-2));
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--eink-space-2) var(--eink-space-3);
+  border: var(--eink-border-thin) solid var(--eink-border-color);
+  background: var(--eink-bg);
+  color: var(--eink-fg);
+  font-size: var(--eink-text-sm);
+  line-height: var(--eink-leading-snug);
+  max-width: min(22rem, 90vw);
+  white-space: normal;
+  box-shadow: none;
+  z-index: 2;
+  display: none;
+}
+
+:where(.eink-tooltip__arrow) {
+  content: "";
+  position: absolute;
+  top: calc(100% + var(--eink-space-2) - 1px);
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 0.6rem;
+  height: 0.6rem;
+  background: var(--eink-bg);
+  border-left: var(--eink-border-thin) solid var(--eink-border-color);
+  border-top: var(--eink-border-thin) solid var(--eink-border-color);
+  z-index: 1;
+  display: none;
+}
+
+:where(.eink-tooltip:focus-within) .eink-tooltip__bubble,
+:where(.eink-tooltip:focus-within) .eink-tooltip__arrow,
+:where(.eink-tooltip[data-show="true"]) .eink-tooltip__bubble,
+:where(.eink-tooltip[data-show="true"]) .eink-tooltip__arrow,
+:where(.eink-tooltip.eink-tooltip--persistent) .eink-tooltip__bubble,
+:where(.eink-tooltip.eink-tooltip--persistent) .eink-tooltip__arrow {
+  display: block;
+}
+
+/* Fallback attr-based tooltip (legacy) */
+:where(.eink-tooltip[data-tooltip])::after {
   content: attr(data-tooltip);
   position: absolute;
   top: calc(100% + var(--eink-space-2));
@@ -29,7 +104,7 @@
   display: none;
 }
 
-:where(.eink-tooltip)::before {
+:where(.eink-tooltip[data-tooltip])::before {
   content: "";
   position: absolute;
   top: calc(100% + var(--eink-space-2) - 1px);
@@ -44,11 +119,13 @@
   display: none;
 }
 
-:where(.eink-tooltip:focus-visible)::after,
-:where(.eink-tooltip:focus-visible)::before,
-:where(.eink-tooltip[data-show="true"])::after,
-:where(.eink-tooltip[data-show="true"])::before,
-:where(.eink-tooltip.eink-tooltip--persistent)::after,
-:where(.eink-tooltip.eink-tooltip--persistent)::before {
+:where(.eink-tooltip[data-tooltip]:focus-within)::after,
+:where(.eink-tooltip[data-tooltip]:focus-within)::before,
+:where(.eink-tooltip[data-tooltip]:focus-visible)::after,
+:where(.eink-tooltip[data-tooltip]:focus-visible)::before,
+:where(.eink-tooltip[data-tooltip][data-show="true"])::after,
+:where(.eink-tooltip[data-tooltip][data-show="true"])::before,
+:where(.eink-tooltip[data-tooltip].eink-tooltip--persistent)::after,
+:where(.eink-tooltip[data-tooltip].eink-tooltip--persistent)::before {
   display: block;
 }
