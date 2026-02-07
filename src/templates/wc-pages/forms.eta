@@ -1,0 +1,302 @@
+<% layout("../_wc-layout", { title: "Forms", current: "forms" }) %>
+
+    <main class="epaper-container epaper-stack">
+      <!-- TEXT INPUT -->
+      <epaper-section>
+        <h2>Text input</h2>
+        <p class="epaper-note">
+          <code>&lt;epaper-input&gt;</code> wraps a native
+          <code>&lt;input&gt;</code> and applies the <code>.epaper-input</code>
+          class automatically. Attributes like <code>type</code>,
+          <code>placeholder</code>, and <code>disabled</code> are forwarded to the
+          inner element.
+        </p>
+
+        <div class="epaper-stack epaper-stack--sm" style="margin-top: var(--epaper-space-3)">
+          <div>
+            <span class="epaper-badge">CSS-only</span>
+            <pre style="margin-top: var(--epaper-space-2)"><code>&lt;input type="text" class="epaper-input" placeholder="..." /&gt;</code></pre>
+          </div>
+          <div>
+            <span class="epaper-badge">Web Component</span>
+            <pre style="margin-top: var(--epaper-space-2)"><code>&lt;epaper-input type="text" placeholder="..."&gt;&lt;/epaper-input&gt;</code></pre>
+          </div>
+        </div>
+
+        <div
+          class="epaper-stack epaper-stack--sm"
+          style="max-width: 24rem; margin-top: var(--epaper-space-4)"
+        >
+          <div class="epaper-field">
+            <label class="epaper-label" for="wc-input-default">Default input</label>
+            <epaper-input
+              type="text"
+              placeholder="Placeholder text"
+            ></epaper-input>
+          </div>
+
+          <div class="epaper-field">
+            <label class="epaper-label" for="wc-input-disabled">Disabled input</label>
+            <epaper-input
+              type="text"
+              value="Cannot edit"
+              disabled
+            ></epaper-input>
+          </div>
+
+          <div class="epaper-field">
+            <label class="epaper-label" for="wc-input-invalid">Invalid input</label>
+            <epaper-input
+              type="text"
+              aria-invalid="true"
+              aria-describedby="wc-input-invalid-error"
+              value="Bad value"
+            ></epaper-input>
+            <span class="epaper-error-message" id="wc-input-invalid-error">This field contains an error.</span>
+          </div>
+        </div>
+      </epaper-section>
+
+      <!-- TEXTAREA -->
+      <epaper-section>
+        <h2>Textarea</h2>
+        <p class="epaper-note">
+          <code>&lt;epaper-textarea&gt;</code> wraps a native
+          <code>&lt;textarea&gt;</code>.
+        </p>
+
+        <div
+          class="epaper-stack epaper-stack--sm"
+          style="max-width: 24rem; margin-top: var(--epaper-space-4)"
+        >
+          <div class="epaper-field">
+            <label class="epaper-label">Default textarea</label>
+            <epaper-textarea placeholder="Enter long-form text"></epaper-textarea>
+          </div>
+
+          <div class="epaper-field">
+            <label class="epaper-label">Disabled textarea</label>
+            <epaper-textarea disabled>Cannot edit this content.</epaper-textarea>
+          </div>
+
+          <div class="epaper-field">
+            <label class="epaper-label">Invalid textarea</label>
+            <epaper-textarea aria-invalid="true" aria-describedby="wc-textarea-invalid-error">Invalid content</epaper-textarea>
+            <span class="epaper-error-message" id="wc-textarea-invalid-error">Content does not meet requirements.</span>
+          </div>
+        </div>
+      </epaper-section>
+
+      <!-- SELECT -->
+      <epaper-section>
+        <h2>Select</h2>
+        <p class="epaper-note">
+          <code>&lt;epaper-select&gt;</code> wraps a native
+          <code>&lt;select&gt;</code>. Place <code>&lt;option&gt;</code> elements
+          inside — they are moved into the generated select.
+        </p>
+
+        <div
+          class="epaper-stack epaper-stack--sm"
+          style="max-width: 24rem; margin-top: var(--epaper-space-4)"
+        >
+          <div class="epaper-field">
+            <label class="epaper-label">Default select</label>
+            <epaper-select>
+              <option value="">Choose an option</option>
+              <option value="1">Option one</option>
+              <option value="2">Option two</option>
+              <option value="3">Option three</option>
+            </epaper-select>
+          </div>
+
+          <div class="epaper-field">
+            <label class="epaper-label">Disabled select</label>
+            <epaper-select disabled>
+              <option>Cannot change</option>
+            </epaper-select>
+          </div>
+
+          <div class="epaper-field">
+            <label class="epaper-label">Invalid select</label>
+            <epaper-select aria-invalid="true" aria-describedby="wc-select-invalid-error">
+              <option value="">Please select</option>
+            </epaper-select>
+            <span class="epaper-error-message" id="wc-select-invalid-error">A selection is required.</span>
+          </div>
+        </div>
+      </epaper-section>
+
+      <!-- CHECKBOX -->
+      <epaper-section>
+        <h2>Checkbox</h2>
+        <p class="epaper-note">
+          <code>&lt;epaper-checkbox&gt;</code> creates a styled checkbox. Text
+          content placed inside becomes the label.
+        </p>
+
+        <div class="epaper-stack epaper-stack--sm" style="margin-top: var(--epaper-space-3)">
+          <div>
+            <span class="epaper-badge">CSS-only</span>
+            <pre style="margin-top: var(--epaper-space-2)"><code>&lt;input type="checkbox" class="epaper-checkbox" id="cb" /&gt;
+&lt;label for="cb"&gt;Label&lt;/label&gt;</code></pre>
+          </div>
+          <div>
+            <span class="epaper-badge">Web Component</span>
+            <pre style="margin-top: var(--epaper-space-2)"><code>&lt;epaper-checkbox name="cb"&gt;Label&lt;/epaper-checkbox&gt;</code></pre>
+          </div>
+        </div>
+
+        <div class="epaper-stack epaper-stack--sm" style="margin-top: var(--epaper-space-4)">
+          <div class="epaper-field epaper-field--inline">
+            <epaper-checkbox name="wc-check-default">Default checkbox</epaper-checkbox>
+          </div>
+          <div class="epaper-field epaper-field--inline">
+            <epaper-checkbox name="wc-check-checked" checked>Checked checkbox</epaper-checkbox>
+          </div>
+          <div class="epaper-field epaper-field--inline">
+            <epaper-checkbox name="wc-check-disabled" disabled>Disabled checkbox</epaper-checkbox>
+          </div>
+          <div class="epaper-field epaper-field--inline">
+            <epaper-checkbox name="wc-check-both" disabled checked>Disabled &amp; checked</epaper-checkbox>
+          </div>
+        </div>
+      </epaper-section>
+
+      <!-- RADIO -->
+      <epaper-section>
+        <h2>Radio</h2>
+        <p class="epaper-note">
+          <code>&lt;epaper-radio&gt;</code> creates a styled radio button. Use the
+          same <code>name</code> attribute to group them.
+        </p>
+
+        <fieldset style="border: none; padding: 0; margin-top: var(--epaper-space-4)">
+          <legend class="epaper-label" style="margin-bottom: var(--epaper-space-2)">
+            Choose a size
+          </legend>
+          <div class="epaper-stack epaper-stack--sm">
+            <div class="epaper-field epaper-field--inline">
+              <epaper-radio name="wc-size" value="sm">Small</epaper-radio>
+            </div>
+            <div class="epaper-field epaper-field--inline">
+              <epaper-radio name="wc-size" value="md" checked>Medium (selected)</epaper-radio>
+            </div>
+            <div class="epaper-field epaper-field--inline">
+              <epaper-radio name="wc-size" value="lg">Large</epaper-radio>
+            </div>
+            <div class="epaper-field epaper-field--inline">
+              <epaper-radio name="wc-size" value="xl" disabled>Extra large (disabled)</epaper-radio>
+            </div>
+          </div>
+        </fieldset>
+      </epaper-section>
+
+      <!-- COMPLETE FORM -->
+      <epaper-section>
+        <h2>Complete form example</h2>
+        <p class="epaper-text-sm epaper-text-muted">
+          A full form using web components for all input types.
+        </p>
+
+        <form novalidate style="max-width: 28rem; margin-top: var(--epaper-space-4)">
+          <epaper-stack>
+            <div class="epaper-field">
+              <label class="epaper-label epaper-label--required">Full name</label>
+              <epaper-input
+                type="text"
+                aria-invalid="true"
+                aria-describedby="wc-fullname-error"
+                value=""
+                required
+              ></epaper-input>
+              <span class="epaper-error-message" id="wc-fullname-error">Full name is required.</span>
+            </div>
+
+            <div class="epaper-field">
+              <label class="epaper-label epaper-label--required">Email address</label>
+              <epaper-input
+                type="email"
+                aria-invalid="true"
+                aria-describedby="wc-email-help wc-email-error"
+                value="not-an-email"
+                required
+              ></epaper-input>
+              <span class="epaper-help" id="wc-email-help">We'll use this to send your confirmation.</span>
+              <span class="epaper-error-message" id="wc-email-error">Enter a valid email address.</span>
+            </div>
+
+            <div class="epaper-field">
+              <label class="epaper-label">Country</label>
+              <epaper-select required>
+                <option value="">Select your country</option>
+                <option value="de">Germany</option>
+                <option value="fr">France</option>
+                <option value="uk">United Kingdom</option>
+                <option value="us">United States</option>
+              </epaper-select>
+            </div>
+
+            <div class="epaper-field">
+              <label class="epaper-label">Short bio
+                <span class="epaper-text-xs epaper-text-muted">(optional)</span>
+              </label>
+              <epaper-textarea placeholder="Tell us about yourself"></epaper-textarea>
+              <span class="epaper-help">Maximum 200 characters.</span>
+            </div>
+
+            <div class="epaper-field">
+              <label class="epaper-label">Referral code</label>
+              <epaper-input type="text" value="AUTO-APPLIED-2024" disabled></epaper-input>
+              <span class="epaper-help">This code was automatically applied and cannot be changed.</span>
+            </div>
+
+            <fieldset style="border: none; padding: 0">
+              <legend class="epaper-label" style="margin-bottom: var(--epaper-space-2)">
+                Notification preferences
+              </legend>
+              <epaper-stack gap="sm">
+                <div class="epaper-field epaper-field--inline">
+                  <epaper-checkbox name="notif" value="email" checked>Email notifications</epaper-checkbox>
+                </div>
+                <div class="epaper-field epaper-field--inline">
+                  <epaper-checkbox name="notif" value="sms">SMS notifications</epaper-checkbox>
+                </div>
+                <div class="epaper-field epaper-field--inline">
+                  <epaper-checkbox name="notif" value="push" disabled>Push notifications (not available)</epaper-checkbox>
+                </div>
+              </epaper-stack>
+            </fieldset>
+
+            <fieldset style="border: none; padding: 0">
+              <legend class="epaper-label" style="margin-bottom: var(--epaper-space-2)">
+                Notification frequency
+              </legend>
+              <epaper-stack gap="sm">
+                <div class="epaper-field epaper-field--inline">
+                  <epaper-radio name="wc-freq" value="instant" checked>Instant</epaper-radio>
+                </div>
+                <div class="epaper-field epaper-field--inline">
+                  <epaper-radio name="wc-freq" value="daily">Daily digest</epaper-radio>
+                </div>
+                <div class="epaper-field epaper-field--inline">
+                  <epaper-radio name="wc-freq" value="weekly">Weekly summary</epaper-radio>
+                </div>
+              </epaper-stack>
+            </fieldset>
+
+            <div class="epaper-field">
+              <div class="epaper-field epaper-field--inline">
+                <epaper-checkbox name="terms" aria-invalid="true" aria-describedby="wc-terms-error" required>I accept the terms and conditions</epaper-checkbox>
+              </div>
+              <span class="epaper-error-message" id="wc-terms-error">You must accept the terms to continue.</span>
+            </div>
+
+            <epaper-cluster style="margin-top: var(--epaper-space-3)">
+              <epaper-button variant="primary">Submit</epaper-button>
+              <epaper-button variant="ghost">Reset</epaper-button>
+            </epaper-cluster>
+          </epaper-stack>
+        </form>
+      </epaper-section>
+    </main>

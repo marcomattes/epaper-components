@@ -1,0 +1,37 @@
+// Shared mixins for epaper-ui SCSS
+
+@mixin focus-ring {
+  outline: var(--epaper-focus-width) solid var(--epaper-focus-color);
+  outline-offset: var(--epaper-focus-offset);
+}
+
+@mixin control-base {
+  display: block;
+  width: 100%;
+  padding: var(--epaper-space-2) var(--epaper-space-3);
+  font-family: inherit;
+  font-size: var(--epaper-text-base);
+  line-height: var(--epaper-leading-normal);
+  color: var(--epaper-fg);
+  background-color: var(--epaper-bg);
+  border: var(--epaper-border-thin) solid var(--epaper-border-color);
+  appearance: none;
+}
+
+@mixin control-disabled {
+  color: var(--epaper-disabled-fg);
+  background-color: var(--epaper-disabled-bg);
+  border-color: var(--epaper-disabled-border);
+  cursor: not-allowed;
+}
+
+@mixin control-invalid {
+  border-color: var(--epaper-error-border);
+  border-width: var(--epaper-border-medium);
+}
+
+@mixin control-placeholder {
+  &::placeholder {
+    color: var(--epaper-fg-subtle);
+  }
+}

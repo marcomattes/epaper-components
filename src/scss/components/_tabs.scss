@@ -1,0 +1,80 @@
+/* ===========================================
+   TABS (CSS-only via radio inputs)
+   =========================================== */
+
+@use "../mixins" as *;
+
+/*
+  HTML structure (flat siblings required for CSS selectors):
+
+  <div class="epaper-tabs">
+    <input type="radio" name="t" id="t1" class="epaper-tabs__input" checked>
+    <label for="t1" class="epaper-tabs__tab">Tab 1</label>
+    <input type="radio" name="t" id="t2" class="epaper-tabs__input">
+    <label for="t2" class="epaper-tabs__tab">Tab 2</label>
+    <div class="epaper-tabs__panel">Panel 1</div>
+    <div class="epaper-tabs__panel">Panel 2</div>
+  </div>
+*/
+
+:where(.epaper-tabs) {
+  display: grid;
+  grid-template-columns: repeat(var(--epaper-tabs-count, 3), auto) 1fr;
+  grid-template-rows: auto 1fr;
+}
+
+:where(.epaper-tabs__input) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+:where(.epaper-tabs__tab) {
+  grid-row: 1;
+  padding: var(--epaper-space-2) var(--epaper-space-4);
+  border: var(--epaper-border-thin) solid var(--epaper-border-color);
+  border-bottom: none;
+  margin-right: calc(-1 * var(--epaper-border-thin));
+  font-size: var(--epaper-text-sm);
+  font-weight: var(--epaper-weight-medium);
+  color: var(--epaper-fg-muted);
+  cursor: pointer;
+}
+
+:where(.epaper-tabs__input:checked + .epaper-tabs__tab) {
+  font-weight: var(--epaper-weight-bold);
+  color: var(--epaper-fg);
+  background-color: var(--epaper-surface);
+  border-bottom: var(--epaper-border-thin) solid var(--epaper-surface);
+  position: relative;
+}
+
+:where(.epaper-tabs__input:focus-visible + .epaper-tabs__tab) {
+  @include focus-ring;
+}
+
+:where(.epaper-tabs__panel) {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  display: none;
+  padding: var(--epaper-space-4);
+  border: var(--epaper-border-thin) solid var(--epaper-border-color);
+}
+
+/* Show active panel: up to 5 tabs supported */
+
+:where(.epaper-tabs__input:nth-of-type(1):checked ~ .epaper-tabs__panel:nth-of-type(1)),
+:where(.epaper-tabs__input:nth-of-type(2):checked ~ .epaper-tabs__panel:nth-of-type(2)),
+:where(.epaper-tabs__input:nth-of-type(3):checked ~ .epaper-tabs__panel:nth-of-type(3)),
+:where(.epaper-tabs__input:nth-of-type(4):checked ~ .epaper-tabs__panel:nth-of-type(4)),
+:where(
+  .epaper-tabs__input:nth-of-type(5):checked ~ .epaper-tabs__panel:nth-of-type(5)
+) {
+  display: block;
+}

@@ -1,0 +1,308 @@
+<% layout("../_layout", { title: "Dialog", current: "dialog", fullHeader: true, bodyEnd: '    <script src="../dist/epaper-components.dialog.polyfill.js"></script>' }) %>
+
+    <main class="epaper-container epaper-stack">
+      <section class="epaper-section">
+        <h2>Native dialog element</h2>
+        <p class="epaper-note">
+          E-Ink rationale: The native <code>&lt;dialog&gt;</code> element is the correct
+          semantic choice for modal content. On E-Ink devices, modals should be used
+          sparingly because each open/close triggers a full page repaint. The
+          <code>::backdrop</code> is styled with a semi-transparent overlay to dim the
+          background.
+        </p>
+        <p class="epaper-text-sm" style="margin-top: var(--epaper-space-3)">
+          <strong>Note on interactivity:</strong> Opening and closing a dialog requires
+          JavaScript (<code>dialog.showModal()</code> / <code>dialog.close()</code>).
+          Since this library is CSS-only, the demos below show dialogs in their
+          <strong>open state</strong> using the <code>open</code> HTML attribute. In
+          production, you would call <code>.showModal()</code>
+          to display the dialog with its backdrop overlay.
+        </p>
+      </section>
+
+      <!-- INTERACTIVE (POLYFILLED) -->
+      <section class="epaper-section">
+        <h3>Interactive trigger with polyfill</h3>
+        <p class="epaper-text-sm epaper-text-muted">
+          Use <code>data-dialog-target</code> to open a dialog by id and
+          <code>data-dialog-close</code> to close. The included
+          <code>epaper-components.dialog.polyfill.js</code> enables the same behavior on browsers
+          that lack native <code>&lt;dialog&gt;</code> support.
+        </p>
+
+        <div class="epaper-stack epaper-stack--sm" style="margin-top: var(--epaper-space-3)">
+          <button
+            class="epaper-btn epaper-btn--primary"
+            data-dialog-target="interactive-dialog"
+          >
+            Open dialog
+          </button>
+
+          <dialog id="interactive-dialog" class="epaper-dialog" aria-labelledby="interactive-dialog-title">
+            <div class="epaper-dialog__title" id="interactive-dialog-title">Polyfilled dialog</div>
+            <div class="epaper-dialog__body">
+              <p>
+                This dialog opens and closes via <code>data-dialog-target</code> +
+                <code>data-dialog-close</code>.
+              </p>
+            </div>
+            <div class="epaper-dialog__actions">
+              <button class="epaper-btn epaper-btn--secondary" data-dialog-close>
+                Close
+              </button>
+            </div>
+          </dialog>
+        </div>
+      </section>
+
+      <!-- SIMPLE DIALOG -->
+      <section class="epaper-section">
+        <h3>Simple confirmation dialog</h3>
+        <p class="epaper-text-sm epaper-text-muted">
+          Shown inline with the <code>open</code> attribute. In production, this would
+          appear as a centered modal with a backdrop.
+        </p>
+
+        <div
+          style="
+            margin-top: var(--epaper-space-4);
+            position: relative;
+            border: var(--epaper-border-thin) solid var(--epaper-border-color);
+            padding: var(--epaper-space-6);
+            background: var(--epaper-bg-muted);
+            min-height: 16rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          "
+        >
+          <dialog class="epaper-dialog" open style="position: relative" aria-labelledby="confirm-dialog-title">
+            <div class="epaper-dialog__title" id="confirm-dialog-title">Confirm deletion</div>
+            <div class="epaper-dialog__body">
+              <p>
+                Are you sure you want to delete this item? This action cannot be undone.
+              </p>
+            </div>
+            <div class="epaper-dialog__actions">
+              <button class="epaper-btn epaper-btn--ghost">Cancel</button>
+              <button class="epaper-btn epaper-btn--primary">Delete</button>
+            </div>
+          </dialog>
+        </div>
+      </section>
+
+      <!-- DIALOG WITH FORM -->
+      <section class="epaper-section">
+        <h3>Dialog with form content</h3>
+        <p class="epaper-text-sm epaper-text-muted">
+          Dialogs can contain form fields. Use <code>method="dialog"</code> on the form
+          so the submit button closes the dialog natively.
+        </p>
+
+        <div
+          style="
+            margin-top: var(--epaper-space-4);
+            position: relative;
+            border: var(--epaper-border-thin) solid var(--epaper-border-color);
+            padding: var(--epaper-space-6);
+            background: var(--epaper-bg-muted);
+            min-height: 22rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          "
+        >
+          <dialog class="epaper-dialog" open style="position: relative" aria-labelledby="form-dialog-title">
+            <div class="epaper-dialog__title" id="form-dialog-title">Add a note</div>
+            <div class="epaper-dialog__body">
+              <form method="dialog">
+                <div class="epaper-stack epaper-stack--sm">
+                  <div class="epaper-field">
+                    <label class="epaper-label" for="dialog-title">Title</label>
+                    <input
+                      type="text"
+                      id="dialog-title"
+                      class="epaper-input"
+                      placeholder="Note title"
+                    />
+                  </div>
+                  <div class="epaper-field">
+                    <label class="epaper-label" for="dialog-body">Content</label>
+                    <textarea
+                      id="dialog-body"
+                      class="epaper-textarea"
+                      placeholder="Write your note here"
+                      style="min-height: 4rem"
+                    ></textarea>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="epaper-dialog__actions">
+              <button class="epaper-btn epaper-btn--ghost">Cancel</button>
+              <button class="epaper-btn epaper-btn--primary">Save note</button>
+            </div>
+          </dialog>
+        </div>
+      </section>
+
+      <!-- DIALOG WITH LONG CONTENT -->
+      <section class="epaper-section">
+        <h3>Dialog with scrollable content</h3>
+        <p class="epaper-text-sm epaper-text-muted">
+          For long content, the dialog body scrolls independently.
+        </p>
+
+        <div
+          style="
+            margin-top: var(--epaper-space-4);
+            position: relative;
+            border: var(--epaper-border-thin) solid var(--epaper-border-color);
+            padding: var(--epaper-space-6);
+            background: var(--epaper-bg-muted);
+            min-height: 22rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          "
+        >
+          <dialog
+            class="epaper-dialog"
+            open
+            style="
+              position: relative;
+              max-height: 18rem;
+              display: flex;
+              flex-direction: column;
+            "
+            aria-labelledby="scrollable-dialog-title"
+          >
+            <div class="epaper-dialog__title" id="scrollable-dialog-title" style="flex-shrink: 0">
+              Terms of service
+            </div>
+            <div class="epaper-dialog__body" style="overflow-y: auto; flex: 1">
+              <div class="epaper-prose">
+                <p>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+                  eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                </p>
+                <p>
+                  Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
+                  nisi ut aliquip ex ea commodo consequat.
+                </p>
+                <p>
+                  Duis aute irure dolor in reprehenderit in voluptate velit esse cillum
+                  dolore eu fugiat nulla pariatur.
+                </p>
+                <p>
+                  Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
+                  officia deserunt mollit anim id est laborum.
+                </p>
+                <p>
+                  Sed ut perspiciatis unde omnis iste natus error sit voluptatem
+                  accusantium doloremque laudantium.
+                </p>
+              </div>
+            </div>
+            <div class="epaper-dialog__actions" style="flex-shrink: 0">
+              <button class="epaper-btn epaper-btn--ghost">Decline</button>
+              <button class="epaper-btn epaper-btn--primary">Accept</button>
+            </div>
+          </dialog>
+        </div>
+      </section>
+
+      <!-- THEME VARIANTS -->
+      <section class="epaper-section">
+        <h3>Theme variants</h3>
+        <p class="epaper-text-sm epaper-text-muted">
+          Dialogs inherit theme tokens from their ancestor's <code>data-theme</code>.
+        </p>
+
+        <div
+          class="epaper-grid"
+          style="--epaper-grid-min: 18rem; margin-top: var(--epaper-space-4)"
+        >
+          <div
+            data-theme="default"
+            style="
+              border: var(--epaper-border-thin) solid var(--epaper-border-color);
+              padding: var(--epaper-space-4);
+              background: var(--epaper-bg-muted);
+            "
+          >
+            <span
+              class="epaper-badge"
+              style="margin-bottom: var(--epaper-space-2); display: inline-block"
+              >Default</span
+            >
+            <dialog
+              class="epaper-dialog"
+              open
+              style="position: relative; width: 100%; max-width: 100%"
+              aria-labelledby="default-theme-dialog-title"
+            >
+              <div class="epaper-dialog__title" id="default-theme-dialog-title">Default theme</div>
+              <div class="epaper-dialog__body"><p>Standard dialog appearance.</p></div>
+              <div class="epaper-dialog__actions">
+                <button class="epaper-btn epaper-btn--primary epaper-btn--sm">OK</button>
+              </div>
+            </dialog>
+          </div>
+
+          <div
+            data-theme="inverted"
+            style="
+              border: var(--epaper-border-thin) solid var(--epaper-border-color);
+              padding: var(--epaper-space-4);
+              background: var(--epaper-bg-muted);
+            "
+          >
+            <span
+              class="epaper-badge"
+              style="margin-bottom: var(--epaper-space-2); display: inline-block"
+              >Inverted</span
+            >
+            <dialog
+              class="epaper-dialog"
+              open
+              style="position: relative; width: 100%; max-width: 100%"
+              aria-labelledby="inverted-theme-dialog-title"
+            >
+              <div class="epaper-dialog__title" id="inverted-theme-dialog-title">Inverted theme</div>
+              <div class="epaper-dialog__body"><p>Light text on dark surface.</p></div>
+              <div class="epaper-dialog__actions">
+                <button class="epaper-btn epaper-btn--primary epaper-btn--sm">OK</button>
+              </div>
+            </dialog>
+          </div>
+        </div>
+      </section>
+
+      <!-- IMPLEMENTATION NOTES -->
+      <section class="epaper-section">
+        <h2>Implementation notes</h2>
+        <div class="epaper-prose">
+          <p>
+            The <code>&lt;dialog&gt;</code> element provides built-in focus trapping and
+            <kbd>Escape</kbd>-to-close behavior when opened with
+            <code>.showModal()</code>. The minimal JavaScript needed:
+          </p>
+          <pre><code>// Open
+document.getElementById('my-dialog').showModal();
+
+// Close
+document.getElementById('my-dialog').close();</code></pre>
+          <p>
+            The <code>::backdrop</code> pseudo-element is only visible when the dialog
+            is opened via <code>.showModal()</code>. The <code>open</code> attribute
+            alone (used in these demos) does not render the backdrop.
+          </p>
+          <p>
+            For E-Ink devices, consider whether a full-page navigation would be
+            preferable to a dialog, since the modal open/close requires a full screen
+            repaint regardless.
+          </p>
+        </div>
+      </section>
+    </main>

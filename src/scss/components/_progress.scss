@@ -1,0 +1,49 @@
+/* ===========================================
+   PROGRESS BAR
+   =========================================== */
+
+:where(.epaper-progress) {
+  display: flex;
+  align-items: center;
+  gap: var(--epaper-space-3);
+}
+
+:where(.epaper-progress__track) {
+  flex: 1;
+  height: 0.5rem;
+  border: var(--epaper-border-thin) solid var(--epaper-border-color);
+  background-color: var(--epaper-bg);
+}
+
+:where(.epaper-progress__bar) {
+  height: 100%;
+  background-color: var(--epaper-fg);
+
+  /* width set via inline style, e.g. style="width:60%" */
+}
+
+:where(.epaper-progress__label) {
+  font-size: var(--epaper-text-xs);
+  font-weight: var(--epaper-weight-medium);
+  flex-shrink: 0;
+  min-width: 3ch;
+  text-align: right;
+}
+
+/* Thick variant for dashboard emphasis */
+
+:where(.epaper-progress--thick > .epaper-progress__track) {
+  height: 1rem;
+}
+
+/* Labeled variant — label above the bar */
+
+:where(.epaper-progress--labeled) {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--epaper-space-1);
+}
+
+:where(.epaper-progress--labeled > .epaper-progress__label) {
+  text-align: left;
+}

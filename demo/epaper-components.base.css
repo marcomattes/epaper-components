@@ -1,0 +1,211 @@
+@charset "UTF-8";
+/* ============================================
+   epaper-ui.base.scss — Reset & Base Primitives
+   Compiles to epaper-ui.base.css
+   ============================================ */
+/* --- Box sizing --- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* --- Margin reset --- */
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+figure,
+blockquote,
+dl,
+dd,
+fieldset,
+pre {
+  margin: 0;
+}
+
+/* --- Remove list styles when a class is present --- */
+:where(ul, ol)[class] {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* --- Body --- */
+body {
+  font-family: var(--epaper-font-sans);
+  font-size: var(--epaper-text-base);
+  line-height: var(--epaper-leading-normal);
+  color: var(--epaper-fg);
+  background-color: var(--epaper-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizelegibility;
+}
+
+/* --- Headings (tag-level, :where for zero specificity) --- */
+:where(h1, h2, h3, h4) {
+  line-height: var(--epaper-leading-tight);
+  font-weight: var(--epaper-weight-bold);
+}
+
+:where(h1) {
+  font-size: var(--epaper-text-4xl);
+}
+
+:where(h2) {
+  font-size: var(--epaper-text-3xl);
+}
+
+:where(h3) {
+  font-size: var(--epaper-text-2xl);
+}
+
+:where(h4) {
+  font-size: var(--epaper-text-xl);
+}
+
+/* --- Prose elements --- */
+:where(p) {
+  max-width: var(--epaper-measure);
+}
+
+/* --- Links --- */
+:where(a) {
+  color: var(--epaper-fg);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: var(--epaper-border-thin);
+}
+
+:where(a:visited) {
+  color: var(--epaper-fg-muted);
+}
+
+/* --- Images --- */
+:where(img, picture, svg) {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* --- Code --- */
+:where(code, kbd, samp) {
+  font-family: var(--epaper-font-mono);
+  font-size: 0.9em;
+}
+
+:where(pre) {
+  font-family: var(--epaper-font-mono);
+  font-size: var(--epaper-text-sm);
+  overflow-x: auto;
+  padding: var(--epaper-space-4);
+  border: var(--epaper-border-thin) solid var(--epaper-border-color);
+  background-color: var(--epaper-bg-subtle);
+}
+
+:where(code:not(pre code)) {
+  padding: 0.125em 0.25em;
+  border: var(--epaper-border-thin) solid var(--epaper-border-color);
+  background-color: var(--epaper-bg-subtle);
+}
+
+/* --- Horizontal rule --- */
+:where(hr) {
+  border: none;
+  border-top: var(--epaper-border-thin) solid var(--epaper-border-color);
+  margin-block: var(--epaper-space-5);
+}
+
+/* --- Blockquote --- */
+:where(blockquote) {
+  border-left: var(--epaper-border-thick) solid var(--epaper-border-color);
+  padding-left: var(--epaper-space-4);
+  font-style: italic;
+  color: var(--epaper-fg-muted);
+}
+
+/* --- Tables (base) --- */
+:where(table) {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+:where(th, td) {
+  text-align: left;
+  padding: var(--epaper-space-2) var(--epaper-space-3);
+  border-bottom: var(--epaper-border-thin) solid var(--epaper-border-color);
+}
+
+:where(th) {
+  font-weight: var(--epaper-weight-bold);
+  border-bottom-width: var(--epaper-border-medium);
+}
+
+/* --- Focus visible --- */
+:where(:focus-visible) {
+  outline: var(--epaper-focus-width) solid var(--epaper-focus-color);
+  outline-offset: var(--epaper-focus-offset);
+}
+
+:where(:focus:not(:focus-visible)) {
+  outline: none;
+}
+
+/* --- Selection --- */
+::selection {
+  background-color: var(--epaper-selection-bg);
+  color: var(--epaper-fg);
+}
+
+/* --- Mark --- */
+:where(mark) {
+  background-color: var(--epaper-mark-bg);
+  color: var(--epaper-fg);
+  padding: 0.0625em 0.125em;
+}
+
+/* --- Small --- */
+:where(small) {
+  font-size: var(--epaper-text-sm);
+}
+
+/* --- Fieldset --- */
+:where(fieldset) {
+  border: var(--epaper-border-thin) solid var(--epaper-border-color);
+  padding: var(--epaper-space-4);
+}
+
+:where(legend) {
+  font-weight: var(--epaper-weight-bold);
+  padding-inline: var(--epaper-space-2);
+}
+
+/* --- Details / Summary --- */
+:where(summary) {
+  cursor: pointer;
+  font-weight: var(--epaper-weight-medium);
+}
+
+/* --- Abbreviation --- */
+:where(abbr[title]) {
+  text-decoration: underline dotted;
+  text-underline-offset: 0.15em;
+}
+
+/* --- Reduced motion (intent signal, even though no animations) --- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+/*# sourceMappingURL=epaper-components.base.css.map */

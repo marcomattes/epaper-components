@@ -1,0 +1,39 @@
+/* ===========================================
+   FORM SHELL (labels, help, errors)
+   =========================================== */
+
+:where(.epaper-field) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--epaper-space-1);
+}
+
+:where(.epaper-field--inline) {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--epaper-space-2);
+}
+
+:where(.epaper-label) {
+  font-size: var(--epaper-text-sm);
+  font-weight: var(--epaper-weight-medium);
+  color: var(--epaper-fg);
+}
+
+:where(.epaper-label--required::after) {
+  content: " *";
+  color: var(--epaper-fg-muted);
+}
+
+:where(.epaper-help) {
+  font-size: var(--epaper-text-xs);
+  color: var(--epaper-fg-muted);
+}
+
+:where(.epaper-error-message) {
+  font-size: var(--epaper-text-xs);
+  font-weight: var(--epaper-weight-medium);
+  color: var(--epaper-error-fg);
+  border-left: var(--epaper-border-thick) solid var(--epaper-error-border);
+  padding-left: var(--epaper-space-2);
+}

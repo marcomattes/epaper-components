@@ -1,0 +1,125 @@
+<% layout("../_layout", { title: "Overview", current: "index", fullHeader: true, footerText: "epaper-components — CSS-only component library for E-Ink devices. No JavaScript. No build step." }) %>
+
+    <main class="epaper-container epaper-stack">
+      <section class="epaper-section">
+        <h2>About</h2>
+        <p>
+          <strong>epaper-components</strong> is a CSS-only component library optimized for E-Ink
+          displays (Kindle, Tolino, Kobo, and similar devices). It uses zero JavaScript,
+          no animations, and no hover-only affordances. Every value is a CSS custom
+          property. Specificity is kept at zero via <code>:where()</code> selectors.
+        </p>
+        <p class="epaper-note">
+          E-Ink rationale: E-Ink screens have slow refresh rates (~300ms full, ~120ms
+          partial). This library avoids large filled surfaces, animations, and layout
+          shifts that cause unpleasant ghosting.
+        </p>
+      </section>
+
+      <section class="epaper-section">
+        <h2>Getting started</h2>
+        <pre><code>&lt;link rel="stylesheet" href="epaper-components.css"&gt;</code></pre>
+        <p>
+          Add <code>data-theme="default"</code> (or <code>inverted</code> /
+          <code>high-contrast</code>) to <code>&lt;html&gt;</code>. That's it.
+        </p>
+      </section>
+
+      <section class="epaper-section">
+        <h2>GitHub</h2>
+        <div class="epaper-card" style="display: flex; gap: var(--epaper-space-3); align-items: center">
+          <div
+            aria-hidden="true"
+            style="
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              width: 2.75rem;
+              height: 2.75rem;
+              border: 1px solid var(--epaper-border-strong);
+              border-radius: var(--epaper-radius-sm);
+            "
+          >
+            <svg viewBox="0 0 16 16" width="20" height="20" fill="currentColor" focusable="false">
+              <path
+                d="M8 0a8 8 0 0 0-2.53 15.6c.4.07.55-.17.55-.38v-1.32c-2.23.48-2.7-1.08-2.7-1.08-.36-.9-.88-1.14-.88-1.14-.72-.5.05-.49.05-.49.8.06 1.22.85 1.22.85.7 1.2 1.85.85 2.3.65.07-.52.27-.86.5-1.06-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.58.82-2.13-.08-.2-.36-1.02.08-2.12 0 0 .68-.22 2.22.82a7.73 7.73 0 0 1 2.02-.27c.69 0 1.38.09 2.02.27 1.53-1.04 2.21-.82 2.21-.82.44 1.1.16 1.92.08 2.12.51.55.82 1.26.82 2.13 0 3.07-1.87 3.74-3.65 3.94.28.24.54.73.54 1.48v2.2c0 .21.15.45.55.37A8 8 0 0 0 8 0Z"
+              />
+            </svg>
+          </div>
+          <div class="epaper-stack epaper-stack--xs">
+            <p class="epaper-text-sm epaper-text-muted">Source, issues, releases, and docs live on GitHub.</p>
+            <div class="epaper-cluster" style="gap: var(--epaper-space-2); align-items: center">
+              <a href="https://github.com/marcomattes/eink-css-ui-framework"><strong>Repository</strong></a>
+              <span aria-hidden="true">·</span>
+              <a href="https://github.com/marcomattes/eink-css-ui-framework/issues">Issues</a>
+              <span aria-hidden="true">·</span>
+              <a href="https://github.com/marcomattes/eink-css-ui-framework/releases">Releases</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="epaper-section">
+        <h2>Theme preview</h2>
+        <p class="epaper-text-sm epaper-text-muted">
+          Each box below is scoped with its own <code>data-theme</code>.
+        </p>
+
+        <div class="epaper-grid" style="--epaper-grid-min: 14rem">
+          <div data-theme="default" class="epaper-card" style="background-color: var(--epaper-bg); color: var(--epaper-fg)">
+            <div class="epaper-card__title">Default</div>
+            <div class="epaper-card__body">
+              <p>Dark text on light background. Standard grayscale borders and muted text.</p>
+              <p style="margin-top: var(--epaper-space-2)">
+                <button class="epaper-btn epaper-btn--primary epaper-btn--sm">Primary</button>
+                <button class="epaper-btn epaper-btn--secondary epaper-btn--sm">Secondary</button>
+              </p>
+            </div>
+          </div>
+
+          <div data-theme="inverted" class="epaper-card" style="background-color: var(--epaper-bg); color: var(--epaper-fg)">
+            <div class="epaper-card__title">Inverted</div>
+            <div class="epaper-card__body">
+              <p>Light text on dark background. Good for night-mode on backlit E-Ink.</p>
+              <p style="margin-top: var(--epaper-space-2)">
+                <button class="epaper-btn epaper-btn--primary epaper-btn--sm">Primary</button>
+                <button class="epaper-btn epaper-btn--secondary epaper-btn--sm">Secondary</button>
+              </p>
+            </div>
+          </div>
+
+          <div data-theme="high-contrast" class="epaper-card" style="background-color: var(--epaper-bg); color: var(--epaper-fg)">
+            <div class="epaper-card__title">High Contrast</div>
+            <div class="epaper-card__body">
+              <p>Pure black and white only. Thicker borders. Maximum legibility on low-DPI E-Ink.</p>
+              <p style="margin-top: var(--epaper-space-2)">
+                <button class="epaper-btn epaper-btn--primary epaper-btn--sm">Primary</button>
+                <button class="epaper-btn epaper-btn--secondary epaper-btn--sm">Secondary</button>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="epaper-section">
+        <h2>Demo pages</h2>
+        <ul>
+          <li><a href="typography.html">Typography</a> — type scale, line length, prose</li>
+          <li><a href="layout.html">Layout</a> — container, stack, cluster, grid, divider</li>
+          <li><a href="components.html">Components</a> — card, button, inputs, select, checkbox, radio, picture</li>
+          <li><a href="forms.html">Forms</a> — validation, errors, help text, disabled/required</li>
+          <li><a href="dialog.html">Dialog</a> — native <code>&lt;dialog&gt;</code> patterns</li>
+          <li><a href="tables.html">Tables</a> — striped, bordered, responsive scroll</li>
+        </ul>
+      </section>
+
+      <section class="epaper-section">
+        <h2>Selector strategy</h2>
+        <p>
+          All component selectors are <strong>class-based</strong> with the
+          <code>.epaper-*</code> prefix. Every selector is wrapped in
+          <code>:where()</code> so specificity is always <code>0-0-0</code>, making
+          overrides trivial without <code>!important</code>.
+        </p>
+      </section>
+    </main>

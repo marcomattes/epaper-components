@@ -1,0 +1,131 @@
+/* ===========================================
+   TOOLTIP (FOCUS-FIRST, NO HOVER-ONLY)
+   =========================================== */
+
+:where(.epaper-tooltip) {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--epaper-space-1);
+  color: inherit;
+}
+
+/* Inline trigger (clickable “i”) */
+:where(.epaper-tooltip__trigger) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.55em;
+  height: 1.55em;
+  padding: 0;
+  font-size: var(--epaper-text-sm);
+  font-weight: var(--epaper-weight-medium);
+  line-height: 1;
+  border: var(--epaper-border-medium) solid var(--epaper-border-strong);
+  border-radius: 999px;
+  background: var(--epaper-bg);
+  color: var(--epaper-fg);
+  cursor: pointer;
+  appearance: none;
+}
+
+:where(.epaper-tooltip__trigger:focus-visible) {
+  outline: var(--epaper-focus-width) solid var(--epaper-focus-color);
+  outline-offset: var(--epaper-focus-offset);
+}
+
+:where(.epaper-tooltip__trigger:disabled),
+:where(.epaper-tooltip__trigger[aria-disabled="true"]) {
+  color: var(--epaper-disabled-fg);
+  border-color: var(--epaper-disabled-border);
+  cursor: not-allowed;
+}
+
+/* Bubble shown below trigger */
+:where(.epaper-tooltip__bubble) {
+  position: absolute;
+  top: calc(100% + var(--epaper-space-2));
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--epaper-space-2) var(--epaper-space-3);
+  border: var(--epaper-border-thin) solid var(--epaper-border-color);
+  background: var(--epaper-bg);
+  color: var(--epaper-fg);
+  font-size: var(--epaper-text-sm);
+  line-height: var(--epaper-leading-snug);
+  max-width: min(22rem, 90vw);
+  white-space: normal;
+  box-shadow: none;
+  z-index: 2;
+  display: none;
+}
+
+:where(.epaper-tooltip__arrow) {
+  content: "";
+  position: absolute;
+  top: calc(100% + var(--epaper-space-2) - 1px);
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 0.6rem;
+  height: 0.6rem;
+  background: var(--epaper-bg);
+  border-left: var(--epaper-border-thin) solid var(--epaper-border-color);
+  border-top: var(--epaper-border-thin) solid var(--epaper-border-color);
+  z-index: 1;
+  display: none;
+}
+
+:where(.epaper-tooltip:focus-within) .epaper-tooltip__bubble,
+:where(.epaper-tooltip:focus-within) .epaper-tooltip__arrow,
+:where(.epaper-tooltip[data-show="true"]) .epaper-tooltip__bubble,
+:where(.epaper-tooltip[data-show="true"]) .epaper-tooltip__arrow,
+:where(.epaper-tooltip.epaper-tooltip--persistent) .epaper-tooltip__bubble,
+:where(.epaper-tooltip.epaper-tooltip--persistent) .epaper-tooltip__arrow {
+  display: block;
+}
+
+/* Fallback attr-based tooltip (legacy) */
+:where(.epaper-tooltip[data-tooltip])::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + var(--epaper-space-2));
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--epaper-space-2) var(--epaper-space-3);
+  border: var(--epaper-border-thin) solid var(--epaper-border-color);
+  background: var(--epaper-bg);
+  color: var(--epaper-fg);
+  font-size: var(--epaper-text-sm);
+  line-height: var(--epaper-leading-snug);
+  white-space: nowrap;
+  max-width: 18rem;
+  box-shadow: none;
+  z-index: 2;
+  display: none;
+}
+
+:where(.epaper-tooltip[data-tooltip])::before {
+  content: "";
+  position: absolute;
+  top: calc(100% + var(--epaper-space-2) - 1px);
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 0.6rem;
+  height: 0.6rem;
+  background: var(--epaper-bg);
+  border-left: var(--epaper-border-thin) solid var(--epaper-border-color);
+  border-top: var(--epaper-border-thin) solid var(--epaper-border-color);
+  z-index: 1;
+  display: none;
+}
+
+:where(.epaper-tooltip[data-tooltip]:focus-within)::after,
+:where(.epaper-tooltip[data-tooltip]:focus-within)::before,
+:where(.epaper-tooltip[data-tooltip]:focus-visible)::after,
+:where(.epaper-tooltip[data-tooltip]:focus-visible)::before,
+:where(.epaper-tooltip[data-tooltip][data-show="true"])::after,
+:where(.epaper-tooltip[data-tooltip][data-show="true"])::before,
+:where(.epaper-tooltip[data-tooltip].epaper-tooltip--persistent)::after,
+:where(.epaper-tooltip[data-tooltip].epaper-tooltip--persistent)::before {
+  display: block;
+}

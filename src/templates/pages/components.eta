@@ -1,0 +1,621 @@
+<% layout("../_layout", { title: "Components", current: "components", fullHeader: true }) %>
+
+    <main class="epaper-container epaper-stack">
+      <!-- CARDS -->
+      <section class="epaper-section">
+        <h2>Card</h2>
+        <p class="epaper-note">
+          E-Ink rationale: Cards use thin borders instead of box-shadows or filled
+          backgrounds. This minimizes repaint area and renders crisply on 167–300 PPI
+          E-Ink panels.
+        </p>
+
+        <div
+          class="epaper-grid"
+          style="--epaper-grid-min: 16rem; margin-top: var(--epaper-space-4)"
+        >
+          <div class="epaper-card">
+            <div class="epaper-card__title">Default card</div>
+            <div class="epaper-card__body">
+              <p>Standard card with thin border. Good for grouping related content.</p>
+            </div>
+            <div class="epaper-card__footer">
+              <span class="epaper-text-xs epaper-text-muted">Footer area</span>
+            </div>
+          </div>
+
+          <div class="epaper-card epaper-card--raised">
+            <div class="epaper-card__title">Raised card</div>
+            <div class="epaper-card__body">
+              <p>
+                Medium border weight for emphasis. Use sparingly — no more than one per
+                section.
+              </p>
+            </div>
+            <div class="epaper-card__footer">
+              <button class="epaper-btn epaper-btn--sm epaper-btn--secondary">Action</button>
+            </div>
+          </div>
+
+          <div class="epaper-card">
+            <div class="epaper-card__title">Card without footer</div>
+            <div class="epaper-card__body">
+              <p>The footer is optional. Cards work fine with just a title and body.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- BUTTONS -->
+      <section class="epaper-section">
+        <h2>Buttons</h2>
+        <p class="epaper-note">
+          E-Ink rationale: Buttons rely on border weight and fill contrast rather than
+          shadows or color hues. The primary button inverts foreground/background for
+          maximum contrast. Focus is shown with a solid outline ring.
+        </p>
+
+        <h3 style="margin-top: var(--epaper-space-4)">Variants</h3>
+        <div class="epaper-cluster" style="margin-top: var(--epaper-space-3)">
+          <button class="epaper-btn epaper-btn--primary">Primary</button>
+          <button class="epaper-btn epaper-btn--secondary">Secondary</button>
+          <button class="epaper-btn epaper-btn--ghost">Ghost</button>
+        </div>
+
+        <h3 style="margin-top: var(--epaper-space-5)">Sizes</h3>
+        <div class="epaper-cluster" style="margin-top: var(--epaper-space-3)">
+          <button class="epaper-btn epaper-btn--primary epaper-btn--sm">Small</button>
+          <button class="epaper-btn epaper-btn--primary">Default</button>
+          <button class="epaper-btn epaper-btn--primary epaper-btn--lg">Large</button>
+        </div>
+
+        <h3 style="margin-top: var(--epaper-space-5)">Disabled state</h3>
+        <div class="epaper-cluster" style="margin-top: var(--epaper-space-3)">
+          <button class="epaper-btn epaper-btn--primary" disabled>
+            Primary (disabled)
+          </button>
+          <button class="epaper-btn epaper-btn--secondary" disabled>
+            Secondary (disabled)
+          </button>
+          <button class="epaper-btn epaper-btn--ghost" disabled>Ghost (disabled)</button>
+        </div>
+
+        <h3 style="margin-top: var(--epaper-space-5)">Focus state</h3>
+        <p class="epaper-text-sm epaper-text-muted">
+          Tab through the buttons below to see the focus ring. The
+          <code>:focus-visible</code> style adds a 3px solid outline.
+        </p>
+        <div class="epaper-cluster" style="margin-top: var(--epaper-space-3)">
+          <button class="epaper-btn epaper-btn--primary">Tab to me</button>
+          <button class="epaper-btn epaper-btn--secondary">Then to me</button>
+          <button class="epaper-btn epaper-btn--ghost">And me</button>
+        </div>
+
+        <h3 style="margin-top: var(--epaper-space-5)">Button as link</h3>
+        <div class="epaper-cluster" style="margin-top: var(--epaper-space-3)">
+          <a href="#" class="epaper-btn epaper-btn--secondary">Link styled as button</a>
+        </div>
+      </section>
+
+      <!-- TEXT INPUT -->
+      <section class="epaper-section">
+        <h2>Text input</h2>
+        <p class="epaper-note">
+          E-Ink rationale: Inputs use a single thin border and no background fill. The
+          focus state thickens the outline rather than changing background color,
+          reducing repaint.
+        </p>
+
+        <div
+          class="epaper-stack epaper-stack--sm"
+          style="max-width: 24rem; margin-top: var(--epaper-space-4)"
+        >
+          <div class="epaper-field">
+            <label class="epaper-label" for="input-default">Default input</label>
+            <input
+              type="text"
+              id="input-default"
+              class="epaper-input"
+              placeholder="Placeholder text"
+            />
+          </div>
+
+          <div class="epaper-field">
+            <label class="epaper-label" for="input-disabled">Disabled input</label>
+            <input
+              type="text"
+              id="input-disabled"
+              class="epaper-input"
+              value="Cannot edit"
+              disabled
+            />
+          </div>
+
+          <div class="epaper-field">
+            <label class="epaper-label" for="input-invalid">Invalid input</label>
+            <input
+              type="text"
+              id="input-invalid"
+              class="epaper-input"
+              aria-invalid="true"
+              aria-describedby="input-invalid-error"
+              value="Bad value"
+            />
+            <span class="epaper-error-message" id="input-invalid-error">This field contains an error.</span>
+          </div>
+
+          <div class="epaper-field">
+            <label class="epaper-label" for="input-search">Search with icon</label>
+            <input
+              type="search"
+              id="input-search"
+              class="epaper-input epaper-input--search"
+              placeholder="Search library"
+              aria-describedby="input-search-help"
+            />
+            <span class="epaper-help" id="input-search-help">
+              Icon is drawn with CSS strokes (no images), minimizing ghosting on E-Ink.
+            </span>
+          </div>
+
+          <div class="epaper-field">
+            <label class="epaper-label" for="input-search-disabled">Search (disabled)</label>
+            <input
+              type="search"
+              id="input-search-disabled"
+              class="epaper-input epaper-input--search"
+              value="Indexing…"
+              disabled
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- TEXTAREA -->
+      <section class="epaper-section">
+        <h2>Textarea</h2>
+
+        <div
+          class="epaper-stack epaper-stack--sm"
+          style="max-width: 24rem; margin-top: var(--epaper-space-4)"
+        >
+          <div class="epaper-field">
+            <label class="epaper-label" for="textarea-default">Default textarea</label>
+            <textarea
+              id="textarea-default"
+              class="epaper-textarea"
+              placeholder="Enter long-form text"
+            ></textarea>
+          </div>
+
+          <div class="epaper-field">
+            <label class="epaper-label" for="textarea-disabled">Disabled textarea</label>
+            <textarea id="textarea-disabled" class="epaper-textarea" disabled>
+Cannot edit this content.</textarea
+            >
+          </div>
+
+          <div class="epaper-field">
+            <label class="epaper-label" for="textarea-invalid">Invalid textarea</label>
+            <textarea id="textarea-invalid" class="epaper-textarea" aria-invalid="true" aria-describedby="textarea-invalid-error">
+Invalid content</textarea
+            >
+            <span class="epaper-error-message" id="textarea-invalid-error">Content does not meet requirements.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- SELECT -->
+      <section class="epaper-section">
+        <h2>Select</h2>
+        <p class="epaper-note">
+          E-Ink rationale: Native <code>&lt;select&gt;</code> elements use the device's
+          built-in dropdown UI, which is optimized for the E-Ink refresh cycle. The
+          custom arrow indicator is rendered via CSS gradients (no SVG dependency).
+        </p>
+
+        <div
+          class="epaper-stack epaper-stack--sm"
+          style="max-width: 24rem; margin-top: var(--epaper-space-4)"
+        >
+          <div class="epaper-field">
+            <label class="epaper-label" for="select-default">Default select</label>
+            <select id="select-default" class="epaper-select">
+              <option value="">Choose an option</option>
+              <option value="1">Option one</option>
+              <option value="2">Option two</option>
+              <option value="3">Option three</option>
+            </select>
+          </div>
+
+          <div class="epaper-field">
+            <label class="epaper-label" for="select-disabled">Disabled select</label>
+            <select id="select-disabled" class="epaper-select" disabled>
+              <option>Cannot change</option>
+            </select>
+          </div>
+
+          <div class="epaper-field">
+            <label class="epaper-label" for="select-invalid">Invalid select</label>
+            <select id="select-invalid" class="epaper-select" aria-invalid="true" aria-describedby="select-invalid-error">
+              <option value="">Please select</option>
+            </select>
+            <span class="epaper-error-message" id="select-invalid-error">A selection is required.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- CHECKBOX -->
+      <section class="epaper-section">
+        <h2>Checkbox</h2>
+        <p class="epaper-note">
+          E-Ink rationale: Custom checkboxes use <code>appearance: none</code> with a
+          filled square indicator. This avoids the browser's native checkbox rendering,
+          which can appear inconsistently across E-Ink device browsers.
+        </p>
+
+        <div class="epaper-stack epaper-stack--sm" style="margin-top: var(--epaper-space-4)">
+          <div class="epaper-field epaper-field--inline">
+            <input type="checkbox" class="epaper-checkbox" id="check-default" />
+            <label for="check-default">Default checkbox</label>
+          </div>
+          <div class="epaper-field epaper-field--inline">
+            <input type="checkbox" class="epaper-checkbox" id="check-checked" checked />
+            <label for="check-checked">Checked checkbox</label>
+          </div>
+          <div class="epaper-field epaper-field--inline">
+            <input type="checkbox" class="epaper-checkbox" id="check-disabled" disabled />
+            <label for="check-disabled">Disabled checkbox</label>
+          </div>
+          <div class="epaper-field epaper-field--inline">
+            <input
+              type="checkbox"
+              class="epaper-checkbox"
+              id="check-disabled-checked"
+              disabled
+              checked
+            />
+            <label for="check-disabled-checked">Disabled &amp; checked</label>
+          </div>
+        </div>
+      </section>
+
+      <!-- RADIO -->
+      <section class="epaper-section">
+        <h2>Radio</h2>
+        <p class="epaper-note">
+          E-Ink rationale: Same approach as checkbox —
+          <code>appearance: none</code> with a filled circle indicator for the selected
+          state.
+        </p>
+
+        <fieldset style="border: none; padding: 0; margin-top: var(--epaper-space-4)">
+          <legend class="epaper-label" style="margin-bottom: var(--epaper-space-2)">
+            Choose a size
+          </legend>
+          <div class="epaper-stack epaper-stack--sm">
+            <div class="epaper-field epaper-field--inline">
+              <input
+                type="radio"
+                class="epaper-radio"
+                name="size"
+                id="size-sm"
+                value="sm"
+              />
+              <label for="size-sm">Small</label>
+            </div>
+            <div class="epaper-field epaper-field--inline">
+              <input
+                type="radio"
+                class="epaper-radio"
+                name="size"
+                id="size-md"
+                value="md"
+                checked
+              />
+              <label for="size-md">Medium (selected)</label>
+            </div>
+            <div class="epaper-field epaper-field--inline">
+              <input
+                type="radio"
+                class="epaper-radio"
+                name="size"
+                id="size-lg"
+                value="lg"
+              />
+              <label for="size-lg">Large</label>
+            </div>
+            <div class="epaper-field epaper-field--inline">
+              <input
+                type="radio"
+                class="epaper-radio"
+                name="size"
+                id="size-disabled"
+                value="xl"
+                disabled
+              />
+              <label for="size-disabled">Extra large (disabled)</label>
+            </div>
+          </div>
+        </fieldset>
+      </section>
+
+      <!-- LOADER -->
+      <section class="epaper-section">
+        <h2>Loader</h2>
+        <p class="epaper-note">
+          E-Ink rationale: No animation. The loader uses a hashed fill with thin borders,
+          so partial refreshes look clean and ghost-free.
+        </p>
+
+        <div class="epaper-stack epaper-stack--sm" style="max-width: 28rem; margin-top: var(--epaper-space-4)">
+          <div class="epaper-loader" role="status" aria-live="polite">
+            <span class="epaper-loader__label">Syncing library</span>
+            <div class="epaper-loader__track">
+              <div class="epaper-loader__fill" style="--epaper-loader-value: 60%"></div>
+            </div>
+            <span class="epaper-loader__label" aria-hidden="true">60%</span>
+          </div>
+
+          <div class="epaper-loader epaper-loader--thin" data-state="complete" aria-label="Complete">
+            <span class="epaper-loader__label">Download</span>
+            <div class="epaper-loader__track">
+              <div class="epaper-loader__fill"></div>
+            </div>
+            <span class="epaper-badge">Done</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- TOOLTIP -->
+      <section class="epaper-section">
+        <h2>Tooltip</h2>
+        <p class="epaper-note">
+          E-Ink rationale: Tooltips appear on keyboard focus or when explicitly toggled —
+          never hover-only — avoiding accidental flashes on slow-refresh displays.
+        </p>
+
+        <div class="epaper-stack epaper-stack--sm" style="margin-top: var(--epaper-space-4)">
+          <div class="epaper-cluster" style="align-items: center; gap: var(--epaper-space-3)">
+            <button
+              class="epaper-btn epaper-btn--secondary epaper-tooltip"
+              aria-describedby="tooltip-1"
+            >
+              Focus tooltip (legacy attr)
+            </button>
+            <span class="epaper-sr-only" id="tooltip-1">Shown on focus. No animation or shadow.</span>
+
+            <button
+              class="epaper-btn epaper-btn--ghost epaper-tooltip epaper-tooltip--persistent"
+              aria-label="Always visible tooltip demo"
+              data-tooltip="Always visible tooltip using data attribute."
+            >
+              Persistent
+            </button>
+          </div>
+
+          <div class="epaper-tooltip" style="max-width: 28rem">
+            <span>Inline note about Wi‑Fi sync</span>
+            <button class="epaper-tooltip__trigger" type="button" aria-describedby="tooltip-sync">i</button>
+            <span class="epaper-tooltip__bubble" id="tooltip-sync" role="tooltip">
+              Library sync runs in the background; keep Wi‑Fi on. Tap outside or the “i” to hide.
+            </span>
+            <span class="epaper-tooltip__arrow" aria-hidden="true"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- PICTURE -->
+      <section class="epaper-section">
+        <h2>Picture</h2>
+        <p class="epaper-note">
+          E-Ink rationale: Images are wrapped in a bordered frame with a caption area
+          separated by a thin rule. This clearly delineates image content from text,
+          which is helpful on displays where images may appear as rough dithered
+          grayscale.
+        </p>
+
+        <div
+          class="epaper-grid"
+          style="--epaper-grid-min: 16rem; margin-top: var(--epaper-space-4)"
+        >
+          <figure class="epaper-picture">
+            <!-- Placeholder image using inline SVG-as-data-URI (no external dependencies) -->
+            <img
+              src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='250' fill='%23e5e5e5'%3E%3Crect width='400' height='250'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23737373' font-family='sans-serif' font-size='18'%3E400 %C3%97 250%3C/text%3E%3C/svg%3E"
+              alt="Placeholder image showing dimensions 400 by 250"
+              width="400"
+              height="250"
+            />
+            <figcaption>Figure 1 — A placeholder image with caption text.</figcaption>
+          </figure>
+
+          <figure class="epaper-picture">
+            <img
+              src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='250' fill='%23d4d4d4'%3E%3Crect width='400' height='250'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23525252' font-family='sans-serif' font-size='18'%3ELandscape photo%3C/text%3E%3C/svg%3E"
+              alt="Placeholder for a landscape photograph"
+              width="400"
+              height="250"
+            />
+            <figcaption>
+              Figure 2 — On E-Ink displays, photographs are dithered to 16 shades of
+              gray.
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- ADDITIONAL COMPONENTS -->
+      <section class="epaper-section">
+        <h2>Additional components</h2>
+        <p class="epaper-note">
+          Borders and whitespace replace fills/shadows to avoid large repaints. All
+          selectors remain zero-specificity via <code>:where()</code> and use semantic
+          HTML only.
+        </p>
+
+        <div class="epaper-grid" style="--epaper-grid-min: 18rem">
+          <div class="epaper-stack epaper-stack--sm">
+            <h3>Alerts</h3>
+            <div class="epaper-alert epaper-alert--info" role="status">
+              <div class="epaper-alert__title">Info</div>
+              <div class="epaper-alert__body">Thin left rule; minimal repaint.</div>
+            </div>
+            <div class="epaper-alert epaper-alert--success" role="status">
+              <div class="epaper-alert__title">Success</div>
+              <div class="epaper-alert__body">Thicker rule for emphasis.</div>
+            </div>
+            <div class="epaper-alert epaper-alert--warning" role="status">
+              <div class="epaper-alert__title">Warning</div>
+              <div class="epaper-alert__body">Dashed rule reads well on low DPI.</div>
+            </div>
+            <div class="epaper-alert epaper-alert--error" role="alert">
+              <div class="epaper-alert__title">Error</div>
+              <div class="epaper-alert__body">
+                Error background uses light gray instead of fill.
+              </div>
+            </div>
+          </div>
+
+          <div class="epaper-stack epaper-stack--sm">
+            <h3>Navigation patterns</h3>
+            <nav class="epaper-breadcrumb" aria-label="Breadcrumb">
+              <ol class="epaper-breadcrumb__list">
+                <li class="epaper-breadcrumb__item"><a href="#">Home</a></li>
+                <li class="epaper-breadcrumb__item"><a href="#">Library</a></li>
+                <li class="epaper-breadcrumb__item" aria-current="page">Current book</li>
+              </ol>
+            </nav>
+            <nav aria-label="Pagination" class="epaper-pagination">
+              <ol class="epaper-pagination__list">
+                <li>
+                  <a
+                    class="epaper-pagination__link"
+                    aria-disabled="true"
+                    href="#"
+                    tabindex="-1"
+                    >Prev</a
+                  >
+                </li>
+                <li><a class="epaper-pagination__link" href="#">1</a></li>
+                <li>
+                  <a class="epaper-pagination__link" aria-current="page" href="#">2</a>
+                </li>
+                <li><a class="epaper-pagination__link" href="#">3</a></li>
+                <li><a class="epaper-pagination__link" href="#">Next</a></li>
+              </ol>
+            </nav>
+            <div class="epaper-tabs" style="--epaper-tabs-count: 3">
+              <input
+                type="radio"
+                name="demo-tabs"
+                id="tab1"
+                class="epaper-tabs__input"
+                checked
+              />
+              <label for="tab1" class="epaper-tabs__tab">One</label>
+              <input type="radio" name="demo-tabs" id="tab2" class="epaper-tabs__input" />
+              <label for="tab2" class="epaper-tabs__tab">Two</label>
+              <input type="radio" name="demo-tabs" id="tab3" class="epaper-tabs__input" />
+              <label for="tab3" class="epaper-tabs__tab">Three</label>
+              <div class="epaper-tabs__panel">Panel one content.</div>
+              <div class="epaper-tabs__panel">Panel two content.</div>
+              <div class="epaper-tabs__panel">Panel three content.</div>
+            </div>
+          </div>
+
+          <div class="epaper-stack epaper-stack--sm">
+            <h3>Data display</h3>
+            <div class="epaper-stat">
+              <div class="epaper-stat__label">Reading time</div>
+              <div class="epaper-stat__value">18m</div>
+              <div class="epaper-stat__delta">+3m vs. yesterday</div>
+            </div>
+            <div class="epaper-progress epaper-progress--labeled" role="progressbar" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100" aria-label="Chapter progress">
+              <div class="epaper-progress__label">Chapter progress</div>
+              <div class="epaper-progress__track">
+                <div class="epaper-progress__bar" style="width: 65%"></div>
+              </div>
+              <div class="epaper-progress__label">65%</div>
+            </div>
+            <dl class="epaper-dl epaper-dl--horizontal epaper-dl--bordered">
+              <dt class="epaper-dl__term">Display</dt>
+              <dd class="epaper-dl__detail">E-Ink Carta 1200</dd>
+              <dt class="epaper-dl__term">Resolution</dt>
+              <dd class="epaper-dl__detail">1440 × 1920</dd>
+              <dt class="epaper-dl__term">Density</dt>
+              <dd class="epaper-dl__detail">300 PPI</dd>
+            </dl>
+          </div>
+
+          <div class="epaper-stack epaper-stack--sm">
+            <h3>Lists & grouping</h3>
+            <ul class="epaper-list-group">
+              <li class="epaper-list-group__item epaper-list-group__item--active">
+                Now reading
+              </li>
+              <li class="epaper-list-group__item">Library</li>
+              <li class="epaper-list-group__item">Notes</li>
+            </ul>
+            <div class="epaper-tag-group">
+              <span class="epaper-tag">Grayscale</span>
+              <a class="epaper-tag epaper-tag--filled" href="#">Offline</a>
+              <span class="epaper-tag epaper-tag--muted">Low power</span>
+            </div>
+            <h3>Accordion</h3>
+            <p class="epaper-text-xs epaper-text-muted">
+              Uses native <code>&lt;details&gt;</code> for built-in accessibility. No
+              chevrons or fills — only borders and symbols.
+            </p>
+            <div class="epaper-accordion-group">
+              <details class="epaper-accordion" open>
+                <summary class="epaper-accordion__summary">Keyboard shortcuts</summary>
+                <div class="epaper-accordion__body">
+                  Use left/right arrows to flip pages.
+                </div>
+              </details>
+              <details class="epaper-accordion">
+                <summary class="epaper-accordion__summary">Annotations</summary>
+                <div class="epaper-accordion__body">
+                  Annotations sync when connected to Wi-Fi.
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <div class="epaper-stack epaper-stack--sm">
+            <h3>Timeline & toolbar</h3>
+            <ol class="epaper-timeline">
+              <li class="epaper-timeline__item epaper-timeline__item--active">
+                <span class="epaper-timeline__time">Today</span>
+                <div class="epaper-timeline__title">Firmware updated</div>
+                <div class="epaper-timeline__body">
+                  Device restarted; page rendering sharper.
+                </div>
+              </li>
+              <li class="epaper-timeline__item">
+                <span class="epaper-timeline__time">Yesterday</span>
+                <div class="epaper-timeline__title">New book added</div>
+                <div class="epaper-timeline__body">"The E-Ink Handbook" downloaded.</div>
+              </li>
+            </ol>
+            <div class="epaper-toolbar" role="toolbar" aria-label="Font settings">
+              <div class="epaper-toolbar__group">
+                <span class="epaper-toolbar__label">Font</span>
+                <button class="epaper-btn epaper-btn--sm" aria-label="Decrease font size">-</button>
+                <button class="epaper-btn epaper-btn--sm" aria-label="Increase font size">+</button>
+              </div>
+              <span class="epaper-toolbar__separator" aria-hidden="true"></span>
+              <div class="epaper-toolbar__group">
+                <button class="epaper-btn epaper-btn--sm">Aa</button>
+                <button class="epaper-btn epaper-btn--sm">Mono</button>
+              </div>
+              <span class="epaper-toolbar__spacer"></span>
+              <div class="epaper-toolbar__group">
+                <button class="epaper-btn epaper-btn--ghost epaper-btn--sm">Reset</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>

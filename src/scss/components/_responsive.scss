@@ -1,0 +1,61 @@
+/* ===========================================
+   RESPONSIVE (max two breakpoints)
+   =========================================== */
+
+/* Small screens (up to 600px) */
+@media (width <= 37.5em) {
+  :where(.epaper-container, epaper-container) {
+    padding-inline: var(--epaper-space-3);
+  }
+
+  :where(.epaper-grid, epaper-grid) {
+    --epaper-grid-min: 100%;
+  }
+
+  :where(.epaper-dialog) {
+    max-width: 100%;
+    padding: var(--epaper-space-4);
+  }
+
+  :where(.epaper-table th),
+  :where(.epaper-table td) {
+    padding: var(--epaper-space-1) var(--epaper-space-2);
+    font-size: var(--epaper-text-sm);
+  }
+
+  :where(.epaper-with-sidebar) {
+    flex-direction: column;
+  }
+
+  :where(.epaper-with-sidebar__sidebar) {
+    flex-basis: auto;
+  }
+
+  :where(.epaper-article__title) {
+    font-size: var(--epaper-text-2xl);
+  }
+
+  :where(.epaper-tabs__tab) {
+    padding: var(--epaper-space-2) var(--epaper-space-3);
+    font-size: var(--epaper-text-xs);
+  }
+
+  :where(.epaper-dl--horizontal) {
+    grid-template-columns: 1fr;
+  }
+
+  :where(.epaper-toolbar) {
+    padding: var(--epaper-space-2);
+  }
+
+  :where(.epaper-stat__value) {
+    font-size: var(--epaper-text-2xl);
+  }
+}
+
+/* Large screens (above 900px) */
+@media (width >= 56.25em) {
+  :where(.epaper-container--wide, epaper-container[width="wide"]) {
+    padding-inline: var(--epaper-space-6);
+  }
+}

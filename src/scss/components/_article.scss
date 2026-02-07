@@ -1,0 +1,58 @@
+/* ===========================================
+   ARTICLE
+   =========================================== */
+
+:where(.epaper-article) {
+  max-width: var(--epaper-measure-wide);
+}
+
+:where(.epaper-article__header) {
+  margin-bottom: var(--epaper-space-5);
+}
+
+:where(.epaper-article__title) {
+  font-size: var(--epaper-text-3xl);
+  font-weight: var(--epaper-weight-bold);
+  line-height: var(--epaper-leading-tight);
+  margin-bottom: var(--epaper-space-3);
+}
+
+:where(.epaper-article__meta) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--epaper-space-2) var(--epaper-space-4);
+  font-size: var(--epaper-text-sm);
+  color: var(--epaper-fg-muted);
+}
+
+:where(.epaper-article__body) {
+  max-width: var(--epaper-measure);
+}
+
+:where(.epaper-article__body > * + *) {
+  margin-top: var(--epaper-space-4);
+}
+
+:where(.epaper-article__body h2, .epaper-article__body h3) {
+  margin-top: var(--epaper-space-6);
+}
+
+:where(.epaper-article__footer) {
+  margin-top: var(--epaper-space-6);
+  padding-top: var(--epaper-space-4);
+  border-top: var(--epaper-border-thin) solid var(--epaper-border-color);
+}
+
+/* Byline — author attribution within article meta */
+
+:where(.epaper-byline) {
+  display: flex;
+  align-items: center;
+  gap: var(--epaper-space-2);
+}
+
+:where(.epaper-byline__name) {
+  font-weight: var(--epaper-weight-medium);
+  color: var(--epaper-fg);
+}

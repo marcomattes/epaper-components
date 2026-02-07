@@ -1,0 +1,55 @@
+import { Meta, Title, Description } from "@storybook/addon-docs/blocks";
+import * as DocsBase from "./docs.stories";
+
+<Meta of={DocsBase} title="Docs/Web Components" />
+
+<Title>Web Components (optional)</Title>
+<Description>
+  Light-DOM Custom Elements that wrap the existing CSS system. They reuse the same
+  tokens, themes, and classes; zero dependencies beyond this package.
+</Description>
+
+### Setup
+
+```js
+import "epaper-components/dist/epaper-components.css"; // tokens + base + components
+import { defineEpaperElements } from "epaper-components/wc";
+
+defineEpaperElements(); // call once at app bootstrap
+```
+
+### Button usage
+
+```html
+<epaper-button variant="primary">Continue</epaper-button>
+<epaper-button variant="secondary" size="sm">Back</epaper-button>
+<epaper-button variant="ghost" disabled>Disabled</epaper-button>
+```
+
+Attributes → classes:
+
+- `variant`: `primary | secondary | ghost` → `.epaper-btn--*`
+- `size`: `sm | lg` (default = base size) → `.epaper-btn--*`
+- `disabled`: reflects to native button disabled
+
+### Design choices
+
+- **Light DOM first**: keeps repaint cost low and lets existing `.epaper-*` CSS apply directly.
+- **Tokens & themes**: inherit `data-theme`/CSS variables from ancestors—same theming as the CSS-only path.
+- **Interop**: no framework runtime; just call `defineEpaperElements()`.
+
+### Roadmap
+
+- Additional elements (inputs, select, dialog, tabs) mapping attributes/slots to existing structures.
+- Optional Shadow DOM build guarded by capability checks for projects that need full encapsulation.
+
+### Tooltip
+
+No JS needed; focus-first tooltips use the same class selectors as the CSS version. Use `.epaper-tooltip__trigger` with an adjacent `.epaper-tooltip__bubble` for inline "info" chips that stay open while the cluster is focused. Add `.epaper-tooltip--persistent` or `data-show="true"` to force a default-open state.
+
+### Supported elements (today)
+
+- Layout: `<epaper-container width="wide|narrow">`, `<epaper-stack gap="sm|lg">`, `<epaper-cluster gap="1rem">`, `<epaper-grid min="18rem">`, `<epaper-divider strong>`, `<epaper-section>`, `<epaper-page-header>`, `<epaper-page-footer>`, `<epaper-card raised>`
+- Buttons: `<epaper-button variant="primary|secondary|ghost" size="sm|lg" disabled>`
+- Forms: `<epaper-input type="text|email|...">`, `<epaper-textarea>`, `<epaper-select> ... </epaper-select>`, `<epaper-checkbox checked disabled>Label</epaper-checkbox>`, `<epaper-radio name="group" value="a" checked>Label</epaper-radio>`
+- Tokens/components reuse all existing CSS—no visual drift from the class-based API.

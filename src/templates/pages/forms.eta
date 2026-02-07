@@ -1,0 +1,320 @@
+<% layout("../_layout", { title: "Forms", current: "forms", fullHeader: true }) %>
+
+    <main class="epaper-container epaper-stack">
+      <!-- ERROR SUMMARY -->
+      <section class="epaper-section">
+        <h2>Error summary</h2>
+        <p class="epaper-note">
+          E-Ink rationale: The error summary uses a thick border (not a filled
+          background) to draw attention without causing a large repaint region. Anchor
+          links within the summary let users jump to specific fields — critical on E-Ink
+          where scrolling is slow.
+        </p>
+
+        <div
+          class="epaper-error-summary"
+          role="alert"
+          style="margin-top: var(--epaper-space-4)"
+        >
+          <div class="epaper-error-summary__title">There are 3 errors in this form</div>
+          <ul>
+            <li><a href="#form-name">Full name is required</a></li>
+            <li><a href="#form-email">Enter a valid email address</a></li>
+            <li><a href="#form-terms">You must accept the terms</a></li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- COMPLETE FORM -->
+      <section class="epaper-section">
+        <h2>Complete form example</h2>
+        <p class="epaper-text-sm epaper-text-muted">
+          This form demonstrates labels, help text, required fields, disabled fields,
+          and validation error states.
+        </p>
+
+        <form novalidate style="max-width: 28rem; margin-top: var(--epaper-space-4)">
+          <div class="epaper-stack">
+            <!-- Name (required, error) -->
+            <div class="epaper-field">
+              <label class="epaper-label epaper-label--required" for="form-name"
+                >Full name</label
+              >
+              <input
+                type="text"
+                id="form-name"
+                class="epaper-input"
+                aria-invalid="true"
+                aria-describedby="form-name-error"
+                value=""
+                required
+              />
+              <span class="epaper-error-message" id="form-name-error"
+                >Full name is required.</span
+              >
+            </div>
+
+            <!-- Email (required, error) -->
+            <div class="epaper-field">
+              <label class="epaper-label epaper-label--required" for="form-email"
+                >Email address</label
+              >
+              <input
+                type="email"
+                id="form-email"
+                class="epaper-input"
+                aria-invalid="true"
+                aria-describedby="form-email-help form-email-error"
+                value="not-an-email"
+                required
+              />
+              <span class="epaper-help" id="form-email-help"
+                >We'll use this to send your confirmation.</span
+              >
+              <span class="epaper-error-message" id="form-email-error"
+                >Enter a valid email address.</span
+              >
+            </div>
+
+            <!-- Phone (optional, valid) -->
+            <div class="epaper-field">
+              <label class="epaper-label" for="form-phone"
+                >Phone number
+                <span class="epaper-text-xs epaper-text-muted">(optional)</span></label
+              >
+              <input
+                type="tel"
+                id="form-phone"
+                class="epaper-input"
+                aria-describedby="form-phone-help"
+                placeholder="+1 (555) 000-0000"
+              />
+              <span class="epaper-help" id="form-phone-help"
+                >Include country code for international numbers.</span
+              >
+            </div>
+
+            <!-- Country (select, valid) -->
+            <div class="epaper-field">
+              <label class="epaper-label epaper-label--required" for="form-country"
+                >Country</label
+              >
+              <select id="form-country" class="epaper-select" required>
+                <option value="">Select your country</option>
+                <option value="de">Germany</option>
+                <option value="fr">France</option>
+                <option value="uk">United Kingdom</option>
+                <option value="us">United States</option>
+              </select>
+            </div>
+
+            <!-- Bio (textarea, valid) -->
+            <div class="epaper-field">
+              <label class="epaper-label" for="form-bio"
+                >Short bio
+                <span class="epaper-text-xs epaper-text-muted">(optional)</span></label
+              >
+              <textarea
+                id="form-bio"
+                class="epaper-textarea"
+                aria-describedby="form-bio-help"
+                placeholder="Tell us about yourself"
+              ></textarea>
+              <span class="epaper-help" id="form-bio-help">Maximum 200 characters.</span>
+            </div>
+
+            <!-- Disabled field -->
+            <div class="epaper-field">
+              <label class="epaper-label" for="form-referral">Referral code</label>
+              <input
+                type="text"
+                id="form-referral"
+                class="epaper-input"
+                value="AUTO-APPLIED-2024"
+                disabled
+              />
+              <span class="epaper-help"
+                >This code was automatically applied and cannot be changed.</span
+              >
+            </div>
+
+            <!-- Notifications (checkbox group) -->
+            <fieldset style="border: none; padding: 0">
+              <legend class="epaper-label" style="margin-bottom: var(--epaper-space-2)">
+                Notification preferences
+              </legend>
+              <div class="epaper-stack epaper-stack--sm">
+                <div class="epaper-field epaper-field--inline">
+                  <input
+                    type="checkbox"
+                    class="epaper-checkbox"
+                    id="form-notif-email"
+                    checked
+                  />
+                  <label for="form-notif-email">Email notifications</label>
+                </div>
+                <div class="epaper-field epaper-field--inline">
+                  <input type="checkbox" class="epaper-checkbox" id="form-notif-sms" />
+                  <label for="form-notif-sms">SMS notifications</label>
+                </div>
+                <div class="epaper-field epaper-field--inline">
+                  <input
+                    type="checkbox"
+                    class="epaper-checkbox"
+                    id="form-notif-push"
+                    disabled
+                  />
+                  <label for="form-notif-push"
+                    >Push notifications (not available on this device)</label
+                  >
+                </div>
+              </div>
+            </fieldset>
+
+            <!-- Frequency (radio group) -->
+            <fieldset style="border: none; padding: 0">
+              <legend class="epaper-label" style="margin-bottom: var(--epaper-space-2)">
+                Notification frequency
+              </legend>
+              <div class="epaper-stack epaper-stack--sm">
+                <div class="epaper-field epaper-field--inline">
+                  <input
+                    type="radio"
+                    class="epaper-radio"
+                    name="freq"
+                    id="freq-instant"
+                    value="instant"
+                    checked
+                  />
+                  <label for="freq-instant">Instant</label>
+                </div>
+                <div class="epaper-field epaper-field--inline">
+                  <input
+                    type="radio"
+                    class="epaper-radio"
+                    name="freq"
+                    id="freq-daily"
+                    value="daily"
+                  />
+                  <label for="freq-daily">Daily digest</label>
+                </div>
+                <div class="epaper-field epaper-field--inline">
+                  <input
+                    type="radio"
+                    class="epaper-radio"
+                    name="freq"
+                    id="freq-weekly"
+                    value="weekly"
+                  />
+                  <label for="freq-weekly">Weekly summary</label>
+                </div>
+              </div>
+            </fieldset>
+
+            <!-- Terms (checkbox, error) -->
+            <div class="epaper-field">
+              <div class="epaper-field epaper-field--inline">
+                <input
+                  type="checkbox"
+                  class="epaper-checkbox"
+                  id="form-terms"
+                  aria-invalid="true"
+                  aria-describedby="form-terms-error"
+                  required
+                />
+                <label for="form-terms">I accept the terms and conditions</label>
+              </div>
+              <span class="epaper-error-message" id="form-terms-error"
+                >You must accept the terms to continue.</span
+              >
+            </div>
+
+            <!-- Actions -->
+            <div class="epaper-cluster" style="margin-top: var(--epaper-space-3)">
+              <button type="submit" class="epaper-btn epaper-btn--primary">Submit</button>
+              <button type="reset" class="epaper-btn epaper-btn--ghost">Reset</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <!-- FIELDSET GROUPING -->
+      <section class="epaper-section">
+        <h2>Fieldset grouping</h2>
+        <p class="epaper-text-sm epaper-text-muted">
+          Use native <code>&lt;fieldset&gt;</code> and <code>&lt;legend&gt;</code> for
+          logical groups.
+        </p>
+
+        <fieldset style="margin-top: var(--epaper-space-4); max-width: 28rem">
+          <legend>Shipping address</legend>
+          <div class="epaper-stack epaper-stack--sm">
+            <div class="epaper-field">
+              <label class="epaper-label" for="ship-street">Street</label>
+              <input
+                type="text"
+                id="ship-street"
+                class="epaper-input"
+                placeholder="123 Main St"
+              />
+            </div>
+            <div class="epaper-field">
+              <label class="epaper-label" for="ship-city">City</label>
+              <input
+                type="text"
+                id="ship-city"
+                class="epaper-input"
+                placeholder="Berlin"
+              />
+            </div>
+            <div class="epaper-field">
+              <label class="epaper-label" for="ship-zip">Postal code</label>
+              <input
+                type="text"
+                id="ship-zip"
+                class="epaper-input"
+                placeholder="10115"
+                style="max-width: 10rem"
+              />
+            </div>
+          </div>
+        </fieldset>
+      </section>
+
+      <!-- FORM LAYOUT PATTERNS -->
+      <section class="epaper-section">
+        <h2>Layout patterns</h2>
+        <p class="epaper-note">
+          E-Ink rationale: Forms should always be single-column on E-Ink devices.
+          Multi-column form layouts cause confusion on 6" screens and trigger more
+          partial refreshes when navigating between fields. Side-by-side fields are only
+          appropriate for very short inputs (e.g., city + zip code on wide screens).
+        </p>
+
+        <h3 style="margin-top: var(--epaper-space-4)">
+          Side-by-side fields (wide screens only)
+        </h3>
+        <div
+          class="epaper-grid"
+          style="
+            --epaper-grid-min: 12rem;
+            margin-top: var(--epaper-space-3);
+            max-width: 28rem;
+          "
+        >
+          <div class="epaper-field">
+            <label class="epaper-label" for="layout-first">First name</label>
+            <input
+              type="text"
+              id="layout-first"
+              class="epaper-input"
+              placeholder="Jane"
+            />
+          </div>
+          <div class="epaper-field">
+            <label class="epaper-label" for="layout-last">Last name</label>
+            <input type="text" id="layout-last" class="epaper-input" placeholder="Doe" />
+          </div>
+        </div>
+      </section>
+    </main>

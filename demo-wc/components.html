@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en" data-theme="default">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Components (Web Components) — epaper-components</title>
+    <link rel="stylesheet" href="../dist/epaper-components.css" />
+    <link rel="icon" href="../assets/epaper-components-logo.svg" type="image/svg+xml" />
+    <script src="../demo/theme.js" defer></script>
+    <script type="module">
+      import { defineEpaperElements } from "../dist/wc/index.js";
+      defineEpaperElements();
+    </script>
+  </head>
+  <body>
+    <header class="epaper-page-header">
+      <div class="epaper-container">
+        <div
+          class="epaper-cluster"
+          style="align-items: center; gap: var(--epaper-space-3)"
+        >
+          <img
+            src="../assets/epaper-components-logo.svg"
+            alt="epaper-components"
+            width="120"
+            height="32"
+            loading="lazy"
+          />
+          <h1 style="font-size: var(--epaper-text-2xl); margin: 0">
+            epaper-components
+          </h1>
+          <span class="epaper-badge">Web Components</span>
+        </div>
+        <nav class="epaper-nav" aria-label="Main navigation">
+          <a href="index.html">Overview</a>
+          <a href="layout.html">Layout</a>
+          <a href="components.html" aria-current="page">Components</a>
+          <a href="forms.html">Forms</a>
+        </nav>
+        <p
+          class="epaper-text-xs epaper-text-muted"
+          style="
+            margin-top: var(--epaper-space-2);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+            align-items: center;
+          "
+        >
+          <a href="../demo/components.html"
+            ><strong>Switch to CSS-only demos</strong></a
+          >
+          <span aria-hidden="true">·</span>
+          <span>Theme: <code data-theme-label>default</code></span>
+          <span aria-hidden="true">·</span>
+          <a href="?theme=default">Default</a>
+          <a href="?theme=inverted">Inverted</a>
+          <a href="?theme=high-contrast">High-contrast</a>
+          <span aria-hidden="true">·</span>
+          <a href="https://epaper-components.dev/storybook/"
+            ><strong>View Storybook</strong></a
+          >
+        </p>
+      </div>
+    </header>
+
+    <main class="epaper-container epaper-stack">
+      <!-- CARDS -->
+      <epaper-section>
+        <h2>Card</h2>
+        <p class="epaper-note">
+          <code>&lt;epaper-card&gt;</code> replaces
+          <code>&lt;div class="epaper-card"&gt;</code>. Add the
+          <code>raised</code> attribute for emphasis.
+        </p>
+
+        <div
+          class="epaper-stack epaper-stack--sm"
+          style="margin-top: var(--epaper-space-3)"
+        >
+          <div>
+            <span class="epaper-badge">CSS-only</span>
+            <pre
+              style="margin-top: var(--epaper-space-2)"
+            ><code>&lt;div class="epaper-card epaper-card--raised"&gt;...&lt;/div&gt;</code></pre>
+          </div>
+          <div>
+            <span class="epaper-badge">Web Component</span>
+            <pre
+              style="margin-top: var(--epaper-space-2)"
+            ><code>&lt;epaper-card raised&gt;...&lt;/epaper-card&gt;</code></pre>
+          </div>
+        </div>
+
+        <epaper-grid min="16rem" style="margin-top: var(--epaper-space-4)">
+          <epaper-card>
+            <div class="epaper-card__title">Default card</div>
+            <div class="epaper-card__body">
+              <p>Standard card with thin border. Good for grouping related content.</p>
+            </div>
+            <div class="epaper-card__footer">
+              <span class="epaper-text-xs epaper-text-muted">Footer area</span>
+            </div>
+          </epaper-card>
+
+          <epaper-card raised>
+            <div class="epaper-card__title">Raised card</div>
+            <div class="epaper-card__body">
+              <p>
+                Medium border weight for emphasis. Use sparingly — no more than one per
+                section.
+              </p>
+            </div>
+            <div class="epaper-card__footer">
+              <epaper-button variant="secondary" size="sm">Action</epaper-button>
+            </div>
+          </epaper-card>
+
+          <epaper-card>
+            <div class="epaper-card__title">Card without footer</div>
+            <div class="epaper-card__body">
+              <p>The footer is optional. Cards work fine with just a title and body.</p>
+            </div>
+          </epaper-card>
+        </epaper-grid>
+      </epaper-section>
+
+      <!-- BUTTONS -->
+      <epaper-section>
+        <h2>Button</h2>
+        <p class="epaper-note">
+          <code>&lt;epaper-button&gt;</code> wraps a native
+          <code>&lt;button&gt;</code> and maps <code>variant</code>, <code>size</code>,
+          and <code>disabled</code> attributes to CSS classes.
+        </p>
+
+        <div
+          class="epaper-stack epaper-stack--sm"
+          style="margin-top: var(--epaper-space-3)"
+        >
+          <div>
+            <span class="epaper-badge">CSS-only</span>
+            <pre
+              style="margin-top: var(--epaper-space-2)"
+            ><code>&lt;button class="epaper-btn epaper-btn--primary"&gt;Primary&lt;/button&gt;</code></pre>
+          </div>
+          <div>
+            <span class="epaper-badge">Web Component</span>
+            <pre
+              style="margin-top: var(--epaper-space-2)"
+            ><code>&lt;epaper-button variant="primary"&gt;Primary&lt;/epaper-button&gt;</code></pre>
+          </div>
+        </div>
+
+        <h3 style="margin-top: var(--epaper-space-4)">Variants</h3>
+        <epaper-cluster style="margin-top: var(--epaper-space-3)">
+          <epaper-button variant="primary">Primary</epaper-button>
+          <epaper-button variant="secondary">Secondary</epaper-button>
+          <epaper-button variant="ghost">Ghost</epaper-button>
+        </epaper-cluster>
+
+        <h3 style="margin-top: var(--epaper-space-5)">Sizes</h3>
+        <epaper-cluster style="margin-top: var(--epaper-space-3)">
+          <epaper-button variant="primary" size="sm">Small</epaper-button>
+          <epaper-button variant="primary">Default</epaper-button>
+          <epaper-button variant="primary" size="lg">Large</epaper-button>
+        </epaper-cluster>
+
+        <h3 style="margin-top: var(--epaper-space-5)">Disabled state</h3>
+        <epaper-cluster style="margin-top: var(--epaper-space-3)">
+          <epaper-button variant="primary" disabled>Primary (disabled)</epaper-button>
+          <epaper-button variant="secondary" disabled
+            >Secondary (disabled)</epaper-button
+          >
+          <epaper-button variant="ghost" disabled>Ghost (disabled)</epaper-button>
+        </epaper-cluster>
+
+        <h3 style="margin-top: var(--epaper-space-5)">Focus state</h3>
+        <p class="epaper-text-sm epaper-text-muted">
+          Tab through the buttons below to see the focus ring.
+        </p>
+        <epaper-cluster style="margin-top: var(--epaper-space-3)">
+          <epaper-button variant="primary">Tab to me</epaper-button>
+          <epaper-button variant="secondary">Then to me</epaper-button>
+          <epaper-button variant="ghost">And me</epaper-button>
+        </epaper-cluster>
+      </epaper-section>
+
+      <!-- ALERTS -->
+      <epaper-section>
+        <h2>Alert</h2>
+        <p class="epaper-note">
+          <code>&lt;epaper-alert&gt;</code> with
+          <code>variant="info|success|warning|error"</code>.
+        </p>
+
+        <epaper-stack gap="sm" style="margin-top: var(--epaper-space-4)">
+          <epaper-alert variant="info" role="status">
+            <div class="epaper-alert__title">Info</div>
+            <div class="epaper-alert__body">Thin left rule; minimal repaint.</div>
+          </epaper-alert>
+          <epaper-alert variant="success" role="status">
+            <div class="epaper-alert__title">Success</div>
+            <div class="epaper-alert__body">Thicker rule for emphasis.</div>
+          </epaper-alert>
+          <epaper-alert variant="warning" role="status">
+            <div class="epaper-alert__title">Warning</div>
+            <div class="epaper-alert__body">Dashed rule reads well on low DPI.</div>
+          </epaper-alert>
+          <epaper-alert variant="error" role="alert">
+            <div class="epaper-alert__title">Error</div>
+            <div class="epaper-alert__body">
+              Error background uses light gray instead of fill.
+            </div>
+          </epaper-alert>
+        </epaper-stack>
+      </epaper-section>
+
+      <!-- TAGS & BADGES -->
+      <epaper-section>
+        <h2>Tag &amp; Badge</h2>
+        <p class="epaper-note">
+          <code>&lt;epaper-tag&gt;</code> with optional
+          <code>variant="filled|muted"</code>, and <code>&lt;epaper-badge&gt;</code>.
+        </p>
+
+        <h3 style="margin-top: var(--epaper-space-4)">Tags</h3>
+        <epaper-cluster style="margin-top: var(--epaper-space-3)">
+          <epaper-tag>Default</epaper-tag>
+          <epaper-tag variant="filled">Filled</epaper-tag>
+          <epaper-tag variant="muted">Muted</epaper-tag>
+        </epaper-cluster>
+
+        <h3 style="margin-top: var(--epaper-space-5)">Badges</h3>
+        <epaper-cluster style="margin-top: var(--epaper-space-3)">
+          <epaper-badge>Badge</epaper-badge>
+          <epaper-badge>New</epaper-badge>
+          <epaper-badge>3</epaper-badge>
+        </epaper-cluster>
+      </epaper-section>
+    </main>
+
+    <footer class="epaper-page-footer">
+      <div class="epaper-container">
+        <small>epaper-components — Web Component demos for E-Ink devices.</small>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,33 @@
+/* ===========================================
+   BREADCRUMB
+   =========================================== */
+
+:where(.epaper-breadcrumb) {
+  font-size: var(--epaper-text-sm);
+}
+
+:where(.epaper-breadcrumb__list) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--epaper-space-1);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+:where(.epaper-breadcrumb__item) {
+  display: flex;
+  align-items: center;
+  gap: var(--epaper-space-1);
+}
+
+:where(.epaper-breadcrumb__item + .epaper-breadcrumb__item)::before {
+  content: "/";
+  color: var(--epaper-fg-subtle);
+}
+
+:where(.epaper-breadcrumb__item[aria-current="page"]) {
+  font-weight: var(--epaper-weight-bold);
+  color: var(--epaper-fg);
+}

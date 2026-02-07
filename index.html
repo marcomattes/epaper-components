@@ -1,0 +1,758 @@
+<!doctype html>
+<html lang="en" data-theme="default">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>epaper-components — epaper-components</title>
+    <meta
+      name="description"
+      content="epaper-components is a CSS-only component library with 46+ components optimized for E-Ink displays like Kindle, Tolino, and Kobo. Zero JavaScript, three themes, optional Web Components."
+    />
+    <meta name="author" content="Marco Mattes" />
+    <meta name="theme-color" content="#ffffff" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="epaper-components — epaper-components" />
+    <meta
+      property="og:description"
+      content="epaper-components is a CSS-only component library with 46+ components optimized for E-Ink displays like Kindle, Tolino, and Kobo. Zero JavaScript, three themes, optional Web Components."
+    />
+    <meta property="og:site_name" content="epaper-components" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="epaper-components — epaper-components" />
+    <meta
+      name="twitter:description"
+      content="epaper-components is a CSS-only component library with 46+ components optimized for E-Ink displays like Kindle, Tolino, and Kobo. Zero JavaScript, three themes, optional Web Components."
+    />
+
+    <link rel="stylesheet" href="dist/epaper-components.css" />
+    <link rel="icon" href="assets/epaper-components-logo.svg" type="image/svg+xml" />
+    <link rel="canonical" href="" />
+    <script src="demo/theme.js" defer></script>
+  </head>
+  <body>
+    <header class="epaper-page-header">
+      <div class="epaper-container">
+        <div
+          class="epaper-cluster"
+          style="align-items: center; gap: var(--epaper-space-3)"
+        >
+          <img
+            src="assets/epaper-components-logo.svg"
+            alt="epaper-components"
+            width="120"
+            height="32"
+            loading="lazy"
+          />
+          <h1 style="font-size: var(--epaper-text-2xl); margin: 0">
+            epaper-components
+          </h1>
+        </div>
+        <nav class="epaper-nav" aria-label="Main navigation">
+          <a href="demo/index.html">Overview</a>
+          <a href="demo/typography.html">Typography</a>
+          <a href="demo/layout.html">Layout</a>
+          <a href="demo/components.html">Components</a>
+          <a href="demo/forms.html">Forms</a>
+          <a href="demo/dialog.html">Dialog</a>
+          <a href="demo/tables.html">Tables</a>
+          <a href="demo/newsreader.html">Newsreader</a>
+          <a href="demo/blog.html">Blog</a>
+          <a href="demo/dashboard.html">Dashboard</a>
+        </nav>
+        <p
+          class="epaper-text-xs"
+          style="
+            margin-top: var(--epaper-space-1);
+            display: flex;
+            gap: var(--epaper-space-3);
+            align-items: center;
+            flex-wrap: wrap;
+          "
+        >
+          <a href="demo-wc/index.html"
+            ><strong>Switch to Web Component demos</strong></a
+          >
+          <span aria-hidden="true">·</span>
+          <a href="https://epaper-components.dev/storybook/"
+            ><strong>View Storybook</strong></a
+          >
+        </p>
+        <p
+          class="epaper-text-xs epaper-text-muted"
+          style="
+            margin-top: var(--epaper-space-2);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+            align-items: center;
+          "
+        >
+          <span>Theme: <code data-theme-label>default</code></span>
+          <span aria-hidden="true">·</span>
+          <a href="?theme=default">Default</a>
+          <a href="?theme=inverted">Inverted</a>
+          <a href="?theme=high-contrast">High-contrast</a>
+          <span aria-hidden="true">·</span>
+          <span
+            >Set <code>data-theme="..."</code> on <code>&lt;html&gt;</code> for no-JS
+            use.</span
+          >
+        </p>
+      </div>
+    </header>
+
+    <main class="epaper-container epaper-stack epaper-stack--lg">
+      <!-- Hero -->
+      <section class="epaper-section">
+        <div class="epaper-stack">
+          <h2 style="font-size: var(--epaper-text-3xl); line-height: 1.15">
+            A CSS component library<br />built for E-Ink displays
+          </h2>
+
+          <!-- Badges (GitHub native) -->
+          <div class="epaper-cluster" style="gap: var(--epaper-space-1)">
+            <a
+              href="https://github.com/marcomattes/epaper-components/actions/workflows/ci.yml"
+              ><img
+                src="https://github.com/marcomattes/epaper-components/actions/workflows/ci.yml/badge.svg"
+                alt="CI"
+                height="20"
+            /></a>
+            <a
+              href="https://github.com/marcomattes/epaper-components/actions/workflows/pages.yml"
+              ><img
+                src="https://github.com/marcomattes/epaper-components/actions/workflows/pages.yml/badge.svg"
+                alt="Deploy to GitHub Pages"
+                height="20"
+            /></a>
+            <a href="https://github.com/marcomattes/epaper-components"
+              ><img
+                src="https://img.shields.io/github/v/tag/marcomattes/epaper-components?label=version&amp;style=flat-square"
+                alt="Version"
+                height="20"
+            /></a>
+            <a href="https://github.com/marcomattes/epaper-components/blob/main/LICENSE"
+              ><img
+                src="https://img.shields.io/github/license/marcomattes/epaper-components?style=flat-square"
+                alt="License"
+                height="20"
+            /></a>
+            <img
+              src="https://img.shields.io/github/languages/code-size/marcomattes/epaper-components?style=flat-square&amp;label=code%20size"
+              alt="Code size"
+              height="20"
+            />
+          </div>
+
+          <p class="epaper-measure" style="font-size: var(--epaper-text-lg)">
+            A CSS-first design system optimized for E-Ink readers like Kindle, Tolino,
+            and Kobo. 46+ components with zero JavaScript required. Three built-in
+            themes and optional Web Components for progressive enhancement.
+          </p>
+          <div class="epaper-tag-group">
+            <span class="epaper-tag epaper-tag--filled">CSS-only</span>
+            <span class="epaper-tag epaper-tag--filled">Zero JavaScript</span>
+            <span class="epaper-tag">E-Ink Optimized</span>
+            <span class="epaper-tag">WCAG Accessible</span>
+            <span class="epaper-tag">3 Themes</span>
+            <span class="epaper-tag">Web Components</span>
+          </div>
+          <div class="epaper-cluster">
+            <a href="demo/components.html" class="epaper-btn epaper-btn--primary"
+              >Browse Components</a
+            >
+            <a href="#getting-started" class="epaper-btn epaper-btn--secondary"
+              >Get Started</a
+            >
+            <a href="demo-wc/index.html" class="epaper-btn epaper-btn--ghost"
+              >Web Components &rarr;</a
+            >
+            <a
+              href="https://github.com/marcomattes/epaper-components"
+              class="epaper-btn epaper-btn--ghost"
+              style="display: inline-flex; align-items: center; gap: 0.45rem"
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 16 16"
+                width="16"
+                height="16"
+                fill="currentColor"
+                focusable="false"
+              >
+                <path
+                  d="M8 0a8 8 0 0 0-2.53 15.6c.4.07.55-.17.55-.38v-1.32c-2.23.48-2.7-1.08-2.7-1.08-.36-.9-.88-1.14-.88-1.14-.72-.5.05-.49.05-.49.8.06 1.22.85 1.22.85.7 1.2 1.85.85 2.3.65.07-.52.27-.86.5-1.06-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.58.82-2.13-.08-.2-.36-1.02.08-2.12 0 0 .68-.22 2.22.82a7.73 7.73 0 0 1 2.02-.27c.69 0 1.38.09 2.02.27 1.53-1.04 2.21-.82 2.21-.82.44 1.1.16 1.92.08 2.12.51.55.82 1.26.82 2.13 0 3.07-1.87 3.74-3.65 3.94.28.24.54.73.54 1.48v2.2c0 .21.15.45.55.37A8 8 0 0 0 8 0Z"
+                />
+              </svg>
+              <span>GitHub repo</span>
+            </a>
+          </div>
+          <div class="epaper-cluster epaper-text-sm" style="gap: var(--epaper-space-3)">
+            <a href="https://github.com/marcomattes/epaper-components">GitHub</a>
+            <span aria-hidden="true">·</span>
+            <a href="storybook/">Storybook</a>
+            <span aria-hidden="true">·</span>
+            <a href="demo/index.html">Demo Pages</a>
+            <span aria-hidden="true">·</span>
+            <a href="https://www.npmjs.com/package/epaper-components">npm</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Stats -->
+      <section class="epaper-section">
+        <div class="epaper-grid" style="--epaper-grid-min: 10rem">
+          <div class="epaper-stat">
+            <div class="epaper-stat__value">46+</div>
+            <div class="epaper-stat__label">Components</div>
+          </div>
+          <div class="epaper-stat">
+            <div class="epaper-stat__value">0</div>
+            <div class="epaper-stat__label">JavaScript Required</div>
+          </div>
+          <div class="epaper-stat">
+            <div class="epaper-stat__value">3</div>
+            <div class="epaper-stat__label">Built-in Themes</div>
+          </div>
+          <div class="epaper-stat">
+            <div class="epaper-stat__value epaper-text-mono">0,0,0</div>
+            <div class="epaper-stat__label">CSS Specificity</div>
+          </div>
+        </div>
+      </section>
+
+      <hr class="epaper-divider" />
+
+      <!-- Features -->
+      <section class="epaper-section">
+        <h2>Built for E-Ink, useful everywhere</h2>
+        <p class="epaper-text-muted">
+          Every design decision optimized for slow-refresh, high-contrast displays.
+        </p>
+
+        <div class="epaper-grid" style="--epaper-grid-min: 16rem">
+          <div class="epaper-card">
+            <div class="epaper-card__title">E-Ink Optimized</div>
+            <div class="epaper-card__body">
+              <p>
+                No animations, no hover-only affordances, no large filled surfaces.
+                Designed to minimize ghosting and partial refreshes on 300ms screens.
+              </p>
+            </div>
+          </div>
+
+          <div class="epaper-card">
+            <div class="epaper-card__title">Zero JavaScript</div>
+            <div class="epaper-card__body">
+              <p>
+                The entire CSS layer works without a single line of JavaScript.
+                Progressive enhancement via optional Web Components.
+              </p>
+            </div>
+          </div>
+
+          <div class="epaper-card">
+            <div class="epaper-card__title">Zero Specificity</div>
+            <div class="epaper-card__body">
+              <p>
+                Every selector wrapped in <code>:where()</code> for 0,0,0 specificity.
+                Override anything without <code>!important</code>. Plays nice with your
+                styles.
+              </p>
+            </div>
+          </div>
+
+          <div class="epaper-card">
+            <div class="epaper-card__title">Semantic HTML</div>
+            <div class="epaper-card__body">
+              <p>
+                Built on native HTML elements: <code>&lt;dialog&gt;</code>,
+                <code>&lt;details&gt;</code>, <code>&lt;fieldset&gt;</code>. No div
+                soup. Accessible by default.
+              </p>
+            </div>
+          </div>
+
+          <div class="epaper-card">
+            <div class="epaper-card__title">Three Themes</div>
+            <div class="epaper-card__body">
+              <p>
+                Default, inverted, and high-contrast themes via CSS custom properties.
+                Switch with a single data attribute on <code>&lt;html&gt;</code>.
+              </p>
+            </div>
+          </div>
+
+          <div class="epaper-card">
+            <div class="epaper-card__title">Web Components</div>
+            <div class="epaper-card__body">
+              <p>
+                Optional light-DOM custom elements map 1:1 to CSS classes. Same styles,
+                cleaner markup. No Shadow DOM.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <hr class="epaper-divider" />
+
+      <!-- Component Showcase -->
+      <section class="epaper-section">
+        <h2>Component showcase</h2>
+        <p class="epaper-text-muted">
+          A sample of the 46+ components included. All rendered live with
+          epaper-components CSS.
+        </p>
+
+        <div class="epaper-grid" style="--epaper-grid-min: 18rem">
+          <div class="epaper-card">
+            <div class="epaper-card__title">Buttons</div>
+            <div class="epaper-card__body">
+              <div class="epaper-cluster">
+                <button class="epaper-btn epaper-btn--primary">Primary</button>
+                <button class="epaper-btn epaper-btn--secondary">Secondary</button>
+                <button class="epaper-btn epaper-btn--ghost">Ghost</button>
+              </div>
+              <div class="epaper-cluster" style="margin-top: var(--epaper-space-2)">
+                <button class="epaper-btn epaper-btn--primary epaper-btn--sm">
+                  Small
+                </button>
+                <button class="epaper-btn epaper-btn--secondary epaper-btn--lg">
+                  Large
+                </button>
+                <button class="epaper-btn epaper-btn--secondary" disabled>
+                  Disabled
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="epaper-card">
+            <div class="epaper-card__title">Form Controls</div>
+            <div class="epaper-card__body">
+              <div class="epaper-stack epaper-stack--sm">
+                <div class="epaper-field">
+                  <label class="epaper-label" for="demo-input">Text input</label>
+                  <input
+                    id="demo-input"
+                    class="epaper-input"
+                    type="text"
+                    placeholder="Type here..."
+                  />
+                </div>
+                <div class="epaper-field">
+                  <label class="epaper-label" for="demo-select">Select</label>
+                  <select id="demo-select" class="epaper-select">
+                    <option>Option one</option>
+                    <option>Option two</option>
+                  </select>
+                </div>
+                <div class="epaper-field epaper-field--inline">
+                  <input type="checkbox" id="demo-cb" class="epaper-checkbox" checked />
+                  <label class="epaper-label" for="demo-cb">Checkbox</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="epaper-card">
+            <div class="epaper-card__title">Alerts</div>
+            <div class="epaper-card__body">
+              <div class="epaper-stack epaper-stack--sm">
+                <div class="epaper-alert epaper-alert--info">
+                  <div class="epaper-alert__title">Info</div>
+                  <div class="epaper-alert__body">
+                    Informational message for the user.
+                  </div>
+                </div>
+                <div class="epaper-alert epaper-alert--success">
+                  <div class="epaper-alert__title">Success</div>
+                  <div class="epaper-alert__body">
+                    Operation completed successfully.
+                  </div>
+                </div>
+                <div class="epaper-alert epaper-alert--error">
+                  <div class="epaper-alert__title">Error</div>
+                  <div class="epaper-alert__body">Something went wrong.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="epaper-card">
+            <div class="epaper-card__title">Tags &amp; Data</div>
+            <div class="epaper-card__body">
+              <div class="epaper-tag-group">
+                <span class="epaper-tag">Default</span>
+                <span class="epaper-tag epaper-tag--filled">Filled</span>
+                <span class="epaper-tag epaper-tag--muted">Muted</span>
+              </div>
+              <dl
+                class="epaper-dl epaper-dl--horizontal epaper-dl--bordered"
+                style="margin-top: var(--epaper-space-3)"
+              >
+                <dt class="epaper-dl__term">Version</dt>
+                <dd class="epaper-dl__detail">1.0.0</dd>
+                <dt class="epaper-dl__term">License</dt>
+                <dd class="epaper-dl__detail">MIT</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <hr class="epaper-divider" />
+
+      <!-- Two Ways to Use -->
+      <section class="epaper-section">
+        <h2>Two ways to use it</h2>
+        <p class="epaper-text-muted">
+          Use CSS classes directly, or opt into Web Components for cleaner markup. Same
+          styles, your choice.
+        </p>
+
+        <div class="epaper-tabs" style="--epaper-tabs-count: 2">
+          <input
+            type="radio"
+            name="code-tabs"
+            id="code-tab-css"
+            class="epaper-tabs__input"
+            checked
+          />
+          <label for="code-tab-css" class="epaper-tabs__tab">CSS Classes</label>
+          <input
+            type="radio"
+            name="code-tabs"
+            id="code-tab-wc"
+            class="epaper-tabs__input"
+          />
+          <label for="code-tab-wc" class="epaper-tabs__tab">Web Components</label>
+          <div class="epaper-tabs__panel">
+            <pre><code>&lt;div class="epaper-card epaper-card--raised"&gt;
+  &lt;div class="epaper-card__title"&gt;Hello&lt;/div&gt;
+  &lt;div class="epaper-card__body"&gt;
+    &lt;p&gt;A simple card component.&lt;/p&gt;
+    &lt;button class="epaper-btn epaper-btn--primary"&gt;
+      Action
+    &lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+          <div class="epaper-tabs__panel">
+            <pre><code>&lt;epaper-card raised&gt;
+  &lt;div class="epaper-card__title"&gt;Hello&lt;/div&gt;
+  &lt;div class="epaper-card__body"&gt;
+    &lt;p&gt;A simple card component.&lt;/p&gt;
+    &lt;epaper-button variant="primary"&gt;
+      Action
+    &lt;/epaper-button&gt;
+  &lt;/div&gt;
+&lt;/epaper-card&gt;</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <hr class="epaper-divider" />
+
+      <!-- Theme Preview -->
+      <section class="epaper-section">
+        <h2>Three built-in themes</h2>
+        <p class="epaper-text-muted">
+          Switch themes with a single <code>data-theme</code> attribute. Every color is
+          a CSS custom property.
+        </p>
+
+        <div class="epaper-grid" style="--epaper-grid-min: 14rem">
+          <div
+            data-theme="default"
+            class="epaper-card"
+            style="background-color: var(--epaper-bg); color: var(--epaper-fg)"
+          >
+            <div class="epaper-card__title">Default</div>
+            <div class="epaper-card__body">
+              <p>Dark text on light background. Standard grayscale palette.</p>
+              <div class="epaper-cluster" style="margin-top: var(--epaper-space-2)">
+                <button class="epaper-btn epaper-btn--primary epaper-btn--sm">
+                  Primary
+                </button>
+                <button class="epaper-btn epaper-btn--secondary epaper-btn--sm">
+                  Secondary
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div
+            data-theme="inverted"
+            class="epaper-card"
+            style="background-color: var(--epaper-bg); color: var(--epaper-fg)"
+          >
+            <div class="epaper-card__title">Inverted</div>
+            <div class="epaper-card__body">
+              <p>Light text on dark background. Night mode for backlit E-Ink.</p>
+              <div class="epaper-cluster" style="margin-top: var(--epaper-space-2)">
+                <button class="epaper-btn epaper-btn--primary epaper-btn--sm">
+                  Primary
+                </button>
+                <button class="epaper-btn epaper-btn--secondary epaper-btn--sm">
+                  Secondary
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div
+            data-theme="high-contrast"
+            class="epaper-card"
+            style="background-color: var(--epaper-bg); color: var(--epaper-fg)"
+          >
+            <div class="epaper-card__title">High Contrast</div>
+            <div class="epaper-card__body">
+              <p>Pure black and white. Maximum legibility on low-DPI panels.</p>
+              <div class="epaper-cluster" style="margin-top: var(--epaper-space-2)">
+                <button class="epaper-btn epaper-btn--primary epaper-btn--sm">
+                  Primary
+                </button>
+                <button class="epaper-btn epaper-btn--secondary epaper-btn--sm">
+                  Secondary
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <hr class="epaper-divider" />
+
+      <!-- Philosophy -->
+      <section class="epaper-section">
+        <blockquote class="epaper-blockquote epaper-blockquote--pull">
+          E-Ink screens refresh at 300ms. Every pixel matters, every repaint costs. This
+          library embraces those constraints &mdash; borders over fills, whitespace over
+          color, clarity over decoration.
+        </blockquote>
+      </section>
+
+      <!-- Real-World Examples -->
+      <section class="epaper-section">
+        <h2>Real-world examples</h2>
+        <p class="epaper-text-muted">
+          Full-page demos built entirely with epaper-components components.
+        </p>
+        <div class="epaper-grid" style="--epaper-grid-min: 14rem">
+          <div class="epaper-card epaper-card--raised">
+            <div class="epaper-card__title">Newsreader</div>
+            <div class="epaper-card__body">
+              <p>Article-style layout with sidebar, article cards, and navigation.</p>
+              <p style="margin-top: var(--epaper-space-2)">
+                <a
+                  href="demo/newsreader.html"
+                  class="epaper-btn epaper-btn--secondary epaper-btn--sm"
+                  >View Demo</a
+                >
+              </p>
+            </div>
+          </div>
+          <div class="epaper-card epaper-card--raised">
+            <div class="epaper-card__title">Blog</div>
+            <div class="epaper-card__body">
+              <p>Clean blog layout with articles, bylines, blockquotes, and tags.</p>
+              <p style="margin-top: var(--epaper-space-2)">
+                <a
+                  href="demo/blog.html"
+                  class="epaper-btn epaper-btn--secondary epaper-btn--sm"
+                  >View Demo</a
+                >
+              </p>
+            </div>
+          </div>
+          <div class="epaper-card epaper-card--raised">
+            <div class="epaper-card__title">Dashboard</div>
+            <div class="epaper-card__body">
+              <p>Data-rich dashboard with stat cards, tables, and toolbar patterns.</p>
+              <p style="margin-top: var(--epaper-space-2)">
+                <a
+                  href="demo/dashboard.html"
+                  class="epaper-btn epaper-btn--secondary epaper-btn--sm"
+                  >View Demo</a
+                >
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <hr class="epaper-divider" />
+
+      <!-- Getting Started -->
+      <section class="epaper-section" id="getting-started">
+        <h2>Getting started</h2>
+
+        <div class="epaper-stack">
+          <div class="epaper-stack epaper-stack--sm">
+            <h3>1. Include the CSS</h3>
+            <pre><code>&lt;link rel="stylesheet" href="epaper-components.css"&gt;</code></pre>
+            <p class="epaper-text-sm epaper-text-muted">
+              Or import the three individual files for finer control: tokens, base, and
+              components.
+            </p>
+          </div>
+
+          <div class="epaper-stack epaper-stack--sm">
+            <h3>2. Set a theme</h3>
+            <pre><code>&lt;html data-theme="default"&gt;</code></pre>
+            <p class="epaper-text-sm epaper-text-muted">
+              Choose from <code>default</code>, <code>inverted</code>, or
+              <code>high-contrast</code>.
+            </p>
+          </div>
+
+          <div class="epaper-stack epaper-stack--sm">
+            <h3>3. Use components</h3>
+            <pre><code>&lt;button class="epaper-btn epaper-btn--primary"&gt;Click me&lt;/button&gt;
+
+&lt;div class="epaper-card"&gt;
+  &lt;div class="epaper-card__title"&gt;Title&lt;/div&gt;
+  &lt;div class="epaper-card__body"&gt;Content&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+
+          <div class="epaper-stack epaper-stack--sm">
+            <h3>4. Optional: Add Web Components</h3>
+            <pre><code>&lt;script type="module"&gt;
+  import { defineEpaperElements } from "epaper-components/wc";
+  defineEpaperElements();
+&lt;/script&gt;</code></pre>
+            <p class="epaper-text-sm epaper-text-muted">
+              Web Components are optional progressive enhancement. The CSS works without
+              them.
+            </p>
+          </div>
+        </div>
+
+        <div
+          class="epaper-alert epaper-alert--info"
+          style="margin-top: var(--epaper-space-3)"
+        >
+          <div class="epaper-alert__title">No build step required</div>
+          <div class="epaper-alert__body">
+            Copy the CSS file into your project and start using components immediately.
+            No npm, no bundler, no configuration.
+          </div>
+        </div>
+      </section>
+
+      <!-- Explore -->
+      <section class="epaper-section">
+        <h2>Explore the docs</h2>
+        <p class="epaper-text-muted">Detailed demos for every component category.</p>
+        <div class="epaper-grid" style="--epaper-grid-min: 14rem">
+          <div class="epaper-card">
+            <div class="epaper-card__body">
+              <p><strong>Typography</strong></p>
+              <p class="epaper-text-sm epaper-text-muted">
+                Type scale, line length, prose styles
+              </p>
+              <p style="margin-top: var(--epaper-space-2)">
+                <a
+                  href="demo/typography.html"
+                  class="epaper-btn epaper-btn--ghost epaper-btn--sm"
+                  >View &rarr;</a
+                >
+              </p>
+            </div>
+          </div>
+          <div class="epaper-card">
+            <div class="epaper-card__body">
+              <p><strong>Layout</strong></p>
+              <p class="epaper-text-sm epaper-text-muted">
+                Container, stack, cluster, grid, divider
+              </p>
+              <p style="margin-top: var(--epaper-space-2)">
+                <a
+                  href="demo/layout.html"
+                  class="epaper-btn epaper-btn--ghost epaper-btn--sm"
+                  >View &rarr;</a
+                >
+              </p>
+            </div>
+          </div>
+          <div class="epaper-card">
+            <div class="epaper-card__body">
+              <p><strong>Components</strong></p>
+              <p class="epaper-text-sm epaper-text-muted">
+                Cards, buttons, alerts, tags, tooltips
+              </p>
+              <p style="margin-top: var(--epaper-space-2)">
+                <a
+                  href="demo/components.html"
+                  class="epaper-btn epaper-btn--ghost epaper-btn--sm"
+                  >View &rarr;</a
+                >
+              </p>
+            </div>
+          </div>
+          <div class="epaper-card">
+            <div class="epaper-card__body">
+              <p><strong>Forms</strong></p>
+              <p class="epaper-text-sm epaper-text-muted">
+                Validation, errors, help text, patterns
+              </p>
+              <p style="margin-top: var(--epaper-space-2)">
+                <a
+                  href="demo/forms.html"
+                  class="epaper-btn epaper-btn--ghost epaper-btn--sm"
+                  >View &rarr;</a
+                >
+              </p>
+            </div>
+          </div>
+          <div class="epaper-card">
+            <div class="epaper-card__body">
+              <p><strong>Dialog</strong></p>
+              <p class="epaper-text-sm epaper-text-muted">
+                Native &lt;dialog&gt; patterns
+              </p>
+              <p style="margin-top: var(--epaper-space-2)">
+                <a
+                  href="demo/dialog.html"
+                  class="epaper-btn epaper-btn--ghost epaper-btn--sm"
+                  >View &rarr;</a
+                >
+              </p>
+            </div>
+          </div>
+          <div class="epaper-card">
+            <div class="epaper-card__body">
+              <p><strong>Tables</strong></p>
+              <p class="epaper-text-sm epaper-text-muted">
+                Striped, bordered, responsive scroll
+              </p>
+              <p style="margin-top: var(--epaper-space-2)">
+                <a
+                  href="demo/tables.html"
+                  class="epaper-btn epaper-btn--ghost epaper-btn--sm"
+                  >View &rarr;</a
+                >
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="epaper-page-footer">
+      <div class="epaper-container">
+        <small
+          >epaper-components — CSS-only component library for E-Ink devices. No
+          JavaScript. No build step.</small
+        >
+      </div>
+    </footer>
+  </body>
+</html>

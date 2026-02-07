@@ -1,0 +1,158 @@
+/* ============================================
+   epaper-ui.tokens.scss — Design Tokens (SCSS source)
+   Compiles to epaper-ui.tokens.css
+   ============================================ */
+
+/* --- Primitive scale (theme-independent) --- */
+
+:root {
+  /* Primitive grayscale palette */
+  --epaper-color-black: #000;
+  --epaper-color-white: #fff;
+  --epaper-color-gray-50: #fafafa;
+  --epaper-color-gray-100: #f5f5f5;
+  --epaper-color-gray-200: #e5e5e5;
+  --epaper-color-gray-300: #d4d4d4;
+  --epaper-color-gray-400: #a3a3a3;
+  --epaper-color-gray-500: #737373;
+  --epaper-color-gray-600: #525252;
+  --epaper-color-gray-700: #404040;
+  --epaper-color-gray-800: #262626;
+  --epaper-color-gray-900: #171717;
+
+  /* Spacing scale (4px base) */
+  --epaper-space-0: 0;
+  --epaper-space-1: 0.25rem;
+  --epaper-space-2: 0.5rem;
+  --epaper-space-3: 0.75rem;
+  --epaper-space-4: 1rem;
+  --epaper-space-5: 1.5rem;
+  --epaper-space-6: 2rem;
+  --epaper-space-7: 3rem;
+  --epaper-space-8: 4rem;
+
+  /* Typography — system font stack (no webfonts for e-ink stability) */
+  --epaper-font-sans:
+    -apple-system, blinkmacsystemfont, "Segoe UI", roboto, "Helvetica Neue", arial,
+    "Noto Sans", sans-serif;
+  --epaper-font-serif:
+    "Iowan Old Style", "Palatino Linotype", "URW Palladio L", p052, serif;
+  --epaper-font-mono:
+    ui-monospace, sfmono-regular, "SF Mono", menlo, consolas, "Liberation Mono",
+    monospace;
+
+  /* Type scale */
+  --epaper-text-xs: 0.75rem;
+  --epaper-text-sm: 0.875rem;
+  --epaper-text-base: 1rem;
+  --epaper-text-lg: 1.125rem;
+  --epaper-text-xl: 1.25rem;
+  --epaper-text-2xl: 1.5rem;
+  --epaper-text-3xl: 1.875rem;
+  --epaper-text-4xl: 2.25rem;
+
+  /* Line heights */
+  --epaper-leading-tight: 1.25;
+  --epaper-leading-normal: 1.5;
+  --epaper-leading-relaxed: 1.625;
+
+  /* Font weights */
+  --epaper-weight-normal: 400;
+  --epaper-weight-medium: 500;
+  --epaper-weight-bold: 700;
+
+  /* Borders */
+  --epaper-border-thin: 1px;
+  --epaper-border-medium: 2px;
+  --epaper-border-thick: 3px;
+  --epaper-radius-sm: 2px;
+  --epaper-radius-md: 4px;
+
+  /* Line length (measure) */
+  --epaper-measure: 65ch;
+  --epaper-measure-narrow: 45ch;
+  --epaper-measure-wide: 80ch;
+
+  /* Focus ring */
+  --epaper-focus-width: 3px;
+  --epaper-focus-offset: 2px;
+}
+
+/* -----------------------------------------------
+   Default theme
+   ----------------------------------------------- */
+
+:root,
+[data-theme="default"] {
+  --epaper-fg: var(--epaper-color-gray-900);
+  --epaper-fg-muted: var(--epaper-color-gray-600);
+  --epaper-fg-subtle: var(--epaper-color-gray-400);
+  --epaper-bg: var(--epaper-color-white);
+  --epaper-bg-subtle: var(--epaper-color-gray-50);
+  --epaper-bg-muted: var(--epaper-color-gray-100);
+  --epaper-border-color: var(--epaper-color-gray-300);
+  --epaper-border-strong: var(--epaper-color-gray-600);
+  --epaper-surface: var(--epaper-color-white);
+  --epaper-focus-color: var(--epaper-color-black);
+  --epaper-error-fg: var(--epaper-color-black);
+  --epaper-error-border: var(--epaper-color-gray-700);
+  --epaper-error-bg: var(--epaper-color-gray-100);
+  --epaper-disabled-fg: var(--epaper-color-gray-400);
+  --epaper-disabled-bg: var(--epaper-color-gray-100);
+  --epaper-disabled-border: var(--epaper-color-gray-200);
+  --epaper-mark-bg: var(--epaper-color-gray-200);
+  --epaper-selection-bg: var(--epaper-color-gray-300);
+  --epaper-table-stripe: var(--epaper-color-gray-50);
+}
+
+/* -----------------------------------------------
+   Inverted theme
+   ----------------------------------------------- */
+
+[data-theme="inverted"] {
+  --epaper-fg: var(--epaper-color-gray-100);
+  --epaper-fg-muted: var(--epaper-color-gray-400);
+  --epaper-fg-subtle: var(--epaper-color-gray-500);
+  --epaper-bg: var(--epaper-color-gray-900);
+  --epaper-bg-subtle: var(--epaper-color-gray-800);
+  --epaper-bg-muted: var(--epaper-color-gray-700);
+  --epaper-border-color: var(--epaper-color-gray-600);
+  --epaper-border-strong: var(--epaper-color-gray-400);
+  --epaper-surface: var(--epaper-color-gray-800);
+  --epaper-focus-color: var(--epaper-color-white);
+  --epaper-error-fg: var(--epaper-color-white);
+  --epaper-error-border: var(--epaper-color-gray-400);
+  --epaper-error-bg: var(--epaper-color-gray-700);
+  --epaper-disabled-fg: var(--epaper-color-gray-600);
+  --epaper-disabled-bg: var(--epaper-color-gray-800);
+  --epaper-disabled-border: var(--epaper-color-gray-700);
+  --epaper-mark-bg: var(--epaper-color-gray-700);
+  --epaper-selection-bg: var(--epaper-color-gray-600);
+  --epaper-table-stripe: var(--epaper-color-gray-800);
+}
+
+/* -----------------------------------------------
+   High-contrast theme
+   ----------------------------------------------- */
+
+[data-theme="high-contrast"] {
+  --epaper-fg: var(--epaper-color-black);
+  --epaper-fg-muted: var(--epaper-color-black);
+  --epaper-fg-subtle: var(--epaper-color-gray-700);
+  --epaper-bg: var(--epaper-color-white);
+  --epaper-bg-subtle: var(--epaper-color-white);
+  --epaper-bg-muted: var(--epaper-color-white);
+  --epaper-border-color: var(--epaper-color-black);
+  --epaper-border-strong: var(--epaper-color-black);
+  --epaper-surface: var(--epaper-color-white);
+  --epaper-focus-color: var(--epaper-color-black);
+  --epaper-error-fg: var(--epaper-color-black);
+  --epaper-error-border: var(--epaper-color-black);
+  --epaper-error-bg: var(--epaper-color-white);
+  --epaper-disabled-fg: var(--epaper-color-gray-500);
+  --epaper-disabled-bg: var(--epaper-color-white);
+  --epaper-disabled-border: var(--epaper-color-gray-500);
+  --epaper-mark-bg: var(--epaper-color-gray-300);
+  --epaper-selection-bg: var(--epaper-color-black);
+  --epaper-table-stripe: var(--epaper-color-white);
+}

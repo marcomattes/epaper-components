@@ -1,0 +1,54 @@
+/* ===========================================
+   ALERT / BANNER
+   =========================================== */
+
+:where(.epaper-alert, epaper-alert) {
+  display: block;
+  padding: var(--epaper-space-3) var(--epaper-space-4);
+  border: var(--epaper-border-thin) solid var(--epaper-border-color);
+  border-left-width: var(--epaper-border-thick);
+}
+
+:where(.epaper-alert__title) {
+  font-weight: var(--epaper-weight-bold);
+  margin-bottom: var(--epaper-space-1);
+}
+
+:where(.epaper-alert__body) {
+  font-size: var(--epaper-text-sm);
+  color: var(--epaper-fg-muted);
+}
+
+/* Info — thin left border (default) */
+
+:where(.epaper-alert--info, epaper-alert[variant="info"]) {
+  border-left-color: var(--epaper-fg-muted);
+}
+
+/* Success — medium left border */
+
+:where(.epaper-alert--success, epaper-alert[variant="success"]) {
+  border-left-width: var(--epaper-border-thick);
+  border-left-color: var(--epaper-fg);
+}
+
+/* Warning — dashed left border for visual distinction */
+
+:where(.epaper-alert--warning, epaper-alert[variant="warning"]) {
+  border-left-style: dashed;
+  border-left-color: var(--epaper-border-strong);
+}
+
+/* Error — thick + strong border */
+
+:where(.epaper-alert--error, epaper-alert[variant="error"]) {
+  border-left-color: var(--epaper-error-border);
+  background-color: var(--epaper-error-bg);
+}
+
+:where(
+  .epaper-alert--error > .epaper-alert__title,
+  epaper-alert[variant="error"] > .epaper-alert__title
+) {
+  color: var(--epaper-error-fg);
+}

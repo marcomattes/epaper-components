@@ -1,0 +1,33 @@
+/* ===========================================
+   CARD
+   =========================================== */
+
+:where(.epaper-card, epaper-card) {
+  display: block;
+  border: var(--epaper-border-thin) solid var(--epaper-border-color);
+  padding: var(--epaper-space-4);
+  background-color: var(--epaper-surface);
+}
+
+:where(.epaper-card__title) {
+  font-size: var(--epaper-text-lg);
+  font-weight: var(--epaper-weight-bold);
+  line-height: var(--epaper-leading-tight);
+  margin-bottom: var(--epaper-space-2);
+}
+
+:where(.epaper-card__body) {
+  color: var(--epaper-fg-muted);
+  font-size: var(--epaper-text-sm);
+}
+
+:where(.epaper-card__footer) {
+  margin-top: var(--epaper-space-4);
+  padding-top: var(--epaper-space-3);
+  border-top: var(--epaper-border-thin) solid var(--epaper-border-color);
+}
+
+:where(.epaper-card--raised, epaper-card[raised]) {
+  border-width: var(--epaper-border-medium);
+  border-color: var(--epaper-border-strong);
+}

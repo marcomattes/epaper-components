@@ -1,0 +1,49 @@
+/* ===========================================
+   PAGINATION
+   =========================================== */
+
+@use "../mixins" as *;
+
+:where(.epaper-pagination) {
+  display: flex;
+  justify-content: center;
+}
+
+:where(.epaper-pagination__list) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--epaper-space-1);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+:where(.epaper-pagination__link) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  padding-inline: var(--epaper-space-2);
+  border: var(--epaper-border-thin) solid var(--epaper-border-color);
+  text-decoration: none;
+  font-size: var(--epaper-text-sm);
+  color: var(--epaper-fg);
+}
+
+:where(.epaper-pagination__link:focus-visible) {
+  @include focus-ring;
+}
+
+:where(.epaper-pagination__link[aria-current="page"]) {
+  background-color: var(--epaper-fg);
+  color: var(--epaper-bg);
+  font-weight: var(--epaper-weight-bold);
+  border-color: var(--epaper-fg);
+}
+
+:where(.epaper-pagination__link[aria-disabled="true"]) {
+  color: var(--epaper-disabled-fg);
+  border-color: var(--epaper-disabled-border);
+  pointer-events: none;
+}

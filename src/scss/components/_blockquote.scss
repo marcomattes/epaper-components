@@ -1,0 +1,36 @@
+/* ===========================================
+   BLOCKQUOTE
+   =========================================== */
+
+:where(.epaper-blockquote) {
+  border-left: var(--epaper-border-thick) solid var(--epaper-border-strong);
+  padding-left: var(--epaper-space-4);
+  margin-inline: 0;
+  font-size: var(--epaper-text-lg);
+  font-style: italic;
+  line-height: var(--epaper-leading-relaxed);
+}
+
+:where(.epaper-blockquote__cite) {
+  display: block;
+  margin-top: var(--epaper-space-2);
+  font-size: var(--epaper-text-sm);
+  font-style: normal;
+  color: var(--epaper-fg-muted);
+}
+
+:where(.epaper-blockquote__cite)::before {
+  content: "\2014\00a0";
+}
+
+/* Pullquote variant — centered, larger, no border */
+
+:where(.epaper-blockquote--pull) {
+  border-left: none;
+  text-align: center;
+  padding-left: 0;
+  padding-block: var(--epaper-space-4);
+  border-top: var(--epaper-border-medium) solid var(--epaper-border-color);
+  border-bottom: var(--epaper-border-medium) solid var(--epaper-border-color);
+  font-size: var(--epaper-text-xl);
+}

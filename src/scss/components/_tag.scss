@@ -1,0 +1,37 @@
+/* ===========================================
+   TAG
+   =========================================== */
+
+@use "../mixins" as *;
+
+:where(.epaper-tag, epaper-tag) {
+  display: inline-block;
+  font-size: var(--epaper-text-xs);
+  font-weight: var(--epaper-weight-medium);
+  padding: var(--epaper-space-1) var(--epaper-space-2);
+  border: var(--epaper-border-thin) solid var(--epaper-border-color);
+  line-height: 1;
+  text-decoration: none;
+  color: var(--epaper-fg);
+}
+
+:where(a.epaper-tag:focus-visible) {
+  @include focus-ring;
+}
+
+:where(.epaper-tag--filled, epaper-tag[variant="filled"]) {
+  background-color: var(--epaper-fg);
+  color: var(--epaper-bg);
+  border-color: var(--epaper-fg);
+}
+
+:where(.epaper-tag--muted, epaper-tag[variant="muted"]) {
+  background-color: var(--epaper-bg-muted);
+  color: var(--epaper-fg-muted);
+}
+
+:where(.epaper-tag-group) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--epaper-space-1);
+}

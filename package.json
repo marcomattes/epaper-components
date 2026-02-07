@@ -1,0 +1,109 @@
+{
+  "name": "epaper-components",
+  "version": "3.0.0",
+  "type": "module",
+  "description": "CSS-only component library optimized for E-Paper displays",
+  "main": "dist/epaper-components.css",
+  "style": "dist/epaper-components.css",
+  "sass": "src/scss/epaper-components.scss",
+  "author": "Marco Mattes",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marcomattes/epaper-components.git"
+  },
+  "bugs": {
+    "url": "https://github.com/marcomattes/epaper-components/issues"
+  },
+  "homepage": "https://epaper-components.dev",
+  "copyright": "Copyright (c) 2026 Marco Mattes",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "dev": "npx serve . -p 8080",
+    "build": "tsx build.ts && npm run build:wc",
+    "build:wc": "tsc -p tsconfig.wc.json",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "clean": "rm -rf dist",
+    "test": "npx playwright test",
+    "test:ui": "npx playwright test --ui",
+    "test:update-snapshots": "npx playwright test --update-snapshots",
+    "storybook": "storybook dev -p 6006",
+    "storybook:build": "storybook build -o storybook-static",
+    "lint:css": "stylelint \"src/**/*.scss\"",
+    "release": "commit-and-tag-version",
+    "release:minor": "commit-and-tag-version --release-as minor",
+    "release:major": "commit-and-tag-version --release-as major",
+    "release:patch": "commit-and-tag-version --release-as patch",
+    "release:first": "commit-and-tag-version --first-release",
+    "prepublishOnly": "npm run build",
+    "prepare": "husky install"
+  },
+  "exports": {
+    ".": {
+      "style": "./dist/epaper-components.css",
+      "default": "./dist/epaper-components.css"
+    },
+    "./polyfills/dialog": "./dist/epaper-components.dialog.polyfill.js",
+    "./wc": {
+      "types": "./dist/wc/index.d.ts",
+      "import": "./dist/wc/index.js"
+    },
+    "./dist/*": "./dist/*"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.4.1",
+    "@commitlint/config-conventional": "^20.4.1",
+    "@mdx-js/react": "^2.3.0",
+    "@playwright/test": "^1.58.2",
+    "@storybook/addon-a11y": "^10.2.7",
+    "@storybook/addon-docs": "^10.2.7",
+    "@storybook/addon-themes": "^10.2.7",
+    "@storybook/html": "^10.2.7",
+    "@storybook/html-vite": "^10.2.7",
+    "@types/clean-css": "^4.2.11",
+    "@types/node": "^25.2.1",
+    "clean-css": "^5.3.3",
+    "commit-and-tag-version": "^12.6.1",
+    "eta": "^4.5.1",
+    "husky": "^9.1.7",
+    "prettier": "^3.2.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "sass": "^1.77.6",
+    "serve": "^14.2.4",
+    "storybook": "^10.2.7",
+    "stylelint": "^17.1.1",
+    "stylelint-config-css-modules": "^4.6.0",
+    "stylelint-config-recommended-scss": "^17.0.0",
+    "stylelint-config-standard": "^40.0.0",
+    "stylelint-order": "^7.0.1",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "keywords": [
+    "epaper",
+    "e-paper",
+    "kindle",
+    "tolino",
+    "css",
+    "component-library",
+    "no-javascript"
+  ],
+  "license": "MIT",
+  "browserslist": [
+    ">0.25%",
+    "not dead",
+    "not op_mini all",
+    "safari >= 12",
+    "ios_saf >= 12",
+    "android >= 9",
+    "chrome >= 90",
+    "edge >= 90",
+    "firefox >= 102",
+    "samsung >= 15"
+  ]
+}

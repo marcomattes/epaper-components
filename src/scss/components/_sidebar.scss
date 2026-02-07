@@ -1,0 +1,34 @@
+/* ===========================================
+   SIDEBAR LAYOUT
+   =========================================== */
+
+:where(.epaper-with-sidebar) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--epaper-space-6);
+}
+
+:where(.epaper-with-sidebar__main) {
+  flex: 1;
+  min-width: 0;
+
+  /* Content area takes at least 65% before wrapping */
+  flex-basis: calc(var(--epaper-measure) - var(--epaper-space-6));
+}
+
+:where(.epaper-with-sidebar__sidebar) {
+  flex-basis: 16rem;
+  flex-grow: 1;
+}
+
+/* Sidebar on right (default) — sidebar comes second in source */
+
+/* Sidebar on left — use --left modifier, sidebar comes first in source */
+
+:where(.epaper-with-sidebar--left) {
+  flex-direction: row-reverse;
+}
+
+:where(.epaper-with-sidebar--left > .epaper-with-sidebar__main) {
+  flex-direction: row-reverse;
+}

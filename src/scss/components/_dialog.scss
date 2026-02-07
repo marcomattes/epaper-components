@@ -1,0 +1,51 @@
+/* ===========================================
+   DIALOG (native <dialog>)
+   =========================================== */
+
+:where(.epaper-dialog) {
+  border: var(--epaper-border-medium) solid var(--epaper-border-strong);
+  padding: var(--epaper-space-6);
+  max-width: min(90vw, 32rem);
+  width: 100%;
+  background-color: var(--epaper-surface);
+  color: var(--epaper-fg);
+}
+
+:where(.epaper-dialog::backdrop) {
+  background-color: rgb(0 0 0 / 40%);
+}
+
+:where(.epaper-dialog__title) {
+  font-size: var(--epaper-text-xl);
+  font-weight: var(--epaper-weight-bold);
+  line-height: var(--epaper-leading-tight);
+  margin-bottom: var(--epaper-space-4);
+  padding-bottom: var(--epaper-space-3);
+  border-bottom: var(--epaper-border-thin) solid var(--epaper-border-color);
+}
+
+:where(.epaper-dialog__body) {
+  margin-bottom: var(--epaper-space-5);
+}
+
+:where(.epaper-dialog__actions) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--epaper-space-3);
+  justify-content: flex-end;
+  padding-top: var(--epaper-space-3);
+  border-top: var(--epaper-border-thin) solid var(--epaper-border-color);
+}
+
+/* Polyfill backdrop (used when ::backdrop unsupported) */
+
+:where(.epaper-dialog-backdrop) {
+  position: fixed;
+  inset: 0;
+  background-color: rgb(0 0 0 / 40%);
+  display: none;
+}
+
+:where(.epaper-dialog-backdrop:not([hidden])) {
+  display: block;
+}

@@ -1,0 +1,79 @@
+import { Meta, Title, Description } from "@storybook/addon-docs/blocks";
+import * as DocsBase from "./docs.stories";
+
+<Meta of={DocsBase} title="Docs/Layout" />
+
+<Title>Layout primitives</Title>
+<Description>
+  Composable building blocks with low repaint cost. All class-based selectors; no
+  wrappers or JS.
+</Description>
+
+### Container & grid
+
+```html
+<div class="eink-container">Default max-width (52rem)</div>
+<div class="eink-container eink-container--narrow">Narrow (38rem)</div>
+<div class="eink-container eink-container--wide">Wide (72rem)</div>
+
+<div class="eink-grid" style="--eink-grid-min:18rem">
+  <div>Card A</div>
+  <div>Card B</div>
+  <div>Card C</div>
+</div>
+```
+
+### Stack & cluster
+
+```html
+<div class="eink-stack eink-stack--sm">
+  <div>Block 1</div>
+  <div>Block 2</div>
+</div>
+
+<div class="eink-cluster">
+  <span class="eink-tag">One</span>
+  <span class="eink-tag">Two</span>
+  <span class="eink-tag">Three</span>
+</div>
+```
+
+### Sections & dividers
+
+```html
+<section class="eink-section">Section 1</section>
+<section class="eink-section">Section 2 (auto border-top)</section>
+<hr class="eink-divider" />
+<hr class="eink-divider eink-divider--strong" />
+```
+
+### Sidebar & toolbar
+
+```html
+<div class="eink-with-sidebar">
+  <main class="eink-with-sidebar__main">Main content</main>
+  <aside class="eink-with-sidebar__sidebar">Sidebar</aside>
+</div>
+
+<div class="eink-toolbar">
+  <div class="eink-toolbar__group">
+    <span class="eink-toolbar__label">Font</span>
+    <button class="eink-btn eink-btn--sm">-</button>
+    <button class="eink-btn eink-btn--sm">+</button>
+  </div>
+  <span class="eink-toolbar__separator" aria-hidden="true"></span>
+  <div class="eink-toolbar__group">
+    <button class="eink-btn eink-btn--sm">Aa</button>
+    <button class="eink-btn eink-btn--sm">Mono</button>
+  </div>
+  <span class="eink-toolbar__spacer"></span>
+  <button class="eink-btn eink-btn--ghost eink-btn--sm">Reset</button>
+  }
+</div>
+```
+
+### Notes for E-Ink
+
+- Favor borders/rules over fills; keep gaps consistent to avoid full-screen flashes.
+- Max two breakpoints: small (`max-width:37.5em`) and large (`min-width:56.25em`).
+- No hover-only states; rely on focus-visible and ARIA states instead.

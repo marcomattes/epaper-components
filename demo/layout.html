@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en" data-theme="default">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Layout — epaper-components</title>
+    <meta
+      name="description"
+      content="epaper-components is a CSS-only component library with 46+ components optimized for E-Ink displays. Zero JavaScript, three themes, optional Web Components."
+    />
+    <meta name="author" content="Marco Mattes" />
+    <meta name="theme-color" content="#ffffff" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Layout — epaper-components" />
+    <meta
+      property="og:description"
+      content="CSS-only component library with 46+ components optimized for E-Ink displays. Zero JavaScript, three themes, optional Web Components."
+    />
+    <meta property="og:site_name" content="epaper-components" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Layout — epaper-components" />
+
+    <link rel="stylesheet" href="../dist/epaper-components.css" />
+    <link rel="icon" href="../assets/epaper-components-logo.svg" type="image/svg+xml" />
+    <link rel="canonical" href="" />
+    <script src="theme.js" defer></script>
+    <style>
+      /* Demo-only: visible outlines for layout boxes */
+      .demo-box {
+        border: 1px dashed var(--epaper-border-color);
+        padding: var(--epaper-space-3);
+        text-align: center;
+        font-size: var(--epaper-text-sm);
+        color: var(--epaper-fg-muted);
+        background: var(--epaper-bg-subtle);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="epaper-page-header">
+      <div class="epaper-container">
+        <div
+          class="epaper-cluster"
+          style="align-items: center; gap: var(--epaper-space-3)"
+        >
+          <img
+            src="../assets/epaper-components-logo.svg"
+            alt="epaper-components"
+            width="120"
+            height="32"
+            loading="lazy"
+          />
+          <h1 style="font-size: var(--epaper-text-2xl); margin: 0">
+            epaper-components
+          </h1>
+        </div>
+        <nav class="epaper-nav" aria-label="Main navigation">
+          <a href="index.html">Overview</a>
+          <a href="typography.html">Typography</a>
+          <a href="layout.html" aria-current="page">Layout</a>
+          <a href="components.html">Components</a>
+          <a href="forms.html">Forms</a>
+          <a href="dialog.html">Dialog</a>
+          <a href="tables.html">Tables</a>
+          <a href="newsreader.html">Newsreader</a>
+          <a href="blog.html">Blog</a>
+          <a href="dashboard.html">Dashboard</a>
+        </nav>
+        <p
+          class="epaper-text-xs"
+          style="
+            margin-top: var(--epaper-space-1);
+            display: flex;
+            gap: var(--epaper-space-3);
+            align-items: center;
+            flex-wrap: wrap;
+          "
+        >
+          <a href="../demo-wc/index.html"
+            ><strong>Switch to Web Component demos</strong></a
+          >
+          <span aria-hidden="true">·</span>
+          <a href="https://epaper-components.dev/storybook/"
+            ><strong>View Storybook</strong></a
+          >
+        </p>
+        <p
+          class="epaper-text-xs epaper-text-muted"
+          style="
+            margin-top: var(--epaper-space-2);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+            align-items: center;
+          "
+        >
+          <span>Theme: <code data-theme-label>default</code></span>
+          <span aria-hidden="true">·</span>
+          <a href="?theme=default">Default</a>
+          <a href="?theme=inverted">Inverted</a>
+          <a href="?theme=high-contrast">High-contrast</a>
+          <span aria-hidden="true">·</span>
+          <span
+            >Set <code>data-theme="..."</code> on <code>&lt;html&gt;</code> for no-JS
+            use.</span
+          >
+        </p>
+      </div>
+    </header>
+
+    <main class="epaper-container epaper-stack">
+      <!-- CONTAINER -->
+      <section class="epaper-section">
+        <h2>Container</h2>
+        <p class="epaper-note">
+          E-Ink rationale: Fixed max-widths prevent content from stretching across wide
+          displays (like the 10.3" Kindle Scribe), reducing eye-tracking effort and
+          partial-refresh regions.
+        </p>
+        <p class="epaper-text-sm">
+          The <code>.epaper-container</code> centers content with horizontal padding.
+          Variants: <code>--narrow</code> (38rem), default (52rem),
+          <code>--wide</code> (72rem).
+        </p>
+
+        <div
+          style="
+            margin-top: var(--epaper-space-4);
+            border: var(--epaper-border-thin) solid var(--epaper-border-color);
+          "
+        >
+          <div
+            class="epaper-container--narrow"
+            style="
+              max-width: 38rem;
+              margin-inline: auto;
+              padding-inline: var(--epaper-space-4);
+            "
+          >
+            <div class="demo-box">Narrow container (38rem)</div>
+          </div>
+        </div>
+        <div
+          style="
+            margin-top: var(--epaper-space-3);
+            border: var(--epaper-border-thin) solid var(--epaper-border-color);
+          "
+        >
+          <div class="epaper-container" style="padding-block: 0">
+            <div class="demo-box">Default container (52rem)</div>
+          </div>
+        </div>
+        <div
+          style="
+            margin-top: var(--epaper-space-3);
+            border: var(--epaper-border-thin) solid var(--epaper-border-color);
+          "
+        >
+          <div
+            class="epaper-container--wide"
+            style="
+              max-width: 72rem;
+              margin-inline: auto;
+              padding-inline: var(--epaper-space-4);
+            "
+          >
+            <div class="demo-box">Wide container (72rem)</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STACK -->
+      <section class="epaper-section">
+        <h2>Stack</h2>
+        <p class="epaper-text-sm">
+          Vertical rhythm via <code>flex-direction: column</code> + <code>gap</code>.
+          Variants: <code>--sm</code>, default, <code>--lg</code>.
+        </p>
+        <p class="epaper-note">
+          E-Ink rationale: Consistent vertical spacing prevents layout shifts during
+          partial screen refreshes and provides clear visual separation between content
+          blocks.
+        </p>
+
+        <div
+          class="epaper-grid"
+          style="--epaper-grid-min: 14rem; margin-top: var(--epaper-space-4)"
+        >
+          <div>
+            <span class="epaper-badge">Stack --sm</span>
+            <div
+              class="epaper-stack epaper-stack--sm"
+              style="margin-top: var(--epaper-space-2)"
+            >
+              <div class="demo-box">Item 1</div>
+              <div class="demo-box">Item 2</div>
+              <div class="demo-box">Item 3</div>
+            </div>
+          </div>
+          <div>
+            <span class="epaper-badge">Stack (default)</span>
+            <div class="epaper-stack" style="margin-top: var(--epaper-space-2)">
+              <div class="demo-box">Item 1</div>
+              <div class="demo-box">Item 2</div>
+              <div class="demo-box">Item 3</div>
+            </div>
+          </div>
+          <div>
+            <span class="epaper-badge">Stack --lg</span>
+            <div
+              class="epaper-stack epaper-stack--lg"
+              style="margin-top: var(--epaper-space-2)"
+            >
+              <div class="demo-box">Item 1</div>
+              <div class="demo-box">Item 2</div>
+              <div class="demo-box">Item 3</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CLUSTER -->
+      <section class="epaper-section">
+        <h2>Cluster</h2>
+        <p class="epaper-text-sm">
+          Horizontal wrapping layout using <code>flex-wrap</code>. Items flow
+          left-to-right and wrap naturally.
+        </p>
+        <p class="epaper-note">
+          E-Ink rationale: Wrapping layouts adapt to narrow E-Ink screens without
+          requiring media queries. This reduces the amount of conditional layout logic.
+        </p>
+
+        <div class="epaper-cluster" style="margin-top: var(--epaper-space-4)">
+          <div class="demo-box">Alpha</div>
+          <div class="demo-box">Bravo</div>
+          <div class="demo-box">Charlie</div>
+          <div class="demo-box">Delta</div>
+          <div class="demo-box">Echo</div>
+          <div class="demo-box">Foxtrot</div>
+          <div class="demo-box">Golf</div>
+        </div>
+      </section>
+
+      <!-- GRID -->
+      <section class="epaper-section">
+        <h2>Grid</h2>
+        <p class="epaper-text-sm">
+          Auto-fit responsive grid using <code>minmax()</code>. Set
+          <code>--epaper-grid-min</code> to control the minimum column width.
+        </p>
+        <p class="epaper-note">
+          E-Ink rationale: <code>auto-fit</code> with <code>minmax()</code> produces a
+          stable layout with no layout shifts on resize — important because E-Ink
+          devices occasionally rotate or change viewport size between
+          landscape/portrait.
+        </p>
+
+        <div style="margin-top: var(--epaper-space-4)">
+          <span class="epaper-badge">Default (16rem min)</span>
+          <div class="epaper-grid" style="margin-top: var(--epaper-space-2)">
+            <div class="demo-box">Cell 1</div>
+            <div class="demo-box">Cell 2</div>
+            <div class="demo-box">Cell 3</div>
+            <div class="demo-box">Cell 4</div>
+            <div class="demo-box">Cell 5</div>
+            <div class="demo-box">Cell 6</div>
+          </div>
+        </div>
+
+        <div style="margin-top: var(--epaper-space-5)">
+          <span class="epaper-badge">Wider columns (22rem min)</span>
+          <div
+            class="epaper-grid"
+            style="--epaper-grid-min: 22rem; margin-top: var(--epaper-space-2)"
+          >
+            <div class="demo-box">Cell 1</div>
+            <div class="demo-box">Cell 2</div>
+            <div class="demo-box">Cell 3</div>
+            <div class="demo-box">Cell 4</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DIVIDER -->
+      <section class="epaper-section">
+        <h2>Divider</h2>
+        <p class="epaper-text-sm">
+          Simple horizontal rules. Use <code>.epaper-divider--strong</code> for heavier
+          separators.
+        </p>
+        <p class="epaper-note">
+          E-Ink rationale: Thin rules are efficient to render and provide clear visual
+          separation without large filled surfaces that cause ghosting.
+        </p>
+
+        <div style="margin-top: var(--epaper-space-4)">
+          <p>Content above the default divider.</p>
+          <hr class="epaper-divider" />
+          <p>Content between dividers.</p>
+          <hr class="epaper-divider epaper-divider--strong" />
+          <p>Content below the strong divider.</p>
+        </div>
+      </section>
+
+      <!-- PAGE STRUCTURE -->
+      <section class="epaper-section">
+        <h2>Page structure</h2>
+        <p class="epaper-text-sm">
+          Page header, section, and footer patterns. This very page demonstrates all
+          three. The header is bordered at the bottom, sections separate with thin
+          rules, and the footer is bordered at the top.
+        </p>
+
+        <div
+          style="
+            margin-top: var(--epaper-space-4);
+            border: var(--epaper-border-thin) solid var(--epaper-border-color);
+          "
+        >
+          <div class="epaper-page-header" style="margin-bottom: 0">
+            <div style="padding-inline: var(--epaper-space-4)">
+              <strong>Page Header</strong>
+              <span class="epaper-text-sm epaper-text-muted">
+                — border-bottom, padding</span
+              >
+            </div>
+          </div>
+          <div class="epaper-section" style="padding-inline: var(--epaper-space-4)">
+            <p>Section 1 content</p>
+          </div>
+          <div class="epaper-section" style="padding-inline: var(--epaper-space-4)">
+            <p>Section 2 content (auto border-top between adjacent sections)</p>
+          </div>
+          <div class="epaper-page-footer" style="margin-top: 0">
+            <div style="padding-inline: var(--epaper-space-4)">
+              <small>Page Footer — border-top, padding</small>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="epaper-page-footer">
+      <div class="epaper-container">
+        <small>epaper-components — CSS-only component library for E-Ink devices.</small>
+      </div>
+    </footer>
+  </body>
+</html>

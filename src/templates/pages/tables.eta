@@ -1,0 +1,429 @@
+<% layout("../_layout", { title: "Tables", current: "tables", fullHeader: true }) %>
+
+    <main class="epaper-container epaper-stack">
+      <section class="epaper-section">
+        <h2>Responsive strategy</h2>
+        <p class="epaper-note">
+          E-Ink rationale: Tables on E-Ink devices should scroll horizontally rather
+          than reflow into card layouts. Reflowing triggers massive layout shifts that
+          cause full-page ghosting. The <code>.epaper-table-wrap</code> container provides
+          <code>overflow-x: auto</code>, allowing the user to swipe/scroll. This is the
+          simplest no-JS responsive strategy.
+        </p>
+      </section>
+
+      <!-- BASIC TABLE -->
+      <section class="epaper-section">
+        <h2>Basic table</h2>
+
+        <div class="epaper-table-wrap" style="margin-top: var(--epaper-space-4)">
+          <table class="epaper-table">
+            <caption>
+              E-Ink display specifications
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Device</th>
+                <th scope="col">Screen size</th>
+                <th scope="col">Resolution</th>
+                <th scope="col">PPI</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Kindle Paperwhite</td>
+                <td>6.8"</td>
+                <td>1236 &times; 1648</td>
+                <td>300</td>
+              </tr>
+              <tr>
+                <td>Kindle Scribe</td>
+                <td>10.2"</td>
+                <td>1860 &times; 2480</td>
+                <td>300</td>
+              </tr>
+              <tr>
+                <td>Kobo Libra 2</td>
+                <td>7.0"</td>
+                <td>1264 &times; 1680</td>
+                <td>300</td>
+              </tr>
+              <tr>
+                <td>Tolino Vision 6</td>
+                <td>7.0"</td>
+                <td>1264 &times; 1680</td>
+                <td>300</td>
+              </tr>
+              <tr>
+                <td>reMarkable 2</td>
+                <td>10.3"</td>
+                <td>1404 &times; 1872</td>
+                <td>226</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- STRIPED TABLE -->
+      <section class="epaper-section">
+        <h2>Striped table</h2>
+        <p class="epaper-note">
+          E-Ink rationale: Alternating row backgrounds use a very subtle shade to avoid
+          large filled areas that would cause ghosting. The stripe color is a token
+          (<code>--epaper-table-stripe</code>) that adjusts per theme.
+        </p>
+
+        <div class="epaper-table-wrap" style="margin-top: var(--epaper-space-4)">
+          <table class="epaper-table epaper-table--striped">
+            <caption>
+              Font stack priority
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Priority</th>
+                <th scope="col">Font name</th>
+                <th scope="col">Platform</th>
+                <th scope="col">Category</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>-apple-system</td>
+                <td>macOS / iOS</td>
+                <td>Sans-serif</td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>BlinkMacSystemFont</td>
+                <td>Chrome on macOS</td>
+                <td>Sans-serif</td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>Segoe UI</td>
+                <td>Windows</td>
+                <td>Sans-serif</td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>Roboto</td>
+                <td>Android / Chrome OS</td>
+                <td>Sans-serif</td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>Noto Sans</td>
+                <td>Linux / CJK</td>
+                <td>Sans-serif</td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>Arial</td>
+                <td>Universal fallback</td>
+                <td>Sans-serif</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- BORDERED TABLE -->
+      <section class="epaper-section">
+        <h2>Bordered table</h2>
+
+        <div class="epaper-table-wrap" style="margin-top: var(--epaper-space-4)">
+          <table class="epaper-table epaper-table--bordered">
+            <caption>
+              CSS token mapping
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Token</th>
+                <th scope="col">Default</th>
+                <th scope="col">Inverted</th>
+                <th scope="col">High contrast</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>--epaper-fg</code></td>
+                <td>gray-900</td>
+                <td>gray-100</td>
+                <td>black</td>
+              </tr>
+              <tr>
+                <td><code>--epaper-bg</code></td>
+                <td>white</td>
+                <td>gray-900</td>
+                <td>white</td>
+              </tr>
+              <tr>
+                <td><code>--epaper-border-color</code></td>
+                <td>gray-300</td>
+                <td>gray-600</td>
+                <td>black</td>
+              </tr>
+              <tr>
+                <td><code>--epaper-focus-color</code></td>
+                <td>black</td>
+                <td>white</td>
+                <td>black</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- COMPACT TABLE -->
+      <section class="epaper-section">
+        <h2>Compact table</h2>
+        <p class="epaper-text-sm epaper-text-muted">
+          Smaller padding and font for data-dense layouts.
+        </p>
+
+        <div class="epaper-table-wrap" style="margin-top: var(--epaper-space-4)">
+          <table class="epaper-table epaper-table--compact epaper-table--striped">
+            <caption>
+              Spacing scale
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Token</th>
+                <th scope="col">rem</th>
+                <th scope="col">px</th>
+                <th scope="col">Usage</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>--epaper-space-1</code></td>
+                <td>0.25</td>
+                <td>4</td>
+                <td>Inline gaps, icon padding</td>
+              </tr>
+              <tr>
+                <td><code>--epaper-space-2</code></td>
+                <td>0.5</td>
+                <td>8</td>
+                <td>Tight component padding</td>
+              </tr>
+              <tr>
+                <td><code>--epaper-space-3</code></td>
+                <td>0.75</td>
+                <td>12</td>
+                <td>Button padding, form gaps</td>
+              </tr>
+              <tr>
+                <td><code>--epaper-space-4</code></td>
+                <td>1</td>
+                <td>16</td>
+                <td>Default component padding</td>
+              </tr>
+              <tr>
+                <td><code>--epaper-space-5</code></td>
+                <td>1.5</td>
+                <td>24</td>
+                <td>Section gaps, stack default</td>
+              </tr>
+              <tr>
+                <td><code>--epaper-space-6</code></td>
+                <td>2</td>
+                <td>32</td>
+                <td>Page sections, dialog padding</td>
+              </tr>
+              <tr>
+                <td><code>--epaper-space-7</code></td>
+                <td>3</td>
+                <td>48</td>
+                <td>Large section spacing</td>
+              </tr>
+              <tr>
+                <td><code>--epaper-space-8</code></td>
+                <td>4</td>
+                <td>64</td>
+                <td>Page-level spacing</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- WIDE TABLE (scroll demo) -->
+      <section class="epaper-section">
+        <h2>Wide table (horizontal scroll)</h2>
+        <p class="epaper-text-sm epaper-text-muted">
+          This table has many columns to demonstrate horizontal scrolling. On narrow
+          screens, swipe left/right to see all columns.
+        </p>
+        <p class="epaper-note">
+          E-Ink rationale: Horizontal scroll is the preferred responsive strategy
+          because it preserves the table's grid structure. CSS-only reflow techniques
+          (using <code>display: block</code>) create tall single-column layouts that
+          require many page-turns on E-Ink and lose the ability to compare columns
+          visually.
+        </p>
+
+        <div class="epaper-table-wrap" style="margin-top: var(--epaper-space-4)">
+          <table class="epaper-table epaper-table--bordered">
+            <caption>
+              E-Ink refresh modes comparison
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Mode</th>
+                <th scope="col">Speed</th>
+                <th scope="col">Ghosting</th>
+                <th scope="col">Flashing</th>
+                <th scope="col">Grayscale levels</th>
+                <th scope="col">Best for</th>
+                <th scope="col">UI impact</th>
+                <th scope="col">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>GC16 (full)</td>
+                <td>~450ms</td>
+                <td>None</td>
+                <td>Full flash</td>
+                <td>16</td>
+                <td>Page turns</td>
+                <td>Full repaint</td>
+                <td>Clears all ghosting artifacts</td>
+              </tr>
+              <tr>
+                <td>DU (direct)</td>
+                <td>~120ms</td>
+                <td>Low</td>
+                <td>None</td>
+                <td>2 (B&amp;W)</td>
+                <td>Text only</td>
+                <td>Partial update</td>
+                <td>No grayscale support</td>
+              </tr>
+              <tr>
+                <td>A2 (fast)</td>
+                <td>~80ms</td>
+                <td>High</td>
+                <td>None</td>
+                <td>2 (B&amp;W)</td>
+                <td>Typing, menus</td>
+                <td>Minimal repaint</td>
+                <td>Heavy ghosting, needs periodic GC16</td>
+              </tr>
+              <tr>
+                <td>GL16</td>
+                <td>~450ms</td>
+                <td>Low</td>
+                <td>Minimal</td>
+                <td>16</td>
+                <td>Images + text</td>
+                <td>Partial update</td>
+                <td>Good balance for mixed content</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- THEME COMPARISON -->
+      <section class="epaper-section">
+        <h2>Theme comparison</h2>
+        <p class="epaper-text-sm epaper-text-muted">
+          Tables inherit theme tokens from their ancestor.
+        </p>
+
+        <div
+          class="epaper-grid"
+          style="--epaper-grid-min: 20rem; margin-top: var(--epaper-space-4)"
+        >
+          <div
+            data-theme="default"
+            style="
+              background: var(--epaper-bg);
+              color: var(--epaper-fg);
+              padding: var(--epaper-space-3);
+            "
+          >
+            <span
+              class="epaper-badge"
+              style="margin-bottom: var(--epaper-space-2); display: inline-block"
+              >Default</span
+            >
+            <div class="epaper-table-wrap">
+              <table class="epaper-table epaper-table--striped epaper-table--compact">
+                <thead>
+                  <tr>
+                    <th>A</th>
+                    <th>B</th>
+                    <th>C</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>3</td>
+                  </tr>
+                  <tr>
+                    <td>4</td>
+                    <td>5</td>
+                    <td>6</td>
+                  </tr>
+                  <tr>
+                    <td>7</td>
+                    <td>8</td>
+                    <td>9</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div
+            data-theme="inverted"
+            style="
+              background: var(--epaper-bg);
+              color: var(--epaper-fg);
+              padding: var(--epaper-space-3);
+            "
+          >
+            <span
+              class="epaper-badge"
+              style="margin-bottom: var(--epaper-space-2); display: inline-block"
+              >Inverted</span
+            >
+            <div class="epaper-table-wrap">
+              <table class="epaper-table epaper-table--striped epaper-table--compact">
+                <thead>
+                  <tr>
+                    <th>A</th>
+                    <th>B</th>
+                    <th>C</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>3</td>
+                  </tr>
+                  <tr>
+                    <td>4</td>
+                    <td>5</td>
+                    <td>6</td>
+                  </tr>
+                  <tr>
+                    <td>7</td>
+                    <td>8</td>
+                    <td>9</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>

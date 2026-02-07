@@ -1,0 +1,77 @@
+/* ===========================================
+   TEXT INPUT & TEXTAREA
+   =========================================== */
+
+@use "../mixins" as *;
+
+:where(.epaper-input) {
+  @include control-base;
+  @include control-placeholder;
+}
+
+:where(.epaper-input:focus-visible) {
+  @include focus-ring;
+  border-color: var(--epaper-border-strong);
+}
+
+:where(.epaper-input:disabled) {
+  @include control-disabled;
+}
+
+:where(.epaper-input[aria-invalid="true"]),
+:where(.epaper-input:invalid:not(:placeholder-shown)) {
+  @include control-invalid;
+}
+
+:where(.epaper-textarea) {
+  @include control-base;
+  min-height: 6rem;
+  resize: vertical;
+}
+
+:where(.epaper-textarea:focus-visible) {
+  @include focus-ring;
+  border-color: var(--epaper-border-strong);
+}
+
+:where(.epaper-textarea:disabled) {
+  @include control-disabled;
+}
+
+:where(.epaper-textarea[aria-invalid="true"]) {
+  @include control-invalid;
+}
+
+/* Search input with inline icon (CSS only) */
+
+:where(.epaper-input--search) {
+  position: relative;
+  padding-left: calc(var(--epaper-space-6));
+}
+
+:where(.epaper-input--search)::before,
+:where(.epaper-input--search)::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  color: currentColor;
+}
+
+:where(.epaper-input--search)::before {
+  width: 0.9rem;
+  height: 0.9rem;
+  border: var(--epaper-border-thin) solid currentColor;
+  border-radius: 999px;
+  left: var(--epaper-space-2);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+:where(.epaper-input--search)::after {
+  width: 0.45rem;
+  height: 0;
+  border-top: var(--epaper-border-thin) solid currentColor;
+  transform: rotate(45deg);
+  left: calc(var(--epaper-space-2) + 0.65rem);
+  top: calc(50% + 0.3rem);
+}

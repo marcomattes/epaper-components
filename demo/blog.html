@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en" data-theme="default">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Blog — epaper-components</title>
+    <meta
+      name="description"
+      content="epaper-components is a CSS-only component library with 46+ components optimized for E-Ink displays. Zero JavaScript, three themes, optional Web Components."
+    />
+    <meta name="author" content="Marco Mattes" />
+    <meta name="theme-color" content="#ffffff" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Blog — epaper-components" />
+    <meta
+      property="og:description"
+      content="CSS-only component library with 46+ components optimized for E-Ink displays. Zero JavaScript, three themes, optional Web Components."
+    />
+    <meta property="og:site_name" content="epaper-components" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Blog — epaper-components" />
+
+    <link rel="stylesheet" href="../dist/epaper-components.css" />
+    <link rel="icon" href="../assets/epaper-components-logo.svg" type="image/svg+xml" />
+    <link rel="canonical" href="" />
+  </head>
+  <body>
+    <header class="epaper-page-header">
+      <div class="epaper-container">
+        <h1
+          style="
+            font-size: var(--epaper-text-2xl);
+            margin-bottom: var(--epaper-space-2);
+          "
+        >
+          epaper-components
+        </h1>
+        <nav class="epaper-nav" aria-label="Main navigation">
+          <a href="index.html">Overview</a>
+          <a href="typography.html">Typography</a>
+          <a href="layout.html">Layout</a>
+          <a href="components.html">Components</a>
+          <a href="forms.html">Forms</a>
+          <a href="dialog.html">Dialog</a>
+          <a href="tables.html">Tables</a>
+          <a href="newsreader.html">Newsreader</a>
+          <a href="blog.html" aria-current="page">Blog</a>
+          <a href="dashboard.html">Dashboard</a>
+        </nav>
+        <p
+          class="epaper-text-xs"
+          style="
+            margin-top: var(--epaper-space-1);
+            display: flex;
+            gap: var(--epaper-space-3);
+            align-items: center;
+            flex-wrap: wrap;
+          "
+        >
+          <a href="../demo-wc/index.html"
+            ><strong>Switch to Web Component demos</strong></a
+          >
+          <span aria-hidden="true">·</span>
+          <a href="https://epaper-components.dev/storybook/"
+            ><strong>View Storybook</strong></a
+          >
+        </p>
+        <p
+          class="epaper-text-xs epaper-text-muted"
+          style="margin-top: var(--epaper-space-2)"
+        >
+          Theme: <code>default</code>
+        </p>
+      </div>
+    </header>
+
+    <main class="epaper-container epaper-stack">
+      <h2>Blog Pattern</h2>
+      <p class="epaper-note">
+        This page demonstrates a blog layout using the sidebar, article,
+        details/accordion, list group, and other components composed together.
+      </p>
+
+      <!-- SIDEBAR LAYOUT -->
+      <section class="epaper-section">
+        <h3>Sidebar Layout</h3>
+        <p class="epaper-note">
+          E-Ink rationale: The sidebar layout uses CSS flexbox wrapping. On narrow E-Ink
+          screens, the sidebar stacks below the main content — no JavaScript breakpoint
+          detection needed.
+        </p>
+
+        <div class="epaper-with-sidebar" style="margin-top: var(--epaper-space-4)">
+          <!-- Main content area -->
+          <div class="epaper-with-sidebar__main">
+            <!-- Breadcrumb -->
+            <nav
+              aria-label="Breadcrumb"
+              class="epaper-breadcrumb"
+              style="margin-bottom: var(--epaper-space-4)"
+            >
+              <ol class="epaper-breadcrumb__list">
+                <li class="epaper-breadcrumb__item"><a href="#">Home</a></li>
+                <li class="epaper-breadcrumb__item"><a href="#">Blog</a></li>
+                <li class="epaper-breadcrumb__item" aria-current="page">
+                  Building for E-Ink
+                </li>
+              </ol>
+            </nav>
+
+            <!-- Full blog post -->
+            <article class="epaper-article">
+              <div class="epaper-article__header">
+                <h2 class="epaper-article__title">
+                  Building Interfaces for E-Ink: A Practical Guide
+                </h2>
+                <div class="epaper-article__meta">
+                  <div class="epaper-byline">
+                    <span class="epaper-avatar epaper-avatar--sm">AT</span>
+                    <span class="epaper-byline__name">Alex Thompson</span>
+                  </div>
+                  <time datetime="2025-01-10">January 10, 2025</time>
+                  <span>8 min read</span>
+                </div>
+              </div>
+
+              <div class="epaper-article__body">
+                <p>
+                  Designing for E-Ink displays requires a fundamental shift in thinking.
+                  The constraints of electrophoretic technology — slow refresh rates,
+                  monochrome rendering, and no backlight — become advantages when
+                  embraced rather than fought against.
+                </p>
+
+                <h3>The Core Principles</h3>
+                <p>
+                  Every design decision should minimize screen repaints. This means
+                  avoiding animations, transitions, hover effects, and large filled
+                  areas. Instead, rely on borders, whitespace, and typography to create
+                  visual hierarchy.
+                </p>
+
+                <blockquote class="epaper-blockquote">
+                  <p>
+                    Design for the constraint, not against it. E-Ink's limitations are
+                    also its strengths: zero eye strain, week-long battery, and readable
+                    in direct sunlight.
+                  </p>
+                </blockquote>
+
+                <h3>Typography First</h3>
+                <p>
+                  On E-Ink, typography does the heavy lifting. Use a system font stack
+                  to avoid network requests and ensure instant rendering. Set
+                  comfortable line heights (1.5 or greater) and constrain line length to
+                  45–75 characters for optimal readability.
+                </p>
+
+                <p>
+                  Font weight variations (normal, medium, bold) provide clear hierarchy
+                  without requiring color differences — essential on a grayscale
+                  display.
+                </p>
+
+                <h3>Interaction Patterns</h3>
+                <p>
+                  Touch targets should be generous (at least 44px). Focus states must
+                  use outlines rather than background color changes to reduce repaint
+                  area. Form validation should be inline and persistent, not ephemeral
+                  tooltips that require rapid screen updates.
+                </p>
+              </div>
+
+              <div class="epaper-article__footer">
+                <div class="epaper-cluster" style="justify-content: space-between">
+                  <div class="epaper-tag-group">
+                    <a href="#" class="epaper-tag">Design</a>
+                    <a href="#" class="epaper-tag">E-Ink</a>
+                    <a href="#" class="epaper-tag">CSS</a>
+                    <a href="#" class="epaper-tag">Accessibility</a>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <!-- Sidebar -->
+          <aside class="epaper-with-sidebar__sidebar">
+            <div class="epaper-stack">
+              <div>
+                <h4 style="margin-bottom: var(--epaper-space-2)">About the Author</h4>
+                <div class="epaper-card">
+                  <div
+                    class="epaper-byline"
+                    style="margin-bottom: var(--epaper-space-2)"
+                  >
+                    <span class="epaper-avatar">AT</span>
+                    <div>
+                      <span class="epaper-byline__name">Alex Thompson</span>
+                      <div class="epaper-text-xs epaper-text-muted">
+                        Design Engineer
+                      </div>
+                    </div>
+                  </div>
+                  <p class="epaper-text-sm epaper-text-muted">
+                    Building accessible interfaces since 2015. Focused on low-power and
+                    assistive display technologies.
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <h4 style="margin-bottom: var(--epaper-space-2)">Recent Posts</h4>
+                <ul class="epaper-list-group">
+                  <li>
+                    <a
+                      href="#"
+                      class="epaper-list-group__item epaper-list-group__item--active"
+                      >Building for E-Ink</a
+                    >
+                  </li>
+                  <li>
+                    <a href="#" class="epaper-list-group__item"
+                      >CSS Variables Deep Dive</a
+                    >
+                  </li>
+                  <li>
+                    <a href="#" class="epaper-list-group__item"
+                      >Semantic HTML in 2025</a
+                    >
+                  </li>
+                  <li>
+                    <a href="#" class="epaper-list-group__item">System Font Stacks</a>
+                  </li>
+                  <li>
+                    <a href="#" class="epaper-list-group__item"
+                      >Accessible Form Patterns</a
+                    >
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 style="margin-bottom: var(--epaper-space-2)">Categories</h4>
+                <div class="epaper-tag-group">
+                  <a href="#" class="epaper-tag">Design</a>
+                  <a href="#" class="epaper-tag">CSS</a>
+                  <a href="#" class="epaper-tag">HTML</a>
+                  <a href="#" class="epaper-tag">E-Ink</a>
+                  <a href="#" class="epaper-tag">A11y</a>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- LIST GROUP -->
+      <section class="epaper-section">
+        <h3>List Group</h3>
+        <p class="epaper-note">
+          E-Ink rationale: List groups use thin borders between items. The active item
+          gets a thick left border for identification without background fill.
+        </p>
+
+        <div
+          class="epaper-grid"
+          style="--epaper-grid-min: 16rem; margin-top: var(--epaper-space-4)"
+        >
+          <div>
+            <h4 style="margin-bottom: var(--epaper-space-2)">Default</h4>
+            <ul class="epaper-list-group">
+              <li class="epaper-list-group__item">First item</li>
+              <li class="epaper-list-group__item epaper-list-group__item--active">
+                Active item
+              </li>
+              <li class="epaper-list-group__item">Third item</li>
+              <li class="epaper-list-group__item">Fourth item</li>
+            </ul>
+          </div>
+          <div>
+            <h4 style="margin-bottom: var(--epaper-space-2)">As links</h4>
+            <div class="epaper-list-group">
+              <a href="#" class="epaper-list-group__item">Dashboard</a>
+              <a
+                href="#"
+                class="epaper-list-group__item epaper-list-group__item--active"
+                >Posts</a
+              >
+              <a href="#" class="epaper-list-group__item">Comments</a>
+              <a href="#" class="epaper-list-group__item">Settings</a>
+            </div>
+          </div>
+          <div>
+            <h4 style="margin-bottom: var(--epaper-space-2)">
+              Flush (no outer border)
+            </h4>
+            <ul class="epaper-list-group epaper-list-group--flush">
+              <li class="epaper-list-group__item">First item</li>
+              <li class="epaper-list-group__item">Second item</li>
+              <li class="epaper-list-group__item">Third item</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- DETAILS / ACCORDION -->
+      <section class="epaper-section">
+        <h3>Details / Accordion</h3>
+        <p class="epaper-note">
+          E-Ink rationale: Uses the native <code>&lt;details&gt;</code> element for
+          no-JavaScript expand/collapse. The +/&minus; indicator is rendered with CSS
+          content — no icon fonts or SVGs.
+        </p>
+
+        <div
+          style="margin-top: var(--epaper-space-4); max-width: var(--epaper-measure)"
+        >
+          <h4 style="margin-bottom: var(--epaper-space-2)">Single</h4>
+          <details class="epaper-details">
+            <summary class="epaper-details__summary">What is E-Ink?</summary>
+            <div class="epaper-details__body">
+              <p>
+                E-Ink (electrophoretic ink) is a display technology that mimics the
+                appearance of ordinary ink on paper. It reflects ambient light like
+                paper does, making it comfortable for prolonged reading.
+              </p>
+            </div>
+          </details>
+
+          <h4
+            style="
+              margin-top: var(--epaper-space-5);
+              margin-bottom: var(--epaper-space-2);
+            "
+          >
+            Accordion group
+          </h4>
+          <div class="epaper-details-group">
+            <details class="epaper-details" open>
+              <summary class="epaper-details__summary">Getting Started</summary>
+              <div class="epaper-details__body">
+                <p>
+                  Include the CSS file in your HTML and start using the component
+                  classes. No build step or JavaScript required.
+                </p>
+              </div>
+            </details>
+            <details class="epaper-details">
+              <summary class="epaper-details__summary">Browser Support</summary>
+              <div class="epaper-details__body">
+                <p>
+                  The library targets modern browsers found on E-Ink devices:
+                  Chromium-based WebView, Firefox, and WebKit. All features use
+                  progressive enhancement.
+                </p>
+              </div>
+            </details>
+            <details class="epaper-details">
+              <summary class="epaper-details__summary">Theming</summary>
+              <div class="epaper-details__body">
+                <p>
+                  Three themes are included: default (light), inverted (dark), and
+                  high-contrast. Set the <code>data-theme</code> attribute on your
+                  <code>&lt;html&gt;</code> element.
+                </p>
+              </div>
+            </details>
+            <details class="epaper-details">
+              <summary class="epaper-details__summary">Customization</summary>
+              <div class="epaper-details__body">
+                <p>
+                  Override any CSS variable in the token layer to customize colors,
+                  spacing, and typography. The zero-specificity selectors
+                  (<code>:where()</code>) make overrides straightforward.
+                </p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <!-- ALERT -->
+      <section class="epaper-section">
+        <h3>Alert / Banner</h3>
+        <p class="epaper-note">
+          E-Ink rationale: Alerts differentiate severity through border weight and style
+          rather than color. On grayscale displays, a dashed border (warning) reads
+          differently from a thick solid border (error).
+        </p>
+
+        <div
+          class="epaper-stack epaper-stack--sm"
+          style="margin-top: var(--epaper-space-4); max-width: var(--epaper-measure)"
+        >
+          <div class="epaper-alert epaper-alert--info">
+            <div class="epaper-alert__title">Information</div>
+            <div class="epaper-alert__body">
+              This blog post was last updated 3 days ago.
+            </div>
+          </div>
+          <div class="epaper-alert epaper-alert--success">
+            <div class="epaper-alert__title">Success</div>
+            <div class="epaper-alert__body">Your comment has been published.</div>
+          </div>
+          <div class="epaper-alert epaper-alert--warning">
+            <div class="epaper-alert__title">Warning</div>
+            <div class="epaper-alert__body">
+              This article contains outdated information. Check the updated version.
+            </div>
+          </div>
+          <div class="epaper-alert epaper-alert--error">
+            <div class="epaper-alert__title">Error</div>
+            <div class="epaper-alert__body">
+              Failed to load comments. Please refresh the page.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAGINATION -->
+      <section class="epaper-section">
+        <h3>Blog Pagination</h3>
+
+        <nav
+          aria-label="Blog pagination"
+          class="epaper-pagination"
+          style="margin-top: var(--epaper-space-3)"
+        >
+          <ol class="epaper-pagination__list">
+            <li><a href="#" class="epaper-pagination__link">&laquo; Prev</a></li>
+            <li><a href="#" class="epaper-pagination__link">1</a></li>
+            <li>
+              <a href="#" class="epaper-pagination__link" aria-current="page">2</a>
+            </li>
+            <li><a href="#" class="epaper-pagination__link">3</a></li>
+            <li><a href="#" class="epaper-pagination__link">Next &raquo;</a></li>
+          </ol>
+        </nav>
+      </section>
+    </main>
+
+    <footer class="epaper-page-footer">
+      <div class="epaper-container">
+        <small>epaper-components — CSS-only component library for E-Ink devices.</small>
+      </div>
+    </footer>
+  </body>
+</html>

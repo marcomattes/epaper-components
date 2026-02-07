@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en" data-theme="default">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Typography — epaper-components</title>
+    <meta
+      name="description"
+      content="epaper-components is a CSS-only component library with 46+ components optimized for E-Ink displays. Zero JavaScript, three themes, optional Web Components."
+    />
+    <meta name="author" content="Marco Mattes" />
+    <meta name="theme-color" content="#ffffff" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Typography — epaper-components" />
+    <meta
+      property="og:description"
+      content="CSS-only component library with 46+ components optimized for E-Ink displays. Zero JavaScript, three themes, optional Web Components."
+    />
+    <meta property="og:site_name" content="epaper-components" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Typography — epaper-components" />
+
+    <link rel="stylesheet" href="../dist/epaper-components.css" />
+    <link rel="icon" href="../assets/epaper-components-logo.svg" type="image/svg+xml" />
+    <link rel="canonical" href="" />
+    <script src="theme.js" defer></script>
+  </head>
+  <body>
+    <header class="epaper-page-header">
+      <div class="epaper-container">
+        <div
+          class="epaper-cluster"
+          style="align-items: center; gap: var(--epaper-space-3)"
+        >
+          <img
+            src="../assets/epaper-components-logo.svg"
+            alt="epaper-components"
+            width="120"
+            height="32"
+            loading="lazy"
+          />
+          <h1 style="font-size: var(--epaper-text-2xl); margin: 0">
+            epaper-components
+          </h1>
+        </div>
+        <nav class="epaper-nav" aria-label="Main navigation">
+          <a href="index.html">Overview</a>
+          <a href="typography.html" aria-current="page">Typography</a>
+          <a href="layout.html">Layout</a>
+          <a href="components.html">Components</a>
+          <a href="forms.html">Forms</a>
+          <a href="dialog.html">Dialog</a>
+          <a href="tables.html">Tables</a>
+          <a href="newsreader.html">Newsreader</a>
+          <a href="blog.html">Blog</a>
+          <a href="dashboard.html">Dashboard</a>
+        </nav>
+        <p
+          class="epaper-text-xs"
+          style="
+            margin-top: var(--epaper-space-1);
+            display: flex;
+            gap: var(--epaper-space-3);
+            align-items: center;
+            flex-wrap: wrap;
+          "
+        >
+          <a href="../demo-wc/index.html"
+            ><strong>Switch to Web Component demos</strong></a
+          >
+          <span aria-hidden="true">·</span>
+          <a href="https://epaper-components.dev/storybook/"
+            ><strong>View Storybook</strong></a
+          >
+        </p>
+        <p
+          class="epaper-text-xs epaper-text-muted"
+          style="
+            margin-top: var(--epaper-space-2);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+            align-items: center;
+          "
+        >
+          <span>Theme: <code data-theme-label>default</code></span>
+          <span aria-hidden="true">·</span>
+          <a href="?theme=default">Default</a>
+          <a href="?theme=inverted">Inverted</a>
+          <a href="?theme=high-contrast">High-contrast</a>
+          <span aria-hidden="true">·</span>
+          <span
+            >Set <code>data-theme="..."</code> on <code>&lt;html&gt;</code> for no-JS
+            use.</span
+          >
+        </p>
+      </div>
+    </header>
+
+    <main class="epaper-container epaper-stack">
+      <!-- TYPE SCALE -->
+      <section class="epaper-section">
+        <h2>Type scale</h2>
+        <p class="epaper-note">
+          E-Ink rationale: System fonts avoid FOUT/FOIT and the full-page repaint that
+          webfont loading would trigger. The scale is generous — E-Ink screens typically
+          run at 150–300 PPI, so slightly larger text improves legibility.
+        </p>
+
+        <div
+          class="epaper-stack epaper-stack--sm"
+          style="margin-top: var(--epaper-space-4)"
+        >
+          <div>
+            <span class="epaper-text-xs epaper-text-muted epaper-text-mono"
+              >--epaper-text-4xl (2.25rem)</span
+            >
+            <h1>Heading 1</h1>
+          </div>
+          <hr class="epaper-divider" />
+          <div>
+            <span class="epaper-text-xs epaper-text-muted epaper-text-mono"
+              >--epaper-text-3xl (1.875rem)</span
+            >
+            <h2>Heading 2</h2>
+          </div>
+          <hr class="epaper-divider" />
+          <div>
+            <span class="epaper-text-xs epaper-text-muted epaper-text-mono"
+              >--epaper-text-2xl (1.5rem)</span
+            >
+            <h3>Heading 3</h3>
+          </div>
+          <hr class="epaper-divider" />
+          <div>
+            <span class="epaper-text-xs epaper-text-muted epaper-text-mono"
+              >--epaper-text-xl (1.25rem)</span
+            >
+            <h4>Heading 4</h4>
+          </div>
+          <hr class="epaper-divider" />
+          <div>
+            <span class="epaper-text-xs epaper-text-muted epaper-text-mono"
+              >--epaper-text-base (1rem)</span
+            >
+            <p>Body text — the default size for paragraphs and general content.</p>
+          </div>
+          <hr class="epaper-divider" />
+          <div>
+            <span class="epaper-text-xs epaper-text-muted epaper-text-mono"
+              >--epaper-text-sm (0.875rem)</span
+            >
+            <p class="epaper-text-sm">Small text — captions, help text, labels.</p>
+          </div>
+          <hr class="epaper-divider" />
+          <div>
+            <span class="epaper-text-xs epaper-text-muted epaper-text-mono"
+              >--epaper-text-xs (0.75rem)</span
+            >
+            <p class="epaper-text-xs">
+              Extra small — fine print, metadata, timestamps.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- FONT STACKS -->
+      <section class="epaper-section">
+        <h2>Font stacks</h2>
+
+        <div
+          class="epaper-stack epaper-stack--sm"
+          style="margin-top: var(--epaper-space-4)"
+        >
+          <div>
+            <span class="epaper-badge">Sans-serif</span>
+            <p style="margin-top: var(--epaper-space-2)">
+              The quick brown fox jumps over the lazy dog. 0123456789.
+            </p>
+          </div>
+          <hr class="epaper-divider" />
+          <div>
+            <span class="epaper-badge">Serif</span>
+            <p class="epaper-text-serif" style="margin-top: var(--epaper-space-2)">
+              The quick brown fox jumps over the lazy dog. 0123456789.
+            </p>
+          </div>
+          <hr class="epaper-divider" />
+          <div>
+            <span class="epaper-badge">Monospace</span>
+            <p class="epaper-text-mono" style="margin-top: var(--epaper-space-2)">
+              The quick brown fox jumps over the lazy dog. 0123456789.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- LINE LENGTH -->
+      <section class="epaper-section">
+        <h2>Line length (measure)</h2>
+        <p class="epaper-note">
+          E-Ink rationale: Controlled line length prevents eye-tracking loss on wide
+          screens and avoids reflow/re-pagination on narrow ones. The 65ch default
+          matches typographic best practice.
+        </p>
+
+        <div class="epaper-stack" style="margin-top: var(--epaper-space-4)">
+          <div>
+            <span class="epaper-badge">Narrow (45ch)</span>
+            <p
+              class="epaper-measure-narrow"
+              style="
+                margin-top: var(--epaper-space-2);
+                border: var(--epaper-border-thin) solid var(--epaper-border-color);
+                padding: var(--epaper-space-3);
+              "
+            >
+              This paragraph is constrained to 45 characters wide. It's suitable for
+              single-column reading on smaller E-Ink screens or sidebar content.
+            </p>
+          </div>
+          <div>
+            <span class="epaper-badge">Default (65ch)</span>
+            <p
+              class="epaper-measure"
+              style="
+                margin-top: var(--epaper-space-2);
+                border: var(--epaper-border-thin) solid var(--epaper-border-color);
+                padding: var(--epaper-space-3);
+              "
+            >
+              This paragraph uses the default measure of 65 characters. It provides a
+              comfortable reading experience for body text, balancing line length with
+              information density on standard 6–8 inch E-Ink displays.
+            </p>
+          </div>
+          <div>
+            <span class="epaper-badge">Wide (80ch)</span>
+            <p
+              class="epaper-measure-wide"
+              style="
+                margin-top: var(--epaper-space-2);
+                border: var(--epaper-border-thin) solid var(--epaper-border-color);
+                padding: var(--epaper-space-3);
+              "
+            >
+              This paragraph uses the wide measure of 80 characters. Use sparingly —
+              only for data-dense content like tables or code where horizontal space is
+              needed. Most E-Ink readers are too narrow for this to matter, but it caps
+              width on larger devices like the Kindle Scribe.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- PROSE -->
+      <section class="epaper-section">
+        <h2>Prose block</h2>
+        <p class="epaper-text-sm epaper-text-muted">
+          The <code>.epaper-prose</code> class adds vertical rhythm between child
+          elements.
+        </p>
+
+        <div class="epaper-prose" style="margin-top: var(--epaper-space-4)">
+          <h3>On the legibility of electronic paper</h3>
+          <p>
+            Electronic paper displays — commonly called E-Ink after the dominant
+            manufacturer — use electrophoretic technology to rearrange charged pigment
+            particles between two electrode layers. The result is a reflective display
+            that closely mimics paper.
+          </p>
+          <p>
+            Unlike LCD or OLED screens, E-Ink requires no backlight. The display is
+            perfectly legible in direct sunlight, making it ideal for extended reading.
+            However, the slow refresh rate (typically 250–450ms for a full page update)
+            demands careful UI design.
+          </p>
+          <blockquote>
+            "The best interface for a reading device is one that disappears entirely."
+          </blockquote>
+          <p>
+            Design constraints for E-Ink include: no animations, no hover effects (most
+            E-Ink devices are touch-only or use D-pad navigation), minimal use of filled
+            backgrounds, and generous spacing to avoid ghosting artifacts.
+          </p>
+        </div>
+      </section>
+
+      <!-- INLINE ELEMENTS -->
+      <section class="epaper-section">
+        <h2>Inline elements</h2>
+
+        <div
+          class="epaper-stack epaper-stack--sm"
+          style="margin-top: var(--epaper-space-4)"
+        >
+          <p><strong>Bold text</strong> using <code>&lt;strong&gt;</code></p>
+          <p><em>Italic text</em> using <code>&lt;em&gt;</code></p>
+          <p><small>Small text</small> using <code>&lt;small&gt;</code></p>
+          <p><mark>Marked/highlighted text</mark> using <code>&lt;mark&gt;</code></p>
+          <p><code>Inline code</code> using <code>&lt;code&gt;</code></p>
+          <p><kbd>Ctrl</kbd> + <kbd>S</kbd> using <code>&lt;kbd&gt;</code></p>
+          <p>
+            <abbr title="Electronic Ink">E-Ink</abbr> using <code>&lt;abbr&gt;</code>
+          </p>
+          <p><a href="#">A link to somewhere</a> using <code>&lt;a&gt;</code></p>
+        </div>
+      </section>
+
+      <!-- CODE BLOCK -->
+      <section class="epaper-section">
+        <h2>Code block</h2>
+        <p class="epaper-note">
+          E-Ink rationale: Code blocks use a subtle background border rather than a
+          filled background to minimize the repainted area on page render.
+        </p>
+
+        <pre
+          style="margin-top: var(--epaper-space-4)"
+        ><code>/* Example: using epaper-components tokens */
+.my-component {
+  color: var(--epaper-fg);
+  border: var(--epaper-border-thin) solid var(--epaper-border-color);
+  padding: var(--epaper-space-4);
+  font-family: var(--epaper-font-sans);
+}</code></pre>
+      </section>
+
+      <!-- HYPHENATION -->
+      <section class="epaper-section">
+        <h2>Hyphenation &amp; word-break</h2>
+        <p class="epaper-note">
+          E-Ink rationale: Hyphenation is intentionally NOT enabled by default. On E-Ink
+          devices, hyphenation triggers re-layout during pagination which causes visible
+          ghosting. Use
+          <code>hyphens: auto</code> only if the reading system handles pagination
+          (e.g., embedded book readers). For UI text,
+          <code>overflow-wrap: break-word</code>
+          is a safer fallback.
+        </p>
+        <div
+          style="
+            max-width: 20ch;
+            border: var(--epaper-border-thin) solid var(--epaper-border-color);
+            padding: var(--epaper-space-3);
+            margin-top: var(--epaper-space-4);
+          "
+        >
+          <p style="overflow-wrap: break-word">
+            Supercalifragilisticexpialidocious and other extraordinarily long words
+            handled with overflow-wrap: break-word.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="epaper-page-footer">
+      <div class="epaper-container">
+        <small>epaper-components — CSS-only component library for E-Ink devices.</small>
+      </div>
+    </footer>
+  </body>
+</html>

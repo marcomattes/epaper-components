@@ -1,0 +1,30 @@
+/* ===========================================
+   ERROR SUMMARY
+   =========================================== */
+
+:where(.epaper-error-summary) {
+  border: var(--epaper-border-medium) solid var(--epaper-error-border);
+  padding: var(--epaper-space-4);
+  background-color: var(--epaper-error-bg);
+}
+
+:where(.epaper-error-summary__title) {
+  font-size: var(--epaper-text-lg);
+  font-weight: var(--epaper-weight-bold);
+  margin-bottom: var(--epaper-space-3);
+}
+
+:where(.epaper-error-summary ul) {
+  list-style: disc;
+  padding-left: var(--epaper-space-5);
+  margin: 0;
+}
+
+:where(.epaper-error-summary li) {
+  margin-bottom: var(--epaper-space-1);
+}
+
+:where(.epaper-error-summary a) {
+  color: var(--epaper-error-fg);
+  font-weight: var(--epaper-weight-medium);
+}

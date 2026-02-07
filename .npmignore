@@ -1,0 +1,33 @@
+# Source & build tooling
+build.ts
+tsconfig.json
+tsconfig.wc.json
+stylelint.config.mjs
+.prettierrc.json
+.prettierignore
+.browserslistrc
+agents.md
+claude.md
+favicon.ico
+
+# Tests
+tests/
+test-results/
+playwright-report/
+playwright.config.ts
+
+# Storybook
+.storybook/
+storybook-static/
+
+# CI / editor
+.github/
+.claude/
+.git/
+
+# Demo (WC) — not needed in published package
+demo-wc/
+demo/
+
+# Misc
+node_modules/

@@ -1,0 +1,105 @@
+import { Meta, Title, Subtitle, Description } from "@storybook/addon-docs/blocks";
+import * as DocsBase from "./docs.stories";
+
+<Meta of={DocsBase} title="Docs/Tokens & Themes" />
+
+<Title>Design Tokens & Themes</Title>
+<Subtitle>Custom properties that drive every component — optimized for E-Ink.</Subtitle>
+
+<Description>
+  Set tokens on <code>html</code> or any ancestor. Three built-in themes switch via{" "}
+  <code>data-theme="default|inverted|high-contrast"</code> (also supported by the demo
+  query param).
+</Description>
+
+### Color roles
+
+<table class="epaper-table epaper-table--compact">
+  <thead>
+    <tr>
+      <th>Token</th>
+      <th>Purpose</th>
+      <th>Default theme</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>--epaper-fg</code>
+      </td>
+      <td>Primary text / icons</td>
+      <td>#171717</td>
+    </tr>
+    <tr>
+      <td>
+        <code>--epaper-fg-muted</code>
+      </td>
+      <td>Secondary text</td>
+      <td>#525252</td>
+    </tr>
+    <tr>
+      <td>
+        <code>--epaper-bg</code>
+      </td>
+      <td>Page background</td>
+      <td>#fff</td>
+    </tr>
+    <tr>
+      <td>
+        <code>--epaper-bg-muted</code>
+      </td>
+      <td>Subtle surfaces / stripes</td>
+      <td>#f5f5f5</td>
+    </tr>
+    <tr>
+      <td>
+        <code>--epaper-border-color</code>
+      </td>
+      <td>Default borders</td>
+      <td>#d4d4d4</td>
+    </tr>
+    <tr>
+      <td>
+        <code>--epaper-border-strong</code>
+      </td>
+      <td>Emphasis borders</td>
+      <td>#525252</td>
+    </tr>
+    <tr>
+      <td>
+        <code>--epaper-error-*</code>
+      </td>
+      <td>Error text / border / bg</td>
+      <td>Gray-based for E-Ink</td>
+    </tr>
+    <tr>
+      <td>
+        <code>--epaper-focus-color</code>
+      </td>
+      <td>Focus ring</td>
+      <td>#000</td>
+    </tr>
+  </tbody>
+</table>
+
+### Spacing & typography
+
+- Spacing: `--epaper-space-1 … --epaper-space-8` (4px base)
+- Type: `--epaper-text-xs … --epaper-text-4xl`; line heights `--epaper-leading-*`
+- Fonts: `--epaper-font-sans`, `--epaper-font-serif`, `--epaper-font-mono` (system stacks)
+- Focus: `--epaper-focus-width`, `--epaper-focus-offset`
+- Measure: `--epaper-measure`, `--epaper-measure-narrow`, `--epaper-measure-wide`
+
+### Borders & radius
+
+`--epaper-border-thin` (1px) · `--epaper-border-medium` (2px) · `--epaper-border-thick` (3px) · `--epaper-radius-sm|md`.
+
+### Theme preview
+
+```html
+<div data-theme="default">…</div>
+<div data-theme="inverted">…</div>
+<div data-theme="high-contrast">…</div>
+```
+
+Tokens source: `demo/epaper-components.tokens.css`. Override per-surface if needed (e.g., nested `data-theme` on a card).

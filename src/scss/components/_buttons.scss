@@ -1,0 +1,65 @@
+/* ===========================================
+   BUTTONS
+   =========================================== */
+
+@use "../mixins" as *;
+
+:where(.epaper-btn) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--epaper-space-2);
+  padding: var(--epaper-space-2) var(--epaper-space-4);
+  font-family: inherit;
+  font-size: var(--epaper-text-base);
+  font-weight: var(--epaper-weight-medium);
+  line-height: var(--epaper-leading-normal);
+  text-decoration: none;
+  border: var(--epaper-border-medium) solid var(--epaper-border-color);
+  background-color: var(--epaper-bg);
+  color: var(--epaper-fg);
+  cursor: pointer;
+  appearance: none;
+}
+
+:where(.epaper-btn--primary) {
+  background-color: var(--epaper-fg);
+  color: var(--epaper-bg);
+  border-color: var(--epaper-fg);
+}
+
+:where(.epaper-btn--secondary) {
+  background-color: var(--epaper-bg);
+  color: var(--epaper-fg);
+  border-color: var(--epaper-border-strong);
+}
+
+:where(.epaper-btn--ghost) {
+  background-color: transparent;
+  color: var(--epaper-fg);
+  border-color: transparent;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+:where(.epaper-btn--sm) {
+  font-size: var(--epaper-text-sm);
+  padding: var(--epaper-space-1) var(--epaper-space-3);
+}
+
+:where(.epaper-btn--lg) {
+  font-size: var(--epaper-text-lg);
+  padding: var(--epaper-space-3) var(--epaper-space-5);
+}
+
+:where(.epaper-btn:disabled),
+:where(.epaper-btn[aria-disabled="true"]) {
+  color: var(--epaper-disabled-fg);
+  background-color: var(--epaper-disabled-bg);
+  border-color: var(--epaper-disabled-border);
+  cursor: not-allowed;
+}
+
+:where(.epaper-btn:focus-visible) {
+  @include focus-ring;
+}

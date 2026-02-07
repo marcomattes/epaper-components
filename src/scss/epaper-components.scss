@@ -1,0 +1,8 @@
+/* ============================================
+   epaper-components.scss — Bundle entry (tokens + base + components)
+   Compiles to dist/epaper-components.css and dist/epaper-components.min.css
+   ============================================ */
+
+@use "epaper-components.tokens" as tokens;
+@use "epaper-components.base" as base;
+@use "epaper-components.components" as components;

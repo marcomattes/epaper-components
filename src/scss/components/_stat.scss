@@ -1,0 +1,41 @@
+/* ===========================================
+   STAT / KPI
+   =========================================== */
+
+:where(.epaper-stat) {
+  padding: var(--epaper-space-4);
+  border: var(--epaper-border-thin) solid var(--epaper-border-color);
+}
+
+:where(.epaper-stat__value) {
+  font-size: var(--epaper-text-3xl);
+  font-weight: var(--epaper-weight-bold);
+  line-height: 1;
+  margin-bottom: var(--epaper-space-1);
+}
+
+:where(.epaper-stat__label) {
+  font-size: var(--epaper-text-sm);
+  color: var(--epaper-fg-muted);
+}
+
+:where(.epaper-stat__delta) {
+  display: inline-block;
+  font-size: var(--epaper-text-xs);
+  font-weight: var(--epaper-weight-medium);
+  margin-top: var(--epaper-space-2);
+  padding: var(--epaper-space-1) var(--epaper-space-2);
+  border: var(--epaper-border-thin) solid var(--epaper-border-color);
+}
+
+/* Compact variant — inline value + label */
+
+:where(.epaper-stat--compact) {
+  display: flex;
+  align-items: baseline;
+  gap: var(--epaper-space-2);
+}
+
+:where(.epaper-stat--compact > .epaper-stat__value) {
+  margin-bottom: 0;
+}

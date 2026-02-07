@@ -1,0 +1,50 @@
+/* ===========================================
+   DESCRIPTION LIST
+   =========================================== */
+
+:where(.epaper-dl) {
+  margin: 0;
+}
+
+:where(.epaper-dl__term) {
+  font-weight: var(--epaper-weight-bold);
+  font-size: var(--epaper-text-sm);
+  color: var(--epaper-fg-muted);
+}
+
+:where(.epaper-dl__detail) {
+  margin-left: 0;
+  margin-bottom: var(--epaper-space-4);
+}
+
+:where(.epaper-dl__detail:last-child) {
+  margin-bottom: 0;
+}
+
+/* Horizontal layout — term and detail side by side */
+
+:where(.epaper-dl--horizontal) {
+  display: grid;
+  grid-template-columns: minmax(8rem, auto) 1fr;
+  gap: var(--epaper-space-2) var(--epaper-space-4);
+  align-items: baseline;
+}
+
+:where(.epaper-dl--horizontal > .epaper-dl__detail) {
+  margin-bottom: 0;
+}
+
+/* Bordered variant — rows separated by lines */
+
+:where(.epaper-dl--bordered > .epaper-dl__term),
+:where(.epaper-dl--bordered > .epaper-dl__detail) {
+  padding-block: var(--epaper-space-2);
+}
+
+:where(.epaper-dl--bordered > .epaper-dl__term) {
+  border-top: var(--epaper-border-thin) solid var(--epaper-border-color);
+}
+
+:where(.epaper-dl--bordered.epaper-dl--horizontal > .epaper-dl__detail) {
+  border-top: var(--epaper-border-thin) solid var(--epaper-border-color);
+}

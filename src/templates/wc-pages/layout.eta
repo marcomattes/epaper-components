@@ -1,0 +1,219 @@
+<% layout("../_wc-layout", { title: "Layout", current: "layout", headExtra: `    <style>
+      /* Demo-only: visible outlines for layout boxes */
+      .demo-box {
+        border: 1px dashed var(--epaper-border-color);
+        padding: var(--epaper-space-3);
+        text-align: center;
+        font-size: var(--epaper-text-sm);
+        color: var(--epaper-fg-muted);
+        background: var(--epaper-bg-subtle);
+      }
+    </style>` }) %>
+
+    <main class="epaper-container epaper-stack">
+      <!-- CONTAINER -->
+      <epaper-section>
+        <h2>Container</h2>
+        <p class="epaper-note">
+          <code>&lt;epaper-container&gt;</code> replaces
+          <code>&lt;div class="epaper-container"&gt;</code>. Use the
+          <code>width</code> attribute for variants.
+        </p>
+
+        <div class="epaper-stack epaper-stack--sm" style="margin-top: var(--epaper-space-4)">
+          <div>
+            <span class="epaper-badge">CSS-only</span>
+            <pre style="margin-top: var(--epaper-space-2)"><code>&lt;div class="epaper-container epaper-container--narrow"&gt;...&lt;/div&gt;</code></pre>
+          </div>
+          <div>
+            <span class="epaper-badge">Web Component</span>
+            <pre style="margin-top: var(--epaper-space-2)"><code>&lt;epaper-container width="narrow"&gt;...&lt;/epaper-container&gt;</code></pre>
+          </div>
+        </div>
+
+        <div
+          style="
+            margin-top: var(--epaper-space-4);
+            border: var(--epaper-border-thin) solid var(--epaper-border-color);
+          "
+        >
+          <epaper-container width="narrow" style="padding-block: var(--epaper-space-3)">
+            <div class="demo-box">Narrow container (epaper-container width="narrow")</div>
+          </epaper-container>
+        </div>
+        <div
+          style="
+            margin-top: var(--epaper-space-3);
+            border: var(--epaper-border-thin) solid var(--epaper-border-color);
+          "
+        >
+          <epaper-container style="padding-block: var(--epaper-space-3)">
+            <div class="demo-box">Default container (epaper-container)</div>
+          </epaper-container>
+        </div>
+        <div
+          style="
+            margin-top: var(--epaper-space-3);
+            border: var(--epaper-border-thin) solid var(--epaper-border-color);
+          "
+        >
+          <epaper-container width="wide" style="padding-block: var(--epaper-space-3)">
+            <div class="demo-box">Wide container (epaper-container width="wide")</div>
+          </epaper-container>
+        </div>
+      </epaper-section>
+
+      <!-- STACK -->
+      <epaper-section>
+        <h2>Stack</h2>
+        <p class="epaper-note">
+          <code>&lt;epaper-stack&gt;</code> with optional <code>gap="sm|lg"</code>
+          attribute.
+        </p>
+
+        <div class="epaper-stack epaper-stack--sm" style="margin-top: var(--epaper-space-3)">
+          <div>
+            <span class="epaper-badge">CSS-only</span>
+            <pre style="margin-top: var(--epaper-space-2)"><code>&lt;div class="epaper-stack epaper-stack--sm"&gt;...&lt;/div&gt;</code></pre>
+          </div>
+          <div>
+            <span class="epaper-badge">Web Component</span>
+            <pre style="margin-top: var(--epaper-space-2)"><code>&lt;epaper-stack gap="sm"&gt;...&lt;/epaper-stack&gt;</code></pre>
+          </div>
+        </div>
+
+        <epaper-grid min="14rem" style="margin-top: var(--epaper-space-4)">
+          <div>
+            <span class="epaper-badge">gap="sm"</span>
+            <epaper-stack gap="sm" style="margin-top: var(--epaper-space-2)">
+              <div class="demo-box">Item 1</div>
+              <div class="demo-box">Item 2</div>
+              <div class="demo-box">Item 3</div>
+            </epaper-stack>
+          </div>
+          <div>
+            <span class="epaper-badge">default</span>
+            <epaper-stack style="margin-top: var(--epaper-space-2)">
+              <div class="demo-box">Item 1</div>
+              <div class="demo-box">Item 2</div>
+              <div class="demo-box">Item 3</div>
+            </epaper-stack>
+          </div>
+          <div>
+            <span class="epaper-badge">gap="lg"</span>
+            <epaper-stack gap="lg" style="margin-top: var(--epaper-space-2)">
+              <div class="demo-box">Item 1</div>
+              <div class="demo-box">Item 2</div>
+              <div class="demo-box">Item 3</div>
+            </epaper-stack>
+          </div>
+        </epaper-grid>
+      </epaper-section>
+
+      <!-- CLUSTER -->
+      <epaper-section>
+        <h2>Cluster</h2>
+        <p class="epaper-note">
+          <code>&lt;epaper-cluster&gt;</code> with optional <code>gap</code>
+          attribute (any CSS length value). The gap is applied via the
+          <code>--epaper-cluster-gap</code> CSS variable.
+        </p>
+
+        <epaper-cluster style="margin-top: var(--epaper-space-4)">
+          <div class="demo-box">Alpha</div>
+          <div class="demo-box">Bravo</div>
+          <div class="demo-box">Charlie</div>
+          <div class="demo-box">Delta</div>
+          <div class="demo-box">Echo</div>
+          <div class="demo-box">Foxtrot</div>
+          <div class="demo-box">Golf</div>
+        </epaper-cluster>
+      </epaper-section>
+
+      <!-- GRID -->
+      <epaper-section>
+        <h2>Grid</h2>
+        <p class="epaper-note">
+          <code>&lt;epaper-grid&gt;</code> with optional <code>min</code>
+          attribute to set the minimum column width via
+          <code>--epaper-grid-min</code>.
+        </p>
+
+        <div style="margin-top: var(--epaper-space-4)">
+          <span class="epaper-badge">Default (16rem min)</span>
+          <epaper-grid style="margin-top: var(--epaper-space-2)">
+            <div class="demo-box">Cell 1</div>
+            <div class="demo-box">Cell 2</div>
+            <div class="demo-box">Cell 3</div>
+            <div class="demo-box">Cell 4</div>
+            <div class="demo-box">Cell 5</div>
+            <div class="demo-box">Cell 6</div>
+          </epaper-grid>
+        </div>
+
+        <div style="margin-top: var(--epaper-space-5)">
+          <span class="epaper-badge">min="22rem"</span>
+          <epaper-grid min="22rem" style="margin-top: var(--epaper-space-2)">
+            <div class="demo-box">Cell 1</div>
+            <div class="demo-box">Cell 2</div>
+            <div class="demo-box">Cell 3</div>
+            <div class="demo-box">Cell 4</div>
+          </epaper-grid>
+        </div>
+      </epaper-section>
+
+      <!-- DIVIDER -->
+      <epaper-section>
+        <h2>Divider</h2>
+        <p class="epaper-note">
+          <code>&lt;epaper-divider&gt;</code> replaces
+          <code>&lt;hr class="epaper-divider"&gt;</code>. Add the
+          <code>strong</code> attribute for heavier separators.
+        </p>
+
+        <div style="margin-top: var(--epaper-space-4)">
+          <p>Content above the default divider.</p>
+          <epaper-divider></epaper-divider>
+          <p>Content between dividers.</p>
+          <epaper-divider strong></epaper-divider>
+          <p>Content below the strong divider.</p>
+        </div>
+      </epaper-section>
+
+      <!-- PAGE STRUCTURE -->
+      <epaper-section>
+        <h2>Page structure</h2>
+        <p class="epaper-note">
+          <code>&lt;epaper-page-header&gt;</code>,
+          <code>&lt;epaper-section&gt;</code>, and
+          <code>&lt;epaper-page-footer&gt;</code> provide semantic page structure.
+        </p>
+
+        <div
+          style="
+            margin-top: var(--epaper-space-4);
+            border: var(--epaper-border-thin) solid var(--epaper-border-color);
+          "
+        >
+          <epaper-page-header style="margin-bottom: 0">
+            <div style="padding-inline: var(--epaper-space-4)">
+              <strong>Page Header</strong>
+              <span class="epaper-text-sm epaper-text-muted">
+                — &lt;epaper-page-header&gt;</span
+              >
+            </div>
+          </epaper-page-header>
+          <epaper-section style="padding-inline: var(--epaper-space-4)">
+            <p>Section 1 content — &lt;epaper-section&gt;</p>
+          </epaper-section>
+          <epaper-section style="padding-inline: var(--epaper-space-4)">
+            <p>Section 2 content</p>
+          </epaper-section>
+          <epaper-page-footer style="margin-top: 0">
+            <div style="padding-inline: var(--epaper-space-4)">
+              <small>Page Footer — &lt;epaper-page-footer&gt;</small>
+            </div>
+          </epaper-page-footer>
+        </div>
+      </epaper-section>
+    </main>

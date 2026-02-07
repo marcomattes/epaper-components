@@ -1,0 +1,51 @@
+/* ===========================================
+   LOADER (STATIC, NO ANIMATION)
+   =========================================== */
+
+@use "../mixins" as *;
+
+:where(.epaper-loader) {
+  display: flex;
+  align-items: center;
+  gap: var(--epaper-space-3);
+  color: var(--epaper-fg-muted);
+}
+
+:where(.epaper-loader__label) {
+  font-size: var(--epaper-text-sm);
+  font-weight: var(--epaper-weight-medium);
+}
+
+:where(.epaper-loader__track) {
+  position: relative;
+  flex: 1;
+  min-width: 6rem;
+  height: 0.75rem;
+  border: var(--epaper-border-thin) solid var(--epaper-border-color);
+  background-color: var(--epaper-bg);
+}
+
+:where(.epaper-loader__fill) {
+  --epaper-loader-value: 100%;
+  width: var(--epaper-loader-value);
+  height: 100%;
+  background: repeating-linear-gradient(
+    135deg,
+    var(--epaper-fg) 0 6px,
+    transparent 6px 12px
+  );
+}
+
+/* State variants */
+
+:where(.epaper-loader[data-state="complete"] .epaper-loader__fill) {
+  background: var(--epaper-fg);
+}
+
+:where(.epaper-loader[data-state="paused"] .epaper-loader__fill) {
+  background: var(--epaper-border-color);
+}
+
+:where(.epaper-loader--thin > .epaper-loader__track) {
+  height: 0.5rem;
+}

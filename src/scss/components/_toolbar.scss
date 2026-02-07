@@ -1,0 +1,38 @@
+/* ===========================================
+   TOOLBAR
+   =========================================== */
+
+:where(.epaper-toolbar) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--epaper-space-2);
+  padding: var(--epaper-space-2) var(--epaper-space-3);
+  border: var(--epaper-border-thin) solid var(--epaper-border-color);
+}
+
+:where(.epaper-toolbar__group) {
+  display: flex;
+  align-items: center;
+  gap: var(--epaper-space-1);
+}
+
+:where(.epaper-toolbar__separator) {
+  width: var(--epaper-border-thin);
+  height: 1.5rem;
+  background-color: var(--epaper-border-color);
+  margin-inline: var(--epaper-space-1);
+  flex-shrink: 0;
+}
+
+:where(.epaper-toolbar__label) {
+  font-size: var(--epaper-text-xs);
+  color: var(--epaper-fg-muted);
+  margin-right: var(--epaper-space-2);
+}
+
+/* Push items right */
+
+:where(.epaper-toolbar__spacer) {
+  flex: 1;
+}

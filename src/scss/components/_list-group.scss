@@ -1,0 +1,46 @@
+/* ===========================================
+   LIST GROUP
+   =========================================== */
+
+@use "../mixins" as *;
+
+:where(.epaper-list-group) {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: var(--epaper-border-thin) solid var(--epaper-border-color);
+}
+
+:where(.epaper-list-group__item) {
+  padding: var(--epaper-space-3) var(--epaper-space-4);
+}
+
+:where(.epaper-list-group__item + .epaper-list-group__item) {
+  border-top: var(--epaper-border-thin) solid var(--epaper-border-color);
+}
+
+:where(.epaper-list-group__item--active) {
+  font-weight: var(--epaper-weight-bold);
+  border-left: var(--epaper-border-thick) solid var(--epaper-border-strong);
+}
+
+:where(a.epaper-list-group__item) {
+  display: block;
+  text-decoration: none;
+  color: var(--epaper-fg);
+}
+
+:where(a.epaper-list-group__item:focus-visible) {
+  @include focus-ring;
+  outline-offset: calc(-1 * var(--epaper-focus-width));
+}
+
+/* Flush variant — no outer border */
+
+:where(.epaper-list-group--flush) {
+  border: none;
+}
+
+:where(.epaper-list-group--flush > .epaper-list-group__item:first-child) {
+  border-top: var(--epaper-border-thin) solid var(--epaper-border-color);
+}

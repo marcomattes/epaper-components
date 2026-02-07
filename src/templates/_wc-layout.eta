@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en" data-theme="default">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title><%= it.title %> (Web Components) — epaper-components</title>
+    <link rel="stylesheet" href="../dist/epaper-components.css" />
+    <link rel="icon" href="../assets/epaper-components-logo.svg" type="image/svg+xml" />
+    <script src="../demo/theme.js" defer></script>
+    <script type="module">
+      import { defineEpaperElements } from "../dist/wc/index.js";
+      defineEpaperElements();
+    </script>
+<% if (it.headExtra) { %>
+<%~ it.headExtra + '\n' %><% } %>
+  </head>
+  <body>
+    <header class="epaper-page-header">
+      <div class="epaper-container<%= it.wide ? ' epaper-container--wide' : '' %>">
+        <div class="epaper-cluster" style="align-items: center; gap: var(--epaper-space-3)">
+          <img
+            src="../assets/epaper-components-logo.svg"
+            alt="epaper-components"
+            width="120"
+            height="32"
+            loading="lazy"
+          />
+          <h1 style="font-size: var(--epaper-text-2xl); margin: 0">epaper-components</h1>
+          <span class="epaper-badge">Web Components</span>
+        </div>
+        <nav class="epaper-nav" aria-label="Main navigation">
+          <a href="index.html"<%= it.current === 'index' ? ' aria-current="page"' : '' %>>Overview</a>
+          <a href="layout.html"<%= it.current === 'layout' ? ' aria-current="page"' : '' %>>Layout</a>
+          <a href="components.html"<%= it.current === 'components' ? ' aria-current="page"' : '' %>>Components</a>
+          <a href="forms.html"<%= it.current === 'forms' ? ' aria-current="page"' : '' %>>Forms</a>
+        </nav>
+        <p
+          class="epaper-text-xs epaper-text-muted"
+          style="
+            margin-top: var(--epaper-space-2);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+            align-items: center;
+          "
+        >
+          <a href="../demo/<%= it.current === 'index' ? 'index' : it.current %>.html"><strong>Switch to CSS-only demos</strong></a>
+          <span aria-hidden="true">·</span>
+          <span>Theme: <code data-theme-label>default</code></span>
+          <span aria-hidden="true">·</span>
+          <a href="?theme=default">Default</a>
+          <a href="?theme=inverted">Inverted</a>
+          <a href="?theme=high-contrast">High-contrast</a>
+          <span aria-hidden="true">·</span>
+          <a href="https://epaper-components.dev/storybook/"><strong>View Storybook</strong></a>
+        </p>
+      </div>
+    </header>
+<%~ it.body %>
+
+    <footer class="epaper-page-footer">
+      <div class="epaper-container<%= it.wide ? ' epaper-container--wide' : '' %>">
+        <small><%= it.footerText || 'epaper-components — Web Component demos for E-Ink devices.' %></small>
+      </div>
+    </footer>
+  </body>
+</html>

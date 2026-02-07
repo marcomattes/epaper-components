@@ -1,0 +1,23 @@
+/* ===========================================
+   PICTURE
+   =========================================== */
+
+:where(.epaper-picture) {
+  border: var(--epaper-border-thin) solid var(--epaper-border-color);
+  padding: var(--epaper-space-2);
+  background-color: var(--epaper-surface);
+}
+
+:where(.epaper-picture img) {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+:where(.epaper-picture figcaption) {
+  padding-top: var(--epaper-space-2);
+  border-top: var(--epaper-border-thin) solid var(--epaper-border-color);
+  margin-top: var(--epaper-space-2);
+  font-size: var(--epaper-text-sm);
+  color: var(--epaper-fg-muted);
+}

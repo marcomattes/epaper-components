@@ -1,0 +1,35 @@
+/* ===========================================
+   SELECT
+   =========================================== */
+
+@use "../mixins" as *;
+
+:where(.epaper-select) {
+  @include control-base;
+  padding-right: var(--epaper-space-7);
+
+  /* Custom arrow via border trick */
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--epaper-fg) 50%),
+    linear-gradient(135deg, var(--epaper-fg) 50%, transparent 50%);
+  background-position:
+    calc(100% - 1.25rem) center,
+    calc(100% - 0.875rem) center;
+  background-size:
+    0.375rem 0.375rem,
+    0.375rem 0.375rem;
+  background-repeat: no-repeat;
+}
+
+:where(.epaper-select:focus-visible) {
+  @include focus-ring;
+  border-color: var(--epaper-border-strong);
+}
+
+:where(.epaper-select:disabled) {
+  @include control-disabled;
+}
+
+:where(.epaper-select[aria-invalid="true"]) {
+  @include control-invalid;
+}

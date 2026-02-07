@@ -1,0 +1,65 @@
+/* ===========================================
+   CHECKBOX & RADIO
+   =========================================== */
+
+@use "../mixins" as *;
+
+:where(.epaper-checkbox) {
+  appearance: none;
+  width: 1.25em;
+  height: 1.25em;
+  border: var(--epaper-border-medium) solid var(--epaper-border-color);
+  background-color: var(--epaper-bg);
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+:where(.epaper-checkbox:checked) {
+  background-color: var(--epaper-fg);
+  border-color: var(--epaper-fg);
+}
+
+:where(.epaper-checkbox:focus-visible) {
+  @include focus-ring;
+}
+
+:where(.epaper-checkbox:disabled) {
+  border-color: var(--epaper-disabled-border);
+  background-color: var(--epaper-disabled-bg);
+  cursor: not-allowed;
+}
+
+:where(.epaper-checkbox:disabled:checked) {
+  background-color: var(--epaper-disabled-fg);
+  border-color: var(--epaper-disabled-border);
+}
+
+:where(.epaper-radio) {
+  appearance: none;
+  width: 1.25em;
+  height: 1.25em;
+  border: var(--epaper-border-medium) solid var(--epaper-border-color);
+  border-radius: 50%;
+  background-color: var(--epaper-bg);
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+:where(.epaper-radio:checked) {
+  border-width: 0.35em;
+  border-color: var(--epaper-fg);
+}
+
+:where(.epaper-radio:focus-visible) {
+  @include focus-ring;
+}
+
+:where(.epaper-radio:disabled) {
+  border-color: var(--epaper-disabled-border);
+  background-color: var(--epaper-disabled-bg);
+  cursor: not-allowed;
+}
+
+:where(.epaper-radio:disabled:checked) {
+  border-color: var(--epaper-disabled-fg);
+}

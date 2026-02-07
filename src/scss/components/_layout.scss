@@ -1,0 +1,85 @@
+/* ===========================================
+   LAYOUT
+   =========================================== */
+
+:where(.epaper-container, epaper-container) {
+  display: block;
+  width: 100%;
+  max-width: 52rem;
+  margin-inline: auto;
+  padding-inline: var(--epaper-space-4);
+}
+
+:where(.epaper-container--wide, epaper-container[width="wide"]) {
+  max-width: 72rem;
+}
+
+:where(.epaper-container--narrow, epaper-container[width="narrow"]) {
+  max-width: 38rem;
+}
+
+:where(.epaper-stack, epaper-stack) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--epaper-stack-gap, var(--epaper-space-5));
+}
+
+:where(.epaper-stack--sm, epaper-stack[gap="sm"]) {
+  --epaper-stack-gap: var(--epaper-space-3);
+}
+
+:where(.epaper-stack--lg, epaper-stack[gap="lg"]) {
+  --epaper-stack-gap: var(--epaper-space-7);
+}
+
+:where(.epaper-cluster, epaper-cluster) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--epaper-cluster-gap, var(--epaper-space-3));
+  align-items: center;
+}
+
+:where(.epaper-grid, epaper-grid) {
+  display: grid;
+  gap: var(--epaper-grid-gap, var(--epaper-space-5));
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(var(--epaper-grid-min, 16rem), 100%), 1fr)
+  );
+}
+
+:where(.epaper-divider, epaper-divider) {
+  display: block;
+  border: none;
+  border-top: var(--epaper-border-thin) solid var(--epaper-border-color);
+  margin-block: var(--epaper-space-5);
+}
+
+:where(.epaper-divider--strong, epaper-divider[strong]) {
+  border-top-width: var(--epaper-border-medium);
+  border-top-color: var(--epaper-border-strong);
+}
+
+:where(.epaper-page-header, epaper-page-header) {
+  display: block;
+  border-bottom: var(--epaper-border-medium) solid var(--epaper-border-color);
+  padding-block: var(--epaper-space-4);
+  margin-bottom: var(--epaper-space-6);
+}
+
+:where(.epaper-page-footer, epaper-page-footer) {
+  display: block;
+  border-top: var(--epaper-border-thin) solid var(--epaper-border-color);
+  padding-block: var(--epaper-space-4);
+  margin-top: var(--epaper-space-7);
+  color: var(--epaper-fg-muted);
+}
+
+:where(.epaper-section, epaper-section) {
+  display: block;
+  padding-block: var(--epaper-space-5);
+}
+
+:where(.epaper-section + .epaper-section, epaper-section + epaper-section) {
+  border-top: var(--epaper-border-thin) solid var(--epaper-border-color);
+}
