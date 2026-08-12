@@ -21,6 +21,7 @@ export const Default: Story = {
   render: () => html`
     <div
       id="bt-scroll"
+      tabindex="0"
       style="height:480px;overflow:auto;border:2px solid #000;padding:16px;position:relative"
     >
       ${Array.from({ length: 30 }).map(

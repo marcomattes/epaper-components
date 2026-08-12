@@ -32,8 +32,8 @@ export const Default: Story = {
   play: async ({ canvasElement }) => {
     await checkA11y(canvasElement);
     const canvas = within(canvasElement);
-    const btn = canvas.getByRole('switch', { name: 'Today' });
-    expect(btn.getAttribute('aria-checked')).toBe('false');
+    const btn = canvas.getByRole('button', { name: 'Today' });
+    expect(btn.getAttribute('aria-pressed')).toBe('false');
   },
 };
 
@@ -41,8 +41,8 @@ export const Selected: Story = {
   args: { label: 'This week', selected: true, disabled: false },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    const btn = canvas.getByRole('switch', { name: 'This week' });
-    expect(btn.getAttribute('aria-checked')).toBe('true');
+    const btn = canvas.getByRole('button', { name: 'This week' });
+    expect(btn.getAttribute('aria-pressed')).toBe('true');
   },
 };
 

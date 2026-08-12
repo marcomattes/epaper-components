@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/web-components';
-import { expect, userEvent } from 'storybook/test';
+import { expect, userEvent, waitFor } from 'storybook/test';
 import { html } from 'lit';
 import { checkA11y } from '../a11y';
 
@@ -95,7 +95,7 @@ export const MouseDrag: Story = {
         clientY: r.top + r.height * 0.5,
       }),
     );
-    expect(paneA.style.width).toBe('70%');
+    await waitFor(() => expect(paneA.style.width).toBe('70%'));
     window.dispatchEvent(
       new MouseEvent('mousemove', {
         bubbles: true,
@@ -103,7 +103,7 @@ export const MouseDrag: Story = {
         clientY: r.top + r.height * 0.5,
       }),
     );
-    expect(paneA.style.width).toBe('85%');
+    await waitFor(() => expect(paneA.style.width).toBe('85%'));
     window.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
     window.dispatchEvent(
       new MouseEvent('mousemove', {
@@ -136,7 +136,7 @@ export const VerticalDrag: Story = {
         clientY: r.top + r.height * 0.3,
       }),
     );
-    expect(paneA.style.height).toBe('30%');
+    await waitFor(() => expect(paneA.style.height).toBe('30%'));
     window.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
   },
 };

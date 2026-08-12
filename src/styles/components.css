@@ -1173,9 +1173,11 @@ e-text {
   font-weight: 700;
 }
 .ink-datepicker__grid {
+  border: var(--ink-border);
+}
+.ink-datepicker__row {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  border: var(--ink-border);
 }
 .ink-datepicker__dow {
   font-family: var(--ink-mono);
@@ -1200,10 +1202,10 @@ e-text {
   border: none;
   cursor: pointer;
 }
-.ink-datepicker__cell:nth-child(n + 8) {
+.ink-datepicker__row + .ink-datepicker__row .ink-datepicker__cell {
   border-top: var(--ink-border-hair);
 }
-.ink-datepicker__cell:not(:nth-child(7n + 1)) {
+.ink-datepicker__cell:not(:first-child) {
   border-left: var(--ink-border-hair);
 }
 .ink-datepicker__cell[aria-selected='true'] {
@@ -1679,6 +1681,9 @@ e-text {
   font-weight: 700;
 }
 .ink-calendar__grid {
+  display: block;
+}
+.ink-calendar__row {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
 }
@@ -1706,10 +1711,10 @@ e-text {
   flex-direction: column;
   gap: 4px;
 }
-.ink-calendar__cell:nth-child(n + 8) {
+.ink-calendar__row + .ink-calendar__row .ink-calendar__cell {
   border-top: var(--ink-border);
 }
-.ink-calendar__cell:not(:nth-child(7n + 1)) {
+.ink-calendar__cell:not(:first-child) {
   border-left: var(--ink-border);
 }
 .ink-calendar__cell[aria-selected='true'] {

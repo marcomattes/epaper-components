@@ -19,7 +19,10 @@ type Story = StoryObj;
 
 export const Default: Story = {
   render: () => html`
-    <div style="display:flex;gap:24px;align-items:flex-start;height:600px;overflow:auto">
+    <div
+      tabindex="0"
+      style="display:flex;gap:24px;align-items:flex-start;height:600px;overflow:auto"
+    >
       <e-affix offset-top="16" style="flex:0 0 200px">
         <div style="border:2px solid #000;padding:12px;background:#fff">
           <strong>Pinned</strong>

@@ -54,9 +54,11 @@ export class EBadgeCount extends HTMLElement {
       this._wrap.appendChild(this._badge);
     }
     if (dot) {
+      patchAttr(this._badge, 'role', 'status');
       patchAttr(this._badge, 'aria-label', count > 0 ? String(count) : 'Notification');
       patchText(this._badge, '');
     } else {
+      patchAttr(this._badge, 'role', null);
       patchAttr(this._badge, 'aria-label', null);
       patchText(this._badge, display);
     }

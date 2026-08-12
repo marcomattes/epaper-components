@@ -10,6 +10,8 @@ const KALEIDO_COLORS = [
   { name: 'Blue', hex: '#1E4FB8' },
 ] as const;
 
+const DARK_TEXT_LABELS = new Set(['Paper', 'Orange', 'Yellow', 'Green']);
+
 const BAYER_8 = [
   [0, 32, 8, 40, 2, 34, 10, 42],
   [48, 16, 56, 24, 50, 18, 58, 26],
@@ -90,7 +92,7 @@ export class EKaleido extends HTMLElement {
           <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:var(--ink-border)">
             <div style="background:${c.hex};height:88px;border-right:var(--ink-border);
                         display:flex;align-items:flex-end;padding:6px 8px;
-                        color:${c.name === 'Paper' || c.name === 'Yellow' ? '#000' : '#FFF'};
+                        color:${DARK_TEXT_LABELS.has(c.name) ? '#000' : '#FFF'};
                         font-size:10px;font-weight:700;letter-spacing:0.18em">IDEAL</div>
             <div style="position:relative">
               <canvas data-color="${c.hex}" style="display:block;image-rendering:pixelated"></canvas>

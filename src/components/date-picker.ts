@@ -306,23 +306,33 @@ export class EDatePicker extends BaseFormControl {
     grid.className = 'ink-datepicker__grid';
     grid.setAttribute('role', 'grid');
 
+    const headerRow = document.createElement('div');
+    headerRow.className = 'ink-datepicker__row';
+    headerRow.setAttribute('role', 'row');
     for (const d of DOW_LABELS) {
       const dow = document.createElement('div');
       dow.className = 'ink-datepicker__dow';
       dow.setAttribute('role', 'columnheader');
       dow.textContent = d;
-      grid.appendChild(dow);
+      headerRow.appendChild(dow);
     }
+    grid.appendChild(headerRow);
 
     this._cells = [];
-    for (let i = 0; i < CELL_COUNT; i++) {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'ink-datepicker__cell';
-      btn.setAttribute('role', 'gridcell');
-      btn.tabIndex = -1;
-      grid.appendChild(btn);
-      this._cells.push(btn);
+    for (let row = 0; row < CELL_COUNT / DOW_LABELS.length; row++) {
+      const weekRow = document.createElement('div');
+      weekRow.className = 'ink-datepicker__row';
+      weekRow.setAttribute('role', 'row');
+      for (let col = 0; col < DOW_LABELS.length; col++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'ink-datepicker__cell';
+        btn.setAttribute('role', 'gridcell');
+        btn.tabIndex = -1;
+        weekRow.appendChild(btn);
+        this._cells.push(btn);
+      }
+      grid.appendChild(weekRow);
     }
 
     pop.appendChild(grid);

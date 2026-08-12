@@ -24,7 +24,7 @@ const meta: Meta = {
     <e-textarea
       placeholder=${args.placeholder || ''}
       value=${args.value || ''}
-      aria-label=${args.ariaLabel || ''}
+      aria-label=${args.ariaLabel || 'Message'}
       ?error=${args.error}
       ?disabled=${args.disabled}
     ></e-textarea>

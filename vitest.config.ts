@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitest/config';
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
 import { playwright } from '@vitest/browser-playwright';
+import { resolve } from 'node:path';
 
 export default defineConfig({
   test: {
@@ -14,6 +15,27 @@ export default defineConfig({
             headless: true,
             provider: playwright(),
             instances: [{ browser: 'chromium' }],
+            expect: {
+              toMatchScreenshot: {
+                // Keep visual baselines beside the harness and make the
+                // browser/platform part explicit. The latter prevents macOS
+                // developer screenshots from being compared on Linux CI.
+                resolveScreenshotPath: ({
+                  arg,
+                  browserName,
+                  ext,
+                  platform,
+                  root,
+                  testFileDirectory,
+                }) =>
+                  resolve(
+                    root,
+                    testFileDirectory,
+                    '__screenshots__',
+                    `${arg}-${browserName}-${platform}${ext}`,
+                  ),
+              },
+            },
           },
         },
       },

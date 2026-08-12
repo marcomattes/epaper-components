@@ -18,6 +18,7 @@ const meta: Meta = {
     min: { control: 'number' },
     max: { control: 'number' },
     step: { control: 'number' },
+    ariaLabel: { control: 'text', description: 'Accessible label for the numeric input' },
   },
   render: (args) => html`
     <e-input-number
@@ -25,6 +26,7 @@ const meta: Meta = {
       min=${args.min ?? ''}
       max=${args.max ?? ''}
       step=${args.step ?? 1}
+      aria-label=${args.ariaLabel || 'Number'}
     ></e-input-number>
   `,
 };

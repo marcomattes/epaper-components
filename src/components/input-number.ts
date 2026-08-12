@@ -1,4 +1,4 @@
-import { addCleanup, define, runCleanups } from '../core/dom';
+import { addCleanup, define, esc, patchAttr, runCleanups } from '../core/dom';
 import { iconSvg } from '../core/icons';
 import { BaseFormControl } from '../core/base-form-control';
 
@@ -21,7 +21,7 @@ import { BaseFormControl } from '../core/base-form-control';
  * <e-input-number value="3" min="0" max="10" step="1"></e-input-number>
  */
 export class EInputNumber extends BaseFormControl<string> {
-  static observedAttributes = ['value', 'min', 'max', 'step'];
+  static observedAttributes = ['value', 'min', 'max', 'step', 'aria-label'];
 
   private _wired = false;
   private _input: HTMLInputElement | null = null;
@@ -31,10 +31,11 @@ export class EInputNumber extends BaseFormControl<string> {
   connectedCallback() {
     if (!this._wired) {
       this._wired = true;
+      const ariaLabel = this.getAttribute('aria-label');
       this.innerHTML = `
       <div class="ink-number">
         <button type="button" class="ink-number__btn" data-step="-1" aria-label="Decrement">${iconSvg('minus', 18)}</button>
-        <input class="ink-number__input" type="number"/>
+        <input class="ink-number__input" type="number"${ariaLabel ? ` aria-label="${esc(ariaLabel)}"` : ''}/>
         <button type="button" class="ink-number__btn" data-step="1" aria-label="Increment">${iconSvg('plus', 18)}</button>
       </div>`;
       this._input = this.querySelector('input');
@@ -79,6 +80,7 @@ export class EInputNumber extends BaseFormControl<string> {
       this._setFiniteInputAttr('max', v);
     }
     if (name === 'step') this._input.step = this._validStep(v);
+    if (name === 'aria-label') patchAttr(this._input, 'aria-label', v);
   }
 
   override get value(): string {

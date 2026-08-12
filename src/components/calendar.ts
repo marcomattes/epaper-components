@@ -203,37 +203,47 @@ export class ECalendar extends HTMLElement {
     grid.className = 'ink-calendar__grid';
     grid.setAttribute('role', 'grid');
 
+    const headerRow = document.createElement('div');
+    headerRow.className = 'ink-calendar__row';
+    headerRow.setAttribute('role', 'row');
     for (const d of DOW_LABELS) {
       const dow = document.createElement('div');
       dow.className = 'ink-calendar__dow';
       dow.setAttribute('role', 'columnheader');
       dow.textContent = d;
-      grid.appendChild(dow);
+      headerRow.appendChild(dow);
     }
+    grid.appendChild(headerRow);
 
     this._cells = [];
     this._dayNums = [];
     this._eventContainers = [];
 
-    for (let i = 0; i < CELL_COUNT; i++) {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'ink-calendar__cell';
-      btn.setAttribute('role', 'gridcell');
-      btn.tabIndex = -1;
+    for (let row = 0; row < CELL_COUNT / DOW_LABELS.length; row++) {
+      const weekRow = document.createElement('div');
+      weekRow.className = 'ink-calendar__row';
+      weekRow.setAttribute('role', 'row');
+      for (let col = 0; col < DOW_LABELS.length; col++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'ink-calendar__cell';
+        btn.setAttribute('role', 'gridcell');
+        btn.tabIndex = -1;
 
-      const dayNum = document.createElement('div');
-      dayNum.className = 'ink-calendar__day-num';
-      btn.appendChild(dayNum);
+        const dayNum = document.createElement('div');
+        dayNum.className = 'ink-calendar__day-num';
+        btn.appendChild(dayNum);
 
-      const evContainer = document.createElement('div');
-      evContainer.className = 'ink-calendar__events';
-      btn.appendChild(evContainer);
+        const evContainer = document.createElement('div');
+        evContainer.className = 'ink-calendar__events';
+        btn.appendChild(evContainer);
 
-      grid.appendChild(btn);
-      this._cells.push(btn);
-      this._dayNums.push(dayNum);
-      this._eventContainers.push(evContainer);
+        weekRow.appendChild(btn);
+        this._cells.push(btn);
+        this._dayNums.push(dayNum);
+        this._eventContainers.push(evContainer);
+      }
+      grid.appendChild(weekRow);
     }
 
     root.appendChild(grid);
