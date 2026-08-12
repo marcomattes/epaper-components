@@ -1,0 +1,265 @@
+/* EPaper site chrome — page-only layout, never the library. */
+/* Hard rules from CLAUDE.md still apply: no transitions, no animations, no :hover. */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--ink-bg);
+  color: var(--ink-fg);
+  font-family: var(--ink-sans);
+  height: 100%;
+}
+
+.site-root {
+  min-height: 100vh;
+}
+
+/* ---------- Top header (sticky) ---------- */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--ink-bg);
+  border-bottom: var(--ink-border);
+  padding: 12px var(--ink-space-5);
+}
+.site-header__dot {
+  margin: 0 8px;
+  font-weight: 400;
+  opacity: 0.6;
+}
+.site-header__sub {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-small);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+#site-nav {
+  display: flex;
+  gap: 18px;
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-small);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+#site-nav a {
+  color: var(--ink-fg);
+  text-decoration: none;
+  padding: 4px 6px;
+  border-bottom: 2px solid transparent;
+}
+#site-nav a[aria-current='true'] {
+  border-bottom-color: var(--ink-fg);
+  font-weight: 700;
+}
+
+/* ---------- Snap container ---------- */
+.site {
+  scroll-snap-type: y proximity;
+  /* Hard scroll only — the e-paper rule forbids smooth scroll. */
+  scroll-behavior: auto;
+}
+
+.site-section {
+  min-height: calc(100vh - 60px);
+  scroll-snap-align: start;
+  padding: var(--ink-space-7) var(--ink-space-5) var(--ink-space-8);
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-5);
+  box-sizing: border-box;
+}
+
+/* ---------- Bottom pager bar (fixed) ---------- */
+.site-footbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  background: var(--ink-bg);
+  border-top: var(--ink-border);
+  padding: 8px var(--ink-space-5);
+}
+.site-footbar__inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.site-footbar__hint {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-caption);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* Reserve room above the fixed footbar so last-section content isn't hidden. */
+.site-section:last-of-type {
+  padding-bottom: 96px;
+}
+
+/* ---------- Page 1 cover layout ---------- */
+.site-cover {
+  flex: 1;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: var(--ink-space-5);
+}
+.site-cover__hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-4);
+  max-width: 760px;
+}
+.site-cover__hero h1 {
+  font-family: var(--ink-serif);
+  font-size: clamp(48px, 8vw, 92px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  margin: 0;
+}
+.site-cover__lede {
+  font-size: var(--ink-text-prose);
+  font-family: var(--ink-serif);
+  line-height: 1.5;
+  max-width: 60ch;
+}
+.site-cover__cta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.site-cover__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border-top: var(--ink-border);
+  border-bottom: var(--ink-border);
+  padding: var(--ink-space-5) 0;
+}
+.site-cover__stats > * {
+  padding: 0 var(--ink-space-5);
+  border-left: var(--ink-border);
+}
+.site-cover__stats > *:first-child {
+  border-left: none;
+  padding-left: 0;
+}
+
+/* ---------- Section headers ---------- */
+.site-secthead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: var(--ink-border-strong);
+  padding-bottom: var(--ink-space-3);
+}
+.site-secthead__num {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+/* ---------- Components grid (page 3) ---------- */
+.site-comp__filter {
+  display: flex;
+  gap: var(--ink-space-4);
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.site-comp__filter > :first-child {
+  flex: 1;
+  min-width: 240px;
+}
+.site-comp__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0;
+  border: var(--ink-border);
+  border-right: none;
+  border-bottom: none;
+}
+.site-comp__tile {
+  border-right: var(--ink-border);
+  border-bottom: var(--ink-border);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 84px;
+  color: var(--ink-fg);
+  text-decoration: none;
+}
+.site-comp__tile:focus-visible {
+  outline: var(--ink-focus-width) solid var(--ink-fg);
+  outline-offset: -3px;
+}
+.site-comp__tile[hidden] {
+  display: none;
+}
+.site-comp__tile-name {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-small);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.site-comp__tile-tag {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  opacity: 0.8;
+}
+.site-comp__count {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-small);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ---------- Code snippet ---------- */
+.site-code {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-mono);
+  background: var(--ink-bg);
+  border: var(--ink-border);
+  padding: 14px 16px;
+  margin: 0;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* ---------- Footer (page 6) ---------- */
+.site-foot {
+  border-top: var(--ink-border-strong);
+  padding-top: var(--ink-space-5);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--ink-space-4);
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-caption);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.site-foot__links {
+  display: flex;
+  gap: var(--ink-space-4);
+}
+
+/* The pager controller is invisible. */
+e-site-pager {
+  display: none;
+}

@@ -1,0 +1,81 @@
+/* EPaper · Design Tokens
+ * Single source of truth for the visual system. Override at the page or
+ * component level by re-declaring any of these custom properties. */
+
+:root {
+  /* ---------- Type stack ---------- */
+  --ink-sans: ui-sans-serif, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --ink-serif: 'Iowan Old Style', 'Charter', Georgia, 'Times New Roman', serif;
+  --ink-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+
+  /* ---------- Type scale ---------- */
+  --ink-text-h1: 44px;
+  --ink-text-h2: 32px;
+  --ink-text-h3: 24px;
+  --ink-text-h4: 20px;
+  --ink-text-h5: 17px;
+  --ink-text-h6: 15px;
+  --ink-text-prose: 18px;
+  --ink-text-body: 16px;
+  --ink-text-mono: 14px;
+  --ink-text-small: 13px;
+  --ink-text-caption: 12px;
+  --ink-text-label: 11px;
+
+  /* ---------- Line heights ---------- */
+  --ink-lh-tight: 1.15;
+  --ink-lh-body: 1.55;
+  --ink-lh-prose: 1.6;
+
+  /* ---------- Tracking ---------- */
+  --ink-tracking-tight: -0.015em;
+  --ink-tracking-mono: 0.16em;
+  --ink-tracking-label: 0.18em;
+  --ink-tracking-wide: 0.2em;
+
+  /* ---------- Color (intentionally narrow) ---------- */
+  --ink-fg: #000;
+  --ink-bg: #fff;
+  --ink-fg-inverted: #fff;
+  --ink-bg-inverted: #000;
+
+  /* Kaleido — only ever as flat fills, reserved for state */
+  --kaleido-red: #d11a1a;
+  --kaleido-orange: #e26a1b;
+  --kaleido-yellow: #e8c81c;
+  --kaleido-green: #1f8a3b;
+  --kaleido-blue: #1e4fb8;
+
+  /* ---------- Borders ---------- */
+  --ink-border-width: 2px;
+  --ink-border-width-strong: 4px;
+  --ink-border-width-hair: 1px;
+  --ink-border-width-error: 3px;
+  --ink-border: var(--ink-border-width) solid var(--ink-fg);
+  --ink-border-strong: var(--ink-border-width-strong) solid var(--ink-fg);
+  --ink-border-hair: var(--ink-border-width-hair) solid var(--ink-fg);
+
+  /* ---------- Focus ---------- */
+  --ink-focus-width: 3px;
+  --ink-focus-offset: 2px;
+
+  /* ---------- Spacing (4px base) ---------- */
+  --ink-space-1: 4px;
+  --ink-space-2: 8px;
+  --ink-space-3: 12px;
+  --ink-space-4: 16px;
+  --ink-space-5: 24px;
+  --ink-space-6: 32px;
+  --ink-space-7: 48px;
+  --ink-space-8: 64px;
+
+  /* ---------- Control sizes (44px+ hit targets) ---------- */
+  --ink-control-h-sm: 36px;
+  --ink-control-h-md: 44px;
+  --ink-control-h-lg: 48px;
+
+  /* ---------- Patterns ---------- */
+  --ink-hatch-disabled: repeating-linear-gradient(45deg, #000 0 1px, transparent 1px 4px);
+  --ink-hatch-error: repeating-linear-gradient(45deg, #000 0 1px, transparent 1px 5px);
+  --ink-hatch-cover: repeating-linear-gradient(45deg, #fff 0 2px, #000 2px 6px);
+}

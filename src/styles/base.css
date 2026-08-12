@@ -1,0 +1,92 @@
+/* EPaper · Base
+ * Scoped reset. The "no transitions / no animations" rule lives inside
+ * .ink-page so the lib is safe to embed in hybrid apps. */
+
+.ink-page,
+.ink-page *,
+.ink-page *::before,
+.ink-page *::after {
+  transition: none !important;
+  animation: none !important;
+}
+
+.ink-page {
+  font-family: var(--ink-sans);
+  color: var(--ink-fg);
+  background: var(--ink-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+/* Selection is a flip, not a wash. */
+.ink-page ::selection {
+  background: var(--ink-fg);
+  color: var(--ink-bg);
+}
+
+/* Uniform black focus rings across the page. */
+.ink-page :focus-visible {
+  outline: var(--ink-focus-width) solid var(--ink-fg);
+  outline-offset: var(--ink-focus-offset);
+}
+.ink-page :focus {
+  outline-color: var(--ink-fg);
+}
+
+/* Page sheet */
+.ink-page--sheet {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: var(--ink-space-6) var(--ink-space-5) var(--ink-space-8);
+}
+
+/* ---------- Rules ---------- */
+.ink-rule {
+  height: 0;
+  border: none;
+  border-top: var(--ink-border);
+  margin: 0;
+}
+.ink-rule--thick {
+  border-top-width: var(--ink-border-width-strong);
+}
+.ink-rule--double {
+  border-top: var(--ink-border);
+  box-shadow: 0 4px 0 -2px var(--ink-fg);
+  margin-bottom: 6px;
+}
+
+/* ---------- Section header marks ---------- */
+.ink-section-num {
+  font-family: var(--ink-mono);
+  font-weight: 700;
+  font-size: var(--ink-text-small);
+  letter-spacing: 0.08em;
+}
+
+/* Hatched specimen / disabled fill */
+.ink-hatch {
+  background-image: repeating-linear-gradient(45deg, #000 0 1px, transparent 1px 5px);
+}
+
+/* Anti-ghosting note style */
+.ink-note {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-caption);
+  line-height: 1.5;
+  border: var(--ink-border);
+  padding: 10px 12px;
+  background: var(--ink-bg);
+}
+
+/* Spec label — newspaper-style section eyebrow */
+.ink-spec-label {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-wide);
+  text-transform: uppercase;
+  border-bottom: var(--ink-border);
+  padding-bottom: var(--ink-space-1);
+  margin-bottom: var(--ink-space-4);
+}

@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>EPaper · Web Components for E-Paper Displays</title>
+    <meta
+      name="description"
+      content="EPaper is a vanilla custom-element library tuned for e-paper displays. Surgical DOM updates, no animations, no :hover, no Shadow DOM."
+    />
+
+    <style>
+      :root {
+        --ink-sans: ui-sans-serif, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+        --ink-serif: 'Iowan Old Style', 'Charter', Georgia, 'Times New Roman', serif;
+        --ink-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+        --ink-text-prose: 18px;
+        --ink-text-body: 16px;
+        --ink-text-small: 13px;
+        --ink-text-caption: 12px;
+        --ink-text-label: 11px;
+        --ink-fg: #000;
+        --ink-bg: #fff;
+        --ink-border-width: 2px;
+        --ink-border-width-strong: 4px;
+        --ink-border: 2px solid #000;
+        --ink-border-strong: 4px solid #000;
+        --ink-focus-width: 3px;
+        --ink-focus-offset: 2px;
+        --ink-space-1: 4px;
+        --ink-space-2: 8px;
+        --ink-space-3: 12px;
+        --ink-space-4: 16px;
+        --ink-space-5: 24px;
+        --ink-space-6: 32px;
+        --ink-space-7: 48px;
+        --ink-space-8: 64px;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #fff;
+        color: #000;
+        font-family: var(--ink-sans);
+        height: 100%;
+      }
+      .ink-page,
+      .ink-page *,
+      .ink-page *::before,
+      .ink-page *::after {
+        transition: none !important;
+        animation: none !important;
+      }
+      .ink-page :focus-visible {
+        outline: var(--ink-focus-width) solid #000;
+        outline-offset: var(--ink-focus-offset);
+      }
+      .site-root {
+        min-height: 100vh;
+      }
+      .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: #fff;
+        border-bottom: var(--ink-border);
+        padding: 12px var(--ink-space-5);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+      .site-header__brand {
+        font-family: var(--ink-serif);
+        font-size: 20px;
+        font-weight: 700;
+        margin: 0;
+      }
+      .site-header__dot {
+        margin: 0 8px;
+        opacity: 0.6;
+      }
+      .site-header__sub {
+        font-family: var(--ink-mono);
+        font-size: var(--ink-text-small);
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        font-weight: 700;
+      }
+      #site-nav {
+        display: flex;
+        gap: 18px;
+        font-family: var(--ink-mono);
+        font-size: var(--ink-text-small);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      #site-nav a {
+        color: #000;
+        text-decoration: none;
+        padding: 4px 6px;
+        border-bottom: 2px solid transparent;
+      }
+      #site-nav a[aria-current='true'] {
+        border-bottom-color: #000;
+        font-weight: 700;
+      }
+      .site {
+        scroll-snap-type: y proximity;
+        scroll-behavior: auto;
+      }
+      .site-section {
+        min-height: calc(100vh - 60px);
+        scroll-snap-align: start;
+        padding: var(--ink-space-7) var(--ink-space-5) var(--ink-space-8);
+        max-width: 1180px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: var(--ink-space-5);
+        box-sizing: border-box;
+      }
+      .site-cover {
+        flex: 1;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        gap: var(--ink-space-5);
+      }
+      .site-cover__hero {
+        display: flex;
+        flex-direction: column;
+        gap: var(--ink-space-4);
+        max-width: 760px;
+      }
+      .site-cover__tags {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .site-cover__tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        border: var(--ink-border);
+        font-family: var(--ink-mono);
+        font-size: var(--ink-text-small);
+        letter-spacing: 0.04em;
+      }
+      .site-cover__hero h1 {
+        font-family: var(--ink-serif);
+        font-size: clamp(48px, 8vw, 92px);
+        line-height: 1;
+        letter-spacing: -0.02em;
+        font-weight: 700;
+        margin: 0;
+      }
+      .site-cover__lede {
+        font-size: var(--ink-text-prose);
+        font-family: var(--ink-serif);
+        line-height: 1.5;
+        max-width: 60ch;
+        margin: 0;
+      }
+      .site-cover__cta {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      /* Pre-render placeholder buttons matching ink-btn dimensions, so the
+         layout doesn't shift when <e-button> upgrades. */
+      .site-cover__cta button {
+        font-family: var(--ink-sans);
+        font-size: var(--ink-text-body);
+        font-weight: 600;
+        min-height: 44px;
+        padding: 10px 18px;
+        border: var(--ink-border);
+        background: #fff;
+        color: #000;
+        cursor: pointer;
+      }
+      .site-cover__cta button[data-primary] {
+        background: #000;
+        color: #fff;
+      }
+      .site-cover__stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0;
+        border-top: var(--ink-border);
+        border-bottom: var(--ink-border);
+        padding: var(--ink-space-5) 0;
+      }
+      .site-cover__stats > * {
+        padding: 0 var(--ink-space-5);
+        border-left: var(--ink-border);
+      }
+      .site-cover__stats > *:first-child {
+        border-left: none;
+        padding-left: 0;
+      }
+      .site-cover__stat-label {
+        font-family: var(--ink-mono);
+        font-size: var(--ink-text-label);
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+      .site-cover__stat-value {
+        font-family: var(--ink-serif);
+        font-size: 40px;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .site-footbar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 20;
+        background: #fff;
+        border-top: var(--ink-border);
+        padding: 8px var(--ink-space-5);
+      }
+      .site-footbar__inner {
+        max-width: 1180px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .site-footbar__hint {
+        font-family: var(--ink-mono);
+        font-size: var(--ink-text-caption);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        opacity: 0.7;
+      }
+      e-site-pager {
+        display: none;
+      }
+    </style>
+
+    <!-- Full sheets are imported from main.ts so Vite can resolve
+         paths that fall outside the site root (src/site/). -->
+  </head>
+  <body>
+    <div class="ink-page site-root">
+      <header class="site-header" id="site-header">
+        <h1 class="site-header__brand">
+          EPaper<span class="site-header__dot">·</span
+          ><span class="site-header__sub">Components</span>
+        </h1>
+        <nav id="site-nav" aria-label="Pages">
+          <a href="#page-1" data-page="1" aria-current="true">Cover</a>
+          <a href="#page-2" data-page="2">Features</a>
+          <a href="#page-3" data-page="3">Components</a>
+          <a href="#page-4" data-page="4">Showcase</a>
+          <a href="#page-5" data-page="5">Install</a>
+          <a href="#page-6" data-page="6">Community</a>
+        </nav>
+      </header>
+
+      <main class="site" id="site-main">
+        <!--
+            Page 1 is pre-rendered as static HTML so first paint shows the
+            cover hero before main.ts even starts evaluating. main.ts skips
+            this section because it carries data-prerendered.
+          -->
+        <section
+          class="site-section"
+          id="page-1"
+          data-page="1"
+          data-prerendered=""
+          aria-label="Cover"
+        >
+          <div class="site-cover">
+            <div class="site-cover__hero">
+              <div class="site-cover__tags">
+                <span class="site-cover__tag">OSS</span>
+                <span class="site-cover__tag">MIT</span>
+                <span class="site-cover__tag">Vanilla CE</span>
+              </div>
+              <h1>Web components<br />for ink &amp; paper.</h1>
+              <p class="site-cover__lede">
+                EPaper is a vanilla custom-element library tuned for e-paper displays. Surgical DOM
+                updates, no animations, no <code>:hover</code>, no Shadow DOM — just standards-based
+                components your design system can ship on a Kaleido panel today.
+              </p>
+              <div class="site-cover__cta">
+                <button type="button" data-primary id="cta-start">Get started</button>
+                <button type="button" id="cta-github">View on GitHub</button>
+              </div>
+            </div>
+            <div></div>
+            <div class="site-cover__stats" role="group" aria-label="Library at a glance">
+              <div>
+                <div class="site-cover__stat-label">Components</div>
+                <div class="site-cover__stat-value">58</div>
+              </div>
+              <div>
+                <div class="site-cover__stat-label">Bundle (gz)</div>
+                <div class="site-cover__stat-value">40 KB</div>
+              </div>
+              <div>
+                <div class="site-cover__stat-label">GitHub stars</div>
+                <div class="site-cover__stat-value">1.2k</div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="site-section" id="page-2" data-page="2" aria-label="Features"></section>
+        <section class="site-section" id="page-3" data-page="3" aria-label="Components"></section>
+        <section class="site-section" id="page-4" data-page="4" aria-label="Showcase"></section>
+        <section class="site-section" id="page-5" data-page="5" aria-label="Install"></section>
+        <section class="site-section" id="page-6" data-page="6" aria-label="Community"></section>
+      </main>
+
+      <footer class="site-footbar" id="site-footbar" aria-label="Pager">
+        <div class="site-footbar__inner">
+          <span class="site-footbar__hint" aria-hidden="true">↑ ↓ · PgUp PgDn · Space</span>
+        </div>
+      </footer>
+
+      <e-site-pager id="site-pager" data-pages="6"></e-site-pager>
+    </div>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,896 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>EPaper · E-Paper Component Library</title>
+
+<link rel="stylesheet" href="src/styles/tokens.css"/>
+<link rel="stylesheet" href="src/styles/base.css"/>
+<link rel="stylesheet" href="src/styles/components.css"/>
+
+<style>
+  body { margin: 0; padding: 0; background: var(--ink-bg); color: var(--ink-fg);
+         font-family: var(--ink-sans); }
+
+  /* Page-only layout chrome — not part of the component library. */
+  .frame { display: grid; gap: 0; border: var(--ink-border); }
+  .frame > .col { padding: 22px; }
+  .frame > .col + .col { border-left: var(--ink-border); }
+  .frame--rule-top { border-top: none; }
+
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-1-2 { grid-template-columns: 1fr 1.4fr; }
+  .grid-260-1 { grid-template-columns: 260px 1fr; }
+  .grid-220-1 { grid-template-columns: 220px 1fr; }
+
+  .stack-md > * + * { margin-top: var(--ink-space-4); }
+  .stack-lg > * + * { margin-top: var(--ink-space-5); }
+
+  /* Newspaper masthead */
+  .masthead { border-bottom: var(--ink-border-strong); padding-bottom: 18px; margin-bottom: 28px;
+              display: flex; justify-content: space-between; align-items: flex-start;
+              gap: 24px; flex-wrap: wrap; }
+  .masthead h1 {
+    margin: 0; font-family: var(--ink-serif);
+    font-size: clamp(40px, 6vw, 68px); font-weight: 700;
+    line-height: 1.0; letter-spacing: -0.02em;
+  }
+  .masthead__eyebrow {
+    font-family: var(--ink-mono); font-size: 12px;
+    letter-spacing: 0.22em; font-weight: 700; margin-bottom: 6px;
+  }
+  .rules { border: var(--ink-border); padding: 12px 14px; max-width: 320px;
+           font-size: 13px; line-height: 1.5; font-family: var(--ink-mono); }
+  .rules__title { font-weight: 700; letter-spacing: 0.16em; margin-bottom: 6px; }
+
+  .section-header { margin-top: 56px; margin-bottom: 20px; }
+  .section-header__row { display: flex; justify-content: space-between;
+                         align-items: baseline; padding: 10px 0 0; }
+  .section-header__title-wrap { display: flex; align-items: baseline; gap: 16px; }
+  .section-header h2 {
+    margin: 0; font-family: var(--ink-serif);
+    font-size: 36px; font-weight: 700; letter-spacing: -0.01em;
+  }
+  .section-header__kicker {
+    font-family: var(--ink-mono); font-size: 12px;
+    letter-spacing: 0.16em; font-weight: 700;
+  }
+
+  .tile {
+    border: var(--ink-border); background: var(--ink-bg);
+    height: 60px; display: flex; align-items: center; justify-content: center;
+    font-family: var(--ink-mono); font-size: 13px; font-weight: 700;
+    letter-spacing: 0.16em;
+  }
+
+  .reader-app { border: var(--ink-border); padding: 0;
+                display: grid; grid-template-columns: 220px 1fr; min-height: 460px; }
+  .reader-app__side { border-right: var(--ink-border); padding: 16px;
+                      display: flex; flex-direction: column; gap: 12px; }
+  .reader-app__nav-btn {
+    font-family: var(--ink-sans); font-size: 15px; font-weight: 600;
+    text-align: left; padding: 10px 12px; border: var(--ink-border);
+    background: var(--ink-bg); color: var(--ink-fg); cursor: pointer;
+    min-height: 44px;
+  }
+  .reader-app__nav-btn[aria-current="page"] { background: var(--ink-fg); color: var(--ink-bg); }
+  .reader-app__main { padding: 28px; display: flex; flex-direction: column; }
+  .reader-app__head { display: flex; justify-content: space-between;
+                      align-items: baseline; margin-bottom: 14px; }
+  .reader-app__chapter { font-family: var(--ink-mono); font-size: 11px;
+                         letter-spacing: 0.2em; font-weight: 700; }
+  .reader-app__title-h { margin: 4px 0 0; font-family: var(--ink-serif);
+                         font-size: 32px; font-weight: 700; letter-spacing: -0.01em; }
+  .reader-app__body { margin: 0; font-family: var(--ink-serif);
+                      font-size: 18px; line-height: 1.6; column-count: 2;
+                      column-gap: 28px; column-rule: var(--ink-border); }
+
+  .footer { margin-top: 64px; padding-top: 18px;
+            border-top: var(--ink-border-strong);
+            display: flex; justify-content: space-between;
+            font-family: var(--ink-mono); font-size: 12px;
+            letter-spacing: 0.16em; font-weight: 700; }
+
+  .icon-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+    gap: 0; border: var(--ink-border); border-right: none; border-bottom: none;
+  }
+  .icon-grid > div {
+    border-right: var(--ink-border); border-bottom: var(--ink-border);
+    padding: 12px 6px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .icon-grid__name {
+    font-family: var(--ink-mono); font-size: 9px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+<div class="ink-page ink-page--sheet">
+
+  <!-- Masthead -->
+  <header class="masthead">
+    <div>
+      <div class="masthead__eyebrow">EPAPER · v0.1 · COMPONENT SPECIMEN</div>
+      <h1>Components for<br/>electronic paper.</h1>
+    </div>
+    <div class="rules">
+      <div class="rules__title">DESIGN RULES</div>
+      1. Pure black on pure white.<br/>
+      2. 2px borders, no shadows.<br/>
+      3. No transitions. State snaps.<br/>
+      4. Focus = 3px outline.<br/>
+      5. Color survives dithering.
+    </div>
+  </header>
+
+  <!-- §01 Buttons -->
+  <section class="section-header" id="sec-buttons">
+    <hr class="ink-rule ink-rule--thick"/>
+    <div class="section-header__row">
+      <div class="section-header__title-wrap">
+        <span class="ink-section-num">§ 01</span>
+        <h2>Buttons</h2>
+      </div>
+      <span class="section-header__kicker">3 VARIANTS · 48px MIN HEIGHT</span>
+    </div>
+  </section>
+
+  <div class="frame grid-3">
+    <div class="col">
+      <div class="ink-spec-label">01 · Primary</div>
+      <e-button id="btn-primary" variant="primary">Save document</e-button>
+      <p style="margin-top:16px;font-size:14px;line-height:1.5">Inverted fill. Use once per view.</p>
+    </div>
+    <div class="col">
+      <div class="ink-spec-label">02 · Secondary</div>
+      <e-button id="btn-secondary" variant="secondary">Reload page</e-button>
+      <p style="margin-top:16px;font-size:14px;line-height:1.5">Bordered, default action.</p>
+    </div>
+    <div class="col">
+      <div class="ink-spec-label">03 · Destructive</div>
+      <e-button variant="destructive">Delete file</e-button>
+      <p style="margin-top:16px;font-size:14px;line-height:1.5">Underline + glyph, never red.</p>
+    </div>
+  </div>
+  <div class="frame grid-2 frame--rule-top" style="border-top:none">
+    <div class="col">
+      <div class="ink-spec-label">States</div>
+      <e-space size="12" wrap>
+        <e-button variant="primary">Default</e-button>
+        <e-button variant="primary" autofocus>Focused</e-button>
+        <e-button variant="secondary" disabled>Disabled</e-button>
+      </e-space>
+      <p class="ink-note" style="margin-top:16px">
+        DISABLED → diagonal hatch, never reduced opacity.<br/>
+        E-Paper panels have no true alpha; opacity reads as ghosting.
+      </p>
+    </div>
+    <div class="col">
+      <div class="ink-spec-label" id="btn-counter-label">Counter Demo · clicks: 3</div>
+      <p style="margin:0;font-size:14px;line-height:1.5">
+        The press state is a <b>full color flip</b>. The pixel value either is, or it isn't —
+        no half-frame interpolation that would smear on a slow refresh.
+      </p>
+    </div>
+  </div>
+
+  <!-- §02 Cards -->
+  <section class="section-header" id="sec-cards">
+    <hr class="ink-rule ink-rule--thick"/>
+    <div class="section-header__row">
+      <div class="section-header__title-wrap">
+        <span class="ink-section-num">§ 02</span>
+        <h2>Cards</h2>
+      </div>
+      <span class="section-header__kicker">2px BORDER · NO SHADOWS</span>
+    </div>
+  </section>
+  <div style="display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+    <e-card eyebrow="Document" title="The Anatomy of E-Paper">
+      <e-badge slot="action">Draft</e-badge>
+      <p style="margin:0">
+        E-Paper panels use microcapsules of charged pigment particles. A pixel is
+        bistable — it holds its state without power. Animations are therefore
+        expensive: every frame is a refresh.
+      </p>
+    </e-card>
+    <e-card eyebrow="Sync · 14:22" title="Last fetched">
+      <ul style="margin:0;padding-left:18px;font-size:16px;line-height:1.6">
+        <li>23 documents added</li>
+        <li>4 conflicts resolved</li>
+        <li>1 device pending</li>
+      </ul>
+      <hr class="ink-divider"/>
+      <e-space size="8">
+        <e-button variant="secondary">Sync now</e-button>
+        <e-button variant="primary">Mark read</e-button>
+      </e-space>
+    </e-card>
+    <e-card eyebrow="Note · 04 / 26" title="Field journal">
+      <e-badge slot="action" inverted>NEW</e-badge>
+      <p style="margin:0;font-family:var(--ink-serif);font-size:17px;line-height:1.55">
+        "Sketched the bridge at noon — the contrast was sharper than the screen
+        could resolve. Made a note to switch to <i>A2 mode</i> for faster strokes."
+      </p>
+    </e-card>
+  </div>
+
+  <!-- §03 Forms -->
+  <section class="section-header" id="sec-forms">
+    <hr class="ink-rule ink-rule--thick"/>
+    <div class="section-header__row">
+      <div class="section-header__title-wrap">
+        <span class="ink-section-num">§ 03</span>
+        <h2>Forms</h2>
+      </div>
+      <span class="section-header__kicker">3px FOCUS OUTLINE · NO COLOR CHANGE</span>
+    </div>
+  </section>
+  <div class="frame grid-2">
+    <div class="col">
+      <div class="ink-spec-label">Inputs</div>
+      <div class="stack-md">
+        <e-input label="Display name" value="Anna Brandt"
+                 hint="Tab into the next field — focus is rendered as a 3px outline offset by 2px, with no color change. Visible on monochrome panels at any density."></e-input>
+        <e-input label="Email address" type="email" placeholder="you@paper.ink"></e-input>
+        <e-input label="Device pin" type="text" value="0000" error
+                 hint="Error state thickens the border (via inset shadow — no layout shift). No red — it would dither into noise."></e-input>
+      </div>
+    </div>
+    <div class="col">
+      <div class="ink-spec-label">Toggles · Checkboxes</div>
+      <div class="stack-md">
+        <e-toggle label="Airplane mode"></e-toggle>
+        <e-toggle label="A2 fast refresh" checked></e-toggle>
+        <e-toggle label="Auto-sync over Wi-Fi" checked></e-toggle>
+        <hr class="ink-divider"/>
+        <e-checkbox label="I understand ghosting is a feature, not a bug."></e-checkbox>
+      </div>
+      <p class="ink-note" style="margin-top:16px">
+        The toggle thumb <b>snaps</b>. No 200ms slide — the slide costs a full
+        screen refresh on most panels and produces a visible smear.
+      </p>
+    </div>
+  </div>
+
+  <!-- §04 Kaleido palette -->
+  <section class="section-header" id="sec-palette">
+    <hr class="ink-rule ink-rule--thick"/>
+    <div class="section-header__row">
+      <div class="section-header__title-wrap">
+        <span class="ink-section-num">§ 04</span>
+        <h2>Kaleido Palette</h2>
+      </div>
+      <span class="section-header__kicker">SIMULATED DITHERING · GALLERY 3 / KALEIDO 3</span>
+    </div>
+  </section>
+  <p style="max-width:720px;font-size:16px;line-height:1.6;margin:0 0 20px">
+    Color e-paper panels render a saturated primary by laying down clusters of
+    color filter sub-pixels. The left half of each swatch is the <i>ideal</i>
+    RGB; the right half is a Bayer-dithered approximation of how the panel
+    will actually render it.
+  </p>
+  <div style="display:flex;align-items:center;gap:16px;border:var(--ink-border);
+              padding:10px 14px;margin-bottom:16px;font-family:var(--ink-mono);font-size:13px">
+    <span style="font-weight:700;letter-spacing:0.16em">DITHER&nbsp;CELL</span>
+    <e-segmented id="kaleido-cell" value="3">
+      <e-segment value="2" label="2px"></e-segment>
+      <e-segment value="3" label="3px"></e-segment>
+      <e-segment value="4" label="4px"></e-segment>
+      <e-segment value="6" label="6px"></e-segment>
+    </e-segmented>
+    <span style="margin-left:auto">larger cell ⇒ coarser, more visible Kaleido grit</span>
+  </div>
+  <e-kaleido id="kaleido" cell="3"></e-kaleido>
+
+  <!-- §05 Typography & Icons -->
+  <section class="section-header" id="sec-typography">
+    <hr class="ink-rule ink-rule--thick"/>
+    <div class="section-header__row">
+      <div class="section-header__title-wrap">
+        <span class="ink-section-num">§ 05</span>
+        <h2>Typography &amp; Icons</h2>
+      </div>
+      <span class="section-header__kicker">SYSTEM STACK · 2px STROKES</span>
+    </div>
+  </section>
+  <div class="frame grid-1-2">
+    <div class="col">
+      <div class="ink-spec-label">Type Scale</div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:baseline;gap:16px;border-bottom:var(--ink-border);padding-bottom:8px">
+          <span style="font-family:var(--ink-mono);font-size:11px;font-weight:700;letter-spacing:0.16em;width:140px;flex-shrink:0">H1 / 44 / Serif</span>
+          <e-title level="1">The discipline of the press.</e-title>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:16px;border-bottom:var(--ink-border);padding-bottom:8px">
+          <span style="font-family:var(--ink-mono);font-size:11px;font-weight:700;letter-spacing:0.16em;width:140px;flex-shrink:0">H2 / 32 / Serif</span>
+          <e-title level="2">The discipline of the press.</e-title>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:16px;border-bottom:var(--ink-border);padding-bottom:8px">
+          <span style="font-family:var(--ink-mono);font-size:11px;font-weight:700;letter-spacing:0.16em;width:140px;flex-shrink:0">H3 / 24 / Serif</span>
+          <e-title level="3">The discipline of the press.</e-title>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:16px;border-bottom:var(--ink-border);padding-bottom:8px">
+          <span style="font-family:var(--ink-mono);font-size:11px;font-weight:700;letter-spacing:0.16em;width:140px;flex-shrink:0">H4 / 20 / Serif</span>
+          <e-title level="4">The discipline of the press.</e-title>
+        </div>
+        <e-divider label="Body kinds"></e-divider>
+        <e-text kind="prose" as="p">Prose at 18 — set in serif for long-form reading on a paper-like panel.</e-text>
+        <e-text kind="body"  as="p">Body at 16 — sans for UI copy, controls, captions and chrome.</e-text>
+        <e-text kind="mono"  as="p">Mono at 14 — for codes, IDs, timestamps and hex values.</e-text>
+        <e-text kind="label" as="div">Label · 11 · uppercase · tracking</e-text>
+        <p style="margin:0;font-size:14px">Inline <e-link href="#">link with underline</e-link>, no color shift.</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="ink-spec-label" id="icon-count-label">Icon Set · 35 glyphs</div>
+      <div class="icon-grid" id="icon-grid"></div>
+      <p class="ink-note" style="margin-top:14px">
+        All icons are 24×24, stroke 2, square caps. No fills — fills dither
+        poorly below 32px on Kaleido.
+      </p>
+    </div>
+  </div>
+
+  <!-- §06 Dividers & FloatButton -->
+  <section class="section-header" id="sec-dividers">
+    <hr class="ink-rule ink-rule--thick"/>
+    <div class="section-header__row">
+      <div class="section-header__title-wrap">
+        <span class="ink-section-num">§ 06</span>
+        <h2>Dividers · FloatButton</h2>
+      </div>
+      <span class="section-header__kicker">SOLID · DASHED · LABELED</span>
+    </div>
+  </section>
+  <div class="frame grid-1-2">
+    <div class="col">
+      <div class="ink-spec-label">Divider variants</div>
+      <e-text kind="body" as="p">Solid, default rule:</e-text>
+      <e-divider></e-divider>
+      <e-text kind="body" as="p">Dashed, for soft breaks:</e-text>
+      <e-divider variant="dashed"></e-divider>
+      <e-text kind="body" as="p">Labeled, for sectioning prose:</e-text>
+      <e-divider label="Chapter break"></e-divider>
+      <e-text kind="body" as="p">
+        Inline vertical: read
+        <e-divider orientation="vertical"></e-divider>
+        write
+        <e-divider orientation="vertical"></e-divider>
+        sync
+      </e-text>
+    </div>
+    <div class="col" style="position:relative;min-height:280px">
+      <div class="ink-spec-label">FloatButton</div>
+      <e-text kind="body" as="p" style="margin-bottom:12px">
+        Anchored to a corner with a 2px border. The group is a stack of actions
+        separated by hairlines.
+      </e-text>
+      <div style="display:flex;gap:32px;align-items:flex-end;margin-top:24px">
+        <div style="display:flex;flex-direction:column;gap:10px;align-items:center">
+          <e-float-button icon="plus" label="New document"></e-float-button>
+          <e-text kind="label">Single</e-text>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;align-items:center">
+          <e-float-button-group>
+            <e-fab-item icon="edit"     label="Edit"></e-fab-item>
+            <e-fab-item icon="bookmark" label="Bookmark"></e-fab-item>
+            <e-fab-item icon="share"    label="Share"></e-fab-item>
+          </e-float-button-group>
+          <e-text kind="label">Group</e-text>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;align-items:center">
+          <e-float-button-group orientation="horizontal">
+            <e-fab-item icon="arrowL"></e-fab-item>
+            <e-fab-item icon="refresh"></e-fab-item>
+            <e-fab-item icon="arrowR"></e-fab-item>
+          </e-float-button-group>
+          <e-text kind="label">Horizontal</e-text>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- §07 Layout primitives -->
+  <section class="section-header" id="sec-layout">
+    <hr class="ink-rule ink-rule--thick"/>
+    <div class="section-header__row">
+      <div class="section-header__title-wrap">
+        <span class="ink-section-num">§ 07</span>
+        <h2>Flex · Grid · Space</h2>
+      </div>
+      <span class="section-header__kicker">STRUCTURE PRIMITIVES</span>
+    </div>
+  </section>
+  <e-grid cols="2" gap="0" style="border:var(--ink-border)">
+    <div style="padding:20px;border-right:var(--ink-border)">
+      <div class="ink-spec-label">e-flex</div>
+      <e-flex gap="8" wrap="wrap">
+        <div class="tile">1</div><div class="tile">2</div><div class="tile">3</div>
+        <div class="tile">4</div><div class="tile">5</div>
+      </e-flex>
+      <e-divider></e-divider>
+      <e-flex direction="column" gap="6">
+        <div class="tile" style="height:36px">A</div>
+        <div class="tile" style="height:36px">B</div>
+        <div class="tile" style="height:36px">C</div>
+      </e-flex>
+    </div>
+    <div style="padding:20px">
+      <div class="ink-spec-label">e-grid · 12 cols</div>
+      <e-grid cols="12" gap="6">
+        <e-grid-item col="span 12"><div class="tile" style="height:36px">span 12</div></e-grid-item>
+        <e-grid-item col="span 6"><div class="tile" style="height:36px">span 6</div></e-grid-item>
+        <e-grid-item col="span 6"><div class="tile" style="height:36px">span 6</div></e-grid-item>
+        <e-grid-item col="span 4"><div class="tile" style="height:36px">4</div></e-grid-item>
+        <e-grid-item col="span 4"><div class="tile" style="height:36px">4</div></e-grid-item>
+        <e-grid-item col="span 4"><div class="tile" style="height:36px">4</div></e-grid-item>
+        <e-grid-item col="span 3"><div class="tile" style="height:36px">3</div></e-grid-item>
+        <e-grid-item col="span 3"><div class="tile" style="height:36px">3</div></e-grid-item>
+        <e-grid-item col="span 3"><div class="tile" style="height:36px">3</div></e-grid-item>
+        <e-grid-item col="span 3"><div class="tile" style="height:36px">3</div></e-grid-item>
+      </e-grid>
+    </div>
+  </e-grid>
+  <div class="frame grid-2" style="border-top:none">
+    <div class="col">
+      <div class="ink-spec-label">e-space</div>
+      <e-space size="12">
+        <e-button variant="primary">Save</e-button>
+        <e-button variant="secondary">Cancel</e-button>
+        <e-button variant="destructive">Delete</e-button>
+      </e-space>
+      <e-divider></e-divider>
+      <e-space size="6" direction="vertical">
+        <e-badge>Draft</e-badge>
+        <e-badge inverted>New</e-badge>
+        <e-badge>Synced</e-badge>
+      </e-space>
+    </div>
+    <div class="col">
+      <div class="ink-spec-label">e-layout</div>
+      <e-layout has-sider style="min-height:200px">
+        <e-layout-sider width="120">
+          <e-text kind="label">NAV</e-text>
+          <e-text kind="body">Inbox</e-text>
+          <e-text kind="body">Drafts</e-text>
+          <e-text kind="body">Sent</e-text>
+        </e-layout-sider>
+        <e-layout style="border:none;flex:1">
+          <e-layout-header><e-text kind="label">HEADER</e-text></e-layout-header>
+          <e-layout-content><e-text kind="body">Content area · paper-blank.</e-text></e-layout-content>
+          <e-layout-footer>STATUS · 14:22 · 88%</e-layout-footer>
+        </e-layout>
+      </e-layout>
+    </div>
+  </div>
+
+  <!-- §08 Masonry & Splitter -->
+  <section class="section-header" id="sec-masonry">
+    <hr class="ink-rule ink-rule--thick"/>
+    <div class="section-header__row">
+      <div class="section-header__title-wrap">
+        <span class="ink-section-num">§ 08</span>
+        <h2>Masonry · Splitter</h2>
+      </div>
+      <span class="section-header__kicker">DENSE LAYOUTS</span>
+    </div>
+  </section>
+  <div style="border:var(--ink-border);padding:20px;margin-bottom:16px">
+    <div class="ink-spec-label">e-masonry · 3 columns</div>
+    <e-masonry columns="3" gap="12">
+      <div style="border:var(--ink-border);padding:12px;height:90px;display:flex;flex-direction:column;justify-content:space-between">
+        <e-title level="5">Field Notes</e-title><e-text kind="small">Sketch · 04 / 12 · midmorning</e-text>
+      </div>
+      <div style="border:var(--ink-border);padding:12px;height:150px;display:flex;flex-direction:column;justify-content:space-between">
+        <e-title level="5">Reading list</e-title><e-text kind="small">Six titles awaiting review.</e-text>
+      </div>
+      <div style="border:var(--ink-border);padding:12px;height:70px;display:flex;flex-direction:column;justify-content:space-between">
+        <e-title level="5">Sync status</e-title><e-text kind="small">Up to date.</e-text>
+      </div>
+      <div style="border:var(--ink-border);padding:12px;height:130px;display:flex;flex-direction:column;justify-content:space-between">
+        <e-title level="5">Annotation</e-title><e-text kind="small">"…the panel holds its image without power."</e-text>
+      </div>
+      <div style="border:var(--ink-border);padding:12px;height:100px;display:flex;flex-direction:column;justify-content:space-between">
+        <e-title level="5">Battery</e-title><e-text kind="small">88% · 4 days remaining</e-text>
+      </div>
+      <div style="border:var(--ink-border);padding:12px;height:110px;display:flex;flex-direction:column;justify-content:space-between">
+        <e-title level="5">Last refresh</e-title><e-text kind="small">A2 mode · 0.2s</e-text>
+      </div>
+    </e-masonry>
+  </div>
+  <div style="border:var(--ink-border);padding:20px">
+    <div class="ink-spec-label">e-splitter · drag the rule</div>
+    <e-splitter initial="50">
+      <div slot="a" style="padding:16px;height:200px">
+        <e-title level="5">Library</e-title>
+        <e-text kind="small" as="p">
+          The left pane lists documents. The drag handle snaps to whole percent
+          steps so the panel only redraws when you've actually moved.
+        </e-text>
+      </div>
+      <div slot="b" style="padding:16px;height:200px">
+        <e-title level="5">Reader</e-title>
+        <e-text kind="prose" as="p">
+          And here is the document. Use ←/→ on the handle to nudge.
+        </e-text>
+      </div>
+    </e-splitter>
+  </div>
+
+  <!-- §09 Anchor / Breadcrumb / Dropdown -->
+  <section class="section-header" id="sec-nav">
+    <hr class="ink-rule ink-rule--thick"/>
+    <div class="section-header__row">
+      <div class="section-header__title-wrap">
+        <span class="ink-section-num">§ 09</span>
+        <h2>Anchor · Breadcrumb · Dropdown</h2>
+      </div>
+      <span class="section-header__kicker">WAYFINDING</span>
+    </div>
+  </section>
+  <div class="frame grid-2">
+    <div class="col">
+      <div class="ink-spec-label">e-breadcrumb</div>
+      <e-breadcrumb>
+        <e-breadcrumb-item href="#" title="Library"></e-breadcrumb-item>
+        <e-breadcrumb-item href="#" title="Field Journal"></e-breadcrumb-item>
+        <e-breadcrumb-item title="Chapter 04 — On the discipline of restraint"></e-breadcrumb-item>
+      </e-breadcrumb>
+      <e-divider></e-divider>
+      <div class="ink-spec-label">e-breadcrumb · alt separator</div>
+      <e-breadcrumb separator="›">
+        <e-breadcrumb-item href="#" title="Library"></e-breadcrumb-item>
+        <e-breadcrumb-item href="#" title="Field Journal"></e-breadcrumb-item>
+        <e-breadcrumb-item title="Chapter 04"></e-breadcrumb-item>
+      </e-breadcrumb>
+      <e-divider></e-divider>
+      <div class="ink-spec-label">e-dropdown</div>
+      <e-space size="12">
+        <e-dropdown>
+          <e-button slot="trigger" variant="secondary">File <e-icon name="chevD" size="16"></e-icon></e-button>
+          <e-dropdown-item header="Document"></e-dropdown-item>
+          <e-dropdown-item icon="doc"      label="New"        shortcut="⌘N"></e-dropdown-item>
+          <e-dropdown-item icon="folder"   label="Open…"      shortcut="⌘O"></e-dropdown-item>
+          <e-dropdown-item icon="download" label="Export PDF" shortcut="⌘E"></e-dropdown-item>
+          <e-dropdown-item divider></e-dropdown-item>
+          <e-dropdown-item icon="trash"    label="Delete" disabled></e-dropdown-item>
+        </e-dropdown>
+        <e-dropdown align="right">
+          <e-button slot="trigger" variant="primary">Actions <e-icon name="chevD" size="16"></e-icon></e-button>
+          <e-dropdown-item icon="edit"     label="Edit annotations"></e-dropdown-item>
+          <e-dropdown-item icon="bookmark" label="Bookmark page"></e-dropdown-item>
+          <e-dropdown-item icon="share"    label="Share with device"></e-dropdown-item>
+        </e-dropdown>
+      </e-space>
+    </div>
+    <div class="col">
+      <div class="ink-spec-label">e-anchor</div>
+      <e-anchor>
+        <e-anchor-item href="#sec-buttons" title="Buttons"></e-anchor-item>
+        <e-anchor-item href="#sec-cards" title="Cards"></e-anchor-item>
+        <e-anchor-item href="#sec-forms" title="Forms"></e-anchor-item>
+        <e-anchor-item href="#sec-typography" title="Typography" depth="1"></e-anchor-item>
+        <e-anchor-item href="#sec-dividers" title="Dividers" depth="1"></e-anchor-item>
+        <e-anchor-item href="#sec-layout" title="Layout"></e-anchor-item>
+        <e-anchor-item href="#sec-nav" title="Navigation"></e-anchor-item>
+      </e-anchor>
+      <p class="ink-note" style="margin-top:14px">
+        Active item is fully inverted — no accent color. Scroll the page and
+        watch the marker step from one row to the next instantly, with no easing.
+      </p>
+    </div>
+  </div>
+
+  <!-- §10 Form Suite -->
+  <section class="section-header" id="sec-forms-suite">
+    <hr class="ink-rule ink-rule--thick"/>
+    <div class="section-header__row">
+      <div class="section-header__title-wrap">
+        <span class="ink-section-num">§ 10</span>
+        <h2>Form Suite</h2>
+      </div>
+      <span class="section-header__kicker">ALL INPUT KINDS</span>
+    </div>
+  </section>
+  <e-form>
+    <div class="frame grid-2">
+      <div class="col stack-md">
+        <div class="ink-spec-label">Text · Number · Textarea</div>
+        <e-form-item label="Display name" required>
+          <e-input value="Anna Brandt"></e-input>
+        </e-form-item>
+        <e-form-item label="Page count" hint="Whole numbers only.">
+          <e-input-number value="12" min="0" max="9999"></e-input-number>
+        </e-form-item>
+        <e-form-item label="Annotation" hint="Up to 500 characters.">
+          <e-textarea placeholder="Type a note…"></e-textarea>
+        </e-form-item>
+        <e-form-item label="Device PIN" error="Pin is required">
+          <e-input placeholder="0000" error></e-input>
+        </e-form-item>
+      </div>
+      <div class="col stack-md">
+        <div class="ink-spec-label">Choice</div>
+        <e-form-item label="Font size">
+          <e-segmented value="m">
+            <e-segment value="s" label="S"></e-segment>
+            <e-segment value="m" label="M"></e-segment>
+            <e-segment value="l" label="L"></e-segment>
+            <e-segment value="xl" label="XL"></e-segment>
+          </e-segmented>
+        </e-form-item>
+        <e-form-item label="Refresh mode">
+          <e-radio-group value="a2">
+            <e-radio value="standard" label="Standard"></e-radio>
+            <e-radio value="a2"       label="A2 (fast)"></e-radio>
+            <e-radio value="manual"   label="Manual only"></e-radio>
+          </e-radio-group>
+        </e-form-item>
+        <e-form-item label="Tags">
+          <e-checkbox-group value="notes" layout="horizontal">
+            <e-cbox-option value="notes" label="notes"></e-cbox-option>
+            <e-cbox-option value="highlights" label="highlights"></e-cbox-option>
+            <e-cbox-option value="bookmarks" label="bookmarks"></e-cbox-option>
+            <e-cbox-option value="sketches" label="sketches"></e-cbox-option>
+          </e-checkbox-group>
+        </e-form-item>
+        <e-form-item label="Device">
+          <e-select value="boox-go">
+            <e-option value="remarkable-2"  label="reMarkable 2"></e-option>
+            <e-option value="boox-go"       label="Boox Go Color 7"></e-option>
+            <e-option value="pinenote"      label="PineNote"></e-option>
+            <e-option value="kindle-scribe" label="Kindle Scribe"></e-option>
+          </e-select>
+        </e-form-item>
+      </div>
+    </div>
+    <div class="frame grid-2" style="border-top:none">
+      <div class="col stack-md">
+        <div class="ink-spec-label">Hierarchical</div>
+        <e-form-item label="Region">
+          <e-cascader value="eu,de,ber" options='[
+            {"value":"eu","label":"Europe","children":[
+              {"value":"de","label":"Germany","children":[
+                {"value":"ber","label":"Berlin"},{"value":"mun","label":"Munich"}]},
+              {"value":"fr","label":"France","children":[
+                {"value":"par","label":"Paris"}]}]},
+            {"value":"na","label":"North America","children":[
+              {"value":"us","label":"USA","children":[
+                {"value":"nyc","label":"New York"}]}]}]'></e-cascader>
+        </e-form-item>
+        <e-form-item label="Save to folder">
+          <e-tree-select value="library/journal" default-expanded="library,library/poetry"
+            data='[{"value":"library","label":"Library","children":[
+              {"value":"library/journal","label":"Field Journal"},
+              {"value":"library/papers","label":"Papers"},
+              {"value":"library/poetry","label":"Poetry","children":[
+                {"value":"library/poetry/wm","label":"Walt Whitman"},
+                {"value":"library/poetry/eb","label":"Elizabeth Bishop"}]}]},
+              {"value":"archive","label":"Archive"}]'></e-tree-select>
+        </e-form-item>
+      </div>
+      <div class="col stack-md">
+        <div class="ink-spec-label">Time · Files</div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap">
+          <e-form-item label="Date">
+            <e-date-picker value="2026-04-26"></e-date-picker>
+          </e-form-item>
+          <e-form-item label="Time">
+            <e-time-picker value="14:22"></e-time-picker>
+          </e-form-item>
+        </div>
+        <e-form-item label="Attachments">
+          <e-upload accept=".pdf,.epub,.txt"></e-upload>
+        </e-form-item>
+      </div>
+    </div>
+  </e-form>
+
+  <!-- §11 Menu / Pagination / Steps / Tabs -->
+  <section class="section-header" id="sec-nav-suite">
+    <hr class="ink-rule ink-rule--thick"/>
+    <div class="section-header__row">
+      <div class="section-header__title-wrap">
+        <span class="ink-section-num">§ 11</span>
+        <h2>Menu · Pagination · Steps · Tabs</h2>
+      </div>
+      <span class="section-header__kicker">WAYFINDING SUITE</span>
+    </div>
+  </section>
+  <div class="frame grid-260-1">
+    <div class="col">
+      <div class="ink-spec-label">e-menu · vertical</div>
+      <e-menu value="library/journal">
+        <e-menu-item value="home"     label="Home"     icon="home"></e-menu-item>
+        <e-menu-item value="library"  label="Library"  icon="folder">
+          <e-menu-item value="library/journal" label="Field Journal" badge="12"></e-menu-item>
+          <e-menu-item value="library/papers"  label="Papers"></e-menu-item>
+          <e-menu-item value="library/poetry"  label="Poetry"></e-menu-item>
+        </e-menu-item>
+        <e-menu-item value="sync"     label="Sync"     icon="refresh"></e-menu-item>
+        <e-menu-item value="settings" label="Settings" icon="cog"></e-menu-item>
+      </e-menu>
+    </div>
+    <div class="col stack-lg">
+      <div>
+        <div class="ink-spec-label">e-menu · horizontal</div>
+        <e-menu mode="horizontal" value="reader">
+          <e-menu-item value="reader" label="Reader" icon="doc"></e-menu-item>
+          <e-menu-item value="notes"  label="Notes"  icon="edit"></e-menu-item>
+          <e-menu-item value="sync"   label="Sync"   icon="refresh"></e-menu-item>
+          <e-menu-item value="about"  label="About"  icon="eye"></e-menu-item>
+        </e-menu>
+      </div>
+      <div>
+        <div class="ink-spec-label" id="pag-label">e-pagination · 4 of 24</div>
+        <e-pagination id="pag" current="4" total="24"></e-pagination>
+      </div>
+      <div>
+        <div class="ink-spec-label">e-steps · horizontal</div>
+        <e-steps current="1">
+          <e-step title="Pair device"  description="Bluetooth handshake"></e-step>
+          <e-step title="Sync library" description="Transfer documents"></e-step>
+          <e-step title="Calibrate"    description="Refresh mode test"></e-step>
+          <e-step title="Done"></e-step>
+        </e-steps>
+      </div>
+      <div>
+        <div class="ink-spec-label">e-tabs · with counts</div>
+        <e-tabs default-value="reader">
+          <e-tab key="reader" label="Reader" icon="doc">
+            <e-text kind="prose" as="p">The reader pane. Set the page once, read it calmly.</e-text>
+          </e-tab>
+          <e-tab key="notes" label="Notes" icon="edit" count="7">
+            <e-text kind="body" as="p">Seven annotations across three documents.</e-text>
+          </e-tab>
+          <e-tab key="sync" label="Sync" icon="refresh">
+            <e-text kind="mono" as="p">Last sync · 14:22 · 4 days remaining.</e-text>
+          </e-tab>
+        </e-tabs>
+      </div>
+      <div>
+        <div class="ink-spec-label">e-steps · vertical</div>
+        <e-steps orientation="vertical" current="2">
+          <e-step title="Drafted"   description="Initial outline saved."></e-step>
+          <e-step title="Reviewed"  description="Editorial pass complete."></e-step>
+          <e-step title="Typeset"   description="Setting columns and rules."></e-step>
+          <e-step title="Published"></e-step>
+        </e-steps>
+      </div>
+    </div>
+  </div>
+
+  <!-- §12 Display -->
+  <section class="section-header" id="sec-display">
+    <hr class="ink-rule ink-rule--thick"/>
+    <div class="section-header__row">
+      <div class="section-header__title-wrap">
+        <span class="ink-section-num">§ 12</span>
+        <h2>Avatar · Badge · Calendar · Card</h2>
+      </div>
+      <span class="section-header__kicker">DISPLAY</span>
+    </div>
+  </section>
+  <div class="frame grid-2">
+    <div class="col stack-md">
+      <div class="ink-spec-label">Avatars</div>
+      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+        <e-avatar name="Anna Brandt" size="32"></e-avatar>
+        <e-avatar name="Anna Brandt" size="40" shape="circle"></e-avatar>
+        <e-avatar name="Niko Park"   size="56"></e-avatar>
+        <e-avatar name="Em Ko"       size="72" shape="circle"></e-avatar>
+      </div>
+      <div>
+        <e-text kind="label">Group · max 4</e-text>
+        <div style="margin-top:8px">
+          <e-avatar-group max="4" size="36">
+            <e-avatar-item name="Anna Brandt"></e-avatar-item>
+            <e-avatar-item name="Niko Park"></e-avatar-item>
+            <e-avatar-item name="Em Ko"></e-avatar-item>
+            <e-avatar-item name="Tomás L"></e-avatar-item>
+            <e-avatar-item name="Mira S"></e-avatar-item>
+            <e-avatar-item name="Jules V"></e-avatar-item>
+          </e-avatar-group>
+        </div>
+      </div>
+      <e-divider></e-divider>
+      <div class="ink-spec-label">Badges</div>
+      <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">
+        <e-badge-count count="3">
+          <e-float-button icon="bell" label="Alerts" primary="false"></e-float-button>
+        </e-badge-count>
+        <e-badge-count count="142">
+          <e-float-button icon="bell" label="Many alerts" primary="false"></e-float-button>
+        </e-badge-count>
+        <e-badge-count dot>
+          <e-float-button icon="bell" label="Unread" primary="false"></e-float-button>
+        </e-badge-count>
+      </div>
+      <e-ribbon text="NEW">
+        <e-card title="Annotated edition" eyebrow="Volume IV">
+          <e-text kind="prose" as="p">A reissue of the field journals, with marginalia.</e-text>
+        </e-card>
+      </e-ribbon>
+    </div>
+    <div class="col stack-md">
+      <div class="ink-spec-label">Card variants</div>
+      <e-card-image eyebrow="Reading list" title="Restraint, an essay" cover="hatch">
+        <span slot="footer"><e-button variant="secondary">Preview</e-button></span>
+        <span slot="footer"><e-button variant="primary">Read</e-button></span>
+        <e-text kind="body">
+          A short meditation on the discipline of the press, originally
+          published in the field journal series.
+        </e-text>
+      </e-card-image>
+    </div>
+  </div>
+  <div style="margin-top:16px">
+    <div class="ink-spec-label">e-calendar</div>
+    <e-calendar value="2026-04-26" events='[
+      {"date":"2026-04-08","title":"Standup"},
+      {"date":"2026-04-12","title":"Sync"},
+      {"date":"2026-04-12","title":"Review"},
+      {"date":"2026-04-12","title":"Demo"},
+      {"date":"2026-04-19","title":"Deadline"},
+      {"date":"2026-04-26","title":"Release"},
+      {"date":"2026-04-26","title":"Retro"}]'></e-calendar>
+  </div>
+
+  <!-- §13 In situ -->
+  <section class="section-header" id="sec-app">
+    <hr class="ink-rule ink-rule--thick"/>
+    <div class="section-header__row">
+      <div class="section-header__title-wrap">
+        <span class="ink-section-num">§ 13</span>
+        <h2>In situ</h2>
+      </div>
+      <span class="section-header__kicker">REFERENCE LAYOUT</span>
+    </div>
+  </section>
+  <div class="reader-app">
+    <aside class="reader-app__side">
+      <div style="font-family:var(--ink-mono);font-size:11px;letter-spacing:0.2em;font-weight:700">LIBRARY</div>
+      <button class="reader-app__nav-btn">All documents</button>
+      <button class="reader-app__nav-btn" aria-current="page">Reading now</button>
+      <button class="reader-app__nav-btn">Annotated</button>
+      <button class="reader-app__nav-btn">Archived</button>
+      <div style="margin-top:auto"><e-toggle label="Reader mode" checked></e-toggle></div>
+    </aside>
+    <main class="reader-app__main">
+      <div class="reader-app__head">
+        <div>
+          <div class="reader-app__chapter">CHAPTER · 04</div>
+          <h3 class="reader-app__title-h">On the discipline of restraint</h3>
+        </div>
+        <e-space size="8">
+          <e-button id="bookmark-btn" variant="secondary">☆ Bookmark</e-button>
+          <e-button variant="primary">Annotate</e-button>
+        </e-space>
+      </div>
+      <hr class="ink-divider" style="margin-bottom:14px"/>
+      <p class="reader-app__body">
+        A panel that holds its image without power invites a different kind of
+        design. The interface is no longer a stream of frames; it is a
+        <i>page</i>, set once and read calmly. Every state change is a small
+        act of typesetting. Restraint is therefore not a stylistic preference
+        but a hardware obligation: each transition consumes a full refresh,
+        each gradient becomes a stipple, each shadow becomes a smear. The
+        discipline of e-paper is the discipline of the press.
+      </p>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <span>EPAPER · END OF SPECIMEN</span>
+    <span>SET IN SYSTEM SERIF + SYSTEM SANS</span>
+  </footer>
+</div>
+
+<script type="module" src="/src/demo/main.ts"></script>
+</body>
+</html>
