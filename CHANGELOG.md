@@ -7,6 +7,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+
+- The tag release path is now staged as `guard → checks → release → update`.
+  `checks` calls `ci.yml` as a reusable workflow instead of repeating its steps,
+  and `update` installs the published version from the registry, registers the
+  elements in jsdom (`scripts/smoke-test.mjs`), verifies the provenance
+  attestation and redeploys the site and Storybook from the tagged source.
+
 ## [1.0.1] — 2026-08-12
 
 ### Changed

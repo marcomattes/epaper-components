@@ -5,7 +5,13 @@ name: Release
 #   CI green on main   → dist-tag `dev`,    version <next-patch>-dev.<run number>
 #   push tag v*        → dist-tag `latest`, version taken from package.json
 #                        (`next` instead, when the tag carries a prerelease part)
-#                        plus a GitHub Release with the CHANGELOG section.
+#
+# The tag path runs as four stages, each gating the next:
+#
+#   guard    tag name matches package.json, channel resolved   (seconds)
+#   checks   the full quality gate, reused from ci.yml
+#   release  npm publish + GitHub Release
+#   update   smoke test against the registry, site + Storybook deploy
 #
 # Both channels live in this single file on purpose: npm Trusted Publishing
 # binds exactly one workflow filename per package, so a second file could not
@@ -44,7 +50,208 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # ---------------------------------------------------------------- dev channel
+  # ------------------------------------------------------ stage 1 · guard
+  guard:
+    name: Guard
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.channel.outputs.version }}
+      npm-tag: ${{ steps.channel.outputs.npm-tag }}
+      prerelease: ${{ steps.channel.outputs.prerelease }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Runs before the expensive stages so a tag on an unbumped commit fails in
+      # seconds rather than after the full browser test suite.
+      - name: Check tag matches package.json
+        run: |
+          PKG="$(node -p "require('./package.json').version")"
+          if [ "$GITHUB_REF_NAME" != "v$PKG" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $PKG"
+            exit 1
+          fi
+          echo "Releasing $PKG from tag $GITHUB_REF_NAME."
+
+      - name: Resolve channel
+        id: channel
+        run: |
+          PKG="$(node -p "require('./package.json').version")"
+          echo "version=$PKG" >> "$GITHUB_OUTPUT"
+          case "$PKG" in
+            # A prerelease tag must never take over `latest` for real users.
+            *-*)
+              echo "npm-tag=next" >> "$GITHUB_OUTPUT"
+              echo "prerelease=true" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "npm-tag=latest" >> "$GITHUB_OUTPUT"
+              echo "prerelease=false" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+  # ----------------------------------------------------- stage 2 · checks
+  checks:
+    name: Checks
+    needs: guard
+    uses: ./.github/workflows/ci.yml
+
+  # ---------------------------------------------------- stage 3 · release
+  release:
+    name: Publish release
+    needs: [guard, checks]
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # Without a token npm authenticates via Trusted Publishing (OIDC), which
+      # is the intended path. The secret is only a fallback and may be unset.
+      # The check has to live in the shell: the `secrets` context is not
+      # available in a step-level `if`, only in `env`.
+      - name: Configure token auth
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -n "$NPM_TOKEN" ]; then
+            npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
+            echo "Using NPM_TOKEN for authentication."
+          else
+            echo "No NPM_TOKEN set — publishing via Trusted Publishing (OIDC)."
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Publish
+        run: npm publish --provenance --access public --tag "${{ needs.guard.outputs.npm-tag }}"
+
+      - name: Pack tarball
+        run: npm pack --pack-destination .
+
+      - name: Release notes
+        run: |
+          if ! node scripts/changelog-section.mjs "${{ needs.guard.outputs.version }}" > RELEASE_NOTES.md; then
+            printf 'See [CHANGELOG.md](CHANGELOG.md).\n' > RELEASE_NOTES.md
+          fi
+
+      # Runs after the publish: npm is the release of record, the GitHub Release
+      # only mirrors it. A failure here is re-runnable by hand.
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ needs.guard.outputs.prerelease }}" = "true" ]; then
+            PRERELEASE_FLAG=--prerelease
+          fi
+          gh release create "$GITHUB_REF_NAME" \
+            --title "v${{ needs.guard.outputs.version }}" \
+            --notes-file RELEASE_NOTES.md \
+            ${PRERELEASE_FLAG:-} \
+            ./*.tgz
+
+      - name: Summary
+        run: |
+          {
+            echo "### npm \`${{ needs.guard.outputs.npm-tag }}\` release"
+            echo
+            echo "- Version: \`${{ needs.guard.outputs.version }}\`"
+            echo "- Tag: \`$GITHUB_REF_NAME\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ----------------------------------------------------- stage 4 · update
+  smoke:
+    name: Smoke test published package
+    needs: [guard, release]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      # The registry needs a moment before a fresh version is resolvable.
+      - name: Wait for the registry
+        env:
+          VERSION: ${{ needs.guard.outputs.version }}
+        run: |
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            if npm view "@marcomattes/epaper-components@$VERSION" version >/dev/null 2>&1; then
+              echo "Version $VERSION is resolvable."
+              exit 0
+            fi
+            echo "Attempt $attempt: not published yet, waiting 15s."
+            sleep 15
+          done
+          echo "::error::@marcomattes/epaper-components@$VERSION did not appear on the registry"
+          exit 1
+
+      # Installs from the registry rather than the working tree, so a missing
+      # `files` entry or a dangling `exports` subpath fails here.
+      - name: Install published package
+        env:
+          VERSION: ${{ needs.guard.outputs.version }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/smoke"
+          cd "$RUNNER_TEMP/smoke"
+          npm init -y >/dev/null
+          npm pkg set type=module >/dev/null
+          npm install "@marcomattes/epaper-components@$VERSION" jsdom --silent
+
+      - name: Run smoke test
+        run: |
+          cp scripts/smoke-test.mjs "$RUNNER_TEMP/smoke/"
+          cd "$RUNNER_TEMP/smoke"
+          node smoke-test.mjs
+
+      - name: Verify provenance attestation
+        env:
+          VERSION: ${{ needs.guard.outputs.version }}
+        run: |
+          PREDICATE="$(npm view "@marcomattes/epaper-components@$VERSION" \
+            dist.attestations.provenance.predicateType 2>/dev/null || true)"
+          if [ -z "$PREDICATE" ]; then
+            echo "::error::No provenance attestation found for $VERSION"
+            exit 1
+          fi
+          echo "Provenance predicate: $PREDICATE"
+
+      - name: Summary
+        env:
+          VERSION: ${{ needs.guard.outputs.version }}
+        run: |
+          {
+            echo "### Smoke test"
+            echo
+            echo "Installed \`@marcomattes/epaper-components@$VERSION\` from the registry,"
+            echo "registered the custom elements in jsdom and verified the provenance"
+            echo "attestation."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    name: Deploy site and Storybook
+    needs: [guard, release]
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit
+
+  # ------------------------------------------------------------ dev channel
   dev:
     name: Publish dev
     if: >-
@@ -72,10 +279,6 @@ jobs:
           node-version: 24
           cache: npm
 
-      # Without a token npm authenticates via Trusted Publishing (OIDC), which
-      # is the intended path. The secret is only a fallback and may be unset.
-      # The check has to live in the shell: the `secrets` context is not
-      # available in a step-level `if`, only in `env`.
       - name: Configure token auth
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -114,144 +317,4 @@ jobs:
             echo '```sh'
             echo "npm i @marcomattes/epaper-components@dev"
             echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-
-  # ------------------------------------------------------------- tag release
-  verify:
-    name: Verify
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    container:
-      # Same image as ci.yml — visual-regression baselines are only valid in it.
-      image: mcr.microsoft.com/playwright:v1.59.1-noble
-      options: --user 1001
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-
-      # Fails before the expensive steps when someone tags a commit whose
-      # package.json was never bumped — npm would reject the duplicate anyway.
-      - name: Check tag matches package.json
-        run: |
-          PKG="$(node -p "require('./package.json').version")"
-          if [ "$GITHUB_REF_NAME" != "v$PKG" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $PKG"
-            exit 1
-          fi
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Prettier check
-        run: npm run format:check
-
-      - name: Lint
-        run: npm run lint:check
-
-      - name: Type check
-        run: npm run type-check
-
-      - name: Tests
-        run: npm run test:ci
-
-      - name: Build
-        run: npm run build
-
-      - name: Size limit
-        run: npm run size
-
-  release:
-    name: Publish release
-    needs: verify
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    environment: npm
-    permissions:
-      contents: write
-      id-token: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-
-      # See the dev job — Trusted Publishing (OIDC) unless NPM_TOKEN is set.
-      - name: Configure token auth
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          if [ -n "$NPM_TOKEN" ]; then
-            npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
-            echo "Using NPM_TOKEN for authentication."
-          else
-            echo "No NPM_TOKEN set — publishing via Trusted Publishing (OIDC)."
-          fi
-
-      - name: Resolve channel
-        id: channel
-        run: |
-          PKG="$(node -p "require('./package.json').version")"
-          echo "version=$PKG" >> "$GITHUB_OUTPUT"
-          case "$PKG" in
-            # A prerelease tag must never take over `latest` for real users.
-            *-*)
-              echo "npm-tag=next" >> "$GITHUB_OUTPUT"
-              echo "prerelease=true" >> "$GITHUB_OUTPUT"
-              ;;
-            *)
-              echo "npm-tag=latest" >> "$GITHUB_OUTPUT"
-              echo "prerelease=false" >> "$GITHUB_OUTPUT"
-              ;;
-          esac
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-
-      - name: Publish
-        run: npm publish --provenance --access public --tag "${{ steps.channel.outputs.npm-tag }}"
-
-      - name: Pack tarball
-        run: npm pack --pack-destination .
-
-      - name: Release notes
-        run: |
-          if ! node scripts/changelog-section.mjs "${{ steps.channel.outputs.version }}" > RELEASE_NOTES.md; then
-            printf 'See [CHANGELOG.md](CHANGELOG.md).\n' > RELEASE_NOTES.md
-          fi
-
-      # Runs after the publish: npm is the release of record, the GitHub Release
-      # only mirrors it. A failure here is re-runnable by hand.
-      - name: Create GitHub Release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          if [ "${{ steps.channel.outputs.prerelease }}" = "true" ]; then
-            PRERELEASE_FLAG=--prerelease
-          fi
-          gh release create "$GITHUB_REF_NAME" \
-            --title "v${{ steps.channel.outputs.version }}" \
-            --notes-file RELEASE_NOTES.md \
-            ${PRERELEASE_FLAG:-} \
-            ./*.tgz
-
-      - name: Summary
-        run: |
-          {
-            echo "### npm \`${{ steps.channel.outputs.npm-tag }}\` release"
-            echo
-            echo "- Version: \`${{ steps.channel.outputs.version }}\`"
-            echo "- Tag: \`$GITHUB_REF_NAME\`"
           } >> "$GITHUB_STEP_SUMMARY"

@@ -23,6 +23,9 @@ on:
   push:
     branches: [main]
   workflow_dispatch: {}
+  # Called as the update stage of release.yml. The checkout then resolves to
+  # the caller's ref, so a release deploys the tagged source, not main's head.
+  workflow_call: {}
 
 permissions:
   contents: read

@@ -664,17 +664,27 @@ Every push to `main` that passes CI publishes a `<next-patch>-dev.<build>`
 version under the `dev` dist-tag. The version is written inside the job and is
 never committed, so `package.json` on `main` always reflects the last release.
 
-A pushed tag matching `v<package.json version>` triggers the release path: the
-workflow re-runs the full gate (Prettier, ESLint, `tsc`, the browser test suite,
-build and size-limit), publishes to npm with
-[provenance](https://docs.npmjs.com/generating-provenance-statements) through
-OIDC trusted publishing, and creates a GitHub Release whose notes are the
-matching `CHANGELOG.md` section, with the packed tarball attached. Tags carrying
-a prerelease part, such as `v1.1.0-rc.1`, are published under the `next` dist-tag
-instead of `latest`.
+A pushed tag matching `v<package.json version>` runs the release path in four
+stages, each gating the next:
 
-The public site and Storybook are deployed separately, by
-`.github/workflows/deploy.yml`, on every push to `main`.
+1. **Guard** confirms that the tag name matches the version in `package.json`
+   and resolves the target dist-tag. A tag on a commit that was never bumped
+   fails here, within seconds.
+2. **Checks** runs the quality gate by calling `ci.yml` as a reusable workflow,
+   so the release gate and the pull-request gate are the same definition rather
+   than two copies.
+3. **Release** publishes to npm with
+   [provenance](https://docs.npmjs.com/generating-provenance-statements) through
+   OIDC trusted publishing, and creates a GitHub Release whose notes are the
+   matching `CHANGELOG.md` section, with the packed tarball attached.
+4. **Update** installs the freshly published version from the registry into an
+   empty project, registers the elements in jsdom to confirm the artifact works
+   as shipped, verifies the provenance attestation, and redeploys the site and
+   Storybook from the tagged source.
+
+Tags carrying a prerelease part, such as `v1.1.0-rc.1`, are published under the
+`next` dist-tag instead of `latest`. The site is additionally redeployed on every
+push to `main` by `.github/workflows/deploy.yml`.
 
 ## License
 

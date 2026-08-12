@@ -150,10 +150,14 @@ CI runs all of the above on every PR (`.github/workflows/ci.yml`).
 - **`dev`** — every green CI run on `main` publishes
   `<next-patch>-dev.<run number>` under the `dev` dist-tag. Nothing to do
   by hand; `package.json` `version` is stamped in CI only, never committed.
-- **`latest`** — pushing a `v*` tag runs the full gate, publishes, and
-  creates a GitHub Release from the matching `CHANGELOG.md` section. A tag
-  whose name does not equal `v<package.json version>` fails immediately.
-  Tags carrying a prerelease part (`v1.1.0-rc.1`) go to `next`, not `latest`.
+- **`latest`** — pushing a `v*` tag runs four gated stages: `guard`
+  (tag equals `v<package.json version>`, fails in seconds otherwise),
+  `checks` (calls `ci.yml` as a reusable workflow — do not duplicate the
+  gate here), `release` (npm publish + GitHub Release from the matching
+  `CHANGELOG.md` section), and `update` (`smoke` installs the published
+  version from the registry and registers it in jsdom via
+  `scripts/smoke-test.mjs`, `deploy` calls `deploy.yml` for the tagged
+  source). Tags with a prerelease part (`v1.1.0-rc.1`) go to `next`.
 
 Cutting a release: move `[Unreleased]` entries into a
 `## [x.y.z] — YYYY-MM-DD` section, then

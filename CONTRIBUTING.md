@@ -153,10 +153,16 @@ carries the last released version in `package.json`.
    commits and creates the annotated `vx.y.z` tag.
 3. `git push --follow-tags`.
 
-The tag run re-checks formatting, lint, types, tests, build and bundle size
-before publishing, and refuses any tag whose name is not
-`v<package.json version>`. A tag with a prerelease part (`v1.1.0-rc.1`) is
-published under `next` rather than `latest`.
+The tag run is staged: it first refuses any tag whose name is not
+`v<package.json version>`, then re-runs the full quality gate by calling
+`ci.yml` as a reusable workflow, then publishes and creates the GitHub Release,
+and finally installs the published version from the registry to smoke-test it
+and redeploys the site from the tagged source. A tag with a prerelease part
+(`v1.1.0-rc.1`) is published under `next` rather than `latest`.
+
+If the smoke test fails, the package is already on npm — it verifies the
+published artifact rather than gating it. Fix forward with a patch release
+rather than unpublishing.
 
 ## Event detail contract
 
