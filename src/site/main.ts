@@ -283,7 +283,9 @@ function renderCommunity(host: HTMLElement): void {
     <e-description-list columns="2" bordered>
       <e-desc-item term="License">MIT</e-desc-item>
       <e-desc-item term="Repository">github.com/marcomattes/epaper-components</e-desc-item>
-      <e-desc-item term="Maintainer">Marco Mattes</e-desc-item>
+      <e-desc-item term="Maintainer"
+        >Marco Mattes — <e-link href="https://mattes.dev">mattes.dev</e-link></e-desc-item
+      >
       <e-desc-item term="Version">V1.0.0</e-desc-item>
     </e-description-list>
 
@@ -296,8 +298,10 @@ function renderCommunity(host: HTMLElement): void {
     </e-timeline>
 
     <footer class="site-foot">
-      <span>© 2026 EPaper · MIT</span>
+      <span>© 2026 EPaper · MIT · by
+        <e-link href="https://mattes.dev">Marco Mattes</e-link></span>
       <div class="site-foot__links">
+        <e-link href="https://mattes.dev">mattes.dev</e-link>
         <e-link href="https://github.com/marcomattes/epaper-components">GitHub</e-link>
         <e-link href="https://github.com/marcomattes/epaper-components/issues">Issues</e-link>
         <e-link href="https://github.com/marcomattes/epaper-components/discussions">Discussions</e-link>

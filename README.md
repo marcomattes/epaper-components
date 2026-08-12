@@ -632,4 +632,4 @@ version and the release workflow will:
 
 ## License
 
-ISC. See [LICENSE](./LICENSE).
+MIT. See [LICENSE](./LICENSE).

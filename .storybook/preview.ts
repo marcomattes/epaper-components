@@ -58,7 +58,11 @@ const preview: Preview = {
     },
     options: {
       storySort: {
+        // 'Introduction' first so a cold load lands on the intro page rather
+        // than on whichever component happens to sort alphabetically first.
         order: [
+          'Introduction',
+          'Foundations',
           'Primitives',
           'Typography',
           'Display',

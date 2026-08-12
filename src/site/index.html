@@ -8,6 +8,8 @@
       name="description"
       content="EPaper is a vanilla custom-element library tuned for e-paper displays. Surgical DOM updates, no animations, no :hover, no Shadow DOM."
     />
+    <meta name="author" content="Marco Mattes" />
+    <link rel="author" href="https://mattes.dev" />
 
     <style>
       :root {
@@ -238,6 +240,17 @@
         text-transform: uppercase;
         opacity: 0.7;
       }
+      .site-footbar__by {
+        font-family: var(--ink-mono);
+        font-size: var(--ink-text-caption);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .site-footbar__by a {
+        color: #000;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
       e-site-pager {
         display: none;
       }
@@ -334,6 +347,11 @@
       <footer class="site-footbar" id="site-footbar" aria-label="Pager">
         <div class="site-footbar__inner">
           <span class="site-footbar__hint" aria-hidden="true">↑ ↓ · PgUp PgDn · Space</span>
+          <!-- Static markup (not rendered by main.ts) so the attribution and
+               its backlink are in the served HTML on every page. -->
+          <span class="site-footbar__by">
+            Built by <a href="https://mattes.dev" rel="me author">Marco Mattes · mattes.dev</a>
+          </span>
         </div>
       </footer>
 

@@ -1,0 +1,196 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Introduction" />
+
+<style>{`
+  .ep-intro { max-width: 62rem; }
+  .ep-intro__kicker {
+    font-family: var(--ink-mono, ui-monospace, monospace);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .ep-intro__demo {
+    border: 2px solid #000;
+    padding: 16px;
+    background: #fff;
+    color: #000;
+  }
+  .ep-intro__colophon {
+    border-top: 4px solid currentColor;
+    margin-top: 40px;
+    padding-top: 16px;
+    font-size: 14px;
+  }
+`}</style>
+
+<div className="ep-intro">
+
+<p className="ep-intro__kicker">OSS · MIT · Vanilla Custom Elements</p>
+
+# EPaper
+
+**Web components for ink & paper.** EPaper is a vanilla custom-element library
+tuned for electrophoretic (e-paper) displays: 59 components, 82 registered
+elements, zero framework dependencies, strict TypeScript. It ships as plain
+`HTMLElement` subclasses — usable from framework-free HTML, React, Vue, Svelte
+or anything else that can render a tag.
+
+- 🎨 **Site** — [epaper-components.dev](https://epaper-components.dev/)
+- 📦 **npm** — [`@marcomattes/epaper-components`](https://www.npmjs.com/package/@marcomattes/epaper-components)
+- 🛠 **Source** — [github.com/marcomattes/epaper-components](https://github.com/marcomattes/epaper-components)
+
+---
+
+## The constraint that drives everything
+
+E-paper panels repaint through a multi-step waveform per pixel. Anything that
+tweens ghosts for several full refreshes, and partial tones dither
+unpredictably. So the library forbids the usual toolbox rather than merely
+discouraging it:
+
+| Rule                                 | Why                                                                 |
+| ------------------------------------ | ------------------------------------------------------------------- |
+| No animations, no transitions        | Reset globally inside `.ink-page`; tweening ghosts on an EPDC       |
+| No `:hover`                          | E-paper touch surfaces have no hover — focus is the state cue       |
+| No Shadow DOM                        | Light DOM only, so consumers style with plain CSS and native forms  |
+| No opacity/grey for state            | Partial tones dither; state uses inversion and diagonal hatch fills |
+| Surgical DOM patches, not re-renders | Replacing a subtree forces a full-panel GC16 waveform               |
+
+State is encoded so it survives 1-bit rendering:
+
+| State    | Encoding                                                     |
+| -------- | ------------------------------------------------------------ |
+| Focus    | 3px solid `--ink-fg` outline + 2px offset (`:focus-visible`) |
+| Pressed  | Foreground/background inversion on `:active`                 |
+| Selected | `[aria-selected]` / `[aria-checked]` + flat fill flip        |
+| Disabled | Diagonal hatch fill (`--ink-hatch-disabled`)                 |
+| Error    | 3px border + `--ink-hatch-error` fill                        |
+
+---
+
+## Install
+
+```sh
+npm install @marcomattes/epaper-components
+```
+
+Import the three stylesheets in cascade order, then the barrel — a
+side-effect import that registers every element once:
+
+```js
+import '@marcomattes/epaper-components/styles/tokens.css';
+import '@marcomattes/epaper-components/styles/base.css';
+import '@marcomattes/epaper-components/styles/components.css';
+import '@marcomattes/epaper-components';
+```
+
+Only need a handful? Import per component and drop the barrel:
+
+```js
+import '@marcomattes/epaper-components/button';
+import '@marcomattes/epaper-components/input';
+```
+
+Everything renders inside an `.ink-page` scope — that is where the no-motion
+reset and the focus ring live:
+
+```html
+<div class="ink-page">
+  <e-title level="2">Reading list</e-title>
+  <e-input label="Search" placeholder="e.g. Le Guin"></e-input>
+  <e-button variant="primary">Add</e-button>
+</div>
+```
+
+<div className="ink-page ep-intro__demo">
+  <e-flex direction="column" gap="12">
+    <e-title level="3">Reading list</e-title>
+    <e-input label="Search" placeholder="e.g. Le Guin"></e-input>
+    <e-flex gap="8">
+      <e-button variant="primary">Add</e-button>
+      <e-button variant="secondary">Cancel</e-button>
+      <e-button disabled>Disabled</e-button>
+    </e-flex>
+    <e-flex gap="8">
+      <e-tag>OSS</e-tag>
+      <e-tag>MIT</e-tag>
+      <e-tag>Vanilla CE</e-tag>
+    </e-flex>
+  </e-flex>
+</div>
+
+---
+
+## What's in the box
+
+| Group          | Count | Examples                                      |
+| -------------- | ----: | --------------------------------------------- |
+| **Primitives** |     5 | `e-button`, `e-icon`, `e-badge`, `e-ribbon`   |
+| **Typography** |     3 | `e-title`, `e-text`, `e-link`                 |
+| **Display**    |    18 | `e-table`, `e-calendar`, `e-card`, `e-qrcode` |
+| **Inputs**     |    13 | `e-input`, `e-select`, `e-date-picker`        |
+| **Layout**     |     9 | `e-layout`, `e-grid`, `e-flex`, `e-splitter`  |
+| **Navigation** |     8 | `e-tabs`, `e-menu`, `e-pagination`, `e-steps` |
+| **Composite**  |     3 | `e-form`, `e-upload`, `e-float-button`        |
+
+Pick a group in the sidebar — every component has a **Docs** tab generated
+from its Custom Elements Manifest (attributes, events, slots) plus runnable
+stories.
+
+---
+
+## Conventions worth knowing
+
+**Form participation.** Every input, checkbox, toggle, select, picker and
+group is form-associated: it submits inside a native `<form>`, restores on
+BFCache, and participates in constraint validation like its built-in
+counterpart.
+
+**Events** are custom events with a `{ value }` detail and an `e-` prefix,
+e.g. `e-change`, `e-input`. Documented exceptions are part of the V1.0
+contract:
+
+| Element                  | Event      | Detail                          |
+| ------------------------ | ---------- | ------------------------------- |
+| `e-checkbox`, `e-toggle` | `e-change` | `{ checked: boolean }`          |
+| `e-upload`               | `e-change` | `{ files: File[] }`             |
+| `e-dropdown`             | `e-select` | `{ index: number }`             |
+| `e-button`               | `e-click`  | `{ originalEvent: MouseEvent }` |
+| `e-form`                 | `e-submit` | `{ form: HTMLFormElement }`     |
+
+**Theming** happens through CSS custom properties only — `--ink-fg`,
+`--ink-bg`, `--ink-border`, the `--ink-space-*` scale, the `--ink-text-*`
+ramp. See **Foundations → Design Tokens** for the full registry, and
+`THEMING.md` in the repo for the contract.
+
+**TypeScript** users get tag autocomplete from the shipped
+`HTMLElementTagNameMap` augmentation — no manual declaration needed.
+
+---
+
+## Browsing this Storybook
+
+- **Viewport toolbar** carries real e-ink presets: Kindle 6", Kindle
+  Paperwhite 6.8", Kobo Sage 8", reMarkable 2 10.3". Use them — layouts are
+  designed against those pixel counts.
+- **Accessibility panel** runs axe on every story and fails on violations, so
+  what you see has already passed the gate.
+- **Docs tab** on each component is generated from source JSDoc; the code
+  block under each story is copy-pasteable as-is.
+
+<div className="ep-intro__colophon">
+
+**EPaper** · MIT licensed · built and maintained by
+**[Marco Mattes](https://mattes.dev)** — [mattes.dev](https://mattes.dev)
+
+[Site](https://epaper-components.dev/) ·
+[GitHub](https://github.com/marcomattes/epaper-components) ·
+[npm](https://www.npmjs.com/package/@marcomattes/epaper-components) ·
+[Issues](https://github.com/marcomattes/epaper-components/issues) ·
+[Contributing](https://github.com/marcomattes/epaper-components/blob/main/CONTRIBUTING.md)
+
+</div>
+
+</div>

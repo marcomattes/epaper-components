@@ -109,6 +109,27 @@ body {
   opacity: 0.7;
 }
 
+/* Author attribution — lives in the footbar so it is present on every page. */
+.site-footbar__by {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-caption);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.site-footbar__by a {
+  color: var(--ink-fg);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* The keyboard hint is decorative; drop it before the attribution on narrow
+   viewports so the backlink is what survives. */
+@media (max-width: 560px) {
+  .site-footbar__hint {
+    display: none;
+  }
+}
+
 /* Reserve room above the fixed footbar so last-section content isn't hidden. */
 .site-section:last-of-type {
   padding-bottom: 96px;

@@ -9,6 +9,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Changed
 
+- Storybook now opens on a new **Introduction** page (`src/stories/Introduction.mdx`)
+  covering the e-paper constraints, install, conventions and the component
+  inventory. `storySort` lists `Introduction` and `Foundations` ahead of the
+  component groups so a cold load lands there.
+- The site credits Marco Mattes ([mattes.dev](https://mattes.dev)) in the
+  persistent footer bar, in the page 6 colophon and via `<meta name="author">`.
 - Strengthened CI with browser tests, Storybook accessibility enforcement,
   visual-regression assertions, coverage thresholds and bundle checks.
 
