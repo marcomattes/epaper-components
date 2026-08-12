@@ -159,10 +159,17 @@ CI runs all of the above on every PR (`.github/workflows/ci.yml`).
   `scripts/smoke-test.mjs`, `deploy` calls `deploy.yml` for the tagged
   source). Tags with a prerelease part (`v1.1.0-rc.1`) go to `next`.
 
+**`main` is protected** by a ruleset (`Baseline`): pull request required
+(0 approvals), no force-push, no deletion, and no bypass actors. Direct
+pushes fail — every change, including a version bump, goes through a PR.
+Tags are not covered by the ruleset and can be pushed directly.
+
 Cutting a release: move `[Unreleased]` entries into a
-`## [x.y.z] — YYYY-MM-DD` section, then
-`npm run bump-version -- patch|minor|major` (bumps, builds, commits, tags)
-and `git push --follow-tags`.
+`## [x.y.z] — YYYY-MM-DD` section, then on a release branch run
+`npm run bump-version -- patch|minor|major` (bumps, builds, commits; it
+skips tagging off `main` and prints the remaining steps). Merge the PR
+**with a merge commit** — squash or rebase would rewrite the bump commit
+and strand the tag — then tag the merged commit on `main` and push the tag.
 
 ## Common gotchas
 

@@ -142,16 +142,27 @@ npm i @marcomattes/epaper-components@dev
 ```
 
 The version is stamped inside the job and never committed, so `main` always
-carries the last released version in `package.json`.
+carries the last stable version in `package.json`.
 
-**`latest` channel.** Cut a release in three steps:
+**`latest` channel.** `main` is protected by a ruleset that requires a pull
+request, so the version bump goes through one like any other change. The tag
+is created afterwards, on the merged commit:
 
 1. Move the `[Unreleased]` entries in `CHANGELOG.md` into a
    `## [x.y.z] — YYYY-MM-DD` section. Those lines become the GitHub Release
-   notes verbatim.
-2. `npm run bump-version -- patch|minor|major` — bumps `package.json`, builds,
-   commits and creates the annotated `vx.y.z` tag.
-3. `git push --follow-tags`.
+   notes verbatim; without a matching section the notes fall back to a link.
+2. On a release branch, run `npm run bump-version -- patch|minor|major`. It
+   bumps `package.json`, builds, and commits. Off `main` it deliberately does
+   not tag, and prints the remaining steps.
+3. Open the pull request and merge it **with a merge commit**. A squash or
+   rebase merge rewrites the bump commit, which would leave the tag pointing
+   at an object that never reaches `main`.
+4. `git checkout main && git pull`, then tag the merged commit and push it:
+
+   ```sh
+   git tag -a vx.y.z -m "Release vx.y.z"
+   git push origin vx.y.z
+   ```
 
 The tag run is staged: it first refuses any tag whose name is not
 `v<package.json version>`, then re-runs the full quality gate by calling
