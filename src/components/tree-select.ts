@@ -2,6 +2,7 @@ import { define, addCleanup, runCleanups, patchAttr, patchBoolAttr } from '../co
 import { iconSvg } from '../core/icons';
 import type { TreeNode } from '../core/types';
 import { BaseFormControl } from '../core/base-form-control';
+import { isTreeData } from '../core/data';
 
 /**
  * @summary Single-select hierarchical tree with expand/collapse controls.
@@ -32,14 +33,19 @@ export class ETreeSelect extends BaseFormControl {
   private _nodeMap = new Map<string, TreeNode>();
 
   connectedCallback() {
-    if (this._built) return;
-    this._parseData();
-    this._expanded = new Set(
-      (this.getAttribute('default-expanded') || '').split(',').filter(Boolean),
-    );
-    this._value = this.getAttribute('value') ?? '';
-    this.internals.setFormValue(this._value);
-    this._build();
+    if (!this._built) {
+      this._parseData();
+      this._expanded = new Set(
+        (this.getAttribute('default-expanded') || '').split(',').filter(Boolean),
+      );
+      this._value = this.getAttribute('value') ?? '';
+      this.internals.setFormValue(this._value);
+      this._build();
+    }
+    this.addEventListener('click', this._onClick);
+    this.addEventListener('keydown', this._onKeydown);
+    addCleanup(this, () => this.removeEventListener('click', this._onClick));
+    addCleanup(this, () => this.removeEventListener('keydown', this._onKeydown));
   }
 
   disconnectedCallback() {
@@ -67,7 +73,9 @@ export class ETreeSelect extends BaseFormControl {
     const source: 'data' | 'options' = data != null ? 'data' : 'options';
     const raw = data ?? this.getAttribute('options') ?? '[]';
     try {
-      this._data = JSON.parse(raw) as TreeNode[];
+      const parsed: unknown = JSON.parse(raw);
+      if (!isTreeData(parsed)) throw new TypeError('Expected an array of tree nodes.');
+      this._data = parsed;
     } catch (err) {
       this._data = [];
       this.dispatchEvent(
@@ -94,10 +102,6 @@ export class ETreeSelect extends BaseFormControl {
   private _build(): void {
     this._buildTree();
     this._built = true;
-    this.addEventListener('click', this._onClick);
-    this.addEventListener('keydown', this._onKeydown);
-    addCleanup(this, () => this.removeEventListener('click', this._onClick));
-    addCleanup(this, () => this.removeEventListener('keydown', this._onKeydown));
   }
 
   private _buildTree(): void {

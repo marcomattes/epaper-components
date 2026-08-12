@@ -24,70 +24,18 @@ export class ETimePicker extends BaseFormControl {
   private _mCell: HTMLElement | null = null;
 
   connectedCallback() {
-    if (this._wired) return;
-    this._wired = true;
-    const initial = this.getAttribute('value') || '00:00';
-    this._value = initial;
-    this.internals.setFormValue(initial);
-    this._build();
+    if (!this._wired) {
+      this._wired = true;
+      const initial = this._normalize(this.getAttribute('value'));
+      this._value = initial;
+      this.internals.setFormValue(initial);
+      this._build();
+    }
 
-    const step = (axis: 'h' | 'm', dir: number): void => {
-      const cur = this.getAttribute('value') || '00:00';
-      let [h, m] = cur.split(':').map(Number);
-      if (!Number.isFinite(h)) h = 0;
-      if (!Number.isFinite(m)) m = 0;
-      if (axis === 'h') h = (h + dir + 24) % 24;
-      else m = (m + dir + 60) % 60;
-      const v = `${pad2(h)}:${pad2(m)}`;
-      // setAttribute triggers attributeChangedCallback → _applyValue — no manual _render needed.
-      this.setAttribute('value', v);
-      this.dispatchEvent(new CustomEvent('e-change', { detail: { value: v }, bubbles: true }));
-    };
-
-    const onClick = (e: Event) => {
-      const btn = (e.target as Element).closest<HTMLElement>('[data-axis]');
-      if (!btn) return;
-      step(btn.dataset['axis'] as 'h' | 'm', Number(btn.dataset['dir']));
-    };
-
-    const onKeydown = (e: Event) => {
-      const ke = e as KeyboardEvent;
-      const cell = (ke.target as Element).closest<HTMLElement>('[data-cell]');
-      if (!cell) return;
-      const axis = cell.dataset['cell'] as 'h' | 'm';
-      const partner = axis === 'h' ? this._mCell : this._hCell;
-
-      if (ke.key === 'ArrowUp') {
-        ke.preventDefault();
-        step(axis, 1);
-        // Cell identity is stable — focus is maintained, but explicit for reliability.
-        cell.focus();
-      } else if (ke.key === 'ArrowDown') {
-        ke.preventDefault();
-        step(axis, -1);
-        cell.focus();
-      } else if (ke.key === 'ArrowLeft' || ke.key === 'ArrowRight') {
-        ke.preventDefault();
-        partner?.focus();
-      } else if (ke.key === 'Home' || ke.key === 'End') {
-        ke.preventDefault();
-        const cur = this.getAttribute('value') || '00:00';
-        let [h, m] = cur.split(':').map(Number);
-        if (!Number.isFinite(h)) h = 0;
-        if (!Number.isFinite(m)) m = 0;
-        if (axis === 'h') h = ke.key === 'Home' ? 0 : 23;
-        else m = ke.key === 'Home' ? 0 : 59;
-        const v = `${pad2(h)}:${pad2(m)}`;
-        this.setAttribute('value', v);
-        this.dispatchEvent(new CustomEvent('e-change', { detail: { value: v }, bubbles: true }));
-        cell.focus();
-      }
-    };
-
-    this.addEventListener('click', onClick);
-    this.addEventListener('keydown', onKeydown);
-    addCleanup(this, () => this.removeEventListener('click', onClick));
-    addCleanup(this, () => this.removeEventListener('keydown', onKeydown));
+    this.addEventListener('click', this._onClick);
+    this.addEventListener('keydown', this._onKeydown);
+    addCleanup(this, () => this.removeEventListener('click', this._onClick));
+    addCleanup(this, () => this.removeEventListener('keydown', this._onKeydown));
   }
 
   disconnectedCallback() {
@@ -96,15 +44,18 @@ export class ETimePicker extends BaseFormControl {
 
   attributeChangedCallback(name: string, _old: string | null, v: string | null) {
     if (name !== 'value') return;
-    this._value = v ?? '00:00';
+    const normalized = this._normalize(v);
+    if (v != null && v !== normalized) {
+      this.setAttribute('value', normalized);
+      return;
+    }
+    this._value = normalized;
     this.internals.setFormValue(this._value);
     if (this._wired) this._applyValue(this._value);
   }
 
   private _build(): void {
-    let [h, m] = (this.getAttribute('value') || '00:00').split(':').map(Number);
-    if (!Number.isFinite(h)) h = 0;
-    if (!Number.isFinite(m)) m = 0;
+    const [h, m] = this._parts(this._value);
 
     const makeSteppers = (axis: 'h' | 'm'): HTMLElement => {
       const col = document.createElement('div');
@@ -166,14 +117,57 @@ export class ETimePicker extends BaseFormControl {
 
   private _applyValue(value: string): void {
     if (!this._hCell || !this._mCell) return;
-    let [h, m] = value.split(':').map(Number);
-    if (!Number.isFinite(h)) h = 0;
-    if (!Number.isFinite(m)) m = 0;
+    const [h, m] = this._parts(value);
     patchText(this._hCell, pad2(h));
     patchAttr(this._hCell, 'aria-valuenow', String(h));
     patchText(this._mCell, pad2(m));
     patchAttr(this._mCell, 'aria-valuenow', String(m));
   }
+
+  private _normalize(value: string | null | undefined): string {
+    if (!value || !/^\d{2}:\d{2}$/.test(value)) return '00:00';
+    const [hours, minutes] = value.split(':').map(Number) as [number, number];
+    if (hours > 23 || minutes > 59) return '00:00';
+    return `${pad2(hours)}:${pad2(minutes)}`;
+  }
+
+  private _parts(value: string): [number, number] {
+    return value.split(':').map(Number) as [number, number];
+  }
+
+  private _step(axis: 'h' | 'm', direction: number): void {
+    let [hours, minutes] = this._parts(this._normalize(this.getAttribute('value')));
+    if (axis === 'h') hours = (hours + direction + 24) % 24;
+    else minutes = (minutes + direction + 60) % 60;
+    const value = `${pad2(hours)}:${pad2(minutes)}`;
+    this.setAttribute('value', value);
+    this.dispatchEvent(new CustomEvent('e-change', { detail: { value }, bubbles: true }));
+  }
+
+  private _onClick = (e: Event): void => {
+    const button = (e.target as Element).closest<HTMLElement>('[data-axis]');
+    if (button) this._step(button.dataset['axis'] as 'h' | 'm', Number(button.dataset['dir']));
+  };
+
+  private _onKeydown = (e: KeyboardEvent): void => {
+    const cell = (e.target as Element).closest<HTMLElement>('[data-cell]');
+    if (!cell) return;
+    const axis = cell.dataset['cell'] as 'h' | 'm';
+    const partner = axis === 'h' ? this._mCell : this._hCell;
+    if (e.key === 'ArrowUp') this._step(axis, 1);
+    else if (e.key === 'ArrowDown') this._step(axis, -1);
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') partner?.focus();
+    else if (e.key === 'Home' || e.key === 'End') {
+      let [hours, minutes] = this._parts(this._value);
+      if (axis === 'h') hours = e.key === 'Home' ? 0 : 23;
+      else minutes = e.key === 'Home' ? 0 : 59;
+      const value = `${pad2(hours)}:${pad2(minutes)}`;
+      this.setAttribute('value', value);
+      this.dispatchEvent(new CustomEvent('e-change', { detail: { value }, bubbles: true }));
+    } else return;
+    e.preventDefault();
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') cell.focus();
+  };
 
   override get value(): string {
     return this._value;
@@ -186,7 +180,7 @@ export class ETimePicker extends BaseFormControl {
     return v ?? '00:00';
   }
   protected parse(s: string): string {
-    return s || '00:00';
+    return this._normalize(s);
   }
 
   override formResetCallback(): void {

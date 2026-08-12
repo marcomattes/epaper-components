@@ -1,12 +1,10 @@
-// Screenshot harness: renders every Storybook story once and captures a PNG
-// into `__screenshots__/screenshots.test.ts/<title>--<storyName>.png`.
+// Visual-regression harness: renders one representative story per component
+// and compares it with the committed PNG baseline.
 //
 // Why this exists:
 //   • We don't use Chromatic. This test gives us a versioned visual record
 //     of every component without paying for a SaaS pipeline.
-//   • The test is intentionally tolerant: any single story that throws
-//     during render is logged and skipped, never failing the suite. The
-//     goal is "have an image", not "match a baseline".
+//   • Render, mount and pixel differences fail the suite.
 //   • Run with `npm run test:ci -- screenshots` (or as part of the unit
 //     project, since stories ship Lit templates that we render directly).
 //
@@ -17,7 +15,7 @@
 //   • Mount it into a fresh container, await two frames so custom-element
 //     upgrades can run, then call `page.screenshot({ element, path })`.
 /// <reference types="vite/client" />
-import { afterEach, beforeAll, describe, it } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { page } from 'vitest/browser';
 import { render, type TemplateResult } from 'lit';
 
@@ -73,13 +71,9 @@ function collectStories(): StoryEntry[] {
       const story = value as { args?: Record<string, unknown> } | undefined;
       if (!story || typeof story !== 'object') continue;
       const args = { ...argTypeDefaults, ...meta.args, ...(story.args ?? {}) };
-      try {
-        const template = meta.render(args);
-        out.push({ title, storyName: exportName, template });
-      } catch (err) {
-        console.warn(`[screenshots] render failed for ${title} / ${exportName}:`, err);
-      }
-      // Only first story per title — one image per component is enough.
+      const template = meta.render(args);
+      out.push({ title, storyName: exportName, template });
+      // One stable representative baseline per component module.
       break;
     }
   }
@@ -111,21 +105,12 @@ describe('storybook screenshots', () => {
       container.style.cssText =
         'background:#fff;color:#000;padding:24px;display:inline-block;min-width:320px;';
       document.body.appendChild(container);
-      try {
-        render(entry.template, container);
-        await nextFrame();
-      } catch (err) {
-        console.warn(`[screenshots] mount failed for ${file}:`, err);
-      }
-      try {
-        await page.screenshot({
-          element: container,
-          path: `__screenshots__/${file}.png`,
-          save: true,
-        });
-      } catch (err) {
-        console.warn(`[screenshots] capture failed for ${file}:`, err);
-      }
+      render(entry.template, container);
+      await nextFrame();
+      await expect.element(page.elementLocator(container)).toMatchScreenshot(file, {
+        comparatorName: 'pixelmatch',
+        comparatorOptions: { allowedMismatchedPixelRatio: 0.001 },
+      });
     });
   }
 });

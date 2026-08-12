@@ -93,11 +93,12 @@ export class ETable extends HTMLElement {
   private _rowCbs: HTMLInputElement[] = [];
 
   connectedCallback() {
-    if (this._wired) return;
-    this._wired = true;
-    this._readData();
-    this._readSelected();
-    this._build();
+    if (!this._wired) {
+      this._wired = true;
+      this._readData();
+      this._readSelected();
+      this._build();
+    }
     this.addEventListener('click', this._onClick);
     this.addEventListener('change', this._onChange);
     addCleanup(this, () => {
@@ -139,7 +140,7 @@ export class ETable extends HTMLElement {
       const trimmed = part.trim();
       if (trimmed === '') continue;
       const n = Number(trimmed);
-      if (Number.isInteger(n) && n >= 0) set.add(n);
+      if (Number.isInteger(n) && n >= 0 && n < this._rows.length) set.add(n);
     }
     this._selected = set;
   }

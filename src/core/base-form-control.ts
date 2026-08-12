@@ -10,6 +10,7 @@ export abstract class BaseFormControl<T = string> extends HTMLElement {
 
   protected internals: ElementInternals;
   protected _value: T = '' as unknown as T;
+  protected _formDisabled = false;
 
   constructor() {
     super();
@@ -58,6 +59,16 @@ export abstract class BaseFormControl<T = string> extends HTMLElement {
   }
   reportValidity(): boolean {
     return this.internals.reportValidity();
+  }
+
+  /** Keep subclass UI in sync when a containing fieldset disables the control. */
+  formDisabledCallback(disabled: boolean): void {
+    this._formDisabled = disabled;
+    this.formDisabledChanged(disabled);
+  }
+
+  protected formDisabledChanged(_disabled: boolean): void {
+    // Optional subclass hook for forwarding the state to its focusable control.
   }
 
   /** Default reset behaviour: parse `default-value` and assign. */

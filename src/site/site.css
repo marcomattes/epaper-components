@@ -55,6 +55,13 @@ body {
   border-bottom-color: var(--ink-fg);
   font-weight: 700;
 }
+/* Leaves the site — boxed instead of underlined so it reads as a
+   destination, not one of the six pager pages. */
+#site-nav a.site-nav__ext {
+  border: var(--ink-border);
+  padding: 3px 8px;
+  margin-left: 4px;
+}
 
 /* ---------- Snap container ---------- */
 .site {

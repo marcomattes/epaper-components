@@ -1,4 +1,4 @@
-import { addCleanup, define, numAttr, onGlobal, runCleanups } from '../core/dom';
+import { addCleanup, clampedNumAttr, define, onGlobal, patchAttr, runCleanups } from '../core/dom';
 
 /**
  * @summary Two-pane resizable splitter with mouse and keyboard support.
@@ -18,6 +18,8 @@ import { addCleanup, define, numAttr, onGlobal, runCleanups } from '../core/dom'
  * </e-splitter>
  */
 export class ESplitter extends HTMLElement {
+  static observedAttributes = ['orientation', 'initial', 'min', 'max'];
+
   private _wired = false;
   private _pa: HTMLElement | null = null;
   private _pb: HTMLElement | null = null;
@@ -25,77 +27,145 @@ export class ESplitter extends HTMLElement {
   private _wrap: HTMLElement | null = null;
   private _pct = 50;
   private _isH = true;
+  private _dragging = false;
+  private _moveFrame: number | null = null;
+  private _pendingPct: number | null = null;
 
   connectedCallback() {
-    if (this._wired) return;
-    this._wired = true;
-    const orient = this.getAttribute('orientation') || 'horizontal';
-    const isH = orient === 'horizontal';
-    const initial = numAttr(this, 'initial', 50);
-    const min = numAttr(this, 'min', 15);
-    const max = numAttr(this, 'max', 85);
-    const a = this.querySelector('[slot="a"]');
-    const b = this.querySelector('[slot="b"]');
-    const aHtml = a ? a.outerHTML : '';
-    const bHtml = b ? b.outerHTML : '';
-    this.innerHTML = `
-      <div class="ink-splitter${isH ? '' : ' ink-splitter--vertical'}">
-        <div class="ink-splitter__pane" data-pane="a">${aHtml}</div>
-        <div class="ink-splitter__handle" role="separator"
-             aria-orientation="${isH ? 'vertical' : 'horizontal'}"
-             aria-valuenow="${initial}" tabindex="0"></div>
-        <div class="ink-splitter__pane" data-pane="b">${bHtml}</div>
-      </div>`;
-    this._pa = this.querySelector('[data-pane="a"]');
-    this._pb = this.querySelector('[data-pane="b"]');
-    this._handle = this.querySelector('.ink-splitter__handle');
-    this._wrap = this.firstElementChild as HTMLElement;
-    this._pct = initial;
-    this._isH = isH;
-    this._setPct(initial);
-
-    let dragging = false;
-    const onMove = (e: MouseEvent) => {
-      if (!dragging || !this._wrap) return;
-      const r = this._wrap.getBoundingClientRect();
-      const raw = isH
-        ? ((e.clientX - r.left) / r.width) * 100
-        : ((e.clientY - r.top) / r.height) * 100;
-      const c = Math.round(Math.max(min, Math.min(max, raw)));
-      this._setPct(c);
-    };
-    const onUp = () => {
-      dragging = false;
-    };
-    const onDown = (e: MouseEvent) => {
-      dragging = true;
-      e.preventDefault();
-    };
-    const onKey = (e: KeyboardEvent) => {
-      const step = 2;
-      if (isH && e.key === 'ArrowLeft') this._setPct(Math.max(min, this._pct - step));
-      if (isH && e.key === 'ArrowRight') this._setPct(Math.min(max, this._pct + step));
-      if (!isH && e.key === 'ArrowUp') this._setPct(Math.max(min, this._pct - step));
-      if (!isH && e.key === 'ArrowDown') this._setPct(Math.min(max, this._pct + step));
-    };
-    this._handle!.addEventListener('mousedown', onDown);
-    this._handle!.addEventListener('keydown', onKey);
-    addCleanup(this, () => this._handle?.removeEventListener('mousedown', onDown));
-    addCleanup(this, () => this._handle?.removeEventListener('keydown', onKey));
-    onGlobal(this, window, 'mousemove', onMove);
-    onGlobal(this, window, 'mouseup', onUp);
+    if (!this._wired) {
+      this._wired = true;
+      this._build();
+    }
+    this._handle?.addEventListener('mousedown', this._onDown);
+    this._handle?.addEventListener('keydown', this._onKeydown);
+    addCleanup(this, () => this._handle?.removeEventListener('mousedown', this._onDown));
+    addCleanup(this, () => this._handle?.removeEventListener('keydown', this._onKeydown));
+    onGlobal(this, window, 'mousemove', this._onMove);
+    onGlobal(this, window, 'mouseup', this._onUp);
+    addCleanup(this, () => {
+      if (this._moveFrame != null) cancelAnimationFrame(this._moveFrame);
+      this._moveFrame = null;
+      this._pendingPct = null;
+    });
   }
 
   disconnectedCallback() {
+    this._dragging = false;
     runCleanups(this);
   }
 
+  attributeChangedCallback(name: string) {
+    if (!this._wired) return;
+    if (name === 'orientation') this._applyOrientation();
+    else if (name === 'initial') this._setPct(clampedNumAttr(this, 'initial', 50, 0, 100));
+    else {
+      const { min, max } = this._bounds();
+      if (this._handle) {
+        patchAttr(this._handle, 'aria-valuemin', String(min));
+        patchAttr(this._handle, 'aria-valuemax', String(max));
+      }
+      this._setPct(this._pct);
+    }
+  }
+
+  private _build(): void {
+    const first = this.querySelector<HTMLElement>('[slot="a"]');
+    const second = this.querySelector<HTMLElement>('[slot="b"]');
+    const wrap = document.createElement('div');
+    wrap.className = 'ink-splitter';
+
+    const paneA = document.createElement('div');
+    paneA.className = 'ink-splitter__pane';
+    paneA.dataset['pane'] = 'a';
+    if (first) paneA.appendChild(first);
+
+    const handle = document.createElement('div');
+    handle.className = 'ink-splitter__handle';
+    handle.setAttribute('role', 'separator');
+    handle.tabIndex = 0;
+
+    const paneB = document.createElement('div');
+    paneB.className = 'ink-splitter__pane';
+    paneB.dataset['pane'] = 'b';
+    if (second) paneB.appendChild(second);
+
+    wrap.append(paneA, handle, paneB);
+    this.replaceChildren(wrap);
+    this._wrap = wrap;
+    this._pa = paneA;
+    this._pb = paneB;
+    this._handle = handle;
+    this._applyOrientation();
+    const { min, max } = this._bounds();
+    patchAttr(handle, 'aria-valuemin', String(min));
+    patchAttr(handle, 'aria-valuemax', String(max));
+    this._setPct(clampedNumAttr(this, 'initial', 50, min, max));
+  }
+
+  private _bounds(): { min: number; max: number } {
+    const a = clampedNumAttr(this, 'min', 15, 0, 100);
+    const b = clampedNumAttr(this, 'max', 85, 0, 100);
+    return { min: Math.min(a, b), max: Math.max(a, b) };
+  }
+
+  private _applyOrientation(): void {
+    this._isH = this.getAttribute('orientation') !== 'vertical';
+    this._wrap?.classList.toggle('ink-splitter--vertical', !this._isH);
+    if (this._handle) {
+      patchAttr(this._handle, 'aria-orientation', this._isH ? 'vertical' : 'horizontal');
+    }
+    if (this._pa) {
+      this._pa.style.width = '';
+      this._pa.style.height = '';
+    }
+    if (this._pb) {
+      this._pb.style.width = '';
+      this._pb.style.height = '';
+    }
+    this._setPct(this._pct);
+  }
+
+  private _onDown = (e: MouseEvent): void => {
+    if (e.button !== 0) return;
+    this._dragging = true;
+    e.preventDefault();
+  };
+
+  private _onMove = (e: MouseEvent): void => {
+    if (!this._dragging || !this._wrap) return;
+    const rect = this._wrap.getBoundingClientRect();
+    if ((this._isH && rect.width === 0) || (!this._isH && rect.height === 0)) return;
+    const raw = this._isH
+      ? ((e.clientX - rect.left) / rect.width) * 100
+      : ((e.clientY - rect.top) / rect.height) * 100;
+    this._pendingPct = raw;
+    if (this._moveFrame != null) return;
+    this._moveFrame = requestAnimationFrame(() => {
+      this._moveFrame = null;
+      if (this._pendingPct != null) this._setPct(Math.round(this._pendingPct));
+      this._pendingPct = null;
+    });
+  };
+
+  private _onUp = (): void => {
+    this._dragging = false;
+  };
+
+  private _onKeydown = (e: KeyboardEvent): void => {
+    const decrement = this._isH ? e.key === 'ArrowLeft' : e.key === 'ArrowUp';
+    const increment = this._isH ? e.key === 'ArrowRight' : e.key === 'ArrowDown';
+    if (!decrement && !increment) return;
+    e.preventDefault();
+    this._setPct(this._pct + (increment ? 2 : -2));
+  };
+
   private _setPct(p: number): void {
-    this._pct = p;
+    const { min, max } = this._bounds();
+    this._pct = Math.max(min, Math.min(max, p));
     const dim = this._isH ? 'width' : 'height';
-    if (this._pa) this._pa.style[dim] = `${p}%`;
-    if (this._pb) this._pb.style[dim] = `${100 - p}%`;
-    this._handle?.setAttribute('aria-valuenow', String(p));
+    if (this._pa) this._pa.style[dim] = `${this._pct}%`;
+    if (this._pb) this._pb.style[dim] = `${100 - this._pct}%`;
+    if (this._handle) patchAttr(this._handle, 'aria-valuenow', String(this._pct));
   }
 }
 

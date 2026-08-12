@@ -28,20 +28,10 @@ export class EChip extends HTMLElement {
       inner.className = 'ink-chip';
       const btn = inner as HTMLButtonElement;
       btn.type = 'button';
-      btn.setAttribute('role', 'switch');
       this._wrap = btn;
-      const onClick = (e: Event): void => {
-        if (boolAttr(this, 'disabled')) {
-          e.stopImmediatePropagation();
-          return;
-        }
-        const next = !boolAttr(this, 'selected');
-        patchBoolAttr(this, 'selected', next);
-        this.dispatchEvent(new CustomEvent('e-change', { detail: { value: next }, bubbles: true }));
-      };
-      btn.addEventListener('click', onClick);
-      addCleanup(this, () => btn.removeEventListener('click', onClick));
     }
+    this._wrap.addEventListener('click', this._onClick);
+    addCleanup(this, () => this._wrap?.removeEventListener('click', this._onClick));
     this._sync();
   }
 
@@ -57,10 +47,20 @@ export class EChip extends HTMLElement {
     const btn = this._wrap!;
     const selected = boolAttr(this, 'selected');
     const disabled = boolAttr(this, 'disabled');
-    btn.setAttribute('aria-checked', selected ? 'true' : 'false');
+    btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
     btn.disabled = disabled;
     patchBoolAttr(btn, 'disabled', disabled);
   }
+
+  private _onClick = (e: Event): void => {
+    if (boolAttr(this, 'disabled')) {
+      e.stopImmediatePropagation();
+      return;
+    }
+    const next = !boolAttr(this, 'selected');
+    patchBoolAttr(this, 'selected', next);
+    this.dispatchEvent(new CustomEvent('e-change', { detail: { value: next }, bubbles: true }));
+  };
 }
 
 define('e-chip', EChip);

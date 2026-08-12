@@ -1,4 +1,4 @@
-import { define, esc, numAttr } from '../core/dom';
+import { define, intAttr } from '../core/dom';
 
 /**
  * @summary Key/value list rendered as a semantic `<dl>` grid.
@@ -31,28 +31,33 @@ export class EDescriptionList extends HTMLElement {
     this._wired = true;
     const items = [...this.querySelectorAll('e-desc-item')].map((it) => ({
       term: it.getAttribute('term') || '',
-      detail: (it.innerHTML || '').trim(),
+      detail: [...it.childNodes],
     }));
-    const cols = Math.min(4, Math.max(1, numAttr(this, 'columns', 1)));
+    const cols = Math.min(4, Math.max(1, intAttr(this, 'columns', 1)));
     const layout = this.getAttribute('layout') === 'vertical' ? 'vertical' : 'horizontal';
     const bordered = this.hasAttribute('bordered');
-    this.innerHTML = `<dl class="ink-desc-list ink-desc-list--${layout}${bordered ? ' ink-desc-list--bordered' : ''}"
-      style="grid-template-columns:repeat(${cols},minmax(0,1fr))">
-      ${items
-        .map(
-          (it) => `<div class="ink-desc-list__pair">
-            <dt class="ink-desc-list__term">${esc(it.term)}</dt>
-            <dd class="ink-desc-list__detail">${it.detail}</dd>
-          </div>`,
-        )
-        .join('')}
-    </dl>`;
-    this._dl = this.firstElementChild as HTMLElement;
+    const dl = document.createElement('dl');
+    dl.className = `ink-desc-list ink-desc-list--${layout}${bordered ? ' ink-desc-list--bordered' : ''}`;
+    dl.style.gridTemplateColumns = `repeat(${cols},minmax(0,1fr))`;
+    for (const item of items) {
+      const pair = document.createElement('div');
+      pair.className = 'ink-desc-list__pair';
+      const term = document.createElement('dt');
+      term.className = 'ink-desc-list__term';
+      term.textContent = item.term;
+      const detail = document.createElement('dd');
+      detail.className = 'ink-desc-list__detail';
+      detail.append(...item.detail);
+      pair.append(term, detail);
+      dl.appendChild(pair);
+    }
+    this.replaceChildren(dl);
+    this._dl = dl;
   }
 
   attributeChangedCallback() {
     if (!this._dl) return;
-    const cols = Math.min(4, Math.max(1, numAttr(this, 'columns', 1)));
+    const cols = Math.min(4, Math.max(1, intAttr(this, 'columns', 1)));
     const layout = this.getAttribute('layout') === 'vertical' ? 'vertical' : 'horizontal';
     const bordered = this.hasAttribute('bordered');
     this._dl.className =

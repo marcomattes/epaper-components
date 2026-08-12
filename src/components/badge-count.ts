@@ -1,4 +1,4 @@
-import { boolAttr, captureWrap, define, numAttr, patchAttr, patchText } from '../core/dom';
+import { boolAttr, captureWrap, define, intAttr, patchAttr, patchText } from '../core/dom';
 
 /**
  * @summary Numeric or dot indicator overlaid on a child element.
@@ -32,8 +32,8 @@ export class EBadgeCount extends HTMLElement {
 
   private _render(): void {
     if (!this._wrap) return;
-    const count = numAttr(this, 'count', 0);
-    const max = numAttr(this, 'max', 99);
+    const count = Math.max(0, intAttr(this, 'count', 0));
+    const max = Math.max(0, intAttr(this, 'max', 99));
     const dot = boolAttr(this, 'dot');
     const display = count > max ? `${max}+` : String(count);
     const wantClass = dot ? 'ink-badge-count__dot' : 'ink-badge-count__num';
@@ -54,7 +54,7 @@ export class EBadgeCount extends HTMLElement {
       this._wrap.appendChild(this._badge);
     }
     if (dot) {
-      patchAttr(this._badge, 'aria-label', `${count} unread`);
+      patchAttr(this._badge, 'aria-label', count > 0 ? String(count) : 'Notification');
       patchText(this._badge, '');
     } else {
       patchAttr(this._badge, 'aria-label', null);

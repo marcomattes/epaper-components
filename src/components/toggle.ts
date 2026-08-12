@@ -7,6 +7,7 @@ import { BaseFormControl } from '../core/base-form-control';
  * Form-associated: submits its `value` (defaults to `"on"`) when checked.
  *
  * @attr {boolean} [checked] - Whether the switch is on. Reflected to the attribute on user input.
+ * @attr {boolean} [disabled] - Disables interaction.
  * @attr {string} [label] - Inline text label rendered next to the switch.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
  * @attr {string} [value='on'] - Submitted value when checked.
@@ -17,7 +18,7 @@ import { BaseFormControl } from '../core/base-form-control';
  * <e-toggle checked label="Enable notifications"></e-toggle>
  */
 export class EToggle extends BaseFormControl {
-  static observedAttributes = ['checked', 'label'];
+  static observedAttributes = ['checked', 'label', 'disabled', 'value'];
 
   private _wired = false;
   private _cb: HTMLInputElement | null = null;
@@ -25,19 +26,21 @@ export class EToggle extends BaseFormControl {
 
   private _syncFormValue(): void {
     const v = this.getAttribute('value') || 'on';
-    this.internals.setFormValue(this._cb?.checked ? v : null);
+    const checked = !!this._cb?.checked;
+    this.internals.setFormValue(checked ? v : null, checked ? 'checked' : 'unchecked');
   }
 
   connectedCallback() {
     if (this._wired) return;
     this._wired = true;
-    const id = this.getAttribute('id') || randId('e-t');
+    const id = this.id ? `${this.id}-control` : randId('e-t');
     const checked = boolAttr(this, 'checked');
+    const disabled = boolAttr(this, 'disabled');
     const label = this.getAttribute('label') || '';
     this.innerHTML = `
       <label class="ink-toggle" for="${esc(id)}">
         <span style="position:relative;display:inline-flex">
-          <input id="${esc(id)}" type="checkbox" role="switch" ${checked ? 'checked' : ''}/>
+          <input id="${esc(id)}" type="checkbox" role="switch" ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''}/>
           <span class="ink-toggle__track">
             <span class="ink-toggle__tick"></span>
             <span class="ink-toggle__thumb"></span>
@@ -67,6 +70,8 @@ export class EToggle extends BaseFormControl {
       if (this._state) patchText(this._state, v ? 'ON' : 'OFF');
       this._syncFormValue();
     }
+    if (name === 'disabled') this._cb.disabled = boolAttr(this, 'disabled') || this._formDisabled;
+    if (name === 'value') this._syncFormValue();
     if (name === 'label') {
       const text = this.getAttribute('label') || '';
       const label = this.querySelector('label.ink-toggle') as HTMLElement | null;
@@ -117,6 +122,14 @@ export class EToggle extends BaseFormControl {
 
   override formResetCallback(): void {
     this.checked = this.hasAttribute('default-checked');
+  }
+
+  override formStateRestoreCallback(state: string | File | FormData | null): void {
+    this.checked = state === 'checked' || state === this.value;
+  }
+
+  protected override formDisabledChanged(): void {
+    if (this._cb) this._cb.disabled = boolAttr(this, 'disabled') || this._formDisabled;
   }
 }
 

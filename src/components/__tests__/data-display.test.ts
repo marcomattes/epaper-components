@@ -63,14 +63,14 @@ describe('e-chip', () => {
   it('toggles selected and fires e-change on click', () => {
     const el = mount(`<e-chip>Today</e-chip>`);
     const btn = el.querySelector<HTMLButtonElement>('button.ink-chip')!;
-    expect(btn.getAttribute('aria-checked')).toBe('false');
+    expect(btn.getAttribute('aria-pressed')).toBe('false');
     let detail: { value: boolean } | null = null;
     el.addEventListener('e-change', (e) => {
       detail = (e as CustomEvent<{ value: boolean }>).detail;
     });
     btn.click();
     expect(el.hasAttribute('selected')).toBe(true);
-    expect(btn.getAttribute('aria-checked')).toBe('true');
+    expect(btn.getAttribute('aria-pressed')).toBe('true');
     expect(detail!.value).toBe(true);
     btn.click();
     expect(el.hasAttribute('selected')).toBe(false);
@@ -84,11 +84,11 @@ describe('e-chip', () => {
     expect(el.hasAttribute('selected')).toBe(false);
   });
 
-  it('reflects external selected attribute change to aria-checked', () => {
+  it('reflects external selected attribute change to aria-pressed', () => {
     const el = mount(`<e-chip>X</e-chip>`);
     const btn = el.querySelector<HTMLButtonElement>('button.ink-chip')!;
     el.setAttribute('selected', '');
-    expect(btn.getAttribute('aria-checked')).toBe('true');
+    expect(btn.getAttribute('aria-pressed')).toBe('true');
   });
 });
 

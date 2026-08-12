@@ -1,4 +1,4 @@
-import { boolAttr, define } from '../core/dom';
+import { boolAttr, define, numAttr } from '../core/dom';
 
 /**
  * @summary Inline-flex container that distributes children with a uniform gap.
@@ -22,7 +22,7 @@ export class ESpace extends HTMLElement {
   }
 
   private _render(): void {
-    const size = this.getAttribute('size') || '8';
+    const size = Math.max(0, numAttr(this, 'size', 8));
     const direction = this.getAttribute('direction') || 'horizontal';
     const flexDir = direction === 'vertical' ? 'column' : 'row';
     const wrap = boolAttr(this, 'wrap') ? 'wrap' : 'nowrap';

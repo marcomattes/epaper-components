@@ -25,6 +25,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
       - name: Prettier check
         run: npm run format:check
 
@@ -34,11 +37,11 @@ jobs:
       - name: Type check
         run: npm run type-check
 
+      - name: Tests
+        run: npm run test:ci
+
       - name: Build
         run: npm run build
 
       - name: Size limit
         run: npm run size
-
-      # Vitest runs in browser mode via Playwright; enabling it here also
-      # requires an `npx playwright install --with-deps chromium` step.

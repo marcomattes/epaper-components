@@ -28,10 +28,12 @@ export class ETag extends HTMLElement {
       this._wrap.classList.add('ink-tag');
     }
     this._sync();
+    this._bindButton();
   }
 
   disconnectedCallback() {
     runCleanups(this);
+    this._buttonBound = false;
   }
 
   attributeChangedCallback() {
@@ -49,30 +51,42 @@ export class ETag extends HTMLElement {
       btn.setAttribute('aria-label', 'Remove');
       btn.innerHTML =
         '<svg width="10" height="10" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="square"/></svg>';
-      const onClick = (e: Event): void => {
-        if (boolAttr(this, 'disabled')) {
-          e.stopImmediatePropagation();
-          return;
-        }
-        this.dispatchEvent(
-          new CustomEvent('e-close', {
-            detail: { value: (this.textContent || '').trim() },
-            bubbles: true,
-          }),
-        );
-      };
-      btn.addEventListener('click', onClick);
-      addCleanup(this, () => btn.removeEventListener('click', onClick));
       wrap.appendChild(btn);
       this._btn = btn;
+      this._bindButton();
     } else if (!closable && this._btn) {
+      this._btn.removeEventListener('click', this._onClick);
       this._btn.remove();
       this._btn = null;
+      this._buttonBound = false;
     }
     if (this._btn) {
       this._btn.disabled = disabled;
       patchBoolAttr(this._btn, 'disabled', disabled);
     }
+  }
+
+  private _buttonBound = false;
+
+  private _onClick = (e: Event): void => {
+    if (boolAttr(this, 'disabled')) {
+      e.stopImmediatePropagation();
+      return;
+    }
+    this.dispatchEvent(
+      new CustomEvent('e-close', {
+        detail: { value: (this._wrap?.textContent || '').trim() },
+        bubbles: true,
+      }),
+    );
+  };
+
+  private _bindButton(): void {
+    if (!this.isConnected || !this._btn || this._buttonBound) return;
+    const btn = this._btn;
+    btn.addEventListener('click', this._onClick);
+    addCleanup(this, () => btn.removeEventListener('click', this._onClick));
+    this._buttonBound = true;
   }
 }
 

@@ -260,6 +260,19 @@
           <a href="#page-4" data-page="4">Showcase</a>
           <a href="#page-5" data-page="5">Install</a>
           <a href="#page-6" data-page="6">Community</a>
+          <!--
+              External, not a pager page — deliberately carries no data-page
+              so the nav click handler lets the browser navigate normally.
+              The href is rewritten at boot from VITE_STORYBOOK_BASE; the
+              value here is the local Storybook dev-server fallback.
+            -->
+          <a
+            class="site-nav__ext"
+            id="nav-storybook"
+            href="http://localhost:6006"
+            data-storybook-link
+            >Storybook ↗</a
+          >
         </nav>
       </header>
 

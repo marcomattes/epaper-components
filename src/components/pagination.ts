@@ -1,4 +1,4 @@
-import { addCleanup, define, numAttr, patchAttr, patchBoolAttr, runCleanups } from '../core/dom';
+import { addCleanup, define, intAttr, patchAttr, patchBoolAttr, runCleanups } from '../core/dom';
 import { iconSvg } from '../core/icons';
 
 interface PageCell {
@@ -28,9 +28,10 @@ export class EPagination extends HTMLElement {
   private _cells: PageCell[] = [];
 
   connectedCallback() {
-    if (this._wired) return;
-    this._wired = true;
-    this._build();
+    if (!this._wired) {
+      this._wired = true;
+      this._build();
+    }
     this.addEventListener('click', this._onClick);
     addCleanup(this, () => this.removeEventListener('click', this._onClick));
   }
@@ -47,17 +48,14 @@ export class EPagination extends HTMLElement {
     const btn = (e.target as Element).closest<HTMLButtonElement>('[data-page]');
     if (!btn || btn.disabled || !this.contains(btn)) return;
     const p = Number(btn.dataset['page']);
-    const current = numAttr(this, 'current', 1);
-    const total = numAttr(this, 'total', 1);
+    const { current, total } = this._state();
     if (p < 1 || p > total || p === current) return;
     this.setAttribute('current', String(p));
     this.dispatchEvent(new CustomEvent('e-change', { detail: { value: p }, bubbles: true }));
   };
 
   private _pageList(): (number | '…')[] {
-    const current = numAttr(this, 'current', 1);
-    const total = numAttr(this, 'total', 1);
-    const sib = numAttr(this, 'sibling-count', 1);
+    const { current, total, sibling: sib } = this._state();
     const arr: (number | '…')[] = [];
     const totalNumbers = sib * 2 + 5;
     if (total <= totalNumbers) {
@@ -81,8 +79,7 @@ export class EPagination extends HTMLElement {
   }
 
   private _build(): void {
-    const current = numAttr(this, 'current', 1);
-    const total = numAttr(this, 'total', 1);
+    const { current, total } = this._state();
 
     const nav = document.createElement('nav');
     nav.className = 'ink-pagination';
@@ -149,8 +146,7 @@ export class EPagination extends HTMLElement {
 
   private _sync(): void {
     if (!this._nav || !this._prevBtn || !this._nextBtn) return;
-    const current = numAttr(this, 'current', 1);
-    const total = numAttr(this, 'total', 1);
+    const { current, total } = this._state();
 
     // Prev/Next
     this._prevBtn.dataset['page'] = String(current - 1);
@@ -179,6 +175,13 @@ export class EPagination extends HTMLElement {
         patchAttr(btn, 'aria-current', p === current ? 'page' : null);
       }
     }
+  }
+
+  private _state(): { current: number; total: number; sibling: number } {
+    const total = Math.max(1, Math.min(1_000_000, intAttr(this, 'total', 1)));
+    const current = Math.max(1, Math.min(total, intAttr(this, 'current', 1)));
+    const sibling = Math.max(0, Math.min(10, intAttr(this, 'sibling-count', 1)));
+    return { current, total, sibling };
   }
 }
 

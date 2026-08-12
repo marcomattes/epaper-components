@@ -1,4 +1,4 @@
-import { define, esc } from '../core/dom';
+import { define } from '../core/dom';
 
 /**
  * @summary Vertical list of timestamped events with marker bullets.
@@ -30,24 +30,43 @@ export class ETimeline extends HTMLElement {
       time: it.getAttribute('time') || '',
       title: it.getAttribute('title') || '',
       variant: it.getAttribute('variant') || 'default',
-      body: (it.innerHTML || '').trim(),
+      body: [...it.childNodes],
     }));
     const pos = this.getAttribute('time-position') === 'right' ? 'right' : 'left';
-    this.innerHTML = `<ol class="ink-timeline ink-timeline--time-${pos}">${items
-      .map(
-        (it) => `<li class="ink-timeline__item" data-variant="${esc(it.variant)}">
-            <div class="ink-timeline__time">${esc(it.time)}</div>
-            <div class="ink-timeline__rail" aria-hidden="true">
-              <span class="ink-timeline__marker"></span>
-            </div>
-            <div class="ink-timeline__content">
-              ${it.title ? `<div class="ink-timeline__title">${esc(it.title)}</div>` : ''}
-              ${it.body ? `<div class="ink-timeline__body">${it.body}</div>` : ''}
-            </div>
-          </li>`,
-      )
-      .join('')}</ol>`;
-    this._list = this.firstElementChild as HTMLElement;
+    const list = document.createElement('ol');
+    list.className = `ink-timeline ink-timeline--time-${pos}`;
+    for (const item of items) {
+      const row = document.createElement('li');
+      row.className = 'ink-timeline__item';
+      row.dataset['variant'] = item.variant;
+      const time = document.createElement('div');
+      time.className = 'ink-timeline__time';
+      time.textContent = item.time;
+      const rail = document.createElement('div');
+      rail.className = 'ink-timeline__rail';
+      rail.setAttribute('aria-hidden', 'true');
+      const marker = document.createElement('span');
+      marker.className = 'ink-timeline__marker';
+      rail.appendChild(marker);
+      const content = document.createElement('div');
+      content.className = 'ink-timeline__content';
+      if (item.title) {
+        const title = document.createElement('div');
+        title.className = 'ink-timeline__title';
+        title.textContent = item.title;
+        content.appendChild(title);
+      }
+      if (item.body.length > 0) {
+        const body = document.createElement('div');
+        body.className = 'ink-timeline__body';
+        body.append(...item.body);
+        content.appendChild(body);
+      }
+      row.append(time, rail, content);
+      list.appendChild(row);
+    }
+    this.replaceChildren(list);
+    this._list = list;
   }
 
   attributeChangedCallback() {

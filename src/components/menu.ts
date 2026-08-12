@@ -7,6 +7,7 @@ import {
   runCleanups,
 } from '../core/dom';
 import { iconSvg } from '../core/icons';
+import './badge';
 
 interface MenuItem {
   value: string;
@@ -51,10 +52,11 @@ export class EMenu extends HTMLElement {
   private _rootUl: HTMLUListElement | null = null;
 
   connectedCallback() {
-    if (this._wired) return;
-    this._wired = true;
-    this._items = this._collectItems(this);
-    this._build();
+    if (!this._wired) {
+      this._wired = true;
+      this._items = this._collectItems(this);
+      this._build();
+    }
     this.addEventListener('click', this._onClick);
     this.addEventListener('keydown', this._onKeydown);
     addCleanup(this, () => this.removeEventListener('click', this._onClick));

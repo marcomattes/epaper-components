@@ -20,15 +20,18 @@ export class ESegmented extends HTMLElement {
   private _buttons: HTMLButtonElement[] = [];
 
   connectedCallback() {
-    if (this._wired) return;
-    this._wired = true;
-    const opts = [...this.querySelectorAll('e-segment')].map((s) => ({
-      value: s.getAttribute('value') ?? '',
-      label: s.getAttribute('label') || s.textContent || '',
-    }));
-    this._build(opts);
+    if (!this._wired) {
+      this._wired = true;
+      const opts = [...this.querySelectorAll('e-segment')].map((s) => ({
+        value: s.getAttribute('value') ?? '',
+        label: s.getAttribute('label') || s.textContent || '',
+      }));
+      this._build(opts);
+    }
     this.addEventListener('click', this._onClick);
+    this.addEventListener('keydown', this._onKeydown);
     addCleanup(this, () => this.removeEventListener('click', this._onClick));
+    addCleanup(this, () => this.removeEventListener('keydown', this._onKeydown));
   }
 
   disconnectedCallback() {
@@ -40,12 +43,35 @@ export class ESegmented extends HTMLElement {
   }
 
   private _onClick = (e: Event): void => {
-    const btn = (e.target as Element).closest<HTMLElement>('.ink-segmented__btn');
+    const btn = (e.target as Element).closest<HTMLButtonElement>('.ink-segmented__btn');
     if (!btn || !this.contains(btn)) return;
+    this._selectButton(btn);
+  };
+
+  private _onKeydown = (e: KeyboardEvent): void => {
+    const btn = (e.target as Element).closest<HTMLButtonElement>('.ink-segmented__btn');
+    if (!btn || !this.contains(btn)) return;
+    const index = this._buttons.indexOf(btn);
+    let next: number;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (index + 1) % this._buttons.length;
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp')
+      next = (index - 1 + this._buttons.length) % this._buttons.length;
+    else if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = this._buttons.length - 1;
+    else return;
+    e.preventDefault();
+    const nextButton = this._buttons[next];
+    if (!nextButton) return;
+    this._selectButton(nextButton);
+    nextButton.focus();
+  };
+
+  private _selectButton(btn: HTMLButtonElement): void {
     const v = btn.dataset['value'] ?? '';
+    if (v === this.getAttribute('value')) return;
     this.setAttribute('value', v);
     this.dispatchEvent(new CustomEvent('e-change', { detail: { value: v }, bubbles: true }));
-  };
+  }
 
   private _build(opts: Array<{ value: string; label: string }>): void {
     const value = this.getAttribute('value');
@@ -60,6 +86,7 @@ export class ESegmented extends HTMLElement {
       btn.className = 'ink-segmented__btn';
       btn.setAttribute('aria-checked', o.value === value ? 'true' : 'false');
       btn.setAttribute('role', 'radio');
+      btn.tabIndex = o.value === value ? 0 : -1;
       btn.dataset['value'] = o.value;
       btn.textContent = o.label;
       container.appendChild(btn);
@@ -73,6 +100,7 @@ export class ESegmented extends HTMLElement {
     const value = this.getAttribute('value');
     for (const btn of this._buttons) {
       patchAttr(btn, 'aria-checked', btn.dataset['value'] === value ? 'true' : 'false');
+      btn.tabIndex = btn.dataset['value'] === value ? 0 : -1;
     }
   }
 }

@@ -15,6 +15,119 @@ beforeAll(async () => {
   await import('../time-picker');
   await import('../anchor');
   await import('../splitter');
+  await import('../calendar');
+  await import('../segmented');
+  await import('../input-number');
+  await import('../tag');
+  await import('../chip');
+  await import('../table');
+  await import('../checkbox-group');
+});
+
+describe('disconnect/reconnect behaviour', () => {
+  const reconnect = <T extends HTMLElement>(element: T): T => {
+    document.body.appendChild(element);
+    element.remove();
+    document.body.appendChild(element);
+    return element;
+  };
+
+  it('restores delegated interaction listeners', () => {
+    const pagination = document.createElement('e-pagination');
+    pagination.setAttribute('total', '3');
+    reconnect(pagination);
+    pagination.querySelector<HTMLButtonElement>('[data-page="2"]')!.click();
+    expect(pagination.getAttribute('current')).toBe('2');
+
+    const segmented = document.createElement('e-segmented');
+    segmented.innerHTML =
+      '<e-segment value="a" label="A"></e-segment><e-segment value="b" label="B"></e-segment>';
+    reconnect(segmented);
+    segmented.querySelector<HTMLButtonElement>('[data-value="b"]')!.click();
+    expect(segmented.getAttribute('value')).toBe('b');
+
+    const menu = document.createElement('e-menu');
+    menu.innerHTML = '<e-menu-item value="a" label="A"></e-menu-item>';
+    reconnect(menu);
+    menu.querySelector<HTMLButtonElement>('[data-value="a"]')!.click();
+    expect(menu.getAttribute('value')).toBe('a');
+
+    pagination.remove();
+    segmented.remove();
+    menu.remove();
+  });
+
+  it('restores popover listeners', () => {
+    const select = document.createElement('e-select');
+    select.innerHTML = '<e-option value="a" label="A"></e-option>';
+    reconnect(select);
+    select.querySelector<HTMLButtonElement>('.ink-select__trigger')!.click();
+    expect(select.querySelector<HTMLElement>('.ink-select__menu')!.hidden).toBe(false);
+
+    const datePicker = document.createElement('e-date-picker');
+    reconnect(datePicker);
+    datePicker.querySelector<HTMLButtonElement>('[data-trigger]')!.click();
+    expect(datePicker.querySelector<HTMLElement>('.ink-datepicker__pop')!.hidden).toBe(false);
+
+    const cascader = document.createElement('e-cascader');
+    cascader.setAttribute('data', '[{"value":"a","label":"A"}]');
+    reconnect(cascader);
+    cascader.querySelector<HTMLButtonElement>('[data-trigger]')!.click();
+    expect(cascader.querySelector<HTMLElement>('.ink-cascader__menu')!.hidden).toBe(false);
+
+    const dropdown = document.createElement('e-dropdown');
+    dropdown.innerHTML = '<e-dropdown-item label="A"></e-dropdown-item>';
+    reconnect(dropdown);
+    dropdown.querySelector<HTMLElement>('[data-trigger]')!.click();
+    expect(dropdown.querySelector<HTMLElement>('.ink-dropdown__menu')!.hidden).toBe(false);
+
+    select.remove();
+    datePicker.remove();
+    cascader.remove();
+    dropdown.remove();
+  });
+
+  it('restores control and data-view listeners', () => {
+    const time = document.createElement('e-time-picker');
+    time.setAttribute('value', '09:30');
+    reconnect(time);
+    time.querySelector<HTMLButtonElement>('[data-axis="h"][data-dir="1"]')!.click();
+    expect(time.getAttribute('value')).toBe('10:30');
+
+    const number = document.createElement('e-input-number');
+    number.setAttribute('value', '1');
+    reconnect(number);
+    number.querySelector<HTMLButtonElement>('[data-step="1"]')!.click();
+    expect(number.getAttribute('value')).toBe('2');
+
+    const table = document.createElement('e-table');
+    table.setAttribute('columns', '[{"key":"a","title":"A","sortable":true}]');
+    table.setAttribute('data', '[{"a":"x"}]');
+    reconnect(table);
+    table.querySelector<HTMLButtonElement>('[data-sort-key="a"]')!.click();
+    expect(table.getAttribute('sort')).toBe('a:asc');
+
+    const chip = document.createElement('e-chip');
+    chip.textContent = 'A';
+    reconnect(chip);
+    chip.querySelector<HTMLButtonElement>('button')!.click();
+    expect(chip.hasAttribute('selected')).toBe(true);
+
+    const tag = document.createElement('e-tag');
+    tag.setAttribute('closable', '');
+    tag.textContent = 'A';
+    let closed = 0;
+    tag.addEventListener('e-close', () => closed++);
+    reconnect(tag);
+    tag.querySelector<HTMLButtonElement>('button')!.click();
+    expect(closed).toBe(1);
+
+    time.remove();
+    number.remove();
+    table.remove();
+    chip.remove();
+    tag.remove();
+  });
 });
 
 const countDocListeners = (): number => {

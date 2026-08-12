@@ -7,6 +7,20 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+
+- Strengthened CI with browser tests, Storybook accessibility enforcement,
+  visual-regression assertions, coverage thresholds and bundle checks.
+
+### Fixed
+
+- Hardened the component library across reconnect lifecycles, form state,
+  input parsing, keyboard navigation, ARIA state, DOM preservation and
+  subpath-import dependencies.
+- Corrected component-specific behavior in navigation, pickers, data display,
+  upload, layout and feedback elements, including strict date/time and JSON
+  validation.
+
 ### Added
 
 - **Data-display group** (8 new custom elements):

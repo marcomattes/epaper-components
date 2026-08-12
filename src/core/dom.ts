@@ -1,8 +1,5 @@
 // Shared DOM/string helpers used by every component.
 
-export const html = (strings: TemplateStringsArray, ...values: unknown[]): string =>
-  strings.reduce<string>((acc, s, i) => acc + s + (values[i] == null ? '' : String(values[i])), '');
-
 export const esc = (s: unknown): string =>
   String(s == null ? '' : s)
     .replace(/&/g, '&amp;')
@@ -11,12 +8,38 @@ export const esc = (s: unknown): string =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 
+/**
+ * Minimal HTML template helper. Interpolated values are always escaped;
+ * authored markup belongs in the static template strings.
+ */
+export const html = (strings: TemplateStringsArray, ...values: unknown[]): string =>
+  strings.reduce<string>((acc, s, i) => acc + s + (i < values.length ? esc(values[i]) : ''), '');
+
 export const boolAttr = (el: Element, name: string): boolean =>
   el.hasAttribute(name) && el.getAttribute(name) !== 'false';
 
 export function numAttr(el: Element, name: string, dflt: number): number {
   const v = el.getAttribute(name);
-  return v == null || v === '' ? dflt : Number(v);
+  if (v == null || v.trim() === '') return dflt;
+  const parsed = Number(v);
+  return Number.isFinite(parsed) ? parsed : dflt;
+}
+
+/** Read a finite integer attribute, falling back for fractions and invalid input. */
+export function intAttr(el: Element, name: string, dflt: number): number {
+  const parsed = numAttr(el, name, dflt);
+  return Number.isInteger(parsed) ? parsed : dflt;
+}
+
+/** Read a finite number attribute and clamp it to an inclusive range. */
+export function clampedNumAttr(
+  el: Element,
+  name: string,
+  dflt: number,
+  min: number,
+  max: number,
+): number {
+  return Math.min(max, Math.max(min, numAttr(el, name, dflt)));
 }
 
 export const define = (name: string, ctor: CustomElementConstructor): void => {
@@ -69,23 +92,25 @@ export function onGlobal<K extends keyof DocumentEventMap>(
   type: K,
   listener: (ev: DocumentEventMap[K]) => void,
   options?: AddEventListenerOptions,
-): void;
+): () => void;
 export function onGlobal<K extends keyof WindowEventMap>(
   host: object,
   target: Window,
   type: K,
   listener: (ev: WindowEventMap[K]) => void,
   options?: AddEventListenerOptions,
-): void;
+): () => void;
 export function onGlobal(
   host: object,
   target: Document | Window,
   type: string,
   listener: EventListener,
   options?: AddEventListenerOptions,
-): void {
+): () => void {
   target.addEventListener(type, listener, options);
-  addCleanup(host, () => target.removeEventListener(type, listener, options));
+  const remove = (): void => target.removeEventListener(type, listener, options);
+  addCleanup(host, remove);
+  return remove;
 }
 
 /* ----------------------------------------------------------------------- *
@@ -126,18 +151,14 @@ export function patchBoolAttr(el: Element, name: string, on: boolean): void {
  * `modifier` is non-null. Other classes are preserved.
  */
 export function patchClassModifier(el: Element, prefix: string, modifier: string | null): void {
-  let mutated = false;
   for (const c of [...el.classList]) {
     if (c.startsWith(prefix) && c !== prefix + modifier) {
       el.classList.remove(c);
-      mutated = true;
     }
   }
   if (modifier && !el.classList.contains(prefix + modifier)) {
     el.classList.add(prefix + modifier);
-    mutated = true;
   }
-  void mutated;
 }
 
 /** Wrap current children in a new element; returns the wrapper. */

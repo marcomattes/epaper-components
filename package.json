@@ -40,6 +40,7 @@
     "./dist/components/*.js",
     "./src/index.ts",
     "./src/components/*.ts",
+    "./src/site/*.ts",
     "./src/styles/*.css",
     "./dist/styles/*.css",
     "./dist/styles/*.min.css"
@@ -336,7 +337,7 @@
   "scripts": {
     "dev": "vite",
     "start": "vite",
-    "build": "vite build && node scripts/build-css.mjs && tsc -p tsconfig.build.json && cem analyze && node scripts/gen-tag-map.mjs && node scripts/gen-readmes.mjs",
+    "build": "vite build && node scripts/build-css.mjs && tsc -p tsconfig.build.json && cem analyze && node scripts/gen-tag-map.mjs",
     "dev:site": "vite --config vite.site.config.ts",
     "build:site": "vite build --config vite.site.config.ts && node scripts/inline-site-css.mjs",
     "preview:site": "vite preview --config vite.site.config.ts",
@@ -346,7 +347,8 @@
     "lint:check": "eslint \"src/**/*.ts\" --max-warnings=0",
     "format": "prettier --write \"src/**/*.{ts,css}\" \"*.{md,json,mjs,ts}\" \"scripts/**/*.mjs\" \".storybook/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.{ts,css}\" \"*.{md,json,mjs,ts}\" \"scripts/**/*.mjs\" \".storybook/**/*.ts\"",
-    "analyze": "cem analyze && node scripts/gen-tag-map.mjs && node scripts/gen-readmes.mjs",
+    "analyze": "cem analyze && node scripts/gen-tag-map.mjs",
+    "docs:components": "cem analyze && node scripts/gen-readmes.mjs",
     "analyze:watch": "cem analyze --watch",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",

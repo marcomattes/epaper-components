@@ -26,6 +26,8 @@ export class EButton extends HTMLElement {
   private internals: ElementInternals;
   private _wired = false;
   private _btn: HTMLButtonElement | null = null;
+  private _glyph: HTMLElement | null = null;
+  private _formDisabled = false;
 
   constructor() {
     super();
@@ -49,20 +51,21 @@ export class EButton extends HTMLElement {
   connectedCallback() {
     if (this._wired) return;
     this._wired = true;
-    const variant = this.getAttribute('variant') || 'secondary';
+    const variant = this._variant();
     const disabled = boolAttr(this, 'disabled');
     const autofocus = boolAttr(this, 'autofocus');
-    const label = this.innerHTML;
-    const glyph =
-      variant === 'destructive'
-        ? '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 4h10M5 4V2.5h4V4M3.5 4l.7 8.5h5.6l.7-8.5M6 6.5v4M8 6.5v4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="square"/></svg>'
-        : '';
-    // Inner native button stays type="button" so the form is only submitted
-    // through our explicit `internals.form?.requestSubmit()` path below.
-    this.innerHTML = `<button type="button" class="ink-btn ink-btn--${variant}"${disabled ? ' disabled' : ''}${autofocus ? ' autofocus' : ''}>${glyph}${label}</button>`;
-    this._btn = this.firstElementChild as HTMLButtonElement;
-    this._btn.addEventListener('click', (e) => {
-      if (boolAttr(this, 'disabled')) {
+    const content = [...this.childNodes];
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `ink-btn ink-btn--${variant}`;
+    button.disabled = disabled;
+    button.autofocus = autofocus;
+    button.append(...content);
+    this.replaceChildren(button);
+    this._btn = button;
+    this._syncGlyph(variant);
+    button.addEventListener('click', (e) => {
+      if (boolAttr(this, 'disabled') || this._formDisabled) {
         e.stopImmediatePropagation();
         return;
       }
@@ -80,14 +83,39 @@ export class EButton extends HTMLElement {
   attributeChangedCallback(name: string, _old: string | null, _v: string | null) {
     if (!this._btn) return;
     if (name === 'variant') {
-      const variant = this.getAttribute('variant') || 'secondary';
+      const variant = this._variant();
       patchClassModifier(this._btn, 'ink-btn--', variant);
+      this._syncGlyph(variant);
     }
     if (name === 'disabled') {
       const d = boolAttr(this, 'disabled');
-      this._btn.disabled = d;
-      patchBoolAttr(this._btn, 'disabled', d);
+      this._btn.disabled = d || this._formDisabled;
+      patchBoolAttr(this._btn, 'disabled', d || this._formDisabled);
     }
+  }
+
+  formDisabledCallback(disabled: boolean): void {
+    this._formDisabled = disabled;
+    if (this._btn) this._btn.disabled = disabled || boolAttr(this, 'disabled');
+  }
+
+  private _syncGlyph(variant: string): void {
+    if (!this._btn) return;
+    if (variant === 'destructive' && !this._glyph) {
+      const glyph = document.createElement('span');
+      glyph.innerHTML =
+        '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 4h10M5 4V2.5h4V4M3.5 4l.7 8.5h5.6l.7-8.5M6 6.5v4M8 6.5v4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="square"/></svg>';
+      this._btn.insertBefore(glyph, this._btn.firstChild);
+      this._glyph = glyph;
+    } else if (variant !== 'destructive' && this._glyph) {
+      this._glyph.remove();
+      this._glyph = null;
+    }
+  }
+
+  private _variant(): 'primary' | 'secondary' | 'destructive' {
+    const value = this.getAttribute('variant');
+    return value === 'primary' || value === 'destructive' ? value : 'secondary';
   }
 }
 

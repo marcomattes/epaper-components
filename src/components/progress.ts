@@ -1,4 +1,4 @@
-import { define, numAttr, patchAttr, patchBoolAttr, patchText } from '../core/dom';
+import { define, intAttr, numAttr, patchAttr, patchBoolAttr, patchText } from '../core/dom';
 
 /**
  * @summary Static progress indicator (linear bar or discrete steps).
@@ -47,7 +47,7 @@ export class EProgress extends HTMLElement {
     patchAttr(this, 'role', 'progressbar');
     patchAttr(this, 'aria-valuemin', '0');
     patchAttr(this, 'aria-valuemax', String(max));
-    patchAttr(this, 'aria-valuenow', String(Math.min(value, max)));
+    patchAttr(this, 'aria-valuenow', String(Math.max(0, Math.min(value, max))));
     patchAttr(this, 'aria-label', label || null);
   }
 
@@ -80,7 +80,7 @@ export class EProgress extends HTMLElement {
       wrap.appendChild(track);
       this._fill = fill;
     } else {
-      const stepsCount = Math.max(1, numAttr(this, 'steps', 5));
+      const stepsCount = Math.max(1, Math.min(1000, intAttr(this, 'steps', 5)));
       const filledSteps = Math.round((pct / 100) * stepsCount);
       const grid = document.createElement('div');
       grid.className = 'ink-progress__steps';
@@ -119,7 +119,7 @@ export class EProgress extends HTMLElement {
       const w = `${pct}%`;
       if (this._fill.style.width !== w) this._fill.style.width = w;
     } else if (this._variant === 'steps') {
-      const stepsCount = Math.max(1, numAttr(this, 'steps', 5));
+      const stepsCount = Math.max(1, Math.min(1000, intAttr(this, 'steps', 5)));
       const filledSteps = Math.round((pct / 100) * stepsCount);
 
       while (this._segs.length < stepsCount) {

@@ -26,6 +26,8 @@ export class EList extends HTMLElement {
   private _wired = false;
   private _root: HTMLElement | null = null;
   private _headerTitle: HTMLElement | null = null;
+  private _header: HTMLElement | null = null;
+  private _customHeader = false;
 
   connectedCallback() {
     if (this._wired) return;
@@ -46,6 +48,8 @@ export class EList extends HTMLElement {
     if (headerSlot || headerTitle) {
       const header = document.createElement('div');
       header.className = 'ink-list__header';
+      this._header = header;
+      this._customHeader = !!headerSlot;
       if (headerSlot) {
         header.appendChild(headerSlot);
       } else {
@@ -77,11 +81,8 @@ export class EList extends HTMLElement {
 
   attributeChangedCallback(name: string) {
     if (!this._wired || !this._root) return;
-    if (name === 'header-title' && this._headerTitle) {
-      patchText(this._headerTitle, this.getAttribute('header-title') || '');
-    } else {
-      this._sync();
-    }
+    if (name === 'header-title') this._syncHeaderTitle();
+    else this._sync();
   }
 
   private _sync(): void {
@@ -90,6 +91,29 @@ export class EList extends HTMLElement {
     const split = this.getAttribute('split') !== 'false';
     patchBoolAttr(this._root, 'data-bordered', bordered);
     patchBoolAttr(this._root, 'data-split', split);
+  }
+
+  private _syncHeaderTitle(): void {
+    if (!this._root || this._customHeader) return;
+    const value = this.getAttribute('header-title') || '';
+    if (value && !this._header) {
+      const header = document.createElement('div');
+      header.className = 'ink-list__header';
+      const title = document.createElement('div');
+      title.className = 'ink-list__header-title';
+      title.textContent = value;
+      header.appendChild(title);
+      const body = this._root.querySelector('.ink-list__body');
+      this._root.insertBefore(header, body);
+      this._header = header;
+      this._headerTitle = title;
+    } else if (!value && this._header) {
+      this._header.remove();
+      this._header = null;
+      this._headerTitle = null;
+    } else if (this._headerTitle) {
+      patchText(this._headerTitle, value);
+    }
   }
 }
 
@@ -112,6 +136,7 @@ export class EListItem extends HTMLElement {
   private _row: HTMLElement | null = null;
   private _titleEl: HTMLElement | null = null;
   private _descEl: HTMLElement | null = null;
+  private _customContent = false;
 
   connectedCallback() {
     if (this._wired) return;
@@ -128,6 +153,7 @@ export class EListItem extends HTMLElement {
         n.nodeType === Node.ELEMENT_NODE ||
         (n.nodeType === Node.TEXT_NODE && (n.textContent || '').trim() !== ''),
     );
+    this._customContent = hasSlot;
 
     this.setAttribute('role', 'listitem');
     const row = document.createElement('div');
@@ -175,6 +201,7 @@ export class EListItem extends HTMLElement {
 
   attributeChangedCallback(name: string) {
     if (!this._wired || !this._row) return;
+    if (this._customContent) return;
     if (name === 'title') {
       const v = this.getAttribute('title') || '';
       if (v && !this._titleEl) {

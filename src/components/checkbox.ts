@@ -19,20 +19,21 @@ import { BaseFormControl } from '../core/base-form-control';
  * <e-checkbox checked label="Accept terms"></e-checkbox>
  */
 export class ECheckbox extends BaseFormControl {
-  static observedAttributes = ['checked', 'label', 'disabled'];
+  static observedAttributes = ['checked', 'label', 'disabled', 'value'];
 
   private _wired = false;
   private _cb: HTMLInputElement | null = null;
 
   private _syncFormValue(): void {
     const v = this.getAttribute('value') || 'on';
-    this.internals.setFormValue(this._cb?.checked ? v : null);
+    const checked = !!this._cb?.checked;
+    this.internals.setFormValue(checked ? v : null, checked ? 'checked' : 'unchecked');
   }
 
   connectedCallback() {
     if (this._wired) return;
     this._wired = true;
-    const id = this.getAttribute('id') || randId('e-c');
+    const id = this.id ? `${this.id}-control` : randId('e-c');
     const checked = boolAttr(this, 'checked');
     const disabled = boolAttr(this, 'disabled');
     const label = this.getAttribute('label') || '';
@@ -65,7 +66,8 @@ export class ECheckbox extends BaseFormControl {
       this._cb.checked = boolAttr(this, 'checked');
       this._syncFormValue();
     }
-    if (name === 'disabled') this._cb.disabled = boolAttr(this, 'disabled');
+    if (name === 'disabled') this._cb.disabled = boolAttr(this, 'disabled') || this._formDisabled;
+    if (name === 'value') this._syncFormValue();
     if (name === 'label') {
       const text = this.getAttribute('label') || '';
       const label = this.querySelector('label.ink-checkbox') as HTMLElement | null;
@@ -110,6 +112,14 @@ export class ECheckbox extends BaseFormControl {
   override formResetCallback(): void {
     const dflt = this.hasAttribute('default-checked');
     this.checked = dflt;
+  }
+
+  override formStateRestoreCallback(state: string | File | FormData | null): void {
+    this.checked = state === 'checked' || state === this.value;
+  }
+
+  protected override formDisabledChanged(): void {
+    if (this._cb) this._cb.disabled = boolAttr(this, 'disabled') || this._formDisabled;
   }
 }
 

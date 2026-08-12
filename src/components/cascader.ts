@@ -2,6 +2,7 @@ import { define, addCleanup, onGlobal, runCleanups, patchAttr } from '../core/do
 import { iconSvg } from '../core/icons';
 import type { CascaderOption } from '../core/types';
 import { BaseFormControl } from '../core/base-form-control';
+import { isTreeData } from '../core/data';
 
 /**
  * @summary Multi-column cascading selector for hierarchical options.
@@ -32,14 +33,16 @@ export class ECascader extends BaseFormControl {
   private _colKeys: string[] = [];
 
   connectedCallback() {
-    if (this._built) return;
-    this._parseOptions();
-    this._path = (this.getAttribute('value') || '').split(',').filter(Boolean);
-    this._value = this._path.join(',');
-    this.internals.setFormValue(this._value);
-    this._build();
-    this._syncMenu();
-    this._syncTrigger();
+    if (!this._built) {
+      this._parseOptions();
+      this._path = (this.getAttribute('value') || '').split(',').filter(Boolean);
+      this._value = this._path.join(',');
+      this.internals.setFormValue(this._value);
+      this._build();
+      this._syncMenu();
+      this._syncTrigger();
+    }
+    this._bindEvents();
   }
 
   disconnectedCallback() {
@@ -69,7 +72,9 @@ export class ECascader extends BaseFormControl {
     const source: 'data' | 'options' = data != null ? 'data' : 'options';
     const raw = data ?? this.getAttribute('options') ?? '[]';
     try {
-      this._options = JSON.parse(raw) as CascaderOption[];
+      const parsed: unknown = JSON.parse(raw);
+      if (!isTreeData(parsed)) throw new TypeError('Expected an array of cascader options.');
+      this._options = parsed;
     } catch (err) {
       this._options = [];
       this.dispatchEvent(
@@ -88,7 +93,7 @@ export class ECascader extends BaseFormControl {
     const cols: CascaderOption[][] = [this._options];
     for (let i = 0; i < this._path.length; i++) {
       const node = (cols[i] || []).find((o) => o.value === this._path[i]);
-      if (node?.children) cols.push(node.children);
+      if (node?.children?.length) cols.push(node.children);
       else break;
     }
     return cols;
@@ -136,7 +141,9 @@ export class ECascader extends BaseFormControl {
 
     this.replaceChildren(root);
     this._built = true;
+  }
 
+  private _bindEvents(): void {
     this._trigger.addEventListener('click', this._onTriggerClick);
     addCleanup(this, () => this._trigger.removeEventListener('click', this._onTriggerClick));
 
@@ -217,7 +224,7 @@ export class ECascader extends BaseFormControl {
       const v = item.dataset['value'] ?? '';
       const cols = this._resolveCols();
       const node = (cols[level] || []).find((o) => o.value === v);
-      if (node?.children) {
+      if (node?.children?.length) {
         this._path = [...this._path.slice(0, level), v];
         this._syncMenu();
         this._syncTrigger();
@@ -241,7 +248,7 @@ export class ECascader extends BaseFormControl {
     const node = (cols[level] || []).find((o) => o.value === v);
     this._path = [...this._path.slice(0, level), v];
 
-    if (!node?.children) {
+    if (!node?.children?.length) {
       this._value = this._path.join(',');
       this.internals.setFormValue(this._value);
       this.setAttribute('value', this._value);
@@ -279,7 +286,7 @@ export class ECascader extends BaseFormControl {
       span.textContent = node.label;
       li.appendChild(span);
 
-      if (node.children) {
+      if (node.children?.length) {
         const tmp = document.createElement('span');
         tmp.innerHTML = iconSvg('chevR', 14);
         while (tmp.firstChild) li.appendChild(tmp.firstChild);

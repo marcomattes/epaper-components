@@ -29,59 +29,33 @@ export class EInputNumber extends BaseFormControl<string> {
   private _holdDelay: ReturnType<typeof setTimeout> | null = null;
 
   connectedCallback() {
-    if (this._wired) return;
-    this._wired = true;
-    this.innerHTML = `
+    if (!this._wired) {
+      this._wired = true;
+      this.innerHTML = `
       <div class="ink-number">
         <button type="button" class="ink-number__btn" data-step="-1" aria-label="Decrement">${iconSvg('minus', 18)}</button>
         <input class="ink-number__input" type="number"/>
         <button type="button" class="ink-number__btn" data-step="1" aria-label="Increment">${iconSvg('plus', 18)}</button>
       </div>`;
-    this._input = this.querySelector('input');
-    this._initialiseInput();
+      this._input = this.querySelector('input');
+      this._initialiseInput();
+    }
 
-    const onClick = (e: Event) => {
-      const btn = (e.target as Element).closest<HTMLElement>('[data-step]');
-      if (!btn) return;
-      this._step(Number(btn.dataset['step']));
-    };
-    this.addEventListener('click', onClick);
-    addCleanup(this, () => this.removeEventListener('click', onClick));
-
-    const onMouseDown = (e: MouseEvent) => {
-      const btn = (e.target as Element).closest<HTMLElement>('[data-step]');
-      if (!btn) return;
-      const dir = Number(btn.dataset['step']);
-      this._stopHold();
-      this._holdDelay = setTimeout(() => {
-        this._holdTimer = setInterval(() => this._step(dir), 200);
-      }, 400);
-    };
-    this.addEventListener('mousedown', onMouseDown);
-    addCleanup(this, () => this.removeEventListener('mousedown', onMouseDown));
-
-    const stopHold = () => this._stopHold();
-    this.addEventListener('mouseup', stopHold);
-    this.addEventListener('mouseleave', stopHold);
-    this.addEventListener('touchend', stopHold);
-    this.addEventListener('touchcancel', stopHold);
+    this.addEventListener('click', this._onClick);
+    this.addEventListener('mousedown', this._onMouseDown);
+    this.addEventListener('mouseup', this._stopHold);
+    this.addEventListener('mouseleave', this._stopHold);
+    this.addEventListener('touchend', this._stopHold);
+    this.addEventListener('touchcancel', this._stopHold);
+    this._input?.addEventListener('change', this._onInputChange);
     addCleanup(this, () => {
-      this.removeEventListener('mouseup', stopHold);
-      this.removeEventListener('mouseleave', stopHold);
-      this.removeEventListener('touchend', stopHold);
-      this.removeEventListener('touchcancel', stopHold);
-    });
-
-    this._input!.addEventListener('change', () => {
-      const v = this._input!.value;
-      this._value = v;
-      this.internals.setFormValue(v);
-      this.dispatchEvent(
-        new CustomEvent('e-change', {
-          detail: { value: Number(v) },
-          bubbles: true,
-        }),
-      );
+      this.removeEventListener('click', this._onClick);
+      this.removeEventListener('mousedown', this._onMouseDown);
+      this.removeEventListener('mouseup', this._stopHold);
+      this.removeEventListener('mouseleave', this._stopHold);
+      this.removeEventListener('touchend', this._stopHold);
+      this.removeEventListener('touchcancel', this._stopHold);
+      this._input?.removeEventListener('change', this._onInputChange);
     });
   }
 
@@ -99,24 +73,19 @@ export class EInputNumber extends BaseFormControl<string> {
       this.internals.setFormValue(next);
     }
     if (name === 'min') {
-      if (v == null) this._input.removeAttribute('min');
-      else this._input.setAttribute('min', v);
+      this._setFiniteInputAttr('min', v);
     }
     if (name === 'max') {
-      if (v == null) this._input.removeAttribute('max');
-      else this._input.setAttribute('max', v);
+      this._setFiniteInputAttr('max', v);
     }
-    if (name === 'step') this._input.setAttribute('step', v || '1');
+    if (name === 'step') this._input.step = this._validStep(v);
   }
 
   override get value(): string {
     return this._input?.value ?? this._value;
   }
   override set value(v: string) {
-    const next = v ?? '';
-    this._value = next;
-    if (this._input) this._input.value = next;
-    this.internals.setFormValue(next);
+    this.setAttribute('value', v ?? '');
   }
 
   protected serialize(v: string): string {
@@ -137,35 +106,30 @@ export class EInputNumber extends BaseFormControl<string> {
     const max = this.getAttribute('max');
     const initial = this.getAttribute('value') ?? this.getAttribute('default-value') ?? '';
     this._input.value = initial;
-    this._input.step = this.getAttribute('step') || '1';
-    if (min != null) this._input.setAttribute('min', min);
-    if (max != null) this._input.setAttribute('max', max);
+    this._input.step = this._validStep(this.getAttribute('step'));
+    this._setFiniteInputAttr('min', min);
+    this._setFiniteInputAttr('max', max);
     this._value = initial;
     this.internals.setFormValue(initial);
   }
 
   private _step(direction: number): void {
     if (!this._input) return;
-    const step = Number(this.getAttribute('step') || '1');
-    const min = this.getAttribute('min');
-    const max = this.getAttribute('max');
-    const cur = Number(this._input.value || 0);
-    const next = cur + direction * step;
-    const lo = min != null ? Number(min) : -Infinity;
-    const hi = max != null ? Number(max) : Infinity;
-    const clamped = String(Math.max(lo, Math.min(hi, next)));
-    this._input.value = clamped;
-    this._value = clamped;
-    this.internals.setFormValue(clamped);
+    if (direction > 0) this._input.stepUp(direction);
+    else this._input.stepDown(Math.abs(direction));
+    const next = this._input.value;
+    this._value = next;
+    this.internals.setFormValue(next);
+    this.setAttribute('value', next);
     this.dispatchEvent(
       new CustomEvent('e-change', {
-        detail: { value: Number(clamped) },
+        detail: { value: Number(next) },
         bubbles: true,
       }),
     );
   }
 
-  private _stopHold(): void {
+  private _stopHold = (): void => {
     if (this._holdDelay != null) {
       clearTimeout(this._holdDelay);
       this._holdDelay = null;
@@ -174,7 +138,48 @@ export class EInputNumber extends BaseFormControl<string> {
       clearInterval(this._holdTimer);
       this._holdTimer = null;
     }
+  };
+
+  private _validStep(value: string | null): string {
+    const parsed = Number(value ?? '1');
+    return Number.isFinite(parsed) && parsed > 0 ? String(parsed) : '1';
   }
+
+  private _setFiniteInputAttr(name: 'min' | 'max', value: string | null): void {
+    if (!this._input) return;
+    const parsed = value == null ? NaN : Number(value);
+    if (Number.isFinite(parsed)) this._input.setAttribute(name, String(parsed));
+    else this._input.removeAttribute(name);
+  }
+
+  private _onClick = (e: Event): void => {
+    const button = (e.target as Element).closest<HTMLElement>('[data-step]');
+    if (button) this._step(Number(button.dataset['step']));
+  };
+
+  private _onMouseDown = (e: MouseEvent): void => {
+    const button = (e.target as Element).closest<HTMLElement>('[data-step]');
+    if (!button) return;
+    const direction = Number(button.dataset['step']);
+    this._stopHold();
+    this._holdDelay = setTimeout(() => {
+      this._holdTimer = setInterval(() => this._step(direction), 200);
+    }, 400);
+  };
+
+  private _onInputChange = (): void => {
+    if (!this._input) return;
+    const value = this._input.value;
+    this._value = value;
+    this.internals.setFormValue(value);
+    this.setAttribute('value', value);
+    this.dispatchEvent(
+      new CustomEvent('e-change', {
+        detail: { value: Number(value) },
+        bubbles: true,
+      }),
+    );
+  };
 }
 
 define('e-input-number', EInputNumber);

@@ -38,13 +38,14 @@ export class ECheckboxGroup extends BaseFormControl {
   }
 
   connectedCallback() {
-    if (this._wired) return;
-    this._wired = true;
-    this._opts = [...this.querySelectorAll('e-cbox-option')].map((o) => ({
-      value: o.getAttribute('value') ?? '',
-      label: o.getAttribute('label') || o.textContent || o.getAttribute('value') || '',
-    }));
-    this._build();
+    if (!this._wired) {
+      this._wired = true;
+      this._opts = [...this.querySelectorAll('e-cbox-option')].map((o) => ({
+        value: o.getAttribute('value') ?? '',
+        label: o.getAttribute('label') || o.textContent || o.getAttribute('value') || '',
+      }));
+      this._build();
+    }
     this.addEventListener('change', this._onChange);
     addCleanup(this, () => this.removeEventListener('change', this._onChange));
   }

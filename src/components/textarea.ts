@@ -13,6 +13,7 @@ import { BaseFormControl } from '../core/base-form-control';
  * @attr {string} [error-message] - Message reported to `ElementInternals.setValidity` when `error` is set. Defaults to "Invalid value.".
  * @attr {boolean} [disabled] - Disables interaction.
  * @attr {boolean} [readonly] - Renders as a non-editable read-only textarea. Still submitted with the form.
+ * @attr {boolean} [required] - Requires a non-empty value for form validation.
  *
  * @fires {CustomEvent<{value: string}>} e-input - Fired on every keystroke.
  * @fires {CustomEvent<{value: string}>} e-change - Fired on commit (blur / Enter).
@@ -29,6 +30,7 @@ export class ETextarea extends BaseFormControl {
     'readonly',
     'aria-label',
     'placeholder',
+    'required',
   ];
 
   private _wired = false;
@@ -43,10 +45,11 @@ export class ETextarea extends BaseFormControl {
     const error = boolAttr(this, 'error');
     const disabled = boolAttr(this, 'disabled');
     const readonly = boolAttr(this, 'readonly');
+    const required = boolAttr(this, 'required');
     this.innerHTML = `<textarea class="ink-control" placeholder="${esc(placeholder)}"
       style="min-height:96px;resize:vertical"
       ${ariaLabel ? `aria-label="${esc(ariaLabel)}"` : ''}
-      ${error ? 'aria-invalid="true"' : ''} ${disabled ? 'disabled' : ''} ${readonly ? 'readonly' : ''}>${esc(value)}</textarea>`;
+      ${error ? 'aria-invalid="true"' : ''} ${disabled ? 'disabled' : ''} ${readonly ? 'readonly' : ''} ${required ? 'required' : ''}>${esc(value)}</textarea>`;
     this._ta = this.querySelector('textarea');
     this._value = value;
     this.internals.setFormValue(value);
@@ -55,6 +58,7 @@ export class ETextarea extends BaseFormControl {
       const v = (e.target as HTMLTextAreaElement).value;
       this._value = v;
       this.internals.setFormValue(v);
+      this._syncValidity();
       this.dispatchEvent(new CustomEvent('e-input', { detail: { value: v }, bubbles: true }));
     });
     this._ta!.addEventListener('change', (e) => {
@@ -68,7 +72,7 @@ export class ETextarea extends BaseFormControl {
   attributeChangedCallback(name: string, _old: string | null, v: string | null) {
     if (!this._ta) return;
     if (name === 'value') {
-      this._ta.value = v ?? '';
+      if (this._ta.value !== (v ?? '')) this._ta.value = v ?? '';
       this._value = v ?? '';
       this.internals.setFormValue(this._value);
     }
@@ -82,9 +86,13 @@ export class ETextarea extends BaseFormControl {
       else this._ta.removeAttribute('aria-invalid');
       this._syncValidity();
     }
-    if (name === 'disabled') this._ta.disabled = boolAttr(this, 'disabled');
+    if (name === 'disabled') this._ta.disabled = boolAttr(this, 'disabled') || this._formDisabled;
     if (name === 'readonly') this._ta.readOnly = boolAttr(this, 'readonly');
     if (name === 'placeholder') this._ta.placeholder = v ?? '';
+    if (name === 'required') {
+      this._ta.required = boolAttr(this, 'required');
+      this._syncValidity();
+    }
   }
 
   override get value(): string {
@@ -113,9 +121,19 @@ export class ETextarea extends BaseFormControl {
     if (boolAttr(this, 'error')) {
       const msg = this.getAttribute('error-message') ?? 'Invalid value.';
       this.internals.setValidity({ customError: true }, msg, this._ta ?? undefined);
+    } else if (boolAttr(this, 'required') && !this.value) {
+      this.internals.setValidity(
+        { valueMissing: true },
+        'Please fill out this field.',
+        this._ta ?? undefined,
+      );
     } else {
       this.internals.setValidity({});
     }
+  }
+
+  protected override formDisabledChanged(): void {
+    if (this._ta) this._ta.disabled = boolAttr(this, 'disabled') || this._formDisabled;
   }
 }
 

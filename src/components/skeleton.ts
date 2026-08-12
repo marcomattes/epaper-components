@@ -1,4 +1,4 @@
-import { define, numAttr, patchAttr } from '../core/dom';
+import { define, intAttr, patchAttr } from '../core/dom';
 
 /**
  * @summary Static loading placeholder block.
@@ -43,7 +43,7 @@ export class ESkeleton extends HTMLElement {
   private _build(): void {
     const shape = this.getAttribute('shape') || 'block';
     this._shape = shape;
-    const lines = Math.max(1, numAttr(this, 'lines', 1));
+    const lines = Math.max(1, Math.min(100, intAttr(this, 'lines', 1)));
     const width = this.getAttribute('width') || '';
     const height = this.getAttribute('height') || '';
 
@@ -79,7 +79,7 @@ export class ESkeleton extends HTMLElement {
   }
 
   private _patch(): void {
-    const lines = Math.max(1, numAttr(this, 'lines', 1));
+    const lines = Math.max(1, Math.min(100, intAttr(this, 'lines', 1)));
     const width = this.getAttribute('width') || '';
     const height = this.getAttribute('height') || '';
 

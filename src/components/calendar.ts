@@ -2,6 +2,7 @@ import { addCleanup, define, patchAttr, patchBoolAttr, patchText, runCleanups } 
 import { iconSvg } from '../core/icons';
 import { parseYMD, ymd } from '../core/date';
 import type { CalendarEvent } from '../core/types';
+import { isCalendarEvents } from '../core/data';
 
 const DOW_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const CELL_COUNT = 42;
@@ -34,21 +35,24 @@ export class ECalendar extends HTMLElement {
   private _eventContainers: HTMLElement[] = [];
 
   connectedCallback() {
-    if (this._wired) return;
-    this._wired = true;
+    if (!this._wired) {
+      this._wired = true;
+      const rawValue = this.getAttribute('value') || '';
+      this._value = parseYMD(rawValue) ? rawValue : '';
+      this._parseEvents();
 
-    this._value = this.getAttribute('value') || '';
-    this._parseEvents();
+      const today = new Date();
+      const initial = parseYMD(this._value) || today;
+      this._view = { y: initial.getFullYear(), m: initial.getMonth() };
 
-    const today = new Date();
-    const ini = this._value ? parseYMD(this._value) || today : today;
-    this._view = { y: ini.getFullYear(), m: ini.getMonth() };
-
-    this._build();
-    this._patchGrid();
+      this._build();
+      this._patchGrid();
+    }
 
     this.addEventListener('click', this._onClick);
+    this.addEventListener('keydown', this._onKeydown);
     addCleanup(this, () => this.removeEventListener('click', this._onClick));
+    addCleanup(this, () => this.removeEventListener('keydown', this._onKeydown));
   }
 
   disconnectedCallback() {
@@ -61,14 +65,16 @@ export class ECalendar extends HTMLElement {
       this._parseEvents();
       this._patchGrid();
     } else if (name === 'value') {
-      this._value = this.getAttribute('value') || '';
+      const rawValue = this.getAttribute('value') || '';
+      this._value = parseYMD(rawValue) ? rawValue : '';
       this._patchGrid();
     }
   }
 
   private _parseEvents(): void {
     try {
-      this._events = JSON.parse(this.getAttribute('events') || '[]') as CalendarEvent[];
+      const parsed: unknown = JSON.parse(this.getAttribute('events') || '[]');
+      this._events = isCalendarEvents(parsed) ? parsed : [];
     } catch {
       this._events = [];
     }
@@ -111,11 +117,40 @@ export class ECalendar extends HTMLElement {
     if (cell && !cell.disabled) {
       const d = Number(cell.dataset['day']);
       const value = ymd(new Date(this._view.y, this._view.m, d));
-      this._value = value;
       this.setAttribute('value', value);
-      this._patchGrid();
       this.dispatchEvent(new CustomEvent('e-change', { detail: { value }, bubbles: true }));
     }
+  };
+
+  private _onKeydown = (e: KeyboardEvent): void => {
+    const cell = (e.target as Element).closest<HTMLButtonElement>('.ink-calendar__cell');
+    if (!cell || cell.disabled || !this.contains(cell)) return;
+    const day = Number(cell.dataset['day']);
+    let delta: number;
+    if (e.key === 'ArrowLeft') delta = -1;
+    else if (e.key === 'ArrowRight') delta = 1;
+    else if (e.key === 'ArrowUp') delta = -7;
+    else if (e.key === 'ArrowDown') delta = 7;
+    else if (e.key === 'Home' || e.key === 'End') delta = 0;
+    else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      cell.click();
+      return;
+    } else return;
+    e.preventDefault();
+    if (e.key === 'Home' || e.key === 'End') {
+      const cellIndex = this._cells.indexOf(cell);
+      const weekday = cellIndex % 7;
+      delta = e.key === 'Home' ? -weekday : 6 - weekday;
+    }
+    const target = new Date(this._view.y, this._view.m, day + delta);
+    this._view = { y: target.getFullYear(), m: target.getMonth() };
+    this._patchGrid();
+    const next = this._cells.find(
+      (candidate) => !candidate.disabled && Number(candidate.dataset['day']) === target.getDate(),
+    );
+    for (const candidate of this._cells) candidate.tabIndex = candidate === next ? 0 : -1;
+    next?.focus();
   };
 
   private _svgEl(svg: string): Element | null {
@@ -166,10 +201,12 @@ export class ECalendar extends HTMLElement {
     /* Grid */
     const grid = document.createElement('div');
     grid.className = 'ink-calendar__grid';
+    grid.setAttribute('role', 'grid');
 
     for (const d of DOW_LABELS) {
       const dow = document.createElement('div');
       dow.className = 'ink-calendar__dow';
+      dow.setAttribute('role', 'columnheader');
       dow.textContent = d;
       grid.appendChild(dow);
     }
@@ -182,6 +219,8 @@ export class ECalendar extends HTMLElement {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'ink-calendar__cell';
+      btn.setAttribute('role', 'gridcell');
+      btn.tabIndex = -1;
 
       const dayNum = document.createElement('div');
       dayNum.className = 'ink-calendar__day-num';
@@ -205,7 +244,8 @@ export class ECalendar extends HTMLElement {
     const { y, m } = this._view;
 
     /* Titles */
-    const monthName = new Date(y, m, 1).toLocaleString('en', { month: 'long' });
+    const locale = this.lang || document.documentElement.lang || undefined;
+    const monthName = new Date(y, m, 1).toLocaleString(locale, { month: 'long' });
     if (this._titleEyebrow) patchText(this._titleEyebrow, `CALENDAR · ${y}`);
     if (this._titleEl) patchText(this._titleEl, monthName);
 
@@ -226,8 +266,9 @@ export class ECalendar extends HTMLElement {
         patchText(dayNum, '');
         patchBoolAttr(btn, 'disabled', true);
         btn.removeAttribute('data-day');
-        patchAttr(btn, 'aria-current', null);
+        patchAttr(btn, 'aria-selected', null);
         patchAttr(btn, 'aria-hidden', 'true');
+        patchAttr(btn, 'aria-label', null);
         patchAttr(btn, 'data-today', null);
         evContainer.textContent = '';
       } else {
@@ -237,11 +278,12 @@ export class ECalendar extends HTMLElement {
         patchAttr(btn, 'aria-hidden', null);
 
         const isSel = sel && sel.getFullYear() === y && sel.getMonth() === m && sel.getDate() === d;
-        patchAttr(btn, 'aria-current', isSel ? 'date' : null);
+        patchAttr(btn, 'aria-selected', String(!!isSel));
 
         const isToday =
           today.getFullYear() === y && today.getMonth() === m && today.getDate() === d;
         patchAttr(btn, 'data-today', String(isToday));
+        patchAttr(btn, 'aria-label', new Date(y, m, d).toLocaleDateString(locale));
 
         /* Events — O(1) lookup from memoized map */
         const key = ymd(new Date(y, m, d));
@@ -249,6 +291,10 @@ export class ECalendar extends HTMLElement {
         this._patchEvents(evContainer, evs);
       }
     }
+    const selectedCell = this._cells.find((cell) => cell.getAttribute('aria-selected') === 'true');
+    const todayCell = this._cells.find((cell) => cell.getAttribute('data-today') === 'true');
+    const tabStop = selectedCell ?? todayCell ?? this._cells.find((cell) => !cell.disabled);
+    for (const cell of this._cells) cell.tabIndex = cell === tabStop ? 0 : -1;
   }
 
   private _patchEvents(container: HTMLElement, evs: CalendarEvent[]): void {

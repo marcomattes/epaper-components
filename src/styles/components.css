@@ -490,7 +490,7 @@
 }
 .ink-masonry > * {
   break-inside: avoid;
-  margin-bottom: 16px;
+  margin-bottom: var(--ink-masonry-gap, 16px);
   display: block;
 }
 
@@ -538,7 +538,15 @@ e-description-list,
 e-affix,
 e-watermark,
 e-image,
-e-back-top {
+e-back-top,
+e-divider,
+e-empty,
+e-result,
+e-skeleton,
+e-progress,
+e-list,
+e-table,
+e-qrcode {
   display: block;
 }
 e-icon,
@@ -949,7 +957,7 @@ e-text {
 .ink-segmented__btn + .ink-segmented__btn {
   border-left: var(--ink-border);
 }
-.ink-segmented__btn[aria-pressed='true'] {
+.ink-segmented__btn[aria-checked='true'] {
   background: var(--ink-fg);
   color: var(--ink-bg);
 }
@@ -1365,7 +1373,7 @@ e-text {
   cursor: pointer;
   box-sizing: border-box;
 }
-.ink-menu__btn[aria-current='true'] {
+.ink-menu__btn[aria-current='page'] {
   background: var(--ink-fg);
   color: var(--ink-bg);
 }
@@ -1555,6 +1563,10 @@ e-text {
   box-sizing: border-box;
 }
 .ink-avatar--circle {
+  border-radius: 50%;
+}
+.ink-avatar--circle img {
+  border-radius: inherit;
 }
 .ink-avatar img {
   width: 100%;
@@ -1700,11 +1712,11 @@ e-text {
 .ink-calendar__cell:not(:nth-child(7n + 1)) {
   border-left: var(--ink-border);
 }
-.ink-calendar__cell[aria-pressed='true'] {
+.ink-calendar__cell[aria-selected='true'] {
   background: var(--ink-fg);
   color: var(--ink-bg);
 }
-.ink-calendar__cell[data-today='true']:not([aria-pressed='true']) {
+.ink-calendar__cell[data-today='true']:not([aria-selected='true']) {
   outline: var(--ink-focus-width) solid var(--ink-fg);
   outline-offset: -5px;
 }
@@ -1732,7 +1744,7 @@ e-text {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.ink-calendar__cell[aria-pressed='true'] .ink-calendar__event {
+.ink-calendar__cell[aria-selected='true'] .ink-calendar__event {
   background: var(--ink-bg);
   color: var(--ink-fg);
 }
@@ -1806,7 +1818,7 @@ e-text {
   outline: var(--ink-focus-width) solid var(--ink-fg);
   outline-offset: var(--ink-focus-offset);
 }
-.ink-chip[aria-checked='true'] {
+.ink-chip[aria-pressed='true'] {
   background: var(--ink-fg);
   color: var(--ink-bg);
 }

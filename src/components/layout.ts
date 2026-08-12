@@ -1,4 +1,4 @@
-import { boolAttr, define } from '../core/dom';
+import { boolAttr, captureWrap, clampedNumAttr, define } from '../core/dom';
 
 /**
  * @summary Page-level layout container that arranges header, sider, content and footer children.
@@ -37,7 +37,7 @@ export class ELayoutHeader extends HTMLElement {
   connectedCallback() {
     if (this._wired) return;
     this._wired = true;
-    this.innerHTML = `<header class="ink-layout__header">${this.innerHTML}</header>`;
+    captureWrap(this, 'header').className = 'ink-layout__header';
   }
 }
 define('e-layout-header', ELayoutHeader);
@@ -69,7 +69,7 @@ export class ELayoutSider extends HTMLElement {
 
   private _render(): void {
     if (!this._aside) return;
-    const w = `${this.getAttribute('width') || '220'}px`;
+    const w = `${clampedNumAttr(this, 'width', 220, 0, 10000)}px`;
     if (this._aside.style.width !== w) this._aside.style.width = w;
   }
 }
@@ -81,7 +81,7 @@ export class ELayoutContent extends HTMLElement {
   connectedCallback() {
     if (this._wired) return;
     this._wired = true;
-    this.innerHTML = `<main class="ink-layout__content">${this.innerHTML}</main>`;
+    captureWrap(this, 'main').className = 'ink-layout__content';
   }
 }
 define('e-layout-content', ELayoutContent);
@@ -92,7 +92,7 @@ export class ELayoutFooter extends HTMLElement {
   connectedCallback() {
     if (this._wired) return;
     this._wired = true;
-    this.innerHTML = `<footer class="ink-layout__footer">${this.innerHTML}</footer>`;
+    captureWrap(this, 'footer').className = 'ink-layout__footer';
   }
 }
 define('e-layout-footer', ELayoutFooter);

@@ -18,6 +18,9 @@ describe('parseYMD', () => {
     expect(parseYMD(null)).toBeNull();
     expect(parseYMD(undefined)).toBeNull();
     expect(parseYMD('not-a-date')).toBeNull();
+    expect(parseYMD('2026-2-03')).toBeNull();
+    expect(parseYMD('2026-02-31')).toBeNull();
+    expect(parseYMD('2026-13-01')).toBeNull();
   });
 
   it('parses a normal day', () => {

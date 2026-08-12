@@ -1,4 +1,11 @@
-import { define, numAttr, patchAttr, patchClassModifier, patchText } from '../core/dom';
+import {
+  clampedNumAttr,
+  define,
+  intAttr,
+  patchAttr,
+  patchClassModifier,
+  patchText,
+} from '../core/dom';
 
 /**
  * @summary User avatar with image or initials fallback.
@@ -15,6 +22,7 @@ export class EAvatar extends HTMLElement {
   static observedAttributes = ['name', 'src', 'size', 'shape'];
 
   private _wrap: HTMLElement | null = null;
+  private _failedSrc: string | null = null;
 
   connectedCallback() {
     if (!this._wrap) {
@@ -27,7 +35,8 @@ export class EAvatar extends HTMLElement {
     this._render();
   }
 
-  attributeChangedCallback() {
+  attributeChangedCallback(name: string) {
+    if (name === 'src') this._failedSrc = null;
     if (this._wrap) this._render();
   }
 
@@ -35,7 +44,7 @@ export class EAvatar extends HTMLElement {
     const wrap = this._wrap!;
     const name = this.getAttribute('name') || '?';
     const src = this.getAttribute('src');
-    const size = numAttr(this, 'size', 40);
+    const size = clampedNumAttr(this, 'size', 40, 8, 512);
     const shape = this.getAttribute('shape') === 'circle' ? 'circle' : null;
     patchClassModifier(wrap, 'ink-avatar--', shape);
     patchAttr(wrap, 'aria-label', name);
@@ -44,12 +53,13 @@ export class EAvatar extends HTMLElement {
     if (wrap.style.width !== px) wrap.style.width = px;
     if (wrap.style.height !== px) wrap.style.height = px;
     if (wrap.style.fontSize !== fs) wrap.style.fontSize = fs;
-    if (src) {
+    if (src && src !== this._failedSrc) {
       let img = wrap.querySelector<HTMLImageElement>('img');
       if (!img) {
         wrap.textContent = '';
         img = document.createElement('img');
         img.alt = '';
+        img.addEventListener('error', this._onImageError);
         wrap.appendChild(img);
       }
       patchAttr(img, 'src', src);
@@ -65,6 +75,11 @@ export class EAvatar extends HTMLElement {
       patchText(wrap, initials);
     }
   }
+
+  private _onImageError = (): void => {
+    this._failedSrc = this.getAttribute('src');
+    this._render();
+  };
 }
 define('e-avatar', EAvatar);
 
@@ -108,8 +123,8 @@ export class EAvatarGroup extends HTMLElement {
   }
 
   private _build(): void {
-    const max = numAttr(this, 'max', 4);
-    const size = numAttr(this, 'size', 36);
+    const max = Math.max(0, Math.min(this._avatarData.length, intAttr(this, 'max', 4)));
+    const size = clampedNumAttr(this, 'size', 36, 8, 512);
     const overflow = this._avatarData.length - max;
     const visible = this._avatarData.slice(0, max);
 
@@ -135,7 +150,7 @@ export class EAvatarGroup extends HTMLElement {
   }
 
   private _patchSize(): void {
-    const size = numAttr(this, 'size', 36);
+    const size = clampedNumAttr(this, 'size', 36, 8, 512);
     for (const el of this._avatarEls) {
       el.setAttribute('size', String(size));
     }
@@ -146,8 +161,8 @@ export class EAvatarGroup extends HTMLElement {
   }
 
   private _patchMax(): void {
-    const max = numAttr(this, 'max', 4);
-    const size = numAttr(this, 'size', 36);
+    const max = Math.max(0, Math.min(this._avatarData.length, intAttr(this, 'max', 4)));
+    const size = clampedNumAttr(this, 'size', 36, 8, 512);
     const group = this._group!;
 
     // Remove excess avatars from the end.

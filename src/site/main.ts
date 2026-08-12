@@ -17,7 +17,10 @@ import '../components/statistic';
 import '../components/title';
 import '../components/text';
 import '../components/icon';
-import './pager';
+// Imported as a value, not just for its side effect: `wireChrome()` needs the
+// class at runtime for the `instanceof` guard below, which also stops the
+// bundler from eliding the module and leaving <e-site-pager> unregistered.
+import { ESitePager } from './pager';
 import { esc } from '../core/dom';
 import {
   CALENDAR_EVENTS,
@@ -306,9 +309,16 @@ function renderCommunity(host: HTMLElement): void {
  * Site chrome wiring (header anchor list, footer pagination, fab, pager)
  * --------------------------------------------------------------------- */
 function wireChrome(): void {
-  const pager = $('#site-pager');
+  const pager = $<ESitePager>('#site-pager');
   const nav = $('#site-nav');
-  if (!pager) return;
+  if (!(pager instanceof ESitePager)) return;
+
+  // The header Storybook link is static markup (it has to survive first
+  // paint), so its href points at the dev server until the build-time base
+  // is known here.
+  for (const a of document.querySelectorAll<HTMLAnchorElement>('a[data-storybook-link]')) {
+    a.href = STORYBOOK_BASE;
+  }
 
   // Pager → nav
   pager.addEventListener('e-page', (e) => {
@@ -329,7 +339,7 @@ function wireChrome(): void {
     if (!a) return;
     e.preventDefault();
     const page = Number(a.dataset['page']);
-    (pager as unknown as { goto(p: number): void }).goto(page);
+    pager.goto(page);
   });
 
   // Cover CTAs — pre-rendered as native <button>, then upgraded to
@@ -338,7 +348,7 @@ function wireChrome(): void {
   const ctaStart = document.getElementById('cta-start');
   const ctaGithub = document.getElementById('cta-github');
   ctaStart?.addEventListener('click', () => {
-    (pager as unknown as { goto(p: number): void }).goto(5);
+    pager.goto(5);
   });
   ctaGithub?.addEventListener('click', () => {
     window.open('https://github.com/marcomattes/epaper-components', '_blank', 'noopener');

@@ -1,4 +1,4 @@
-import { define, esc, numAttr } from '../core/dom';
+import { clampedNumAttr, define, esc } from '../core/dom';
 
 /**
  * @summary Repeating background watermark for the host's content area.
@@ -50,11 +50,11 @@ export class EWatermark extends HTMLElement {
   private _apply(): void {
     if (!this._layer) return;
     const text = this.getAttribute('content') || '';
-    const fs = Math.max(8, numAttr(this, 'font-size', 16));
-    const gx = Math.max(20, numAttr(this, 'gap-x', 120));
-    const gy = Math.max(20, numAttr(this, 'gap-y', 80));
-    const rot = numAttr(this, 'rotate', -22);
-    const op = Math.min(1, Math.max(0, Number(this.getAttribute('opacity') ?? 0.18)));
+    const fs = clampedNumAttr(this, 'font-size', 16, 8, 512);
+    const gx = clampedNumAttr(this, 'gap-x', 120, 20, 10000);
+    const gy = clampedNumAttr(this, 'gap-y', 80, 20, 10000);
+    const rot = clampedNumAttr(this, 'rotate', -22, -360, 360);
+    const op = clampedNumAttr(this, 'opacity', 0.18, 0, 1);
     if (!text) {
       this._layer.style.backgroundImage = '';
       return;

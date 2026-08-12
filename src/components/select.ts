@@ -1,4 +1,4 @@
-import { define, esc, onGlobal, patchText, runCleanups } from '../core/dom';
+import { addCleanup, define, esc, onGlobal, patchText, randId, runCleanups } from '../core/dom';
 import { ICONS, iconSvg } from '../core/icons';
 import { BaseFormControl } from '../core/base-form-control';
 
@@ -33,21 +33,22 @@ export class ESelect extends BaseFormControl {
   private _placeholder = 'Select…';
 
   connectedCallback() {
-    if (this._wired) return;
-    this._wired = true;
-    this._placeholder = this.getAttribute('placeholder') || 'Select…';
-    const value = this.getAttribute('value') ?? '';
-    this._opts = [...this.querySelectorAll('e-option')].map((o) => ({
-      value: o.getAttribute('value') ?? '',
-      label: o.getAttribute('label') || o.textContent || '',
-    }));
-    const current = this._opts.find((o) => o.value === value);
-    this.innerHTML = `<div class="ink-select">
-      <button type="button" class="ink-select__trigger" aria-haspopup="listbox" aria-expanded="false">
+    if (!this._wired) {
+      this._wired = true;
+      this._placeholder = this.getAttribute('placeholder') || 'Select…';
+      const value = this.getAttribute('value') ?? '';
+      const menuId = randId('ink-select-listbox');
+      this._opts = [...this.querySelectorAll('e-option')].map((o) => ({
+        value: o.getAttribute('value') ?? '',
+        label: o.getAttribute('label') || o.textContent || '',
+      }));
+      const current = this._opts.find((o) => o.value === value);
+      this.innerHTML = `<div class="ink-select">
+      <button type="button" class="ink-select__trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="${esc(menuId)}">
         <span data-current>${esc(current ? current.label : this._placeholder)}</span>
         ${iconSvg('chevD', 18)}
       </button>
-      <ul class="ink-select__menu" role="listbox" hidden>
+      <ul id="${esc(menuId)}" class="ink-select__menu" role="listbox" hidden>
         ${this._opts
           .map(
             (o) => `<li class="ink-select__option" role="option"
@@ -60,93 +61,99 @@ export class ESelect extends BaseFormControl {
       </ul>
     </div>`;
 
-    this._trigger = this.querySelector('.ink-select__trigger');
-    this._menu = this.querySelector('.ink-select__menu');
-    this._triggerLabel = this._trigger!.querySelector<HTMLElement>('[data-current]');
-    this._chevPath = this._trigger!.querySelector<SVGPathElement>('svg path');
-    this._optEls = [...this._menu!.querySelectorAll<HTMLElement>('.ink-select__option')];
-    this._value = value;
-    this.internals.setFormValue(value);
+      this._trigger = this.querySelector('.ink-select__trigger');
+      this._menu = this.querySelector('.ink-select__menu');
+      this._triggerLabel = this._trigger!.querySelector<HTMLElement>('[data-current]');
+      this._chevPath = this._trigger!.querySelector<SVGPathElement>('svg path');
+      this._optEls = [...this._menu!.querySelectorAll<HTMLElement>('.ink-select__option')];
+      this._value = value;
+      this.internals.setFormValue(value);
 
-    // Cache the initially-selected option element.
-    const selIdx = this._opts.findIndex((o) => o.value === value);
-    this._selectedEl = selIdx >= 0 ? (this._optEls[selIdx] ?? null) : null;
+      // Cache the initially-selected option element.
+      const selIdx = this._opts.findIndex((o) => o.value === value);
+      this._selectedEl = selIdx >= 0 ? (this._optEls[selIdx] ?? null) : null;
 
-    for (const opt of this._optEls) {
-      opt.tabIndex = opt.getAttribute('aria-selected') === 'true' ? 0 : -1;
+      for (const opt of this._optEls) {
+        opt.tabIndex = opt.getAttribute('aria-selected') === 'true' ? 0 : -1;
+      }
     }
 
-    const setOpen = (v: boolean) => {
-      this._menu!.hidden = !v;
-      this._trigger!.setAttribute('aria-expanded', String(v));
-      if (this._chevPath) this._chevPath.setAttribute('d', v ? ICONS.chevU : ICONS.chevD);
-    };
-
-    const focusOption = (idx: number): void => {
-      if (this._optEls.length === 0) return;
-      const i = ((idx % this._optEls.length) + this._optEls.length) % this._optEls.length;
-      const target = this._optEls[i];
-      if (!target) return;
-      for (const o of this._optEls) o.tabIndex = -1;
-      target.tabIndex = 0;
-      target.focus();
-    };
-
-    const selectOption = (v: string): void => {
-      this.setAttribute('value', v);
-      setOpen(false);
-      this.dispatchEvent(new CustomEvent('e-change', { detail: { value: v }, bubbles: true }));
-      this._trigger!.focus();
-    };
-
-    this._trigger!.addEventListener('click', () => setOpen(!!this._menu!.hidden));
-    this._trigger!.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-        e.preventDefault();
-        setOpen(true);
-        const cur = this._optEls.findIndex((o) => o.getAttribute('aria-selected') === 'true');
-        const start = cur >= 0 ? cur : e.key === 'ArrowDown' ? 0 : this._optEls.length - 1;
-        focusOption(start);
-      }
-    });
-    this._menu!.addEventListener('click', (e) => {
-      const opt = (e.target as Element).closest<HTMLElement>('.ink-select__option');
-      if (!opt) return;
-      selectOption(opt.dataset['value'] ?? '');
-    });
-    this._menu!.addEventListener('keydown', (e) => {
-      if (this._menu!.hidden) return;
-      const cur = this._optEls.indexOf(document.activeElement as HTMLElement);
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        focusOption(cur < 0 ? 0 : cur + 1);
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        focusOption(cur < 0 ? this._optEls.length - 1 : cur - 1);
-      } else if (e.key === 'Home') {
-        e.preventDefault();
-        focusOption(0);
-      } else if (e.key === 'End') {
-        e.preventDefault();
-        focusOption(this._optEls.length - 1);
-      } else if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        const focused = document.activeElement as HTMLElement | null;
-        if (focused?.classList.contains('ink-select__option')) {
-          selectOption(focused.dataset['value'] ?? '');
-        }
-      }
+    this._trigger!.addEventListener('click', this._onTriggerClick);
+    this._trigger!.addEventListener('keydown', this._onTriggerKeydown);
+    this._menu!.addEventListener('click', this._onMenuClick);
+    this._menu!.addEventListener('keydown', this._onMenuKeydown);
+    addCleanup(this, () => {
+      this._trigger?.removeEventListener('click', this._onTriggerClick);
+      this._trigger?.removeEventListener('keydown', this._onTriggerKeydown);
+      this._menu?.removeEventListener('click', this._onMenuClick);
+      this._menu?.removeEventListener('keydown', this._onMenuKeydown);
     });
     onGlobal(this, document, 'mousedown', (e) => {
-      if (!this.contains(e.target as Node)) setOpen(false);
+      if (!this.contains(e.target as Node)) this._setOpen(false);
     });
     onGlobal(this, document, 'keydown', (e) => {
       if (e.key === 'Escape' && !this._menu!.hidden && this.contains(document.activeElement)) {
-        setOpen(false);
+        this._setOpen(false);
         this._trigger!.focus();
       }
     });
   }
+
+  private _setOpen(open: boolean): void {
+    if (!this._menu || !this._trigger) return;
+    this._menu.hidden = !open;
+    this._trigger.setAttribute('aria-expanded', String(open));
+    if (this._chevPath) this._chevPath.setAttribute('d', open ? ICONS.chevU : ICONS.chevD);
+  }
+
+  private _focusOption(index: number): void {
+    if (this._optEls.length === 0) return;
+    const normalized = ((index % this._optEls.length) + this._optEls.length) % this._optEls.length;
+    const target = this._optEls[normalized];
+    if (!target) return;
+    for (const option of this._optEls) option.tabIndex = -1;
+    target.tabIndex = 0;
+    target.focus();
+  }
+
+  private _selectOption(value: string): void {
+    this.setAttribute('value', value);
+    this._setOpen(false);
+    this.dispatchEvent(new CustomEvent('e-change', { detail: { value }, bubbles: true }));
+    this._trigger?.focus();
+  }
+
+  private _onTriggerClick = (): void => this._setOpen(!!this._menu?.hidden);
+
+  private _onTriggerKeydown = (e: KeyboardEvent): void => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    this._setOpen(true);
+    const current = this._optEls.findIndex((o) => o.getAttribute('aria-selected') === 'true');
+    this._focusOption(current >= 0 ? current : e.key === 'ArrowDown' ? 0 : this._optEls.length - 1);
+  };
+
+  private _onMenuClick = (e: Event): void => {
+    const option = (e.target as Element).closest<HTMLElement>('.ink-select__option');
+    if (option) this._selectOption(option.dataset['value'] ?? '');
+  };
+
+  private _onMenuKeydown = (e: KeyboardEvent): void => {
+    if (this._menu?.hidden) return;
+    const current = this._optEls.indexOf(document.activeElement as HTMLElement);
+    if (e.key === 'ArrowDown') this._focusOption(current < 0 ? 0 : current + 1);
+    else if (e.key === 'ArrowUp')
+      this._focusOption(current < 0 ? this._optEls.length - 1 : current - 1);
+    else if (e.key === 'Home') this._focusOption(0);
+    else if (e.key === 'End') this._focusOption(this._optEls.length - 1);
+    else if (e.key === 'Enter' || e.key === ' ') {
+      const focused = document.activeElement as HTMLElement | null;
+      if (focused?.classList.contains('ink-select__option')) {
+        this._selectOption(focused.dataset['value'] ?? '');
+      }
+    } else return;
+    e.preventDefault();
+  };
 
   disconnectedCallback() {
     runCleanups(this);
@@ -170,6 +177,7 @@ export class ESelect extends BaseFormControl {
     // Deselect previous — only touch the old element.
     if (this._selectedEl) {
       this._selectedEl.setAttribute('aria-selected', 'false');
+      this._selectedEl.tabIndex = -1;
       this._selectedEl.querySelector('svg')?.remove();
     }
     // Select new — only touch the new element.
@@ -177,6 +185,7 @@ export class ESelect extends BaseFormControl {
     const newEl = newIdx >= 0 ? (this._optEls[newIdx] ?? null) : null;
     if (newEl) {
       newEl.setAttribute('aria-selected', 'true');
+      newEl.tabIndex = 0;
       if (!newEl.querySelector('svg')) newEl.insertAdjacentHTML('beforeend', iconSvg('check', 16));
     }
     this._selectedEl = newEl;

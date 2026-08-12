@@ -1,4 +1,4 @@
-import { define, esc, numAttr, patchAttr, patchText } from '../core/dom';
+import { clampedNumAttr, define, patchAttr, patchText } from '../core/dom';
 
 /**
  * @summary KPI block with a large numeric value, label and optional trend arrow.
@@ -29,6 +29,9 @@ export class EStatistic extends HTMLElement {
   private _prefixEl: HTMLElement | null = null;
   private _suffixEl: HTMLElement | null = null;
   private _trendEl: HTMLElement | null = null;
+  private _trendArrow: HTMLElement | null = null;
+  private _trendDelta: HTMLElement | null = null;
+  private _trendA11y: HTMLElement | null = null;
 
   connectedCallback() {
     if (this._wired) return;
@@ -38,7 +41,11 @@ export class EStatistic extends HTMLElement {
       <div class="ink-statistic__row">
         <span class="ink-statistic__prefix"></span><span class="ink-statistic__value"></span><span class="ink-statistic__suffix"></span>
       </div>
-      <div class="ink-statistic__trend" hidden></div>
+      <div class="ink-statistic__trend" hidden>
+        <span class="ink-statistic__arrow" aria-hidden="true"></span>
+        <span class="ink-statistic__delta"></span>
+        <span class="sr-only"></span>
+      </div>
     </div>`;
     this._root = this.firstElementChild as HTMLElement;
     this._labelEl = this._root.querySelector('.ink-statistic__label');
@@ -46,6 +53,9 @@ export class EStatistic extends HTMLElement {
     this._prefixEl = this._root.querySelector('.ink-statistic__prefix');
     this._suffixEl = this._root.querySelector('.ink-statistic__suffix');
     this._trendEl = this._root.querySelector('.ink-statistic__trend');
+    this._trendArrow = this._root.querySelector('.ink-statistic__arrow');
+    this._trendDelta = this._root.querySelector('.ink-statistic__delta');
+    this._trendA11y = this._root.querySelector('.sr-only');
     patchAttr(this, 'role', 'group');
     this._render();
   }
@@ -59,7 +69,7 @@ export class EStatistic extends HTMLElement {
     if (raw == null) return '';
     const num = Number(raw);
     if (raw.trim() !== '' && Number.isFinite(num) && this.hasAttribute('precision')) {
-      return num.toFixed(Math.max(0, numAttr(this, 'precision', 0)));
+      return num.toFixed(clampedNumAttr(this, 'precision', 0, 0, 100));
     }
     return raw;
   }
@@ -89,10 +99,9 @@ export class EStatistic extends HTMLElement {
         const dir = trend === 'up' || trend === 'down' || trend === 'flat' ? trend : 'flat';
         patchAttr(this._trendEl, 'data-trend', dir);
         const a11y = dir === 'up' ? 'increased by' : dir === 'down' ? 'decreased by' : 'unchanged';
-        this._trendEl.innerHTML =
-          `<span class="ink-statistic__arrow" aria-hidden="true">${esc(arrow)}</span>` +
-          `<span class="ink-statistic__delta">${esc(delta || '')}</span>` +
-          `<span class="sr-only">${a11y}</span>`;
+        if (this._trendArrow) patchText(this._trendArrow, arrow);
+        if (this._trendDelta) patchText(this._trendDelta, delta || '');
+        if (this._trendA11y) patchText(this._trendA11y, a11y);
       }
     }
   }

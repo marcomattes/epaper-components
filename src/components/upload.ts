@@ -1,4 +1,4 @@
-import { boolAttr, define, esc } from '../core/dom';
+import { addCleanup, boolAttr, define, esc, runCleanups } from '../core/dom';
 import { iconSvg } from '../core/icons';
 import { BaseFormControl } from '../core/base-form-control';
 
@@ -22,23 +22,23 @@ import { BaseFormControl } from '../core/base-form-control';
  * <e-upload accept=".pdf,.png" multiple name="docs"></e-upload>
  */
 export class EUpload extends BaseFormControl<File[]> {
-  static observedAttributes = ['accept', 'multiple'];
+  static observedAttributes = ['accept', 'multiple', 'max-size', 'max-files'];
 
   private _wired = false;
   private _hint: HTMLElement | null = null;
   private _input: HTMLInputElement | null = null;
   private _list: HTMLElement | null = null;
+  private _drop: HTMLElement | null = null;
   protected override _value: File[] = [];
 
   connectedCallback() {
-    if (this._wired) return;
-    this._wired = true;
-    const accept = this.getAttribute('accept') || '';
-    const multiple = boolAttr(this, 'multiple');
-    this._value = [];
-    this.innerHTML = `
+    if (!this._wired) {
+      this._wired = true;
+      const accept = this.getAttribute('accept') || '';
+      const multiple = boolAttr(this, 'multiple');
+      this.innerHTML = `
       <div>
-        <div class="ink-upload" tabindex="0">
+        <div class="ink-upload" role="button" tabindex="0" aria-label="Choose files">
           ${iconSvg('upload', 28)}
           <div class="ink-upload__title">Drop files here or click to upload</div>
           <div class="ink-upload__hint">${accept ? `ACCEPTS · ${esc(accept.toUpperCase())}` : 'ANY FILE TYPE'}</div>
@@ -46,43 +46,33 @@ export class EUpload extends BaseFormControl<File[]> {
         </div>
         <ul class="ink-upload__list" hidden></ul>
       </div>`;
-    const drop = this.querySelector<HTMLElement>('.ink-upload')!;
-    const input = this.querySelector<HTMLInputElement>('input[type="file"]')!;
-    const list = this.querySelector<HTMLElement>('.ink-upload__list')!;
-    this._hint = this.querySelector<HTMLElement>('.ink-upload__hint');
-    this._input = input;
-    this._list = list;
+      this._drop = this.querySelector<HTMLElement>('.ink-upload');
+      this._input = this.querySelector<HTMLInputElement>('input[type="file"]');
+      this._list = this.querySelector<HTMLElement>('.ink-upload__list');
+      this._hint = this.querySelector<HTMLElement>('.ink-upload__hint');
+      this._rebuildList();
+    }
     this._syncFormValue();
+    this._drop?.addEventListener('click', this._onDropClick);
+    this._drop?.addEventListener('keydown', this._onDropKeydown);
+    this._drop?.addEventListener('dragover', this._onDragOver);
+    this._drop?.addEventListener('dragleave', this._onDragLeave);
+    this._drop?.addEventListener('drop', this._onDrop);
+    this._input?.addEventListener('change', this._onInputChange);
+    this._list?.addEventListener('click', this._onListClick);
+    addCleanup(this, () => {
+      this._drop?.removeEventListener('click', this._onDropClick);
+      this._drop?.removeEventListener('keydown', this._onDropKeydown);
+      this._drop?.removeEventListener('dragover', this._onDragOver);
+      this._drop?.removeEventListener('dragleave', this._onDragLeave);
+      this._drop?.removeEventListener('drop', this._onDrop);
+      this._input?.removeEventListener('change', this._onInputChange);
+      this._list?.removeEventListener('click', this._onListClick);
+    });
+  }
 
-    drop.addEventListener('click', () => input.click());
-    drop.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      // Only set once to avoid redundant mutation on every dragover tick.
-      if (drop.dataset['drag'] !== 'true') drop.dataset['drag'] = 'true';
-    });
-    drop.addEventListener('dragleave', () => {
-      drop.dataset['drag'] = 'false';
-    });
-    drop.addEventListener('drop', (e: DragEvent) => {
-      e.preventDefault();
-      drop.dataset['drag'] = 'false';
-      if (e.dataTransfer?.files) this._handleFiles(e.dataTransfer.files);
-    });
-    input.addEventListener('change', (e) => {
-      const files = (e.target as HTMLInputElement).files;
-      if (files) this._handleFiles(files);
-    });
-    list.addEventListener('click', (e) => {
-      const rm = (e.target as Element).closest<HTMLElement>('[data-remove]');
-      if (!rm) return;
-      const idx = Number(rm.dataset['remove']);
-      this._value.splice(idx, 1);
-      rm.closest('li')!.remove();
-      this._rebuildIndices();
-      if (this._value.length === 0) list.hidden = true;
-      this._syncFormValue();
-      this._emitChange();
-    });
+  disconnectedCallback() {
+    runCleanups(this);
   }
 
   attributeChangedCallback(name: string, _old: string | null, v: string | null) {
@@ -94,7 +84,16 @@ export class EUpload extends BaseFormControl<File[]> {
       this._hint.textContent = accept ? `ACCEPTS · ${accept.toUpperCase()}` : 'ANY FILE TYPE';
     } else if (name === 'multiple') {
       if (boolAttr(this, 'multiple')) this._input.setAttribute('multiple', '');
-      else this._input.removeAttribute('multiple');
+      else {
+        this._input.removeAttribute('multiple');
+        if (this._value.length > 1) {
+          this._value = this._value.slice(0, 1);
+          this._rebuildList();
+          this._syncFormValue();
+        }
+      }
+    } else {
+      this._validate(this._value);
     }
   }
 
@@ -110,7 +109,9 @@ export class EUpload extends BaseFormControl<File[]> {
     return this._value;
   }
   override set value(v: File[]) {
-    this._value = Array.isArray(v) ? [...v] : [];
+    const next = Array.isArray(v) ? [...v] : [];
+    if (!this._validate(next)) return;
+    this._value = boolAttr(this, 'multiple') ? next : next.slice(0, 1);
     this._rebuildList();
     this._syncFormValue();
   }
@@ -254,6 +255,48 @@ export class EUpload extends BaseFormControl<File[]> {
       new CustomEvent('e-change', { detail: { files: this._value }, bubbles: true }),
     );
   }
+
+  private _onDropClick = (e: Event): void => {
+    if (e.target !== this._input) this._input?.click();
+  };
+
+  private _onDropKeydown = (e: KeyboardEvent): void => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    this._input?.click();
+  };
+
+  private _onDragOver = (e: DragEvent): void => {
+    e.preventDefault();
+    if (this._drop?.dataset['drag'] !== 'true' && this._drop) this._drop.dataset['drag'] = 'true';
+  };
+
+  private _onDragLeave = (): void => {
+    if (this._drop) this._drop.dataset['drag'] = 'false';
+  };
+
+  private _onDrop = (e: DragEvent): void => {
+    e.preventDefault();
+    if (this._drop) this._drop.dataset['drag'] = 'false';
+    if (e.dataTransfer?.files) this._handleFiles(e.dataTransfer.files);
+  };
+
+  private _onInputChange = (): void => {
+    if (this._input?.files) this._handleFiles(this._input.files);
+  };
+
+  private _onListClick = (e: Event): void => {
+    const remove = (e.target as Element).closest<HTMLElement>('[data-remove]');
+    if (!remove || !this._list?.contains(remove)) return;
+    const index = Number(remove.dataset['remove']);
+    this._value.splice(index, 1);
+    remove.closest('li')?.remove();
+    this._rebuildIndices();
+    if (this._value.length === 0) this._list.hidden = true;
+    this._syncFormValue();
+    this.internals.setValidity({});
+    this._emitChange();
+  };
 }
 
 define('e-upload', EUpload);

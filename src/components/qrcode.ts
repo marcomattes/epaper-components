@@ -1,4 +1,4 @@
-import { define, esc, numAttr } from '../core/dom';
+import { define, esc, intAttr } from '../core/dom';
 
 /* ============================================================================
  * Self-contained QR Code encoder (byte mode).
@@ -524,8 +524,8 @@ export class EQrcode extends HTMLElement {
     const value = this.getAttribute('value') || '';
     const lvl = (this.getAttribute('level') || 'M').toUpperCase();
     const ecl: Ecl = lvl === 'L' || lvl === 'Q' || lvl === 'H' ? (lvl as Ecl) : 'M';
-    const scale = Math.max(1, numAttr(this, 'scale', 4));
-    const border = Math.max(0, numAttr(this, 'border', 2));
+    const scale = Math.max(1, Math.min(64, intAttr(this, 'scale', 4)));
+    const border = Math.max(0, Math.min(64, intAttr(this, 'border', 2)));
 
     if (!value) {
       const html = `<div class="ink-qrcode__empty" role="img" aria-label="Empty QR code">${esc('—')}</div>`;

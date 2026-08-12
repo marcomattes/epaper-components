@@ -1,4 +1,4 @@
-import { define, esc, patchAttr } from '../core/dom';
+import { define, patchAttr } from '../core/dom';
 import { iconSvg } from '../core/icons';
 
 /**
@@ -35,9 +35,9 @@ export class EFloatButton extends HTMLElement {
       this._icon = icon;
       // Icon SVG swap is unavoidable; update only the button's content, not the host.
       btn.innerHTML = iconSvg(icon, 24);
-      patchAttr(btn, 'aria-label', esc(label || icon));
+      patchAttr(btn, 'aria-label', label || icon);
     } else if (name === 'label') {
-      patchAttr(btn, 'aria-label', esc(label || icon));
+      patchAttr(btn, 'aria-label', label || icon);
     } else if (name === 'primary') {
       btn.classList.toggle('ink-fab--secondary', !primary);
     }
@@ -52,7 +52,7 @@ export class EFloatButton extends HTMLElement {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'ink-fab' + (primary ? '' : ' ink-fab--secondary');
-    btn.setAttribute('aria-label', esc(label || icon));
+    btn.setAttribute('aria-label', label || icon);
     btn.innerHTML = iconSvg(icon, 24);
     this._btn = btn;
     this.replaceChildren(btn);
@@ -64,6 +64,7 @@ define('e-float-button', EFloatButton);
  * @summary Cluster of floating action buttons rendered from `<e-fab-item>` children.
  *
  * @attr {'horizontal'|'vertical'} [orientation='vertical'] - Stacking direction.
+ * @fires {CustomEvent<{index: number, value: string}>} e-select - Fired when a group action is activated.
  *
  * @example
  * <e-float-button-group orientation="horizontal">
@@ -94,6 +95,7 @@ export class EFloatButtonGroup extends HTMLElement {
     const items = [...this.querySelectorAll('e-fab-item')].map((it) => ({
       icon: it.getAttribute('icon') || 'plus',
       label: it.getAttribute('label'),
+      value: it.getAttribute('value') || it.getAttribute('label') || '',
     }));
 
     const group = document.createElement('div');
@@ -101,13 +103,25 @@ export class EFloatButtonGroup extends HTMLElement {
     for (const it of items) {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.setAttribute('aria-label', esc(it.label || it.icon));
+      btn.setAttribute('aria-label', it.label || it.icon);
+      btn.dataset['index'] = String(group.children.length);
+      btn.dataset['value'] = it.value;
       btn.innerHTML = iconSvg(it.icon, 22);
       group.appendChild(btn);
     }
 
     this._group = group;
     this.appendChild(group);
+    group.addEventListener('click', (event) => {
+      const button = (event.target as Element).closest<HTMLButtonElement>('button[data-index]');
+      if (!button) return;
+      this.dispatchEvent(
+        new CustomEvent('e-select', {
+          detail: { index: Number(button.dataset['index']), value: button.dataset['value'] ?? '' },
+          bubbles: true,
+        }),
+      );
+    });
   }
 }
 define('e-float-button-group', EFloatButtonGroup);
@@ -119,6 +133,7 @@ define('e-float-button-group', EFloatButtonGroup);
  *
  * @attr {string} [icon='plus'] - Icon name.
  * @attr {string} [label] - Accessible label.
+ * @attr {string} [value] - Value emitted by the parent group's `e-select` event.
  *
  * @example
  * <e-fab-item icon="plus" label="Add"></e-fab-item>

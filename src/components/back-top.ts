@@ -1,4 +1,4 @@
-import { define, esc, numAttr, onGlobal, patchAttr, runCleanups } from '../core/dom';
+import { addCleanup, define, esc, numAttr, onGlobal, patchAttr, runCleanups } from '../core/dom';
 import { iconSvg } from '../core/icons';
 
 /**
@@ -24,39 +24,22 @@ export class EBackTop extends HTMLElement {
   private _wired = false;
   private _btn: HTMLButtonElement | null = null;
   private _scrollTarget: HTMLElement | Window = window;
+  private _removeScrollListener: (() => void) | null = null;
 
   connectedCallback() {
-    if (this._wired) return;
-    this._wired = true;
-    const label = this.getAttribute('label') || 'Back to top';
-    this.innerHTML = `<button type="button" class="ink-back-top" hidden aria-label="${esc(label)}">
+    if (!this._wired) {
+      this._wired = true;
+      const label = this.getAttribute('label') || 'Back to top';
+      this.innerHTML = `<button type="button" class="ink-back-top" hidden aria-label="${esc(label)}">
       ${iconSvg('arrowU', 22)}
     </button>`;
-    this._btn = this.firstElementChild as HTMLButtonElement;
-    this._btn.addEventListener('click', () => {
-      const y = this._scrollY();
-      const t = this._scrollTarget;
-      if (t === window) window.scrollTo({ top: 0 });
-      else (t as HTMLElement).scrollTop = 0;
-      this.dispatchEvent(
-        new CustomEvent('e-click', {
-          detail: { value: y },
-          bubbles: true,
-          composed: true,
-        }),
-      );
-    });
-    this._resolveTarget();
-    this._update();
-    if (this._scrollTarget === window) {
-      onGlobal(this, window, 'scroll', this._update, { passive: true });
-    } else {
-      const el = this._scrollTarget as HTMLElement;
-      const handler = this._update;
-      el.addEventListener('scroll', handler, { passive: true });
-      // Register removal under the cleanup registry.
-      onGlobal(this, window, 'beforeunload', () => el.removeEventListener('scroll', handler));
+      this._btn = this.firstElementChild as HTMLButtonElement;
     }
+    this._btn?.addEventListener('click', this._onClick);
+    addCleanup(this, () => this._btn?.removeEventListener('click', this._onClick));
+    this._resolveTarget();
+    this._bindScrollTarget();
+    this._update();
   }
 
   attributeChangedCallback(name: string) {
@@ -65,6 +48,7 @@ export class EBackTop extends HTMLElement {
       patchAttr(this._btn, 'aria-label', this.getAttribute('label') || 'Back to top');
     } else if (name === 'target') {
       this._resolveTarget();
+      if (this.isConnected) this._bindScrollTarget();
       this._update();
     } else if (name === 'visibility-height') {
       this._update();
@@ -78,12 +62,43 @@ export class EBackTop extends HTMLElement {
   private _resolveTarget(): void {
     const sel = this.getAttribute('target');
     if (sel) {
-      const el = document.querySelector<HTMLElement>(sel);
-      this._scrollTarget = el || window;
+      try {
+        this._scrollTarget = document.querySelector<HTMLElement>(sel) || window;
+      } catch {
+        this._scrollTarget = window;
+      }
     } else {
       this._scrollTarget = window;
     }
   }
+
+  private _bindScrollTarget(): void {
+    this._removeScrollListener?.();
+    const target = this._scrollTarget;
+    if (target === window) {
+      this._removeScrollListener = onGlobal(this, window, 'scroll', this._update, {
+        passive: true,
+      });
+    } else {
+      target.addEventListener('scroll', this._update, { passive: true });
+      const remove = (): void => target.removeEventListener('scroll', this._update);
+      addCleanup(this, remove);
+      this._removeScrollListener = remove;
+    }
+  }
+
+  private _onClick = (): void => {
+    const y = this._scrollY();
+    if (this._scrollTarget === window) window.scrollTo({ top: 0 });
+    else (this._scrollTarget as HTMLElement).scrollTop = 0;
+    this.dispatchEvent(
+      new CustomEvent('e-click', {
+        detail: { value: y },
+        bubbles: true,
+        composed: true,
+      }),
+    );
+  };
 
   private _scrollY(): number {
     const t = this._scrollTarget;
@@ -92,7 +107,7 @@ export class EBackTop extends HTMLElement {
 
   private _update = (): void => {
     if (!this._btn) return;
-    const threshold = numAttr(this, 'visibility-height', 400);
+    const threshold = Math.max(0, numAttr(this, 'visibility-height', 400));
     const visible = this._scrollY() >= threshold;
     patchAttr(this._btn, 'hidden', visible ? null : '');
   };

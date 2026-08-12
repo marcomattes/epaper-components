@@ -1,11 +1,11 @@
-import { boolAttr, define, patchText } from '../core/dom';
+import { boolAttr, define, patchText, randId } from '../core/dom';
 
 /**
  * @summary Form wrapper that intercepts `submit` and re-fires it as `e-submit`.
  *
  * @attr {'inline'} [layout] - Set to `inline` to render fields on one line.
  *
- * @fires {CustomEvent<{form: EventTarget}>} e-submit - Fired when the inner form is submitted; the native submit is `preventDefault`-ed.
+ * @fires {CustomEvent<{form: HTMLFormElement}>} e-submit - Fired when the inner form is submitted; the native submit is `preventDefault`-ed.
  *
  * @example
  * <e-form layout="inline">
@@ -27,9 +27,7 @@ export class EForm extends HTMLElement {
       this._form = form;
       form.addEventListener('submit', (e) => {
         e.preventDefault();
-        this.dispatchEvent(
-          new CustomEvent('e-submit', { detail: { form: e.target }, bubbles: true }),
-        );
+        this.dispatchEvent(new CustomEvent('e-submit', { detail: { form }, bubbles: true }));
       });
     }
     this._render();
@@ -60,10 +58,12 @@ export class EFormItem extends HTMLElement {
 
   private _root: HTMLElement | null = null;
   private _control: HTMLElement | null = null;
-  private _labelEl: HTMLElement | null = null;
+  private _labelEl: HTMLLabelElement | null = null;
   private _requiredPill: HTMLElement | null = null;
   private _hintEl: HTMLElement | null = null;
   private _errorEl: HTMLElement | null = null;
+  private _requiredApplied = false;
+  private _labelApplied = false;
 
   connectedCallback() {
     if (!this._root) {
@@ -148,11 +148,43 @@ export class EFormItem extends HTMLElement {
       this._errorEl = null;
     }
 
-    if (label) {
-      const input = control.querySelector('e-input');
-      if (input && !input.getAttribute('label') && !input.getAttribute('aria-label')) {
-        input.setAttribute('aria-label', label);
-      }
+    this._syncControlSemantics(label, required, error);
+  }
+
+  private _syncControlSemantics(
+    label: string | null,
+    required: boolean,
+    error: string | null,
+  ): void {
+    const control = this._control?.querySelector<HTMLElement>(
+      'e-input, e-textarea, e-select, e-checkbox, e-toggle, e-radio-group, e-checkbox-group, e-date-picker, e-time-picker, e-cascader, e-tree-select, e-input-number, e-upload',
+    );
+    if (!control) return;
+    if (!control.id) control.id = randId('e-field');
+    if (this._labelEl) this._labelEl.htmlFor = control.id;
+
+    if (label && (!control.hasAttribute('aria-label') || this._labelApplied)) {
+      control.setAttribute('aria-label', label);
+      this._labelApplied = true;
+    } else if (!label && this._labelApplied) {
+      control.removeAttribute('aria-label');
+      this._labelApplied = false;
+    }
+
+    if (required && (!control.hasAttribute('required') || this._requiredApplied)) {
+      control.setAttribute('required', '');
+      this._requiredApplied = true;
+    } else if (!required && this._requiredApplied) {
+      control.removeAttribute('required');
+      this._requiredApplied = false;
+    }
+
+    if (error && (control.localName === 'e-input' || control.localName === 'e-textarea')) {
+      control.setAttribute('error', '');
+      control.setAttribute('error-message', error);
+    } else if (control.localName === 'e-input' || control.localName === 'e-textarea') {
+      control.removeAttribute('error');
+      control.removeAttribute('error-message');
     }
   }
 }
