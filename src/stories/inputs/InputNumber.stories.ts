@@ -50,7 +50,7 @@ export const Quantity: Story = {
   render: () => html`
     <div style="display:flex;align-items:center;gap:12px">
       <e-text kind="label" as="span">Quantity</e-text>
-      <e-input-number value="1" min="1" max="99" step="1"></e-input-number>
+      <e-input-number value="1" min="1" max="99" step="1" aria-label="Quantity"></e-input-number>
     </div>
   `,
 };
@@ -100,5 +100,7 @@ export const Unbounded: Story = {
     await userEvent.click(dec);
     expect(input.value).toBe('-2');
   },
-  render: () => html`<e-input-number value="0" step="2"></e-input-number>`,
+  render: () => html`
+    <e-input-number value="0" step="2" aria-label="Unbounded number"></e-input-number>
+  `,
 };

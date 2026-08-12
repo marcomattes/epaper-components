@@ -277,8 +277,8 @@ export class ECalendar extends HTMLElement {
         patchBoolAttr(btn, 'disabled', true);
         btn.removeAttribute('data-day');
         patchAttr(btn, 'aria-selected', null);
-        patchAttr(btn, 'aria-hidden', 'true');
-        patchAttr(btn, 'aria-label', null);
+        patchAttr(btn, 'aria-hidden', null);
+        patchAttr(btn, 'aria-label', 'Outside current month');
         patchAttr(btn, 'data-today', null);
         evContainer.textContent = '';
       } else {

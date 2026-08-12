@@ -113,5 +113,9 @@ export const AttributeChanges: Story = {
     expect(ta.disabled).toBe(true);
     el.removeAttribute('disabled');
     expect(ta.disabled).toBe(false);
+
+    // Keep the final rendered story accessible for Storybook's automatic
+    // post-play axe audit after testing removal and reactivity above.
+    el.setAttribute('aria-label', 'Notes');
   },
 };
