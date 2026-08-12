@@ -14,6 +14,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   and `update` installs the published version from the registry, registers the
   elements in jsdom (`scripts/smoke-test.mjs`), verifies the provenance
   attestation and redeploys the site and Storybook from the tagged source.
+- `npm run bump-version` no longer creates the tag when run off `main`, since
+  `main` requires a pull request and a squash or rebase merge would strand a
+  tag created on the branch. It prints the post-merge tagging steps instead.
 
 ## [1.0.1] — 2026-08-12
 
