@@ -12,10 +12,11 @@ reports/
 test-results/
 playwright-report/
 
-# OS / editor cruft
+# OS / editor cruft 
 .DS_Store
 Thumbs.db
 *.log
 
 # Internal working notes — not part of the published source
 Review.md
+.claude/
