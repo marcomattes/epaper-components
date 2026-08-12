@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
   pull_request:
-    branches: [main, master]
+    branches: [main]
   # Called as the checks stage of release.yml, so the release gate and the PR
   # gate are the same definition rather than two copies that drift apart.
   workflow_call: {}
