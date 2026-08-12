@@ -7,8 +7,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [1.0.1] — 2026-08-12
+
 ### Changed
 
+- Releases are now published by `.github/workflows/release.yml`. Every green
+  CI run on `main` publishes a `<next-patch>-dev.<build>` version under the
+  npm `dev` dist-tag (`npm i @marcomattes/epaper-components@dev`), and pushing
+  a `v*` tag publishes `latest` — or `next` for prerelease tags — together
+  with a GitHub Release built from this changelog. Replaces `publish.yml`.
 - Storybook now opens on a new **Introduction** page (`src/stories/Introduction.mdx`)
   covering the e-paper constraints, install, conventions and the component
   inventory. `storySort` lists `Introduction` and `Foundations` ahead of the
@@ -147,5 +154,6 @@ These are intentional V1.0 trade-offs and slated for V1.1:
   the public API for demo purposes; it is not a general-purpose layout
   primitive.
 
-[unreleased]: https://github.com/marcomattes/epaper-components/compare/v1.0.0...HEAD
+[unreleased]: https://github.com/marcomattes/epaper-components/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/marcomattes/epaper-components/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/marcomattes/epaper-components/releases/tag/v1.0.0

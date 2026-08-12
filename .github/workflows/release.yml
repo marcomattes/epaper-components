@@ -1,0 +1,245 @@
+name: Release
+
+# Two npm channels, one workflow file:
+#
+#   CI green on main   → dist-tag `dev`,    version <next-patch>-dev.<run number>
+#   push tag v*        → dist-tag `latest`, version taken from package.json
+#                        (`next` instead, when the tag carries a prerelease part)
+#                        plus a GitHub Release with the CHANGELOG section.
+#
+# Both channels live in this single file on purpose: npm Trusted Publishing
+# binds exactly one workflow filename per package, so a second file could not
+# authenticate. Renaming this file breaks publishing until the npm setting is
+# updated to match.
+#
+# Auth works either way, no edit required:
+#
+#   preferred — npm Trusted Publishing (OIDC, no secret). Configure at
+#     npmjs.com → @marcomattes/epaper-components → Settings → Trusted Publisher
+#     with repository `marcomattes/epaper-components`, workflow `release.yml`,
+#     environment `npm`.
+#   fallback — set an `NPM_TOKEN` repository secret (automation token). The
+#     workflow picks it up automatically and still attaches provenance.
+
+on:
+  push:
+    tags:
+      - "v*"
+  # The dev channel deliberately waits for CI rather than racing it, so a red
+  # test run can never reach npm.
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  # Manual dev publish from main, for testing this workflow without a push.
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+# Tag releases are independent of each other; dev publishes queue up so two
+# pushes cannot stamp the same version.
+concurrency:
+  group: release-${{ github.event_name == 'push' && github.ref_name || 'dev' }}
+  cancel-in-progress: false
+
+jobs:
+  # ---------------------------------------------------------------- dev channel
+  dev:
+    name: Publish dev
+    if: >-
+      github.event_name != 'push' &&
+      github.repository == 'marcomattes/epaper-components' &&
+      (github.event_name == 'workflow_dispatch' ||
+        (github.event.workflow_run.conclusion == 'success' &&
+         github.event.workflow_run.event == 'push'))
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # workflow_run reports the commit CI validated; a manual dispatch has
+          # no such commit and uses the ref it was started from.
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # Without a token npm authenticates via Trusted Publishing (OIDC), which
+      # is the intended path. The secret is only a fallback and may be unset.
+      - name: Configure token auth
+        if: ${{ secrets.NPM_TOKEN != '' }}
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compute dev version
+        id: version
+        run: echo "version=$(node scripts/dev-version.mjs "${{ github.run_number }}")" >> "$GITHUB_OUTPUT"
+
+      - name: Stamp version
+        run: npm version "${{ steps.version.outputs.version }}" --no-git-tag-version
+
+      - name: Build
+        run: npm run build
+
+      - name: Publish
+        run: npm publish --provenance --access public --tag dev
+
+      - name: Summary
+        run: |
+          {
+            echo "### npm \`dev\` publish"
+            echo
+            echo "- Version: \`${{ steps.version.outputs.version }}\`"
+            echo "- Commit: \`${{ github.event.workflow_run.head_sha || github.sha }}\`"
+            echo
+            echo '```sh'
+            echo "npm i @marcomattes/epaper-components@dev"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ------------------------------------------------------------- tag release
+  verify:
+    name: Verify
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    container:
+      # Same image as ci.yml — visual-regression baselines are only valid in it.
+      image: mcr.microsoft.com/playwright:v1.59.1-noble
+      options: --user 1001
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # Fails before the expensive steps when someone tags a commit whose
+      # package.json was never bumped — npm would reject the duplicate anyway.
+      - name: Check tag matches package.json
+        run: |
+          PKG="$(node -p "require('./package.json').version")"
+          if [ "$GITHUB_REF_NAME" != "v$PKG" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $PKG"
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prettier check
+        run: npm run format:check
+
+      - name: Lint
+        run: npm run lint:check
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Tests
+        run: npm run test:ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Size limit
+        run: npm run size
+
+  release:
+    name: Publish release
+    needs: verify
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # See the dev job — Trusted Publishing (OIDC) unless NPM_TOKEN is set.
+      - name: Configure token auth
+        if: ${{ secrets.NPM_TOKEN != '' }}
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
+
+      - name: Resolve channel
+        id: channel
+        run: |
+          PKG="$(node -p "require('./package.json').version")"
+          echo "version=$PKG" >> "$GITHUB_OUTPUT"
+          case "$PKG" in
+            # A prerelease tag must never take over `latest` for real users.
+            *-*)
+              echo "npm-tag=next" >> "$GITHUB_OUTPUT"
+              echo "prerelease=true" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "npm-tag=latest" >> "$GITHUB_OUTPUT"
+              echo "prerelease=false" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Publish
+        run: npm publish --provenance --access public --tag "${{ steps.channel.outputs.npm-tag }}"
+
+      - name: Pack tarball
+        run: npm pack --pack-destination .
+
+      - name: Release notes
+        run: |
+          if ! node scripts/changelog-section.mjs "${{ steps.channel.outputs.version }}" > RELEASE_NOTES.md; then
+            printf 'See [CHANGELOG.md](CHANGELOG.md).\n' > RELEASE_NOTES.md
+          fi
+
+      # Runs after the publish: npm is the release of record, the GitHub Release
+      # only mirrors it. A failure here is re-runnable by hand.
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ steps.channel.outputs.prerelease }}" = "true" ]; then
+            PRERELEASE_FLAG=--prerelease
+          fi
+          gh release create "$GITHUB_REF_NAME" \
+            --title "v${{ steps.channel.outputs.version }}" \
+            --notes-file RELEASE_NOTES.md \
+            ${PRERELEASE_FLAG:-} \
+            ./*.tgz
+
+      - name: Summary
+        run: |
+          {
+            echo "### npm \`${{ steps.channel.outputs.npm-tag }}\` release"
+            echo
+            echo "- Version: \`${{ steps.channel.outputs.version }}\`"
+            echo "- Tag: \`$GITHUB_REF_NAME\`"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -214,6 +214,14 @@ is by design:
 npm install @marcomattes/epaper-components
 ```
 
+Unreleased work is published continuously from `main` under the `dev`
+dist-tag — useful for verifying a fix before it lands in a release, not for
+production:
+
+```sh
+npm install @marcomattes/epaper-components@dev
+```
+
 ## Quick start
 
 EPaper ships **three CSS layers** — tokens, base reset, components. They are

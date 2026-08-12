@@ -128,6 +128,36 @@ component or under `src/components/__tests__/` covering at minimum:
 - `CLAUDE.md` — only update if you change patterns that AI agents should
   follow (hard rules, file conventions). Day-to-day docs go in OVERVIEW.md.
 
+## Releasing
+
+Publishing is automated in `.github/workflows/release.yml`. Never run
+`npm publish` from a laptop — npm authenticates the workflow via Trusted
+Publishing (OIDC), and a local publish would ship without provenance.
+
+**`dev` channel.** Every push to `main` publishes once CI is green, as
+`<next-patch>-dev.<run number>` under the `dev` dist-tag:
+
+```sh
+npm i @marcomattes/epaper-components@dev
+```
+
+The version is stamped inside the job and never committed, so `main` always
+carries the last released version in `package.json`.
+
+**`latest` channel.** Cut a release in three steps:
+
+1. Move the `[Unreleased]` entries in `CHANGELOG.md` into a
+   `## [x.y.z] — YYYY-MM-DD` section. Those lines become the GitHub Release
+   notes verbatim.
+2. `npm run bump-version -- patch|minor|major` — bumps `package.json`, builds,
+   commits and creates the annotated `vx.y.z` tag.
+3. `git push --follow-tags`.
+
+The tag run re-checks formatting, lint, types, tests, build and bundle size
+before publishing, and refuses any tag whose name is not
+`v<package.json version>`. A tag with a prerelease part (`v1.1.0-rc.1`) is
+published under `next` rather than `latest`.
+
 ## Event detail contract
 
 Use `{ value: T }` as the default shape for `e-change`. The following shapes
