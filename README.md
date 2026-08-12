@@ -651,7 +651,9 @@ Pull requests are welcome; see [CONTRIBUTING.md](./CONTRIBUTING.md) for the
 component-author conventions. Before opening one, confirm that
 `npm run lint:check`, `npm run type-check`, `npm run test:ci` and `npm run build`
 pass locally. CI runs the same checks plus Prettier and the size-limit budgets on
-every pull request and on every push to `main`.
+every pull request and on every push to `main`. CodeQL analysis runs alongside
+it through GitHub's code scanning default setup, which is configured in the
+repository settings rather than as a workflow file.
 
 ## Releasing
 

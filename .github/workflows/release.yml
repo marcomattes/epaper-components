@@ -74,11 +74,18 @@ jobs:
 
       # Without a token npm authenticates via Trusted Publishing (OIDC), which
       # is the intended path. The secret is only a fallback and may be unset.
+      # The check has to live in the shell: the `secrets` context is not
+      # available in a step-level `if`, only in `env`.
       - name: Configure token auth
-        if: ${{ secrets.NPM_TOKEN != '' }}
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
+        run: |
+          if [ -n "$NPM_TOKEN" ]; then
+            npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
+            echo "Using NPM_TOKEN for authentication."
+          else
+            echo "No NPM_TOKEN set — publishing via Trusted Publishing (OIDC)."
+          fi
 
       - name: Install dependencies
         run: npm ci
@@ -180,10 +187,15 @@ jobs:
 
       # See the dev job — Trusted Publishing (OIDC) unless NPM_TOKEN is set.
       - name: Configure token auth
-        if: ${{ secrets.NPM_TOKEN != '' }}
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
+        run: |
+          if [ -n "$NPM_TOKEN" ]; then
+            npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
+            echo "Using NPM_TOKEN for authentication."
+          else
+            echo "No NPM_TOKEN set — publishing via Trusted Publishing (OIDC)."
+          fi
 
       - name: Resolve channel
         id: channel
