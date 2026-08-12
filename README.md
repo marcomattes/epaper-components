@@ -10,39 +10,36 @@
 [![License: MIT](https://img.shields.io/npm/l/@marcomattes/epaper-components.svg?style=flat-square)](./LICENSE)
 [![Provenance](https://img.shields.io/badge/npm-provenance-success?style=flat-square&logo=npm)](https://docs.npmjs.com/generating-provenance-statements)
 
-> **[🎨 Site](https://epaper-components.dev/)** ·
-> **[📚 Storybook](https://epaper-components.dev/storybook/)**
+> **[Site](https://epaper-components.dev/)** ·
+> **[Storybook](https://epaper-components.dev/storybook/)**
 
-E-Paper-first web component library. Plain custom elements, design tokens, no
-framework. Strict TypeScript, light DOM, no animations.
+EPaper is a component library of plain custom elements for user interfaces that
+run on electrophoretic displays. It ships 82 registered elements, a three-layer
+CSS token system, strict TypeScript types and a Custom Elements Manifest. There
+is no framework dependency and no runtime dependency at all; components extend
+`HTMLElement` or a shared `BaseFormControl` base class and render into the light
+DOM.
 
-## Why
+## Design constraints
 
-EPaper is built for grayscale e-paper panels. That single constraint drives every
-decision in the library:
+Electrophoretic display controllers (EPDCs) drive pixels through a multi-step
+waveform rather than refreshing a backlit matrix at a fixed frame rate. Full
+panel refreshes take roughly 200–800 ms and are visible as a flash, partial
+refreshes of a dirty rectangle take roughly 30–80 ms, and intermediate pixel
+states persist as ghosting until a subsequent refresh clears them. Panels are
+reflective, typically run at 150–300 ppi without sub-pixel anti-aliasing, and
+render either in grayscale (Carta) or in a five-color gamut (Kaleido).
 
-- **No animations, no transitions** — they ghost on EPDs.
-- **No `:hover`** — there is no hover on e-paper touch surfaces; focus is the
-  state cue.
-- **High-contrast, square-cap, 2px stroke** — typography- and rule-driven, not
-  shadow- or color-driven.
-- **Light DOM, not Shadow DOM** — consumers can use the components from
-  framework-free HTML, override styles with plain CSS, and benefit from native
-  forms.
-- **Form-associated controls** — every input, checkbox, toggle, select, picker
-  and group submits like its native counterpart.
+Those properties rule out a number of techniques that are unremarkable on
+emissive displays, and the library is designed around that rather than around a
+visual style. The sections below document each decision together with the
+hardware behaviour it follows from.
 
-## E-paper design highlights
+### Animations and transitions
 
-Every line in this section is a deliberate engineering decision driven by how
-electrophoretic display controllers (EPDCs) actually paint pixels. None of it
-is aesthetic preference.
-
-### Motion is forbidden, not discouraged
-
-E-paper panels use a multi-step waveform per pixel transition. Anything that
-would tween produces visible ghosting that survives several full refreshes.
-The reset enforces this globally:
+CSS transitions and animations produce intermediate pixel states that the
+waveform cannot resolve cleanly, so they leave ghosting that survives several
+refresh cycles. Both are therefore disabled globally in the base reset:
 
 ```css
 /* src/styles/base.css */
@@ -55,27 +52,34 @@ The reset enforces this globally:
 }
 ```
 
-Verified zero `@keyframes` and zero non-test `requestAnimationFrame` in the
-source tree. State changes are applied as immediate DOM mutations inside event
-handlers — there is no animation frame pipeline to keep in sync.
+The source tree contains no `@keyframes` rules, and state changes are applied as
+direct DOM mutations inside event handlers rather than through an animation
+pipeline. Two components use `requestAnimationFrame`, both to coalesce
+high-frequency input into a single write per frame rather than to animate
+anything: `<e-splitter>` batches pointer-drag updates, and `<e-anchor>` batches
+scroll-position updates. Without that coalescing each pointer or scroll event
+would trigger its own partial refresh.
 
-### State without color, opacity, or hover
+### Interaction states
 
-There is no `:hover` rule anywhere in the library. Interaction state is encoded
-in three primitives that survive 1-bit rendering:
+Capacitive touch layers on e-paper hardware report contact, not proximity, so
+there is no hover state to style; the library contains no `:hover` rule.
+Opacity values and mid-tone greys are also avoided for state changes, because
+partial-tone pixels dither inconsistently between refreshes and the same element
+can end up rendering differently after a redraw. Interaction state is encoded in
+primitives that survive 1-bit rendering:
 
 | State    | Encoding                                                     |
 | -------- | ------------------------------------------------------------ |
 | Focus    | 3px solid `--ink-fg` outline + 2px offset (`:focus-visible`) |
-| Pressed  | Foreground/background **inversion** on `:active`             |
+| Pressed  | Foreground/background inversion on `:active`                 |
 | Selected | `[aria-selected]` / `[aria-checked]` + flat fill flip        |
 | Disabled | Diagonal hatch fill via `--ink-hatch-disabled`               |
 | Error    | 3px border + `--ink-hatch-error` fill                        |
 
-Opacity and greys are never used for state because partial-tone pixels dither
-unpredictably between refreshes. Disabled is a hatched repeating-linear-gradient
-defined once in [src/styles/tokens.css](src/styles/tokens.css) and reused
-across every control:
+The hatch patterns are defined once in
+[src/styles/tokens.css](src/styles/tokens.css) and reused across every control,
+so a disabled control reads as disabled at any refresh depth:
 
 ```css
 --ink-hatch-disabled: repeating-linear-gradient(45deg, #000 0 1px, transparent 1px 4px);
@@ -83,18 +87,20 @@ across every control:
 --ink-hatch-cover: repeating-linear-gradient(45deg, #fff 0 2px, #000 2px 6px);
 ```
 
-Selection inverts instead of tinting (`background: var(--ink-fg); color: var(--ink-bg)`).
+Selection inverts the two ink colors (`background: var(--ink-fg); color: var(--ink-bg)`)
+instead of tinting, for the same reason.
 
-### Surgical DOM updates, not re-renders
+### DOM updates
 
-The EPDC tracks dirty rectangles. Replacing a subtree triggers a full panel
-refresh (~200–800 ms with visible flash); mutating a single attribute or
-text node triggers a fast partial refresh (~30–80 ms).
+Because the EPDC tracks dirty rectangles, the cost of an update scales with the
+area that changed. Replacing a subtree marks a large region dirty and typically
+forces a full refresh; mutating a single attribute or text node stays within a
+partial refresh.
 
-Components never re-render. They render once on `connectedCallback` (gated by a
-`_wired` flag to prevent double-init), then mutate through four typed patch
-helpers in [src/core/dom.ts](src/core/dom.ts) that **early-return when the
-value is unchanged**:
+Components therefore render once in `connectedCallback`, guarded by a `_wired`
+flag against double initialisation, and afterwards mutate through four typed
+patch helpers in [src/core/dom.ts](src/core/dom.ts). Each helper compares the
+incoming value against the current one and returns early when they match:
 
 ```ts
 patchText(node, value); // textContent, only on diff
@@ -103,46 +109,50 @@ patchBoolAttr(el, name, on); // boolean attribute toggle, only on diff
 patchClassModifier(el, prefix, mod); // BEM-style modifier swap, only on diff
 ```
 
-This means an `attributeChangedCallback` that wires through `patchAttr` is a
-no-op when the framework above re-asserts the same value — keeping the panel
-quiet under reactive frameworks.
+The practical effect is that an `attributeChangedCallback` routed through
+`patchAttr` costs nothing when a framework re-asserts a value it already set,
+which is a common pattern in reactive renderers and would otherwise cause a
+refresh per render pass.
 
-### Light DOM by contract
+### Light DOM
 
-Zero `attachShadow` calls in `src/`. Every component renders into the light
-tree via `this.innerHTML = …` (with `esc()` for any user input). Three reasons,
-all e-paper-specific:
+No component calls `attachShadow`; everything renders into the light tree via
+`this.innerHTML`, with `esc()` applied to interpolated values. There are three
+reasons, and all of them are specific to the deployment targets this library
+expects:
 
-1. **Native form participation.** Form-associated custom elements need
-   `<form>` to see the `name`/`value` — Shadow DOM blocks the FormData walk
-   without `delegatesFocus` gymnastics.
-2. **Restricted runtimes.** Many e-paper kiosks ship with stripped browser
-   builds where Shadow DOM is buggy or disabled.
-3. **CSS auditability.** The whole rendered tree is inspectable and overridable
-   with plain selectors — no `::part` choreography for integrators.
+1. **Native form participation.** Form-associated custom elements need the
+   `<form>` to reach `name` and `value`. Shadow DOM complicates the `FormData`
+   walk and requires additional focus-delegation handling.
+2. **Restricted runtimes.** E-paper kiosks and readers frequently ship stripped
+   or outdated browser builds in which Shadow DOM support is incomplete.
+3. **Overridable styling.** The rendered tree is inspectable and can be
+   restyled with ordinary selectors, without exposing a `::part` surface for
+   every internal node.
 
-### Form-associated everything
+### Form-associated controls
 
 Thirteen interactive components extend `BaseFormControl`
 ([src/core/base-form-control.ts](src/core/base-form-control.ts)), which sets
-`static formAssociated = true` and wires `ElementInternals` so the component
-participates in `FormData`, `form.reset()`, and constraint validation without
-JavaScript glue:
+`static formAssociated = true` and wires `ElementInternals` so that the control
+participates in `FormData`, `form.reset()` and constraint validation without
+additional JavaScript:
 
 > `<e-input>`, `<e-textarea>`, `<e-checkbox>`, `<e-checkbox-group>`,
 > `<e-radio-group>`, `<e-toggle>`, `<e-select>`, `<e-cascader>`,
 > `<e-tree-select>`, `<e-input-number>`, `<e-date-picker>`, `<e-time-picker>`,
 > `<e-upload>`.
 
-`<e-button>` is form-associated separately so it can submit/reset its parent
-form natively. This is what makes the library viable for plain-HTML kiosk
-deployments with no JS framework.
+`<e-button>` is form-associated separately so that it can submit or reset its
+parent form natively. Together this allows a form to be built and submitted from
+plain HTML, which matters for kiosk deployments that ship no application
+framework.
 
-### Stroke geometry tuned for low-DPI panels
+### Stroke weights and icon geometry
 
-E-paper modules typically run at 150–300 ppi without sub-pixel anti-aliasing.
-1px lines blur into the substrate. The token contract enforces minimum
-weights:
+At 150–300 ppi without sub-pixel anti-aliasing, 1px strokes lose contrast
+against the reflective substrate and can disappear entirely after a partial
+refresh. The token layer sets minimum weights accordingly:
 
 ```css
 --ink-border-width: 2px; /* default */
@@ -152,13 +162,13 @@ weights:
 --ink-focus-width: 3px; /* focus ring */
 ```
 
-All 40+ icons in [src/core/icons.ts](src/core/icons.ts) render as
-`stroke-width="2" fill="none" stroke-linecap="square" stroke-linejoin="miter"`.
-The file header reads: _"Fills dither poorly under 32px on Kaleido — never use
-them here."_ Square caps prevent rounded endpoint artifacts that ghost on the
-next refresh.
+The 41 icons in [src/core/icons.ts](src/core/icons.ts) are rendered as stroked
+paths with `stroke-width="2" fill="none" stroke-linecap="square" stroke-linejoin="miter"`.
+Filled shapes are avoided below 32px because they dither visibly on Kaleido
+panels, and square caps avoid the rounded endpoint artifacts that remain
+visible into the next refresh.
 
-### Touch targets sized for finger + stylus on reflective glass
+### Touch target sizes
 
 ```css
 --ink-control-h-sm: 36px;
@@ -166,14 +176,17 @@ next refresh.
 --ink-control-h-lg: 48px;
 ```
 
-44px is the iOS HIG floor; on a 300 ppi e-paper that's ≈3.7 mm of physical
-glass — the practical minimum given that capacitive layers on e-paper are
-typically less precise than on OLED.
+The 44px default follows the iOS Human Interface Guidelines minimum, which at
+300 ppi corresponds to about 3.7 mm of physical glass. Capacitive layers
+laminated onto e-paper modules generally resolve touch less precisely than those
+on OLED panels, so the larger default is a reasonable baseline rather than a
+generous one.
 
-### Kaleido as a first-class palette, not a brand color
+### Color on Kaleido panels
 
-Kaleido is the production color e-paper panel family. The library exposes its native
-five-color gamut as flat tokens, never as gradients or alpha overlays:
+Kaleido is the color e-paper panel family currently in production. Its native
+gamut is exposed as flat tokens, without gradients or alpha compositing, since
+both would be resolved through dithering:
 
 ```css
 --kaleido-red: #d11a1a;
@@ -184,29 +197,31 @@ five-color gamut as flat tokens, never as gradients or alpha overlays:
 ```
 
 `<e-kaleido>` ([src/components/kaleido.ts](src/components/kaleido.ts)) is a
-diagnostic component that paints those colors next to a Bayer-8 dithered
-preview, so designers can see what a swatch will actually look like on
-hardware before shipping.
+diagnostic component that renders those colors alongside a Bayer-8 dithered
+preview, so a swatch can be evaluated against its likely hardware rendering
+before it ships.
 
-### Typography contract
+### Typography
 
-| Role        | Stack         | Line-height    | Why                                                 |
-| ----------- | ------------- | -------------- | --------------------------------------------------- |
-| Long prose  | `--ink-serif` | `1.6`          | Serifs scan better on reflective grayscale.         |
-| Body / UI   | `--ink-sans`  | `1.55`         | Generous over the web norm of ~1.3 — slow scanning. |
-| Data / code | `--ink-mono`  | `1.55`         | Tabular alignment for forms and tables.             |
-| Headings    | `--ink-sans`  | `1.15` (tight) | Density when used in toolbars and headers.          |
+| Role        | Stack         | Line-height    | Rationale                                            |
+| ----------- | ------------- | -------------- | ---------------------------------------------------- |
+| Long prose  | `--ink-serif` | `1.6`          | Serifs remain legible on reflective grayscale.       |
+| Body / UI   | `--ink-sans`  | `1.55`         | Above the web norm of ~1.3, since reading is slower. |
+| Data / code | `--ink-mono`  | `1.55`         | Tabular alignment in forms and tables.               |
+| Headings    | `--ink-sans`  | `1.15` (tight) | Density in toolbars and headers.                     |
 
-### What this rules out
+### Where this library is not a good fit
 
-If you need any of the following, this library is the wrong choice — and that
-is by design:
+The constraints above exclude several common UI patterns. If a project needs any
+of the following, a conventional component library is the better choice:
 
-- Skeleton loaders, shimmer states, progress spinners (motion).
-- Hover-driven menus or tooltips (no hover input on e-paper).
-- Drop shadows, gradient buttons, glassmorphism (dither-hostile).
-- Color-coded status (only ~5 stable colors on Kaleido; none on Carta).
-- 60 fps interactivity (the panel cannot deliver it).
+- Skeleton loaders, shimmer effects or progress spinners, all of which depend on
+  motion.
+- Hover-driven menus and tooltips, which have no input equivalent on e-paper.
+- Drop shadows, gradients and translucency, which dither unpredictably.
+- Color-coded status indicators, since Carta is grayscale and Kaleido provides
+  roughly five reliably distinguishable colors.
+- Interaction at 60 fps, which the panel hardware cannot deliver.
 
 ## Install
 
@@ -214,9 +229,9 @@ is by design:
 npm install @marcomattes/epaper-components
 ```
 
-Unreleased work is published continuously from `main` under the `dev`
-dist-tag — useful for verifying a fix before it lands in a release, not for
-production:
+Unreleased work is published continuously from `main` under the `dev` dist-tag.
+It is useful for verifying a fix before it appears in a release, and is not
+intended for production:
 
 ```sh
 npm install @marcomattes/epaper-components@dev
@@ -224,16 +239,19 @@ npm install @marcomattes/epaper-components@dev
 
 ## Quick start
 
-EPaper ships **three CSS layers** — tokens, base reset, components. They are
-intentionally separate so consumers can swap tokens or skip the base reset.
-For static HTML, the easiest path is the pre-built combined bundle:
+The library ships three CSS layers — tokens, base reset and component styles.
+They are separate so that consumers can replace the token layer or skip the
+reset. For static HTML the combined bundle is the shortest path; the path below
+assumes `node_modules` is reachable from the document, so in a served
+application either copy the file into the public directory or point the tag at
+your own asset path.
 
 ```html
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <!-- One file, minified, ~5 KB gzip — tokens + base + components combined. -->
+    <!-- Combined and minified: tokens + base + components, ~7 KB gzip. -->
     <link
       rel="stylesheet"
       href="node_modules/@marcomattes/epaper-components/dist/styles/epaper.min.css"
@@ -256,8 +274,8 @@ For static HTML, the easiest path is the pre-built combined bundle:
 </html>
 ```
 
-In a bundler-friendly project, import the layers individually so unused tokens
-can still be overridden via plain CSS:
+In a project with a bundler, import the layers individually so that tokens
+remain overridable through plain CSS:
 
 ```ts
 import '@marcomattes/epaper-components/styles/tokens.css';
@@ -269,7 +287,7 @@ import '@marcomattes/epaper-components/input';
 import '@marcomattes/epaper-components/select';
 ```
 
-To pull every component (~42 KB gzip across all chunks), import the barrel:
+Importing the barrel registers every component at once:
 
 ```ts
 import '@marcomattes/epaper-components';
@@ -290,28 +308,28 @@ Two distributions of the same three layers ship in the package:
 | `@marcomattes/epaper-components/components.min.css` | `dist/styles/components.min.css` | Standalone minified component CSS.  |
 
 The minified files are produced by [`cssnano`](https://cssnano.github.io/cssnano/)
-(see [scripts/build-css.mjs](scripts/build-css.mjs)) during `npm run build`.
-Each `*.min.css` ships with a sibling `*.min.css.map` source map for in-browser
-debugging. Consumers of the source `*.css` files keep full readability and can
-benefit from PostCSS pipelines in their own build.
+(see [scripts/build-css.mjs](scripts/build-css.mjs)) during `npm run build`, and
+each one ships with a sibling `*.min.css.map`. Importing the unminified sources
+keeps them readable and allows them to pass through a consumer's own PostCSS
+pipeline.
 
-Approximate sizes (April 2026):
+Sizes as of the 1.0.1 build:
 
 | File                 |     raw |   gzip |
 | -------------------- | ------: | -----: |
-| `tokens.min.css`     |  1.7 KB | 0.7 KB |
-| `base.min.css`       |  1.5 KB | 0.6 KB |
-| `components.min.css` | 28.6 KB | 4.6 KB |
-| `epaper.min.css`     | 31.7 KB | 5.4 KB |
+| `tokens.min.css`     |  1.6 KB | 0.7 KB |
+| `base.min.css`       |  1.4 KB | 0.6 KB |
+| `components.min.css` | 40.5 KB | 6.3 KB |
+| `epaper.min.css`     | 43.5 KB | 7.0 KB |
 
-## Subpath imports & tree-shaking
+## Subpath imports and bundle size
 
 Every component is shipped as a separate ES module under
-`@marcomattes/epaper-components/<tag>`. The barrel entry (`import '@marcomattes/epaper-components'`)
-registers everything. The `sideEffects` allowlist in `package.json` is scoped
-to the component modules and the public CSS files — so importing one component
-subpath only ships that component (plus its shared core chunks) in modern
-bundlers (Vite, Rollup, esbuild, webpack 5).
+`@marcomattes/epaper-components/<tag>`, and the barrel entry registers all of
+them. The `sideEffects` allowlist in `package.json` covers the component modules
+and the public CSS files, so importing a single subpath pulls in that component
+plus its shared core chunks and nothing else, in Vite, Rollup, esbuild and
+webpack 5.
 
 | Goal               | Import                                                           |
 | ------------------ | ---------------------------------------------------------------- |
@@ -319,15 +337,18 @@ bundlers (Vite, Rollup, esbuild, webpack 5).
 | Type imports only  | `import type { EButton } from '@marcomattes/epaper-components';` |
 | Whole library      | `import '@marcomattes/epaper-components';`                       |
 
-The CSS files are listed as having side effects (they apply globally), so they
-will never be tree-shaken away.
+Bundling the full library through esbuild produces about 31.6 KB brotli, or
+roughly 46 KB gzip; `npm run size` enforces a 40 KB brotli budget on the barrel
+and separate budgets on `<e-button>` (6 KB, currently 909 B) and `<e-input>`
+(8 KB, currently 1.43 KB). The CSS files are declared as having side effects,
+since they apply globally, and are never tree-shaken.
 
 ## Forms
 
 Every interactive control is a [form-associated custom
-element](https://web.dev/articles/more-capable-form-controls). Give the control
-a `name` attribute and it participates in `<form>` submission, `FormData`,
-reset, and constraint validation.
+element](https://web.dev/articles/more-capable-form-controls). Giving a control
+a `name` attribute is enough for it to participate in submission, `FormData`,
+reset and constraint validation.
 
 ```html
 <form id="profile">
@@ -362,24 +383,30 @@ reset, and constraint validation.
 ```
 
 Form controls also expose the standard `value`, `validity`, `validationMessage`,
-`willValidate`, `checkValidity()` and `reportValidity()` members via
+`willValidate`, `checkValidity()` and `reportValidity()` members through
 [`ElementInternals`](https://developer.mozilla.org/docs/Web/API/ElementInternals).
 
 ## Events
 
-Every component fires `e-` prefixed `CustomEvent`s with typed `detail`
-payloads. Common shapes:
+Components communicate through `CustomEvent`s with an `e-` prefix and a typed
+`detail` payload. The default is an `e-change` event carrying `{ value: T }`;
+the following contracts differ from that default and are stable API:
 
-| Detail shape           | Used by                                |
-| ---------------------- | -------------------------------------- |
-| `{ value: string }`    | `e-input`, `e-textarea`, `e-select`, … |
-| `{ value: string[] }`  | `e-cascader`, `e-checkbox-group`       |
-| `{ value: number }`    | `e-pagination`, `e-input-number`       |
-| `{ checked: boolean }` | `e-checkbox`, `e-toggle`               |
-| `{ originalEvent }`    | `e-button` (click), `e-link`           |
+| Event      | Detail                             | Fired by                                                                 |
+| ---------- | ---------------------------------- | ------------------------------------------------------------------------ |
+| `e-change` | `{ value: string }`                | `e-input`, `e-textarea`, `e-select`, `e-date-picker`, `e-tree-select`, … |
+| `e-change` | `{ value: string[] }`              | `e-cascader`, `e-checkbox-group`                                         |
+| `e-change` | `{ value: number }`                | `e-pagination`, `e-input-number`                                         |
+| `e-change` | `{ checked: boolean }`             | `e-checkbox`, `e-toggle`                                                 |
+| `e-change` | `{ files: File[] }`                | `e-upload`                                                               |
+| `e-click`  | `{ originalEvent: MouseEvent }`    | `e-button`                                                               |
+| `e-select` | `{ index: number }`                | `e-dropdown`                                                             |
+| `e-submit` | `{ form: HTMLFormElement }`        | `e-form` (the native submit is `preventDefault`-ed)                      |
+| `e-error`  | `{ error: Error, source: string }` | `e-cascader`, `e-tree-select` on malformed JSON attributes               |
 
-The `EChangeDetail<T>` helper type is exported from the package for typed
-listeners:
+The complete per-component list, including slots and attributes, is generated
+into `dist/custom-elements.json`. For typed listeners the package exports an
+`EChangeDetail<T>` helper:
 
 ```ts
 import type { EChangeDetail } from '@marcomattes/epaper-components';
@@ -391,76 +418,74 @@ el.addEventListener('e-change', (e: CustomEvent<EChangeDetail<string>>) => {
 
 ## Theming
 
-EPaper uses CSS custom properties as its public theming surface. See
-[THEMING.md](./THEMING.md).
+CSS custom properties are the public theming surface; the registry is documented
+in [THEMING.md](./THEMING.md).
 
-## TypeScript & IDE integration
+## TypeScript and IDE integration
 
-- **TypeScript:** Importing the package augments `HTMLElementTagNameMap`, so
-  `document.querySelector('e-button')` is correctly typed as `EButton`.
+- **TypeScript:** importing the package augments `HTMLElementTagNameMap`, so
+  `document.querySelector('e-button')` is typed as `EButton`.
 - **VS Code:** `dist/vscode.html-custom-data.json` provides tag and attribute
-  autocompletion in plain HTML files; it is auto-loaded via the package's
+  completion in plain HTML and is loaded automatically through the package's
   `contributes.html.customData` entry.
-- **WebStorm:** `dist/web-types.json` provides the same in JetBrains IDEs via
-  the `web-types` field.
+- **WebStorm:** `dist/web-types.json` provides the same in JetBrains IDEs via the
+  `web-types` field.
 - **Custom Elements Manifest:** `dist/custom-elements.json` follows the
   [CEM 1.0 schema](https://github.com/webcomponents/custom-elements-manifest).
 
 ## Browser support
 
-Targets modern evergreen browsers (Chrome / Edge / Safari / Firefox last 2
-versions). Form-associated custom elements require Safari 16.4+ /
-Chrome 77+ / Firefox 98+. No polyfill is shipped.
+The library targets current evergreen browsers (Chrome, Edge, Safari and Firefox,
+last two versions). Form-associated custom elements require Safari 16.4+,
+Chrome 77+ or Firefox 98+. No polyfill is bundled.
 
 ## Framework integration
 
-EPaper components are plain custom elements, so any framework that can render
-HTML can use them. The snippets below show idiomatic integration in the four
-most common stacks. Note: nothing about the library is framework-aware — these
-are conventions for each framework, not features of EPaper.
+The components are plain custom elements, so any framework that renders HTML can
+use them. The examples below are per-framework conventions; nothing in the
+library is framework-aware.
 
-### React 19+
+The one detail worth knowing in advance concerns events. Custom events with
+hyphenated names are not covered by the event systems of React or Vue's JSX
+transform, so in those environments listeners are attached imperatively. Vue
+templates, Angular templates and Svelte have syntax for it.
 
-React 19 supports custom elements natively, including custom event listeners
-declared as JSX props. Side-effect-import the components you need and add a
-type augmentation if you use TSX:
+### React
+
+React 19 supports custom elements in the sense that it sets primitive props as
+attributes and non-primitive props as properties. It does not register listeners
+for custom events, and there is no `on-<event>` prop convention, so a prop like
+`on-e-change` would be assigned as a property of that name and never fire.
+`onSubmit` is a React synthetic event bound to the native `submit` event and
+will not observe `e-submit` either. Attach `e-*` listeners through a ref, in
+React 19 as well as in earlier versions:
 
 ```tsx
-import '@marcomattes/epaper-components/button';
+import { useEffect, useRef } from 'react';
 import '@marcomattes/epaper-components/input';
 
-export function Profile() {
-  return (
-    <e-form onsubmit={(e) => e.preventDefault()}>
-      <e-input
-        name="email"
-        type="email"
-        required
-        on-e-change={(e: CustomEvent<{ value: string }>) => console.log(e.detail.value)}
-      />
-      <e-button variant="primary">Save</e-button>
-    </e-form>
-  );
+export function EmailField() {
+  const ref = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const onChange = (e: Event) => console.log((e as CustomEvent<{ value: string }>).detail.value);
+    el.addEventListener('e-change', onChange);
+    return () => el.removeEventListener('e-change', onChange);
+  }, []);
+
+  return <e-input ref={ref} name="email" type="email" required />;
 }
 ```
 
-For React 18 and earlier, attach listeners via `useRef` + `addEventListener`
-because synthetic events do not bridge to custom elements:
-
-```tsx
-const ref = useRef<HTMLElement>(null);
-useEffect(() => {
-  const el = ref.current;
-  const onChange = (e: Event) => console.log((e as CustomEvent).detail.value);
-  el?.addEventListener('e-change', onChange);
-  return () => el?.removeEventListener('e-change', onChange);
-}, []);
-return <e-input ref={ref} name="email" />;
-```
+Attributes, on the other hand, work as written: `name`, `type` and `required`
+above are passed through to the element.
 
 ### Vue 3
 
-Tell Vue to leave the `e-*` tags alone, then bind events with the `@` shorthand:
+Vue needs to be told which tags to leave alone, after which the `@` shorthand
+binds custom events directly:
 
 ```ts
 // vite.config.ts
@@ -494,8 +519,8 @@ const onChange = (e: CustomEvent<{ value: string }>) => console.log(e.detail.val
 
 ### Angular 17+
 
-Add `CUSTOM_ELEMENTS_SCHEMA` once and bind events with the standard `(eventName)`
-syntax — Angular accepts kebab-case event names as-is:
+Angular requires `CUSTOM_ELEMENTS_SCHEMA` once per component and accepts
+hyphenated event names in its standard binding syntax:
 
 ```ts
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
@@ -515,8 +540,10 @@ export class AgreeFormComponent {
 
 ### Svelte 5
 
-No configuration required — Svelte recognises any tag containing a hyphen as
-a custom element:
+Svelte treats any hyphenated tag as a custom element, so no configuration is
+needed. Event binding uses the `on:` directive; it is deprecated in Svelte 5 in
+favour of `onclick`-style properties, but remains the only syntax that can
+express a hyphenated event name such as `e-change`:
 
 ```svelte
 <script lang="ts">
@@ -531,10 +558,9 @@ a custom element:
 
 ### TypeScript JSX augmentation
 
-If your framework uses TSX (React, Solid, Preact), augment `JSX.IntrinsicElements`
-once so the `e-*` tags type-check. The shipped `dist/elements.d.ts` already
-augments `HTMLElementTagNameMap` for `document.createElement`/`querySelector`;
-the JSX side is per-framework and lives in your own project:
+The shipped `dist/elements.d.ts` augments `HTMLElementTagNameMap`, which covers
+`document.createElement` and `document.querySelector`. JSX typing is
+framework-specific and belongs in the consuming project:
 
 ```ts
 // src/types/epaper-jsx.d.ts
@@ -552,12 +578,11 @@ declare module 'react' {
 
 ## Status
 
-**Stable. V1.0.0 is the first stable release.** Component attributes,
-events, slots and exported classes are now part of the public API and follow
-[Semantic Versioning](https://semver.org/). Breaking changes require a major
-version bump and an entry in [`CHANGELOG.md`](./CHANGELOG.md). Known V1.0
-limitations (test coverage breadth, keyboard navigation in compound pickers)
-are tracked in the changelog under "Known limitations".
+The 1.0 line is stable. Component attributes, events, slots and exported classes
+are public API and follow [Semantic Versioning](https://semver.org/); breaking
+changes require a major version and an entry in
+[`CHANGELOG.md`](./CHANGELOG.md), which also documents the known limitations of
+the current release.
 
 ## Repository
 
@@ -567,6 +592,7 @@ src/
   components/  # One web component per file. Each calls define(...) at module scope.
   styles/      # tokens.css, base.css, components.css. Public CSS surface.
   stories/     # Storybook documentation; not shipped.
+  site/        # Source of epaper-components.dev; not shipped.
   demo/        # Demo HTML wiring; not shipped.
 ```
 
@@ -576,7 +602,7 @@ src/
 | -------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | [`OVERVIEW.md`](./OVERVIEW.md)         | Users + contributors | Architecture deep-dive, API conventions, event-detail contract, framework-integration cheatsheet, V1.0 known limitations. |
 | [`THEMING.md`](./THEMING.md)           | Users                | CSS custom-property registry and override patterns.                                                                       |
-| [`CONTRIBUTING.md`](./CONTRIBUTING.md) | Contributors         | Component-author conventions and PR checklist.                                                                            |
+| [`CONTRIBUTING.md`](./CONTRIBUTING.md) | Contributors         | Component-author conventions, release process and PR checklist.                                                           |
 | [`CHANGELOG.md`](./CHANGELOG.md)       | Everyone             | Version history, migrations, and known limitations.                                                                       |
 | [`CLAUDE.md`](./CLAUDE.md)             | AI agents            | Working guide for Claude Code and similar tools.                                                                          |
 
@@ -605,38 +631,48 @@ npm run size:why          # size-limit with bundle-analyzer
 
 ### Build pipeline
 
-`npm run build` runs four stages, in order:
+`npm run build` runs four stages in order:
 
-1. **`vite build`** — emits per-component ES modules to `dist/components/*.js`,
-   the barrel `dist/index.js`, and shared chunks under `dist/chunks/` with
-   source maps.
-2. **`node scripts/build-css.mjs`** — copies `src/styles/*.css` to
-   `dist/styles/`, runs them through `cssnano`, and writes `*.min.css` plus
-   `*.min.css.map`. Also concatenates the three layers into a combined
-   `dist/styles/epaper.min.css` for HTML consumers.
-3. **`tsc -p tsconfig.build.json`** — emits `.d.ts` files alongside the JS
-   bundle into `dist/`.
-4. **`cem analyze` + `node scripts/gen-tag-map.mjs`** — produces
+1. **`vite build`** emits per-component ES modules to `dist/components/*.js`, the
+   barrel `dist/index.js` and shared chunks under `dist/chunks/`, each with a
+   source map.
+2. **`node scripts/build-css.mjs`** copies `src/styles/*.css` to `dist/styles/`,
+   runs them through `cssnano`, writes `*.min.css` plus `*.min.css.map`, and
+   concatenates the three layers into `dist/styles/epaper.min.css`.
+3. **`tsc -p tsconfig.build.json`** emits the `.d.ts` files into `dist/`.
+4. **`cem analyze` and `node scripts/gen-tag-map.mjs`** produce
    `dist/custom-elements.json`, `dist/web-types.json`,
    `dist/vscode.html-custom-data.json`, `dist/vscode.css-custom-data.json` and
-   `dist/elements.d.ts` (the `HTMLElementTagNameMap` augmentation).
+   `dist/elements.d.ts`, which carries the `HTMLElementTagNameMap` augmentation.
 
 ## Contributing
 
-Pull requests are welcome. Please read [CONTRIBUTING.md](./CONTRIBUTING.md) and
-ensure `npm run lint:check`, `npm run type-check`, `npm run test:ci` and
-`npm run build` all succeed locally. The CI pipeline runs the same checks plus
-bundle-size budgets and CodeQL on every PR.
+Pull requests are welcome; see [CONTRIBUTING.md](./CONTRIBUTING.md) for the
+component-author conventions. Before opening one, confirm that
+`npm run lint:check`, `npm run type-check`, `npm run test:ci` and `npm run build`
+pass locally. CI runs the same checks plus Prettier and the size-limit budgets on
+every pull request and on every push to `main`.
 
 ## Releasing
 
-Releases are tag-driven. Push a tag like `v1.2.3` matching `package.json`’s
-version and the release workflow will:
+Releases are handled by `.github/workflows/release.yml`, which serves two npm
+channels.
 
-1. Re-run the full quality gate (lint, tests, coverage, build, bundle-size).
-2. Publish to npm with [provenance](https://docs.npmjs.com/generating-provenance-statements) via OIDC — no token required.
-3. Create a GitHub Release with auto-generated notes.
-4. Trigger a Pages redeploy with the new docs.
+Every push to `main` that passes CI publishes a `<next-patch>-dev.<build>`
+version under the `dev` dist-tag. The version is written inside the job and is
+never committed, so `package.json` on `main` always reflects the last release.
+
+A pushed tag matching `v<package.json version>` triggers the release path: the
+workflow re-runs the full gate (Prettier, ESLint, `tsc`, the browser test suite,
+build and size-limit), publishes to npm with
+[provenance](https://docs.npmjs.com/generating-provenance-statements) through
+OIDC trusted publishing, and creates a GitHub Release whose notes are the
+matching `CHANGELOG.md` section, with the packed tarball attached. Tags carrying
+a prerelease part, such as `v1.1.0-rc.1`, are published under the `next` dist-tag
+instead of `latest`.
+
+The public site and Storybook are deployed separately, by
+`.github/workflows/deploy.yml`, on every push to `main`.
 
 ## License
 
