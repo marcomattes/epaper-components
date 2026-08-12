@@ -1,0 +1,16 @@
+{
+  "name": "EPaper Components — Playwright CI",
+  "image": "mcr.microsoft.com/playwright:v1.59.1-noble",
+  "containerUser": "pwuser",
+  "remoteUser": "pwuser",
+  "updateRemoteUserUID": false,
+  "containerEnv": {
+    "PLAYWRIGHT_BROWSERS_PATH": "/ms-playwright"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "24"
+    }
+  },
+  "postCreateCommand": "npm ci"
+}
