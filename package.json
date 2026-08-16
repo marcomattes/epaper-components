@@ -202,6 +202,10 @@
       "types": "./dist/components/pagination.d.ts",
       "import": "./dist/components/pagination.js"
     },
+    "./popconfirm": {
+      "types": "./dist/components/popover.d.ts",
+      "import": "./dist/components/popover.js"
+    },
     "./popover": {
       "types": "./dist/components/popover.d.ts",
       "import": "./dist/components/popover.js"
@@ -359,7 +363,7 @@
     "start": "vite",
     "build": "vite build && node scripts/build-css.mjs && tsc -p tsconfig.build.json && cem analyze && node scripts/gen-tag-map.mjs",
     "dev:site": "vite --config vite.site.config.ts",
-    "build:site": "vite build --config vite.site.config.ts && node scripts/inline-site-css.mjs",
+    "build:site": "vite build --config vite.site.config.ts && node scripts/inline-site-css.mjs && node scripts/build-site-routes.mjs",
     "preview:site": "vite preview --config vite.site.config.ts",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",

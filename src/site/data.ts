@@ -10,6 +10,7 @@ export type ComponentCategory =
   | 'inputs'
   | 'layout'
   | 'navigation'
+  | 'feedback'
   | 'composite';
 
 export interface ComponentEntry {
@@ -26,6 +27,7 @@ export const CATEGORIES: Array<{ value: ComponentCategory | 'all'; label: string
   { value: 'inputs', label: 'Inputs' },
   { value: 'layout', label: 'Layout' },
   { value: 'navigation', label: 'Navigation' },
+  { value: 'feedback', label: 'Feedback' },
   { value: 'composite', label: 'Composite' },
 ];
 
@@ -37,7 +39,9 @@ export const CATEGORIES: Array<{ value: ComponentCategory | 'all'; label: string
  * Local dev:   http://localhost:6006 (default)
  * Production:  https://epaper-components.dev/storybook
  */
-export const STORYBOOK_BASE = import.meta.env['VITE_STORYBOOK_BASE'] ?? 'http://localhost:6006';
+// Optional chaining because this module is also imported by
+// vite.site.config.ts (Node, no import.meta.env) to read COMPONENTS.length.
+export const STORYBOOK_BASE = import.meta.env?.['VITE_STORYBOOK_BASE'] ?? 'http://localhost:6006';
 
 /**
  * Build a Storybook docs deep-link for a component entry.
@@ -61,6 +65,7 @@ export const COMPONENTS: ComponentEntry[] = [
   { name: 'Link', tag: 'e-link', category: 'typography' },
   // Display
   { name: 'Card', tag: 'e-card', category: 'display' },
+  { name: 'Collapse', tag: 'e-collapse', category: 'display' },
   { name: 'CardImage', tag: 'e-card-image', category: 'display' },
   { name: 'Avatar', tag: 'e-avatar', category: 'display' },
   { name: 'Calendar', tag: 'e-calendar', category: 'display' },
@@ -78,6 +83,8 @@ export const COMPONENTS: ComponentEntry[] = [
   { name: 'Table', tag: 'e-table', category: 'display' },
   { name: 'Tag', tag: 'e-tag', category: 'display' },
   { name: 'Timeline', tag: 'e-timeline', category: 'display' },
+  { name: 'Popover', tag: 'e-popover', category: 'display' },
+  { name: 'Tree', tag: 'e-tree', category: 'display' },
   // Inputs
   { name: 'Input', tag: 'e-input', category: 'inputs' },
   { name: 'InputNumber', tag: 'e-input-number', category: 'inputs' },
@@ -111,6 +118,10 @@ export const COMPONENTS: ComponentEntry[] = [
   { name: 'Pagination', tag: 'e-pagination', category: 'navigation' },
   { name: 'Steps', tag: 'e-steps', category: 'navigation' },
   { name: 'Tabs', tag: 'e-tabs', category: 'navigation' },
+  // Feedback
+  { name: 'Dialog', tag: 'e-dialog', category: 'feedback' },
+  { name: 'Alert', tag: 'e-alert', category: 'feedback' },
+  { name: 'Popconfirm', tag: 'e-popconfirm', category: 'feedback' },
   // Composite
   { name: 'Form', tag: 'e-form', category: 'composite' },
   { name: 'FloatButton', tag: 'e-float-button', category: 'composite' },
@@ -162,11 +173,16 @@ export interface RoadmapItem {
   body: string;
 }
 
+/** Lede above the roadmap. Real prose, because AI crawlers quote prose. */
+export const ROADMAP_INTRO =
+  'EPaper follows semantic versioning. Patch releases ship from every green run on main under the npm dev tag; tagged releases publish to latest.';
+
 export const ROADMAP: RoadmapItem[] = [
   {
     time: 'V1.0',
     title: 'Public release',
-    body: 'Initial 43-component public API, custom-elements manifest shipping IDE autocomplete, MIT license.',
+    // Count is interpolated: it was hard-coded at 43 and had drifted.
+    body: `Initial ${COMPONENTS.length}-component public API, custom-elements manifest shipping IDE autocomplete, MIT license.`,
   },
   {
     time: 'V1.1',

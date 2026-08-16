@@ -32,13 +32,31 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   contact rather than proximity. Both are non-modal and position through CSS,
   mirroring `<e-dropdown>`; the Popover API and CSS anchor positioning both
   sit above this library's browser floor.
+- The site is six real URLs — `/`, `/features/`, `/components/`, `/showcase/`,
+  `/install/`, `/community/` — instead of one hash-routed scroll page. Every page
+  is a complete static document with its own `<title>`, description, canonical
+  link, Open Graph and Twitter card, and a single `<h1>`. `src/site/routes.ts` is
+  the one source of truth for routing, navigation, `<head>` and the sitemap;
+  `scripts/build-site-routes.mjs` writes the sub-pages after the inlining step.
+- Page content is generated at build time from `src/site/content.ts`, so all of
+  it is in the served HTML. Previously only the cover was; pages 2-6 were
+  rendered by JavaScript after first paint, which meant a crawler that does not
+  execute JS — most AI crawlers — saw a hero and nothing else. Presentational
+  components are emitted as the markup they would produce, because `e-card`,
+  `e-steps`, `e-timeline` and `e-description-list` take their headings from
+  attributes, which text extractors ignore.
+- `robots.txt`, `sitemap.xml` and `llms.txt`, plus JSON-LD per page
+  (`SoftwareSourceCode`, `WebSite`/`WebPage`, `BreadcrumbList`, an `ItemList`
+  of the components and design principles, and a `HowTo` for installation).
+  AI crawlers are explicitly allowed in `robots.txt`.
+- A favicon, an apple-touch icon and a 1200×630 Open Graph card
+  (`src/site/public/`).
 
 ### Changed
 
 - Tree traversal, expansion, roving tabindex and keyboard navigation moved
   into `src/core/tree.ts`, shared by `<e-tree-select>` and the new `<e-tree>`.
   `<e-tree-select>`'s public behaviour is unchanged.
-
 - The tag release path is now staged as `guard → checks → release → update`.
   `checks` calls `ci.yml` as a reusable workflow instead of repeating its steps,
   and `update` installs the published version from the registry, registers the
@@ -47,6 +65,20 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - `npm run bump-version` no longer creates the tag when run off `main`, since
   `main` requires a pull request and a squash or rebase merge would strand a
   tag created on the branch. It prints the post-merge tagging steps instead.
+
+### Fixed
+
+- The site is responsive below 1024px. The header nav moves to its own
+  full-width scroll strip instead of widening the document (every page used to
+  scroll sideways to 964px), section heads no longer land under the sticky
+  header, feature cards, key/value pairs and the install stepper stack on
+  narrow viewports, and the tab list, category filter, data table and calendar
+  scroll inside their own box.
+- The cover no longer claims 1.2k GitHub stars. The count is fetched from the
+  GitHub API at build time (`scripts/github-stars.mjs`) and baked into the
+  static HTML, with a committed fallback when the API is unreachable. The
+  component count and the colophon version are likewise generated from
+  `data.ts` and `package.json` rather than typed by hand.
 
 ## [1.0.1] — 2026-08-12
 

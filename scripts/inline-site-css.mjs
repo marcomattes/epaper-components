@@ -9,6 +9,14 @@ const distDir = resolve(process.cwd(), 'dist-site');
 const htmlPath = join(distDir, 'index.html');
 const assetsDir = join(distDir, 'assets');
 
+// Mirrors `base` in vite.site.config.ts. Normalised to a single leading and
+// trailing slash so the rewritten chunk URLs resolve from any page depth.
+const siteBase = `/${(process.env.VITE_SITE_BASE || '/').replace(/^\/+|\/+$/g, '')}/`.replace(
+  '//',
+  '/',
+);
+const assetPrefix = `${siteBase}assets/`;
+
 const html = await readFile(htmlPath, 'utf8');
 let out = html;
 const toDelete = new Set();
@@ -48,12 +56,22 @@ for (const m of html.matchAll(scriptRe)) {
 
   // Strip sourcemap comment — the .map URL would no longer resolve.
   let stripped = js.replace(/\/\/[#@]\s*sourceMappingURL=.*$/m, '').trimEnd();
-  // The script is being moved from /assets/ to the document root, so any
-  // relative chunk references inside (dynamic imports, modulepreload URLs)
-  // must be rewritten to point back into /assets/.
+  // The script is being moved out of /assets/ and into the document, so any
+  // relative chunk reference inside it (dynamic imports, modulepreload URLs)
+  // has to be rewritten to point back at /assets/.
+  //
+  // The prefix must be site-absolute rather than "./assets/": the same script
+  // is inlined into /index.html *and* into the sub-page documents one
+  // directory down, where "./assets/…" would resolve to /features/assets/….
   stripped = stripped
-    .replace(/(["'`])\.\/((?:[A-Za-z0-9_-]+)\.(?:js|css|map))\1/g, '$1./assets/$2$1')
-    .replace(/(["'`])\/((?:[A-Za-z0-9_-]+)\.(?:js|css|map))\1/g, '$1/assets/$2$1');
+    .replace(
+      /(["'`])\.\/((?:[A-Za-z0-9_-]+)\.(?:js|css|map))\1/g,
+      (_m, q, file) => `${q}${assetPrefix}${file}${q}`,
+    )
+    .replace(
+      /(["'`])\/((?:[A-Za-z0-9_-]+)\.(?:js|css|map))\1/g,
+      (_m, q, file) => `${q}${assetPrefix}${file}${q}`,
+    );
   out = out.replace(m[0], () => `<script type="module">${stripped}</script>`);
   // NOTE: do NOT add jsPath to toDelete — lazy-loaded chunks may still
   // import from this file by name for shared modules. Keep it on disk.
