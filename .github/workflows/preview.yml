@@ -104,9 +104,19 @@ jobs:
         run: |
           set -euo pipefail
 
-          ssl='set ftp:ssl-force true; set ftp:ssl-protect-data true;'
+          # Certificate verification is off by deliberate decision of the
+          # repository owner. The host presents a certificate whose common
+          # name does not match FTP_SERVER — normal on shared hosting, where
+          # the provider serves its own certificate — and deploy.yml has
+          # always run this way, because FTP-Deploy-Action does not verify
+          # either. The traffic is still encrypted; what is given up is the
+          # guarantee that the peer is who it claims to be, so a
+          # man-in-the-middle with any certificate would be accepted.
+          # Pointing FTP_SERVER at the name the certificate is issued for
+          # would let this be dropped.
+          ssl='set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no;'
           if [ "$FTP_PROTOCOL" = "ftp" ]; then
-            ssl='set ftp:ssl-protect-data true;'
+            ssl='set ftp:ssl-protect-data true; set ssl:verify-certificate no;'
           fi
 
           target="${SERVER_DIR}${PREVIEW_PATH}"
@@ -198,14 +208,11 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Encrypted control and data channels by default. The plain-FTP
-          # setting only stops *requiring* TLS — it never turns it off, so
-          # lftp still negotiates it whenever the server offers it. There is
-          # no code path here that transmits the password in the clear when
-          # the server would have accepted TLS.
-          ssl='set ftp:ssl-force true; set ftp:ssl-protect-data true;'
+          # Same TLS posture as the deploy job — see the note there on why
+          # certificate verification is off and what it would take to restore.
+          ssl='set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no;'
           if [ "$FTP_PROTOCOL" = "ftp" ]; then
-            ssl='set ftp:ssl-protect-data true;'
+            ssl='set ftp:ssl-protect-data true; set ssl:verify-certificate no;'
           fi
 
           target="${SERVER_DIR}${PREVIEW_PATH}"
