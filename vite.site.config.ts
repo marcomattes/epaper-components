@@ -69,7 +69,9 @@ function sitePagesPlugin(opts: ContentOptions): Plugin {
             return;
           }
           res.setHeader('Content-Type', 'image/png');
-          createReadStream(join(SHOTS_SRC, shot.file)).pipe(res);
+          // An unhandled 'error' here (baseline deleted mid-session) would
+          // take the dev server down with it.
+          createReadStream(join(SHOTS_SRC, shot.file)).on('error', next).pipe(res);
           return;
         }
 

@@ -37,6 +37,13 @@ export const SHOTS_URL_BASE = '/shots';
  */
 
 /**
+ * Byte offset one past the last IHDR field this file reads (the interlace
+ * method at offset 28). Every header read below is guarded against it, so a
+ * truncated file is rejected rather than throwing RangeError out of the build.
+ */
+const IHDR_END = 29;
+
+/**
  * Read a PNG's intrinsic size out of its IHDR chunk.
  *
  * A PNG is an 8-byte signature followed by IHDR, whose width and height are
@@ -47,7 +54,7 @@ export const SHOTS_URL_BASE = '/shots';
  * @returns {{ width: number, height: number } | null} null if not a PNG.
  */
 export function pngSize(buf) {
-  if (buf.length < 24) return null;
+  if (buf.length < IHDR_END) return null;
   // \x89PNG\r\n\x1a\n
   if (buf.readUInt32BE(0) !== 0x89504e47) return null;
   const width = buf.readUInt32BE(16);
@@ -80,6 +87,86 @@ const MIN_INK = 0.015;
 /** Channel value at or above which a pixel counts as paper rather than ink. */
 const WHITE = 240;
 
+/** Bytes per pixel for the one colour type decoded here (8-bit RGB). */
+const RGB_BPP = 3;
+
+/**
+ * Paeth predictor: of the three neighbouring bytes, the one the linear
+ * estimate `a + b - c` lands closest to.
+ *
+ * @param {number} a Byte to the left.
+ * @param {number} b Byte above.
+ * @param {number} c Byte above-left.
+ * @returns {number}
+ */
+function paeth(a, b, c) {
+  const p = a + b - c;
+  const pa = Math.abs(p - a);
+  const pb = Math.abs(p - b);
+  const pc = Math.abs(p - c);
+  if (pa <= pb && pa <= pc) return a;
+  if (pb <= pc) return b;
+  return c;
+}
+
+/**
+ * Reconstruct one scanline in place, undoing its PNG filter.
+ *
+ * `line` arrives holding the filtered bytes and leaves holding the real ones.
+ * Each filter adds back a prediction from the byte to the left (a, already
+ * reconstructed this row), the byte above (b) and the byte above-left (c).
+ *
+ * @param {number} filter Filter type byte, 0-4.
+ * @param {Buffer} line Filtered bytes in, reconstructed bytes out.
+ * @param {Buffer} prev Previous reconstructed scanline.
+ * @returns {boolean} false if the filter type is unknown.
+ */
+function unfilterRow(filter, line, prev) {
+  if (filter < 0 || filter > 4) return false; // unknown filter — do not guess
+
+  for (let i = 0; i < line.length; i++) {
+    const a = i >= RGB_BPP ? line[i - RGB_BPP] : 0;
+    const b = prev[i];
+    const c = i >= RGB_BPP ? prev[i - RGB_BPP] : 0;
+    let add = 0;
+    if (filter === 1) add = a;
+    else if (filter === 2) add = b;
+    else if (filter === 3) add = (a + b) >> 1;
+    else if (filter === 4) add = paeth(a, b, c);
+    line[i] = (line[i] + add) & 0xff;
+  }
+  return true;
+}
+
+/**
+ * Concatenated contents of a PNG's IDAT chunks, inflated.
+ *
+ * A PNG may split the compressed stream across several IDAT chunks, so they
+ * are collected in order before inflating.
+ *
+ * @param {Buffer} buf
+ * @returns {Buffer | null} null if there is no IDAT or the stream is corrupt.
+ */
+function inflateIdat(buf) {
+  /** @type {Buffer[]} */
+  const chunks = [];
+  let pos = 8; // past the 8-byte signature
+  while (pos + 8 <= buf.length) {
+    const len = buf.readUInt32BE(pos);
+    const type = buf.toString('ascii', pos + 4, pos + 8);
+    if (type === 'IEND') break;
+    if (type === 'IDAT') chunks.push(buf.subarray(pos + 8, pos + 8 + len));
+    pos += 12 + len; // length + type + data + crc
+  }
+  if (chunks.length === 0) return null;
+
+  try {
+    return inflateSync(Buffer.concat(chunks));
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Fraction of a PNG's pixels that are not near-white, or null if the file is
  * in a format this reader does not decode.
@@ -93,6 +180,8 @@ const WHITE = 240;
  * @returns {number | null}
  */
 export function inkRatio(buf) {
+  if (buf.length < IHDR_END) return null;
+
   const width = buf.readUInt32BE(16);
   const height = buf.readUInt32BE(20);
   const bitDepth = buf.readUInt8(24);
@@ -101,77 +190,23 @@ export function inkRatio(buf) {
   if (bitDepth !== 8 || colorType !== 2 || interlace !== 0) return null;
   if (!width || !height) return null;
 
-  // Concatenate the IDAT chunks — a PNG may split the stream across several.
-  /** @type {Buffer[]} */
-  const idat = [];
-  let pos = 8; // past the signature
-  while (pos + 8 <= buf.length) {
-    const len = buf.readUInt32BE(pos);
-    const type = buf.toString('ascii', pos + 4, pos + 8);
-    if (type === 'IDAT') idat.push(buf.subarray(pos + 8, pos + 8 + len));
-    else if (type === 'IEND') break;
-    pos += 12 + len; // length + type + data + crc
-  }
-  if (idat.length === 0) return null;
+  const raw = inflateIdat(buf);
+  if (raw === null) return null;
 
-  /** @type {Buffer} */
-  let raw;
-  try {
-    raw = inflateSync(Buffer.concat(idat));
-  } catch {
-    return null;
-  }
-
-  const bpp = 3; // RGB
-  const stride = width * bpp;
+  const stride = width * RGB_BPP;
+  // Each scanline is one filter byte plus `stride` bytes of pixel data.
   if (raw.length < height * (stride + 1)) return null;
 
-  // Undo the per-scanline filters. Each scanline is a filter byte followed by
-  // `stride` bytes; filters reference the pixel to the left (a), the one above
-  // (b) and the one above-left (c). Reconstructed rows are written back into
-  // `line`, which then becomes the previous row.
   const prev = Buffer.alloc(stride);
   const line = Buffer.alloc(stride);
   let ink = 0;
 
   for (let y = 0; y < height; y++) {
     const start = y * (stride + 1);
-    const filter = raw[start];
     raw.copy(line, 0, start + 1, start + 1 + stride);
+    if (!unfilterRow(raw[start], line, prev)) return null;
 
-    for (let i = 0; i < stride; i++) {
-      const a = i >= bpp ? line[i - bpp] : 0;
-      const b = prev[i];
-      const c = i >= bpp ? prev[i - bpp] : 0;
-      let add = 0;
-      switch (filter) {
-        case 0:
-          break;
-        case 1:
-          add = a;
-          break;
-        case 2:
-          add = b;
-          break;
-        case 3:
-          add = (a + b) >> 1;
-          break;
-        case 4: {
-          // Paeth: pick whichever of a, b, c the linear estimate is nearest.
-          const p = a + b - c;
-          const pa = Math.abs(p - a);
-          const pb = Math.abs(p - b);
-          const pc = Math.abs(p - c);
-          add = pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
-          break;
-        }
-        default:
-          return null; // unknown filter — do not guess
-      }
-      line[i] = (line[i] + add) & 0xff;
-    }
-
-    for (let x = 0; x < stride; x += bpp) {
+    for (let x = 0; x < stride; x += RGB_BPP) {
       if (line[x] < WHITE || line[x + 1] < WHITE || line[x + 2] < WHITE) ink++;
     }
     line.copy(prev);
@@ -206,7 +241,11 @@ export async function readShots() {
     return { shots, blank };
   }
 
-  for (const file of files.sort()) {
+  // Sorted for a stable index: readdir order is filesystem-dependent, and the
+  // first file to claim a slug wins.
+  files.sort();
+
+  for (const file of files) {
     if (!file.endsWith('.png')) continue;
     // Our own baselines are the only ones with the `--story` separator;
     // Vitest's `-chromium-linux` copies never match it.
