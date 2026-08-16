@@ -34,6 +34,7 @@ import {
   type ComponentEntry,
 } from './data';
 import { PACKAGE_NAME, REPO_URL, ROUTES, type Route } from './routes';
+import { shotAlt, shotKey, shotUrl, type ShotIndex } from './shots';
 
 export interface ContentOptions {
   /** Deployed Storybook base URL — resolved by the build, not by data.ts. */
@@ -42,6 +43,8 @@ export interface ContentOptions {
   stars: string;
   /** Package version for the colophon. */
   version: string;
+  /** Component preview images, keyed by `category-name`. May be empty. */
+  shots: ShotIndex;
 }
 
 /** Storybook docs deep-link. Mirrors Storybook's slug rule. */
@@ -140,6 +143,35 @@ function featuresMain(route: Route): string {
 /* --------------------------------------------------------------------- *
  * Page 3 — Components overview
  * --------------------------------------------------------------------- */
+
+/**
+ * Preview image for one tile.
+ *
+ * A real `<img>` rather than a CSS background: the picture is the tile's
+ * content, so it needs alt text, and a background image is invisible to both
+ * screen readers and image search.
+ *
+ * `width`/`height` carry the PNG's intrinsic size so the aspect ratio is known
+ * before the bytes arrive; the CSS then fits the image inside a fixed-height
+ * frame, which is what actually pins the grid against layout shift.
+ *
+ * Four components have no baseline yet (Layout, Affix, Anchor, BackTop — none
+ * has a story the screenshot suite renders). They get a decorative placeholder
+ * so the grid keeps its rhythm; the tile's name and tag are already text, so
+ * nothing is lost by hiding it from assistive tech.
+ */
+function tileShot(entry: ComponentEntry, shots: ShotIndex): string {
+  const shot = shots[shotKey(entry)];
+  if (!shot) {
+    return `<span class="site-comp__shot site-comp__shot--none" aria-hidden="true"></span>`;
+  }
+  return `<span class="site-comp__shot"
+              ><img src="${esc(shotUrl(shot))}" alt="${esc(shotAlt(entry))}"
+                    width="${shot.width}" height="${shot.height}"
+                    loading="lazy" decoding="async"
+              /></span>`;
+}
+
 function componentsMain(route: Route, opts: ContentOptions): string {
   const tiles = COMPONENTS.map(
     (c) => `
@@ -147,6 +179,7 @@ function componentsMain(route: Route, opts: ContentOptions): string {
              target="_blank" rel="noopener"
              data-name="${esc(c.name.toLowerCase())}"
              data-tag="${esc(c.tag)}" data-cat="${esc(c.category)}">
+            ${tileShot(c, opts.shots)}
             <span class="site-comp__tile-name">${esc(c.name)}</span>
             <span class="site-comp__tile-tag">&lt;${esc(c.tag)}&gt;</span>
           </a>`,
@@ -161,7 +194,8 @@ function componentsMain(route: Route, opts: ContentOptions): string {
           Every component is a standalone custom element. Import the barrel to register all
           ${esc(String(COMPONENTS.length))}, or import a single module — <code>${esc(
             PACKAGE_NAME,
-          )}/button</code> — and ship only that. Each tile links to its Storybook documentation.
+          )}/button</code> — and ship only that. Each tile previews the component as it renders on
+          an e-paper page and links to its Storybook documentation.
         </p>
 
         <!-- Search and category filter are progressive enhancement: the full
