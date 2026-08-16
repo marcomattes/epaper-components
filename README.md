@@ -694,3 +694,5 @@ pushed; [CONTRIBUTING.md](./CONTRIBUTING.md) documents the exact sequence.
 ## License
 
 MIT. See [LICENSE](./LICENSE).
+
+This project is tested with BrowserStack

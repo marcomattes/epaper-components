@@ -8,10 +8,11 @@
 // scripts/build-site-routes.mjs. Page markup comes from src/site/content.ts
 // and the <head> from src/site/seo.ts, both of which run here in Node.
 import { defineConfig, type Plugin } from 'vite';
-import { readFileSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { createReadStream, readFileSync, writeFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import { formatStars, resolveStars } from './scripts/github-stars.mjs';
 import { applyRouteBlocks } from './scripts/site-template.mjs';
+import { copyShots, readShots, SHOTS_SRC } from './scripts/site-shots.mjs';
 import { mainHtml, navHtml, pagenavHtml, type ContentOptions } from './src/site/content';
 import { headHtml, llmsTxt, robotsTxt, sitemapXml } from './src/site/seo';
 import { routeByPath, ROUTES, type Route } from './src/site/routes';
@@ -30,7 +31,11 @@ interface RouteBlocks {
 
 function blocksFor(route: Route, opts: ContentOptions): RouteBlocks {
   return {
-    head: `\n    ${headHtml(route, { version: opts.version, storybookBase: opts.storybookBase })}\n    `,
+    head: `\n    ${headHtml(route, {
+      version: opts.version,
+      storybookBase: opts.storybookBase,
+      shots: opts.shots,
+    })}\n    `,
     main: mainHtml(route, opts),
     nav: navHtml(route, opts.storybookBase),
     pagenav: pagenavHtml(route),
@@ -51,6 +56,25 @@ function sitePagesPlugin(opts: ContentOptions): Plugin {
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         const url = (req.url ?? '/').split('?')[0] ?? '/';
+
+        // Component previews. In a build these are copied into dist-site;
+        // in dev they are streamed straight out of the screenshot baselines
+        // so `npm run test:visual:update` shows up on the next reload.
+        const shotSlug = /^\/shots\/([a-z0-9-]+)\.png$/.exec(url)?.[1];
+        if (shotSlug) {
+          const shot = opts.shots[shotSlug];
+          if (!shot) {
+            res.statusCode = 404;
+            res.end('Not found');
+            return;
+          }
+          res.setHeader('Content-Type', 'image/png');
+          // An unhandled 'error' here (baseline deleted mid-session) would
+          // take the dev server down with it.
+          createReadStream(join(SHOTS_SRC, shot.file)).on('error', next).pipe(res);
+          return;
+        }
+
         const route = routeByPath(url);
         // The home page goes through Vite's own index.html handling.
         if (!route || !route.dir) return next();
@@ -78,7 +102,11 @@ function sitePagesPlugin(opts: ContentOptions): Plugin {
 
     // The five sub-pages are written after the CSS/JS inlining step, so hand
     // their content over instead of writing HTML here.
-    closeBundle() {
+    async closeBundle() {
+      const outDir = resolve(__dirname, 'dist-site');
+      const copied = await copyShots(opts.shots, outDir);
+      console.log(`[site] component previews: copied ${copied} PNG(s) to dist-site/shots/`);
+
       const lastmod = new Date().toISOString().slice(0, 10);
       const manifest = {
         routes: ROUTES.map((r) => ({ path: r.path, dir: r.dir, blocks: blocksFor(r, opts) })),
@@ -88,11 +116,7 @@ function sitePagesPlugin(opts: ContentOptions): Plugin {
           'llms.txt': llmsTxt({ version: opts.version, stars: opts.stars }),
         },
       };
-      writeFileSync(
-        resolve(__dirname, 'dist-site/_site-routes.json'),
-        JSON.stringify(manifest),
-        'utf8',
-      );
+      writeFileSync(join(outDir, '_site-routes.json'), JSON.stringify(manifest), 'utf8');
     },
   };
 }
@@ -111,10 +135,33 @@ export default defineConfig(async () => {
     console.log(`[site] GitHub stars: ${starsText} (${stars.count}, source: ${stars.source})`);
   }
 
+  // Component tile previews, reused from the visual-regression baselines.
+  // Never fatal either: an empty index just means text-only tiles.
+  const { shots, blank } = await readShots();
+  const shotCount = Object.keys(shots).length;
+  if (shotCount === 0) {
+    console.warn(
+      '[site] component previews: no screenshot baselines found — tiles render without images. ' +
+        'Run `npm run test:visual` to generate them.',
+    );
+  } else {
+    console.log(`[site] component previews: ${shotCount} baseline(s) indexed`);
+  }
+  if (blank.length > 0) {
+    // Surfaced on every build rather than swallowed: a blank baseline means
+    // the screenshot suite is asserting against an empty picture, so the
+    // visual regression it exists to catch would pass silently.
+    console.warn(
+      `[site] component previews: skipped ${blank.length} blank baseline(s) — ${blank.join(', ')}. ` +
+        'These stories render nothing under the screenshot harness; their tiles stay text-only.',
+    );
+  }
+
   const content: ContentOptions = {
     storybookBase: process.env['VITE_STORYBOOK_BASE'] || 'http://localhost:6006',
     stars: starsText,
     version: pkg.version,
+    shots,
   };
 
   return {

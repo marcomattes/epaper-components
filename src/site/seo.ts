@@ -21,6 +21,7 @@ import {
   type Route,
 } from './routes';
 import { COMPONENTS, FEATURES } from './data';
+import { shotAlt, shotKey, shotUrl, type ShotIndex } from './shots';
 
 const AUTHOR = { '@type': 'Person', name: 'Marco Mattes', url: 'https://mattes.dev' } as const;
 
@@ -79,8 +80,36 @@ function breadcrumb(route: Route): Record<string, unknown> {
   };
 }
 
+/**
+ * `ImageObject` for a component's preview, or undefined when it has none.
+ *
+ * The picture is already on the page with alt text; this restates it in a form
+ * an image crawler can resolve without parsing the markup, and gives the
+ * caption an engine quotes when it surfaces the thumbnail.
+ */
+function shotImage(
+  entry: (typeof COMPONENTS)[number],
+  shots: ShotIndex,
+): Record<string, unknown> | undefined {
+  const shot = shots[shotKey(entry)];
+  if (!shot) return undefined;
+  return {
+    '@type': 'ImageObject',
+    contentUrl: `${SITE_ORIGIN}${shotUrl(shot)}`,
+    width: shot.width,
+    height: shot.height,
+    caption: shotAlt(entry),
+    encodingFormat: 'image/png',
+    license: 'https://spdx.org/licenses/MIT.html',
+  };
+}
+
 /** Route-specific structured data — the part an answer engine can cite. */
-function routeGraph(route: Route, storybookBase: string): Record<string, unknown>[] {
+function routeGraph(
+  route: Route,
+  storybookBase: string,
+  shots: ShotIndex,
+): Record<string, unknown>[] {
   switch (route.dir) {
     case 'features':
       return [
@@ -107,6 +136,7 @@ function routeGraph(route: Route, storybookBase: string): Record<string, unknown
             name: c.name,
             description: `<${c.tag}> — ${c.category} component, importable as ${PACKAGE_NAME}/${c.tag.replace(/^e-/, '')}`,
             url: `${storybookBase}/?path=/docs/${`${c.category}-${c.name}`.toLowerCase().replace(/[^a-z0-9-]+/g, '-')}--docs`,
+            image: shotImage(c, shots),
           })),
         },
       ];
@@ -148,7 +178,10 @@ function routeGraph(route: Route, storybookBase: string): Record<string, unknown
  * The full <head> block for a route: title, description, canonical, Open
  * Graph, Twitter card and JSON-LD.
  */
-export function headHtml(route: Route, opts: { version: string; storybookBase: string }): string {
+export function headHtml(
+  route: Route,
+  opts: { version: string; storybookBase: string; shots: ShotIndex },
+): string {
   const url = absoluteUrl(route.path);
   const graph: Record<string, unknown>[] = [
     {
@@ -171,7 +204,7 @@ export function headHtml(route: Route, opts: { version: string; storybookBase: s
     },
     softwareGraph(opts.version),
     breadcrumb(route),
-    ...routeGraph(route, opts.storybookBase),
+    ...routeGraph(route, opts.storybookBase, opts.shots),
   ];
 
   // A PR preview is a throwaway copy of the whole site on the production

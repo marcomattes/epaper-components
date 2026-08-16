@@ -319,7 +319,9 @@ body {
 }
 .site-comp__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  /* Wider than the old text-only tile: the previews are screenshots of real
+     components, and a button label has to stay readable at tile scale. */
+  grid-template-columns: repeat(auto-fill, minmax(212px, 1fr));
   gap: 0;
   border: var(--ink-border);
   border-right: none;
@@ -328,11 +330,12 @@ body {
 .site-comp__tile {
   border-right: var(--ink-border);
   border-bottom: var(--ink-border);
-  padding: 14px 16px;
+  /* The preview is full-bleed inside the tile, so the padding moved onto the
+     two text rows. */
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  min-height: 84px;
+  gap: 0;
   color: var(--ink-fg);
   text-decoration: none;
 }
@@ -343,11 +346,50 @@ body {
 .site-comp__tile[hidden] {
   display: none;
 }
+
+/* ---------- Component preview ----------
+   A fixed-height frame the image is fitted into. The baselines range from
+   296×80 (button) to 411×553 (calendar), so nothing but `contain` inside a
+   constant box keeps 59 tiles on a shared baseline grid. The fixed height is
+   also what makes the layout immune to a slow or failed image load. */
+.site-comp__shot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 128px;
+  padding: var(--ink-space-3);
+  box-sizing: border-box;
+  border-bottom: var(--ink-border);
+  overflow: hidden;
+}
+.site-comp__shot img {
+  display: block;
+  /* Overrides the intrinsic width/height attributes, which are there for the
+     aspect ratio rather than for sizing. Never upscale: these are 1-bit
+     renderings and enlarging them only softens the edges. */
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+}
+/* Components without a screenshot baseline. Decorative, no text — the tile
+   already names the component below.
+
+   A dot grid rather than diagonal hatching: <e-skeleton> renders 45° stripes,
+   so a hatched placeholder would be indistinguishable from that component's
+   own preview two rows down. Nothing in the library draws a dot grid. */
+.site-comp__shot--none {
+  background-image: radial-gradient(circle, var(--ink-fg) 1px, transparent 1px);
+  background-size: 9px 9px;
+  opacity: 0.18;
+}
+
 .site-comp__tile-name {
   font-family: var(--ink-mono);
   font-size: var(--ink-text-small);
   font-weight: 700;
   letter-spacing: 0.04em;
+  padding: 12px 14px 4px;
 }
 .site-comp__tile-tag {
   font-family: var(--ink-mono);
@@ -355,6 +397,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.18em;
   opacity: 0.8;
+  padding: 0 14px 12px;
 }
 .site-comp__count {
   font-family: var(--ink-mono);
@@ -468,11 +511,17 @@ e-site-pager {
 
   /* One tile per row wastes the screen; two short ones read like an index. */
   .site-comp__grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(152px, 1fr));
   }
-  .site-comp__tile {
-    min-height: 62px;
-    padding: 10px 12px;
+  .site-comp__shot {
+    height: 92px;
+    padding: var(--ink-space-2);
+  }
+  .site-comp__tile-name {
+    padding: 9px 11px 3px;
+  }
+  .site-comp__tile-tag {
+    padding: 0 11px 9px;
   }
   .site-cover__hero h1 {
     /* 8vw overshoots on a phone: "components" alone is ~10 characters. */
