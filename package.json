@@ -62,6 +62,10 @@
       "types": "./dist/components/affix.d.ts",
       "import": "./dist/components/affix.js"
     },
+    "./alert": {
+      "types": "./dist/components/alert.d.ts",
+      "import": "./dist/components/alert.js"
+    },
     "./back-top": {
       "types": "./dist/components/back-top.d.ts",
       "import": "./dist/components/back-top.js"
@@ -110,9 +114,17 @@
       "types": "./dist/components/chip.d.ts",
       "import": "./dist/components/chip.js"
     },
+    "./collapse": {
+      "types": "./dist/components/collapse.d.ts",
+      "import": "./dist/components/collapse.js"
+    },
     "./date-picker": {
       "types": "./dist/components/date-picker.d.ts",
       "import": "./dist/components/date-picker.js"
+    },
+    "./dialog": {
+      "types": "./dist/components/dialog.d.ts",
+      "import": "./dist/components/dialog.js"
     },
     "./divider": {
       "types": "./dist/components/divider.d.ts",
@@ -189,6 +201,10 @@
     "./pagination": {
       "types": "./dist/components/pagination.d.ts",
       "import": "./dist/components/pagination.js"
+    },
+    "./popover": {
+      "types": "./dist/components/popover.d.ts",
+      "import": "./dist/components/popover.js"
     },
     "./qrcode": {
       "types": "./dist/components/qrcode.d.ts",
@@ -273,6 +289,10 @@
     "./toggle": {
       "types": "./dist/components/toggle.d.ts",
       "import": "./dist/components/toggle.js"
+    },
+    "./tree": {
+      "types": "./dist/components/tree.d.ts",
+      "import": "./dist/components/tree.js"
     },
     "./tree-select": {
       "types": "./dist/components/tree-select.d.ts",

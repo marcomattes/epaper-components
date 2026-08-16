@@ -24,6 +24,7 @@ Form-associated: participates in `<form>` submission and FormData.
 | `label` | `string` | — | Label rendered above the input. |
 | `hint` | `string` | — | Helper text rendered below the input. |
 | `type` | `string` | `'text'` | Native input type. |
+| `required` | `boolean` | — | Requires a non-empty value for form validation. |
 | `default-value` | `string` | — | Initial value used when `value` is not set. |
 | `name` | `string` | — | Form field name. Required to participate in `FormData`. |
 

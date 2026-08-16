@@ -11,7 +11,7 @@ core changes.
 
 ## 1 · What EPaper is (and what it isn't)
 
-EPaper is a **vanilla web component library** (~43 custom elements) built
+EPaper is a **vanilla web component library** (~48 custom elements) built
 around a single hard constraint: **every component must render cleanly on
 electrophoretic displays**. Every other design decision follows from that
 constraint, not from taste.

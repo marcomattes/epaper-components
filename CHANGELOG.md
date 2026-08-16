@@ -7,7 +7,37 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- `<e-dialog>` — modal dialog on the native `<dialog>` element. Opens via
+  `showModal()`, so focus trapping, `Escape`, the top layer and inertness of
+  the page behind it come from the browser. The backdrop is a flat
+  `--ink-hatch-cover` fill rather than a translucent wash, which would dither
+  unpredictably between refreshes. Supports `size`, `no-close` and `static`,
+  a `footer` slot, `data-close` on any descendant, and reports what dismissed
+  it through `e-close`'s `reason`.
+- `<e-alert>` — inline status banner in four severities. The static
+  counterpart to a toast: nothing appears or disappears on a timer, because a
+  message that auto-dismisses can be missed between two panel refreshes.
+  Severity is carried by an icon, a border weight and a hatch fill, never by
+  color alone.
+- `<e-collapse>` / `<e-collapse-panel>` — disclosure stack on native
+  `<details>`/`<summary>`, with an `accordion` mode and `default-open`.
+  Expanding mutates one attribute, so only the section that changed repaints.
+- `<e-tree>` — standalone hierarchical tree for navigation and display, with
+  optional `selectable` rows and `checkable` rows whose checks cascade through
+  the subtree and report partially checked parents as `aria-checked="mixed"`.
+- `<e-popover>` and `<e-popconfirm>` — click-triggered overlays, the
+  counterpart to hover-driven tooltips on hardware whose digitizer reports
+  contact rather than proximity. Both are non-modal and position through CSS,
+  mirroring `<e-dropdown>`; the Popover API and CSS anchor positioning both
+  sit above this library's browser floor.
+
 ### Changed
+
+- Tree traversal, expansion, roving tabindex and keyboard navigation moved
+  into `src/core/tree.ts`, shared by `<e-tree-select>` and the new `<e-tree>`.
+  `<e-tree-select>`'s public behaviour is unchanged.
 
 - The tag release path is now staged as `guard → checks → release → update`.
   `checks` calls `ci.yml` as a reusable workflow instead of repeating its steps,

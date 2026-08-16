@@ -14,7 +14,7 @@
 > **[Storybook](https://epaper-components.dev/storybook/)**
 
 EPaper is a component library of plain custom elements for user interfaces that
-run on electrophoretic displays. It ships 82 registered elements, a three-layer
+run on electrophoretic displays. It ships 89 registered elements, a three-layer
 CSS token system, strict TypeScript types and a Custom Elements Manifest. There
 is no framework dependency and no runtime dependency at all; components extend
 `HTMLElement` or a shared `BaseFormControl` base class and render into the light
@@ -218,6 +218,8 @@ of the following, a conventional component library is the better choice:
 - Skeleton loaders, shimmer effects or progress spinners, all of which depend on
   motion.
 - Hover-driven menus and tooltips, which have no input equivalent on e-paper.
+  `<e-popover>` and `<e-dropdown>` cover the tap-driven equivalents; a true
+  hover tooltip has nothing to bind to.
 - Drop shadows, gradients and translucency, which dither unpredictably.
 - Color-coded status indicators, since Carta is grayscale and Kaleido provides
   roughly five reliably distinguishable colors.

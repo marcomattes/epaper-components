@@ -10,6 +10,10 @@ beforeAll(async () => {
   await import('../toggle');
   await import('../checkbox-group');
   await import('../segmented');
+  await import('../alert');
+  await import('../dialog');
+  await import('../tree');
+  await import('../popover');
 });
 
 const mount = <T extends HTMLElement>(html: string): T => {
@@ -161,5 +165,93 @@ describe('events', () => {
     el.setAttribute('disabled', '');
     (el.querySelector('button') as HTMLButtonElement).click();
     expect(fired).toBe(1); // still 1 because button is disabled
+  });
+
+  it('e-alert reflects variant change after mount', () => {
+    const el = mount<HTMLElement>(`<e-alert variant="info" heading="H"></e-alert>`);
+    const root = () => el.querySelector('.ink-alert')!;
+    expect(root().getAttribute('data-variant')).toBe('info');
+    el.setAttribute('variant', 'error');
+    expect(root().getAttribute('data-variant')).toBe('error');
+  });
+
+  it('e-alert reflects heading change after mount', () => {
+    const el = mount<HTMLElement>(`<e-alert></e-alert>`);
+    const heading = () => el.querySelector<HTMLElement>('.ink-alert__heading')!;
+    expect(heading().hidden).toBe(true);
+    el.setAttribute('heading', 'Sync paused');
+    expect(heading().hidden).toBe(false);
+    expect(heading().textContent).toBe('Sync paused');
+  });
+
+  it('e-dialog opens and closes from the open attribute', () => {
+    const el = mount<HTMLElement>(`<e-dialog heading="H"></e-dialog>`);
+    const native = el.querySelector('dialog')!;
+    expect(native.open).toBe(false);
+    el.setAttribute('open', '');
+    expect(native.open).toBe(true);
+    el.removeAttribute('open');
+    expect(native.open).toBe(false);
+  });
+
+  it('e-dialog reports a close reason exactly once', () => {
+    const el = mount<HTMLElement>(`<e-dialog heading="H"></e-dialog>`);
+    let fired = 0;
+    let detail: { value: boolean; reason: string } | null = null;
+    el.addEventListener('e-close', (e) => {
+      fired++;
+      detail = (e as CustomEvent<{ value: boolean; reason: string }>).detail;
+    });
+    el.setAttribute('open', '');
+    el.querySelector<HTMLButtonElement>('.ink-dialog__close')!.click();
+    expect(fired).toBe(1);
+    expect(detail).toEqual({ value: false, reason: 'close-button' });
+  });
+
+  it('e-dialog mirrors a native Escape close onto the attribute', async () => {
+    const el = mount<HTMLElement>(`<e-dialog heading="H"></e-dialog>`);
+    const native = el.querySelector('dialog')!;
+    let fired = 0;
+    el.addEventListener('e-close', () => {
+      fired++;
+    });
+    el.setAttribute('open', '');
+    // `cancel` is what Escape dispatches before the element closes itself.
+    native.dispatchEvent(new Event('cancel', { cancelable: true }));
+    native.close();
+    // `close` is queued as a task rather than dispatched synchronously.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(el.hasAttribute('open')).toBe(false);
+    expect(fired).toBe(1);
+  });
+
+  it('e-dialog with static vetoes the native cancel', () => {
+    const el = mount<HTMLElement>(`<e-dialog heading="H" static></e-dialog>`);
+    const native = el.querySelector('dialog')!;
+    el.setAttribute('open', '');
+    const event = new Event('cancel', { cancelable: true });
+    native.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(true);
+    expect(native.open).toBe(true);
+  });
+
+  it('e-popover toggles the panel from the open attribute', () => {
+    const el = mount<HTMLElement>(`<e-popover heading="H"></e-popover>`);
+    const panel = el.querySelector<HTMLElement>('.ink-popover__panel')!;
+    const trigger = el.querySelector<HTMLElement>('[data-trigger] button')!;
+    expect(panel.hidden).toBe(true);
+    el.setAttribute('open', '');
+    expect(panel.hidden).toBe(false);
+    expect(trigger.getAttribute('aria-expanded')).toBe('true');
+    el.removeAttribute('open');
+    expect(panel.hidden).toBe(true);
+  });
+
+  it('e-tree rebuilds when the data attribute changes', () => {
+    const el = mount<HTMLElement>(`<e-tree data='[{"value":"a","label":"A"}]'></e-tree>`);
+    expect(el.querySelector('[data-value="a"]')).not.toBeNull();
+    el.setAttribute('data', '[{"value":"b","label":"B"}]');
+    expect(el.querySelector('[data-value="a"]')).toBeNull();
+    expect(el.querySelector('[data-value="b"]')).not.toBeNull();
   });
 });

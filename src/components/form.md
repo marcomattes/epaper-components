@@ -18,7 +18,7 @@ Form wrapper that intercepts `submit` and re-fires it as `e-submit`.
 
 | Event | Detail | Description |
 | --- | --- | --- |
-| `e-submit` | `CustomEvent<{form: EventTarget}>` | Fired when the inner form is submitted; the native submit is `preventDefault`-ed. |
+| `e-submit` | `CustomEvent<{form: HTMLFormElement}>` | Fired when the inner form is submitted; the native submit is `preventDefault`-ed. |
 
 ## Slots
 
