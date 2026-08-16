@@ -119,8 +119,15 @@ reports/coverage/index.html  the report to actually look at while writing tests
 
 Both Vitest projects — `unit` and `storybook` — run in one invocation and V8
 merges their coverage before writing, so a line exercised only by a story counts
-as covered. The thresholds in `vitest.config.ts` (80% lines/functions/statements,
-70% branches) fail the run locally and in CI before Sonar ever sees the report.
+as covered.
+
+The thresholds in `vitest.config.ts` are a **regression floor, not a target**.
+They sit at or just below the measured numbers (currently 87.7% lines, 87.7%
+functions, 84.9% statements, 65.5% branches) so that a drop fails the run, and
+they are deliberately not set to where coverage ought to be. The ratchet is
+Sonar's quality gate on _new_ code, which holds every line a pull request
+touches to a high bar without blocking on the legacy tree. Branch coverage is
+the one with real room — raise the floor as you close the gap.
 
 Two settings have to move together. `coverage.include` in `vitest.config.ts`
 decides which files are measured; `sonar.coverage.exclusions` in
