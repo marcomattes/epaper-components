@@ -83,18 +83,46 @@ jobs:
           cp -r dist-site/. site/
           cp -r storybook-static/. site/storybook/
 
-      - name: Sync to FTP
-        # Pinned to a commit rather than a tag: a tag can be moved to point
-        # at new code, and this action is handed the deployment credentials.
-        uses: SamKirkland/FTP-Deploy-Action@8e83cea8672e3fbcbb9fdafff34debf6ae4c5f65 # v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: ${{ vars.FTP_PORT || 21 }}
-          protocol: ${{ vars.FTP_PROTOCOL || 'ftps' }}
-          local-dir: ./site/
-          server-dir: ${{ vars.FTP_SERVER_DIR || '/' }}${{ env.PREVIEW_PATH }}/
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      # Uploaded with lftp rather than FTP-Deploy-Action. The action's
+      # `ensureDir` walk died with `ECONNRESET (data socket)` creating the
+      # two missing path segments over FTPS, which is a well-worn failure
+      # mode for nested MKD on a passive data channel. lftp creates the tree
+      # in one `mkdir -p`, and it is already the client the teardown uses —
+      # so both halves of a preview's life now speak FTP the same way, with
+      # the TLS settings stated explicitly rather than inferred.
+      - name: Publish over FTPS
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_PORT: ${{ vars.FTP_PORT || 21 }}
+          FTP_PROTOCOL: ${{ vars.FTP_PROTOCOL || 'ftps' }}
+          SERVER_DIR: ${{ vars.FTP_SERVER_DIR || '/' }}
+        run: |
+          set -euo pipefail
+
+          ssl='set ftp:ssl-force true; set ftp:ssl-protect-data true;'
+          if [ "$FTP_PROTOCOL" = "ftp" ]; then
+            ssl='set ftp:ssl-protect-data true;'
+          fi
+
+          target="${SERVER_DIR}${PREVIEW_PATH}"
+          echo "Publishing to ${target}"
+
+          # --delete so a rebuilt preview drops files the branch removed;
+          # the target is an isolated per-PR directory, never the live site.
+          LFTP_PASSWORD="$FTP_PASSWORD" lftp -c "
+            ${ssl}
+            set ftp:passive-mode true;
+            set net:max-retries 3;
+            set net:timeout 20;
+            open -u '${FTP_USERNAME}' --env-password -p '${FTP_PORT}' '${FTP_SERVER}';
+            mkdir -p '${target}';
+            mirror -R --delete --parallel=2 ./site/ '${target}';
+          "
 
       - name: Comment the preview URL
         uses: actions/github-script@v7
