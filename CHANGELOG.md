@@ -7,6 +7,28 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- The site is six real URLs — `/`, `/features/`, `/components/`, `/showcase/`,
+  `/install/`, `/community/` — instead of one hash-routed scroll page. Every page
+  is a complete static document with its own `<title>`, description, canonical
+  link, Open Graph and Twitter card, and a single `<h1>`. `src/site/routes.ts` is
+  the one source of truth for routing, navigation, `<head>` and the sitemap;
+  `scripts/build-site-routes.mjs` writes the sub-pages after the inlining step.
+- Page content is generated at build time from `src/site/content.ts`, so all of
+  it is in the served HTML. Previously only the cover was; pages 2-6 were
+  rendered by JavaScript after first paint, which meant a crawler that does not
+  execute JS — most AI crawlers — saw a hero and nothing else. Presentational
+  components are emitted as the markup they would produce, because `e-card`,
+  `e-steps`, `e-timeline` and `e-description-list` take their headings from
+  attributes, which text extractors ignore.
+- `robots.txt`, `sitemap.xml` and `llms.txt`, plus JSON-LD per page
+  (`SoftwareSourceCode`, `WebSite`/`WebPage`, `BreadcrumbList`, an `ItemList`
+  of the components and design principles, and a `HowTo` for installation).
+  AI crawlers are explicitly allowed in `robots.txt`.
+- A favicon, an apple-touch icon and a 1200×630 Open Graph card
+  (`src/site/public/`).
+
 ### Fixed
 
 - The site is responsive below 1024px. The header nav moves to its own

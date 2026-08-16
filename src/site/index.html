@@ -3,13 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>EPaper · Web Components for E-Paper Displays</title>
-    <meta
-      name="description"
-      content="EPaper is a vanilla custom-element library tuned for e-paper displays. Surgical DOM updates, no animations, no :hover, no Shadow DOM."
-    />
-    <meta name="author" content="Marco Mattes" />
-    <link rel="author" href="https://mattes.dev" />
+    <!--
+        Everything between these markers is generated per route by
+        seo.ts (title, description, canonical, Open Graph, JSON-LD).
+        scripts/build-site-routes.mjs swaps the block when it writes the
+        sub-pages, so do not hand-edit it here.
+      -->
+    <!--site:head-->
+    <title>EPaper — Web Components for E-Paper Displays</title>
+    <!--/site:head-->
 
     <style>
       :root {
@@ -89,6 +91,8 @@
         font-weight: 700;
         margin: 0;
         white-space: nowrap;
+        color: #000;
+        text-decoration: none;
       }
       .site-header__dot {
         margin: 0 8px;
@@ -117,7 +121,7 @@
         border-bottom: 2px solid transparent;
         white-space: nowrap;
       }
-      #site-nav a[aria-current='true'] {
+      #site-nav a[aria-current='page'] {
         border-bottom-color: #000;
         font-weight: 700;
       }
@@ -186,20 +190,25 @@
         gap: 12px;
         flex-wrap: wrap;
       }
-      /* Pre-render placeholder buttons matching ink-btn dimensions, so the
-         layout doesn't shift when <e-button> upgrades. */
-      .site-cover__cta button {
+      /* The CTAs are plain links styled as buttons — they navigate without
+         JavaScript, and the critical block matches .ink-btn so there is no
+         shift when the bundle's stylesheet lands. */
+      .site-cover__cta .ink-btn {
         font-family: var(--ink-sans);
-        font-size: var(--ink-text-body);
+        font-size: 17px;
         font-weight: 600;
-        min-height: 44px;
-        padding: 10px 18px;
+        min-height: 48px;
+        padding: 12px 20px;
         border: var(--ink-border);
         background: #fff;
         color: #000;
-        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
       }
-      .site-cover__cta button[data-primary] {
+      .site-cover__cta .ink-btn--primary {
         background: #000;
         color: #fff;
       }
@@ -251,13 +260,6 @@
         align-items: center;
         justify-content: space-between;
         gap: 16px;
-      }
-      .site-footbar__hint {
-        font-family: var(--ink-mono);
-        font-size: var(--ink-text-caption);
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        opacity: 0.7;
       }
       .site-footbar__by {
         font-family: var(--ink-mono);
@@ -313,7 +315,7 @@
         .site-cover__lede {
           font-size: var(--ink-text-body);
         }
-        .site-cover__cta button {
+        .site-cover__cta .ink-btn {
           flex: 1 1 auto;
         }
         .site-cover__stats {
@@ -326,36 +328,35 @@
           font-size: 28px;
         }
       }
-      @media (max-width: 720px) {
-        .site-footbar__hint {
-          display: none;
-        }
-      }
     </style>
 
     <!-- Full sheets are imported from main.ts so Vite can resolve
          paths that fall outside the site root (src/site/). -->
   </head>
-  <body>
+  <body data-route="/">
     <div class="ink-page site-root">
       <header class="site-header" id="site-header">
-        <h1 class="site-header__brand">
+        <!-- The wordmark is not a heading: each page spends its single <h1>
+             on what that page is actually about. -->
+        <a class="site-header__brand" href="/">
           EPaper<span class="site-header__dot">·</span
           ><span class="site-header__sub">Components</span>
-        </h1>
+        </a>
+        <!--
+            Real links to real URLs. The nav block, including which entry
+            carries aria-current, is regenerated per route by
+            scripts/build-site-routes.mjs.
+          -->
+        <!--site:nav-->
         <nav id="site-nav" aria-label="Pages">
-          <a href="#page-1" data-page="1" aria-current="true">Cover</a>
-          <a href="#page-2" data-page="2">Features</a>
-          <a href="#page-3" data-page="3">Components</a>
-          <a href="#page-4" data-page="4">Showcase</a>
-          <a href="#page-5" data-page="5">Install</a>
-          <a href="#page-6" data-page="6">Community</a>
-          <!--
-              External, not a pager page — deliberately carries no data-page
-              so the nav click handler lets the browser navigate normally.
-              The href is rewritten at boot from VITE_STORYBOOK_BASE; the
-              value here is the local Storybook dev-server fallback.
-            -->
+          <a href="/" aria-current="page">Cover</a>
+          <a href="/features/">Features</a>
+          <a href="/components/">Components</a>
+          <a href="/showcase/">Showcase</a>
+          <a href="/install/">Install</a>
+          <a href="/community/">Community</a>
+          <!-- Storybook lives outside this site; the href is rewritten at
+               build time from VITE_STORYBOOK_BASE. -->
           <a
             class="site-nav__ext"
             id="nav-storybook"
@@ -364,82 +365,42 @@
             >Storybook ↗</a
           >
         </nav>
+        <!--/site:nav-->
       </header>
 
+      <!--
+          Page content is generated at build time by src/site/content.ts and
+          injected here — every page ships its text in the HTML, so crawlers
+          that do not execute JavaScript still see all of it.
+        -->
       <main class="site" id="site-main">
-        <!--
-            Page 1 is pre-rendered as static HTML so first paint shows the
-            cover hero before main.ts even starts evaluating. main.ts skips
-            this section because it carries data-prerendered.
-          -->
-        <section
-          class="site-section"
-          id="page-1"
-          data-page="1"
-          data-prerendered=""
-          aria-label="Cover"
-        >
-          <div class="site-cover">
-            <div class="site-cover__hero">
-              <div class="site-cover__tags">
-                <span class="site-cover__tag">OSS</span>
-                <span class="site-cover__tag">MIT</span>
-                <span class="site-cover__tag">Vanilla CE</span>
-              </div>
-              <h1>Web components<br />for ink &amp; paper.</h1>
-              <p class="site-cover__lede">
-                EPaper is a vanilla custom-element library tuned for e-paper displays. Surgical DOM
-                updates, no animations, no <code>:hover</code>, no Shadow DOM — just standards-based
-                components your design system can ship on a Kaleido panel today.
-              </p>
-              <div class="site-cover__cta">
-                <button type="button" data-primary id="cta-start">Get started</button>
-                <button type="button" id="cta-github">View on GitHub</button>
-              </div>
-            </div>
-            <div></div>
-            <!--
-                The two data-site-stat values are rewritten at build time by
-                the epaper-site-stats plugin in vite.site.config.ts (component
-                count from data.ts, stars from the GitHub API). The numbers
-                committed here are the fallbacks used when the API is
-                unreachable — they are not maintained by hand.
-              -->
-            <div class="site-cover__stats" role="group" aria-label="Library at a glance">
-              <div>
-                <div class="site-cover__stat-label">Components</div>
-                <div class="site-cover__stat-value" data-site-stat="components">59</div>
-              </div>
-              <div>
-                <div class="site-cover__stat-label">Bundle (gz)</div>
-                <div class="site-cover__stat-value">40 KB</div>
-              </div>
-              <div>
-                <div class="site-cover__stat-label">GitHub stars</div>
-                <div class="site-cover__stat-value" data-site-stat="stars">29</div>
-              </div>
-            </div>
-          </div>
-        </section>
-        <section class="site-section" id="page-2" data-page="2" aria-label="Features"></section>
-        <section class="site-section" id="page-3" data-page="3" aria-label="Components"></section>
-        <section class="site-section" id="page-4" data-page="4" aria-label="Showcase"></section>
-        <section class="site-section" id="page-5" data-page="5" aria-label="Install"></section>
-        <section class="site-section" id="page-6" data-page="6" aria-label="Community"></section>
+        <!--site:main-->
+        <!--/site:main-->
       </main>
 
-      <footer class="site-footbar" id="site-footbar" aria-label="Pager">
+      <footer class="site-footbar" id="site-footbar">
         <div class="site-footbar__inner">
-          <span class="site-footbar__hint" aria-hidden="true">↑ ↓ · PgUp PgDn · Space</span>
-          <!-- Static markup (not rendered by main.ts) so the attribution and
-               its backlink are in the served HTML on every page. -->
+          <!--
+              Previous/next are real links, regenerated per route. They are
+              how a crawler walks the six pages in order, and how the
+              PgUp/PgDn keys resolve their target.
+            -->
+          <!--site:pagenav-->
+          <nav class="site-pagenav" aria-label="Page">
+            <span class="site-pagenav__folio">01 / 06</span>
+            <a class="site-pagenav__next" rel="next" href="/features/">Features →</a>
+          </nav>
+          <!--/site:pagenav-->
+          <!-- Static markup so the attribution and its backlink are in the
+               served HTML on every page. -->
           <span class="site-footbar__by">
-            Built by <a href="https://mattes.dev" rel="me author">Marco Mattes · mattes.dev</a>
+            <span class="site-footbar__prefix">Built by</span>
+            <a href="https://mattes.dev" rel="me author">Marco Mattes · mattes.dev</a>
           </span>
         </div>
       </footer>
 
-      <e-site-pager id="site-pager" data-pages="6"></e-site-pager>
+      <e-site-pager id="site-pager"></e-site-pager>
     </div>
 
     <script type="module" src="./main.ts"></script>

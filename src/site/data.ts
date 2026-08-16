@@ -164,11 +164,16 @@ export interface RoadmapItem {
   body: string;
 }
 
+/** Lede above the roadmap. Real prose, because AI crawlers quote prose. */
+export const ROADMAP_INTRO =
+  'EPaper follows semantic versioning. Patch releases ship from every green run on main under the npm dev tag; tagged releases publish to latest.';
+
 export const ROADMAP: RoadmapItem[] = [
   {
     time: 'V1.0',
     title: 'Public release',
-    body: 'Initial 43-component public API, custom-elements manifest shipping IDE autocomplete, MIT license.',
+    // Count is interpolated: it was hard-coded at 43 and had drifted.
+    body: `Initial ${COMPONENTS.length}-component public API, custom-elements manifest shipping IDE autocomplete, MIT license.`,
   },
   {
     time: 'V1.1',

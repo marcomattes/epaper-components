@@ -49,8 +49,12 @@ body {
 }
 .site-header__brand {
   /* Long enough to force an overflow at 320px if it never shrinks. */
+  font-family: var(--ink-serif);
   font-size: clamp(17px, 4.4vw, 20px);
+  font-weight: 700;
   white-space: nowrap;
+  color: var(--ink-fg);
+  text-decoration: none;
 }
 .site-header__dot {
   margin: 0 8px;
@@ -81,7 +85,7 @@ body {
   border-bottom: 2px solid transparent;
   white-space: nowrap;
 }
-#site-nav a[aria-current='true'] {
+#site-nav a[aria-current='page'] {
   border-bottom-color: var(--ink-fg);
   font-weight: 700;
 }
@@ -140,14 +144,6 @@ body {
   justify-content: space-between;
   gap: 16px;
 }
-.site-footbar__hint {
-  font-family: var(--ink-mono);
-  font-size: var(--ink-text-caption);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  opacity: 0.7;
-}
-
 /* Author attribution — lives in the footbar so it is present on every page. */
 .site-footbar__by {
   font-family: var(--ink-mono);
@@ -159,14 +155,6 @@ body {
   color: var(--ink-fg);
   text-decoration: underline;
   text-underline-offset: 3px;
-}
-
-/* The keyboard hint is decorative — and a lie on a touch device; drop it
-   before the attribution on narrow viewports so the backlink survives. */
-@media (max-width: 720px) {
-  .site-footbar__hint {
-    display: none;
-  }
 }
 
 /* ---------- Page 1 cover layout ---------- */
@@ -233,6 +221,73 @@ body {
   font-weight: 700;
   line-height: 1;
   white-space: nowrap;
+}
+
+/* The cover CTAs are links wearing .ink-btn. */
+.site-cover__cta .ink-btn {
+  text-decoration: none;
+}
+
+/* ---------- Page navigation (footbar) ---------- */
+.site-pagenav {
+  display: flex;
+  align-items: center;
+  gap: var(--ink-space-4);
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-caption);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.site-pagenav a {
+  color: var(--ink-fg);
+  text-decoration: none;
+  border-bottom: 2px solid var(--ink-fg);
+  padding-bottom: 1px;
+}
+.site-pagenav__folio {
+  opacity: 0.7;
+}
+
+/* ---------- Prose ---------- */
+/* Lede paragraphs carry the page's summary — the sentence an answer engine
+   is most likely to quote — so they are real text, not a component. */
+.site-lede {
+  font-family: var(--ink-serif);
+  font-size: var(--ink-text-prose);
+  line-height: 1.5;
+  max-width: 68ch;
+  margin: 0;
+}
+.site-lede code {
+  font-family: var(--ink-mono);
+  font-size: 0.85em;
+}
+
+/* ---------- Feature cards (page 2) ---------- */
+/* A 300px floor keeps the widest layout at three columns (the page maxes out
+   at 1180px) and steps down to two and then one without a media query. */
+.site-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: var(--ink-space-4);
+}
+.site-feature {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-3);
+}
+.site-feature__icon {
+  display: inline-flex;
+}
+.site-feature .ink-text {
+  margin: 0;
+}
+
+/* ---------- Link rows ---------- */
+.site-linkrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ink-space-4);
 }
 
 /* ---------- Section headers ---------- */
@@ -426,8 +481,7 @@ e-site-pager {
   .site-cover__lede {
     font-size: var(--ink-text-body);
   }
-  .site-cover__cta e-button,
-  .site-cover__cta button {
+  .site-cover__cta .ink-btn {
     flex: 1 1 auto;
   }
 
@@ -451,6 +505,32 @@ e-site-pager {
   /* 18px of panel padding on each side is a lot of a 375px screen. */
   .site-section .ink-tabs__panel {
     padding: 12px;
+  }
+
+  /* The footbar carries prev/next, the folio and the attribution, which is
+     three things too many for one phone-width line. Two tidy rows instead of
+     a ragged three-line wrap: page links, then the backlink. */
+  .site-footbar {
+    padding: 6px var(--ink-space-4);
+  }
+  .site-footbar__inner {
+    flex-wrap: wrap;
+    gap: 2px var(--ink-space-3);
+  }
+  .site-pagenav {
+    order: 1;
+    width: 100%;
+    justify-content: space-between;
+    gap: var(--ink-space-3);
+  }
+  .site-pagenav__folio,
+  .site-footbar__prefix {
+    display: none;
+  }
+  .site-footbar__by {
+    order: 2;
+    width: 100%;
+    font-size: 10px;
   }
 
   .site-secthead {

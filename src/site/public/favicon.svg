@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="EPaper">
+  <rect width="64" height="64" fill="#fff"/>
+  <rect x="4" y="4" width="56" height="56" fill="none" stroke="#000" stroke-width="6"/>
+  <text x="32" y="45" font-family="Iowan Old Style, Charter, Georgia, serif" font-size="38" font-weight="700" text-anchor="middle" fill="#000">E</text>
+</svg>
