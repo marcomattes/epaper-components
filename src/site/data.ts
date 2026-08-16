@@ -37,7 +37,9 @@ export const CATEGORIES: Array<{ value: ComponentCategory | 'all'; label: string
  * Local dev:   http://localhost:6006 (default)
  * Production:  https://epaper-components.dev/storybook
  */
-export const STORYBOOK_BASE = import.meta.env['VITE_STORYBOOK_BASE'] ?? 'http://localhost:6006';
+// Optional chaining because this module is also imported by
+// vite.site.config.ts (Node, no import.meta.env) to read COMPONENTS.length.
+export const STORYBOOK_BASE = import.meta.env?.['VITE_STORYBOOK_BASE'] ?? 'http://localhost:6006';
 
 /**
  * Build a Storybook docs deep-link for a component entry.
@@ -162,11 +164,16 @@ export interface RoadmapItem {
   body: string;
 }
 
+/** Lede above the roadmap. Real prose, because AI crawlers quote prose. */
+export const ROADMAP_INTRO =
+  'EPaper follows semantic versioning. Patch releases ship from every green run on main under the npm dev tag; tagged releases publish to latest.';
+
 export const ROADMAP: RoadmapItem[] = [
   {
     time: 'V1.0',
     title: 'Public release',
-    body: 'Initial 43-component public API, custom-elements manifest shipping IDE autocomplete, MIT license.',
+    // Count is interpolated: it was hard-coded at 43 and had drifted.
+    body: `Initial ${COMPONENTS.length}-component public API, custom-elements manifest shipping IDE autocomplete, MIT license.`,
   },
   {
     time: 'V1.1',

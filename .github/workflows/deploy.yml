@@ -53,11 +53,16 @@ jobs:
 
       # The landing site deep-links into the deployed Storybook, so it needs
       # the public base URL at build time rather than the localhost default.
+      # GITHUB_TOKEN lifts the anonymous GitHub API rate limit for the star
+      # count baked into the cover. The build falls back to the committed
+      # number in scripts/github-stars.mjs if the call fails, so a rate-limited
+      # or offline run still deploys.
       - name: Build landing site
         run: npm run build:site
         env:
           VITE_SITE_BASE: /
           VITE_STORYBOOK_BASE: https://epaper-components.dev/storybook
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Storybook is served from a sub-path, so its asset base must match or
       # every chunk 404s at the domain root.
