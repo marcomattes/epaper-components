@@ -26,7 +26,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
 
 concurrency:
   # One preview per PR. A newer push supersedes an in-flight deploy, but the
@@ -45,6 +44,9 @@ jobs:
       github.event.action != 'closed' &&
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -141,6 +143,9 @@ jobs:
       github.event.action == 'closed' &&
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       # FTP-Deploy-Action only uploads; removing a directory needs a real
       # client. lftp's `rm -r` is recursive and `-f` keeps the step green when
@@ -159,11 +164,14 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Default to encrypted control and data channels; the plain-FTP
-          # escape hatch mirrors the FTP_PROTOCOL variable deploy.yml honours.
+          # Encrypted control and data channels by default. The plain-FTP
+          # setting only stops *requiring* TLS — it never turns it off, so
+          # lftp still negotiates it whenever the server offers it. There is
+          # no code path here that transmits the password in the clear when
+          # the server would have accepted TLS.
           ssl='set ftp:ssl-force true; set ftp:ssl-protect-data true;'
           if [ "$FTP_PROTOCOL" = "ftp" ]; then
-            ssl='set ftp:ssl-allow false;'
+            ssl='set ftp:ssl-protect-data true;'
           fi
 
           target="${SERVER_DIR}${PREVIEW_PATH}"
@@ -174,7 +182,7 @@ jobs:
           # directory never existed, e.g. a PR closed before its first deploy.
           LFTP_PASSWORD="$FTP_PASSWORD" lftp -c "
             ${ssl}
-            open -u '${FTP_USERNAME}' --env-password -p '${FTP_PORT}' 'ftp://${FTP_SERVER}';
+            open -u '${FTP_USERNAME}' --env-password -p '${FTP_PORT}' '${FTP_SERVER}';
             rm -rf '${target}';
           " || echo "Nothing to remove at ${target}"
 
