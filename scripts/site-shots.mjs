@@ -216,6 +216,25 @@ export function inkRatio(buf) {
 }
 
 /**
+ * Compare two file names by UTF-16 code unit.
+ *
+ * Explicit rather than a bare `sort()`, and deliberately not
+ * `String#localeCompare`: this orders build inputs, so it has to give the same
+ * answer on every machine. Locale collation treats `-` as a variable character
+ * and can order `foo-bar` and `foobar` differently between runners, which is
+ * exactly the instability the sort exists to remove.
+ *
+ * @param {string} a
+ * @param {string} b
+ * @returns {number}
+ */
+function byCodeUnit(a, b) {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
+}
+
+/**
  * Index every usable baseline by its `category-name` slug.
  *
  * Baselines that render (almost) nothing are reported separately instead of
@@ -243,7 +262,7 @@ export async function readShots() {
 
   // Sorted for a stable index: readdir order is filesystem-dependent, and the
   // first file to claim a slug wins.
-  files.sort();
+  files.sort(byCodeUnit);
 
   for (const file of files) {
     if (!file.endsWith('.png')) continue;
