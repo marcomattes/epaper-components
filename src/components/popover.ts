@@ -4,6 +4,7 @@ import {
   define,
   esc,
   onGlobal,
+  patchAttr,
   patchText,
   randId,
   runCleanups,
@@ -61,13 +62,21 @@ class Popup {
     return this._triggerWrap.querySelector<HTMLElement>('button, [role="button"], a[href]');
   }
 
-  /** Wire ARIA once the panel's accessible name is known. */
+  /**
+   * Wire ARIA once the panel's accessible name is known.
+   *
+   * An empty label *removes* the attribute rather than leaving the previous
+   * one in place: clearing a heading has to clear the announcement with it,
+   * otherwise the panel keeps a name its content no longer has. A panel with
+   * no name of its own falls back to the trigger's, which is the closest
+   * honest description available.
+   */
   describe(label: string): void {
     const control = this.control();
     control?.setAttribute('aria-haspopup', 'dialog');
     control?.setAttribute('aria-expanded', String(!this.panel.hidden));
     control?.setAttribute('aria-controls', this.panel.id);
-    if (label) this.panel.setAttribute('aria-label', label);
+    patchAttr(this.panel, 'aria-label', label || (control?.textContent ?? '').trim() || null);
   }
 
   get open(): boolean {
@@ -383,8 +392,18 @@ export class EPopconfirm extends HTMLElement {
 
   /** Close the bubble and report the outcome exactly once. */
   private _resolve(confirmed: boolean): void {
-    if (!this._popup?.open) return;
+    const popup = this._popup;
+    if (!popup?.open) return;
+
+    // Opening moved focus into the panel, so closing has to move it back:
+    // hiding the focused subtree otherwise drops the keyboard user on
+    // `<body>` with no way back to where they were. `Escape` gets this from
+    // the global key handler; the buttons need it here.
+    const restoreFocus = popup.panel.contains(document.activeElement);
+
     this.removeAttribute('open');
+    if (restoreFocus) popup.focusTrigger();
+
     this.dispatchEvent(
       new CustomEvent(confirmed ? 'e-confirm' : 'e-cancel', {
         detail: { value: confirmed },

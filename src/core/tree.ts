@@ -94,6 +94,17 @@ export class TreeView {
   private _data: TreeNode[] = [];
   private _expanded = new Set<string>();
   private _selected = '';
+  /**
+   * Row that owns the tree's single tab stop.
+   *
+   * Deliberately separate from `_selected`: rows are materialised lazily, so
+   * a selected row can be absent (its branch is still collapsed) or hidden
+   * (its branch was collapsed again). Deriving the tab stop from selection
+   * alone produced both failure modes — two tabbable rows after expanding to
+   * a selected child, and a tab stop stranded inside a hidden group after
+   * collapsing. The tab stop is re-derived from what is actually visible.
+   */
+  private _focus = '';
   private _root: HTMLUListElement | null = null;
 
   private readonly _rows = new Map<string, HTMLElement>();
@@ -154,10 +165,36 @@ export class TreeView {
     this._root = ul;
     this.host.replaceChildren(ul);
 
-    // Guarantee exactly one tabbable row so the tree has a single tab stop.
-    if (!this._selected || !this._rows.has(this._selected)) {
-      const first = ul.querySelector<HTMLElement>('.ink-tree__row');
-      if (first) first.tabIndex = 0;
+    this.normalizeTabStop();
+  }
+
+  /**
+   * Leave exactly one visible row tabbable.
+   *
+   * Preference order: the row that already owns the tab stop, then the
+   * selected row, then the first visible row. Call after anything that adds,
+   * hides or reveals rows.
+   */
+  normalizeTabStop(): void {
+    const visible = this.visibleRows();
+    if (visible.length === 0) return;
+
+    const preferred = [this._focus, this._selected]
+      .filter(Boolean)
+      .map((v) => this._rows.get(v))
+      .find((row) => row !== undefined && visible.includes(row));
+
+    const target = preferred ?? visible[0];
+    if (!target) return;
+
+    // Only a real position — the user's focus or the selection — is recorded.
+    // Pinning `_focus` to the first-row fallback would make that arbitrary
+    // choice outrank a selection that becomes visible later, so expanding to a
+    // selected child would leave the tab stop on its ancestor.
+    if (preferred) this._focus = target.dataset['value'] ?? '';
+    for (const row of this._rows.values()) {
+      const next = row === target ? 0 : -1;
+      if (row.tabIndex !== next) row.tabIndex = next;
     }
   }
 
@@ -177,7 +214,10 @@ export class TreeView {
     row.setAttribute('role', 'treeitem');
     row.setAttribute('aria-level', String(depth + 1));
     if (selectionAttr) row.setAttribute(selectionAttr, String(isSelected));
-    row.tabIndex = isSelected ? 0 : -1;
+    // The tab stop is assigned by normalizeTabStop() once the row's
+    // visibility is known — a freshly materialised row may be inside a group
+    // that is still hidden.
+    row.tabIndex = -1;
     row.style.paddingLeft = `${10 + depth * 20}px`;
 
     if (kids) {
@@ -240,15 +280,15 @@ export class TreeView {
     this._selected = newValue;
     if (!selectionAttr) return;
     const oldRow = oldValue ? this._rows.get(oldValue) : undefined;
-    if (oldRow) {
-      patchAttr(oldRow, selectionAttr, 'false');
-      oldRow.tabIndex = -1;
-    }
+    if (oldRow) patchAttr(oldRow, selectionAttr, 'false');
     const newRow = newValue ? this._rows.get(newValue) : undefined;
     if (newRow) {
       patchAttr(newRow, selectionAttr, 'true');
-      newRow.tabIndex = 0;
+      // Selecting a row moves the tab stop to it, so returning to the tree
+      // lands on the current selection.
+      this._focus = newValue;
     }
+    this.normalizeTabStop();
   }
 
   /** Expand or collapse a node, materialising its children on first open. */
@@ -278,6 +318,18 @@ export class TreeView {
     const row = this._rows.get(value);
     if (row) patchAttr(row, 'aria-expanded', String(open));
 
+    // Collapsing a branch that holds the tab stop hands it to the branch
+    // itself, which is where the ARIA tree pattern puts focus and what the
+    // user is looking at. Then re-derive, because expanding also materialises
+    // rows that have no tab index yet.
+    if (!open) {
+      const node = this._nodes.get(value);
+      if (node && this._focus !== value && collectSubtree(node).includes(this._focus)) {
+        this._focus = value;
+      }
+    }
+    this.normalizeTabStop();
+
     this.config.onToggle?.(value, open);
   }
 
@@ -298,8 +350,8 @@ export class TreeView {
   /** Move focus to `row`, keeping a single tab stop in the tree. */
   focusRow(row: HTMLElement | undefined): void {
     if (!row) return;
-    for (const r of this._rows.values()) r.tabIndex = -1;
-    row.tabIndex = 0;
+    this._focus = row.dataset['value'] ?? '';
+    this.normalizeTabStop();
     row.focus();
   }
 

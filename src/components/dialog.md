@@ -23,6 +23,7 @@ partial tones dither unpredictably between refreshes.
 | `heading` | `string` | — | Title rendered in the dialog header and wired up as its accessible name. |
 | `size` | `'small'\|'medium'\|'large'\|'full'` | `'medium'` | Width preset. `full` fills the viewport, which suits small panels. |
 | `no-close` | `boolean` | — | Hides the header close button. |
+| `aria-label` | — | — |  |
 | `static` | `boolean` | — | Prevents dismissal via `Escape` or a backdrop click. Use for a decision the user must make. |
 
 ## Events

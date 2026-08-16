@@ -1,4 +1,4 @@
-import { addCleanup, boolAttr, define, esc, patchText, runCleanups } from '../core/dom';
+import { addCleanup, boolAttr, define, esc, patchAttr, patchText, runCleanups } from '../core/dom';
 import { iconSvg } from '../core/icons';
 
 type Variant = 'info' | 'success' | 'warning' | 'error';
@@ -12,6 +12,13 @@ const VARIANT_ICON: Record<Variant, string> = {
 
 const isVariant = (v: string | null): v is Variant =>
   v === 'info' || v === 'success' || v === 'warning' || v === 'error';
+
+/**
+ * `alert` interrupts a screen reader mid-sentence, which is right for a
+ * failure and wrong for a passive banner — everything else announces at the
+ * next opportunity instead.
+ */
+const roleFor = (variant: Variant): string => (variant === 'error' ? 'alert' : 'status');
 
 /**
  * @summary Inline status banner for a message attached to a region of the page.
@@ -71,6 +78,10 @@ export class EAlert extends HTMLElement {
     if (name === 'variant') {
       const variant = this._variant();
       this._root.setAttribute('data-variant', variant);
+      // The live-region role follows severity, so it has to move with it:
+      // an info banner promoted to error must start interrupting, and an
+      // error demoted to info must stop.
+      patchAttr(this._root, 'role', roleFor(variant));
       if (this._iconEl) this._iconEl.innerHTML = iconSvg(VARIANT_ICON[variant], 20);
     } else if (name === 'heading') {
       this._syncHeading(val ?? '');
@@ -97,9 +108,7 @@ export class EAlert extends HTMLElement {
     const root = document.createElement('div');
     root.className = 'ink-alert';
     root.setAttribute('data-variant', variant);
-    // `alert` would interrupt a screen reader mid-sentence for what is a
-    // passive banner; `status` announces politely at the next opportunity.
-    root.setAttribute('role', variant === 'error' ? 'alert' : 'status');
+    root.setAttribute('role', roleFor(variant));
     root.innerHTML = `<span class="ink-alert__icon" aria-hidden="true">${iconSvg(VARIANT_ICON[variant], 20)}</span>
       <div class="ink-alert__content">
         <p class="ink-alert__heading">${esc(heading)}</p>

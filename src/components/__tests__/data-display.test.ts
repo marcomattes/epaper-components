@@ -545,6 +545,14 @@ describe('e-collapse', () => {
     expect(fired).toBe(0);
   });
 
+  it('keeps accordion exclusivity when the value property is used', async () => {
+    const el = mount<HTMLElement & { value: string[] }>(markup('accordion'));
+    el.value = ['a', 'b'];
+    await settle();
+    // The public API must not reach a state no user interaction could.
+    expect(el.value).toEqual(['a']);
+  });
+
   it('refuses to toggle a disabled panel', () => {
     const el = mount(`<e-collapse>
         <e-collapse-panel key="a" heading="A" disabled>Body</e-collapse-panel>
@@ -656,5 +664,36 @@ describe('e-tree', () => {
     expect(detail).not.toBeNull();
     expect(detail!.source).toBe('data');
     expect(el.querySelectorAll('.ink-tree__row').length).toBe(0);
+  });
+
+  it('keeps exactly one visible tabbable row when a selected child is revealed', () => {
+    // The selected node starts inside a collapsed branch, so at render time
+    // the fallback row owns the tab stop. Expanding must hand it over rather
+    // than produce a second one.
+    const el = mount(`<e-tree selectable data='${DATA}' value="c1"></e-tree>`);
+    const tabbable = () =>
+      [...el.querySelectorAll<HTMLElement>('.ink-tree__row')].filter((r) => r.tabIndex === 0);
+    expect(tabbable().length).toBe(1);
+
+    el.querySelector<HTMLElement>('[data-expand="p"]')!.click();
+    expect(tabbable().length).toBe(1);
+    expect(tabbable()[0]!.dataset['value']).toBe('c1');
+  });
+
+  it('never strands the tab stop inside a collapsed branch', () => {
+    const el = mount(`<e-tree data='${DATA}' default-expanded="p"></e-tree>`);
+    const visibleTabbable = () =>
+      [...el.querySelectorAll<HTMLElement>('.ink-tree__row')].filter(
+        (r) => r.tabIndex === 0 && r.closest('ul[hidden]') === null,
+      );
+
+    el.querySelector<HTMLElement>('[data-value="c2"]')!.focus();
+    expect(visibleTabbable().length).toBe(1);
+
+    // Collapsing the parent hides the focused row; the stop moves to the parent.
+    el.querySelector<HTMLElement>('[data-expand="p"]')!.click();
+    const stops = visibleTabbable();
+    expect(stops.length).toBe(1);
+    expect(stops[0]!.dataset['value']).toBe('p');
   });
 });

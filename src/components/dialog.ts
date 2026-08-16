@@ -1,10 +1,41 @@
-import { addCleanup, boolAttr, define, esc, patchText, randId, runCleanups } from '../core/dom';
+import {
+  addCleanup,
+  boolAttr,
+  define,
+  esc,
+  patchAttr,
+  patchText,
+  randId,
+  runCleanups,
+} from '../core/dom';
 import { iconSvg } from '../core/icons';
 
 type Size = 'small' | 'medium' | 'large' | 'full';
 
 const isSize = (s: string | null): s is Size =>
   s === 'small' || s === 'medium' || s === 'large' || s === 'full';
+
+/*
+ * Page scroll is a single resource, so the lock is shared rather than tracked
+ * per dialog. With one counter per instance, closing the first of two open
+ * dialogs would restore scrolling underneath the second, and the second would
+ * then restore the value it captured while already locked — leaving the page
+ * frozen for good. Only the last dialog out puts the original value back.
+ */
+let scrollLockCount = 0;
+let scrollLockPrev = '';
+
+function lockPageScroll(): void {
+  if (scrollLockCount === 0) scrollLockPrev = document.documentElement.style.overflow;
+  scrollLockCount += 1;
+  document.documentElement.style.overflow = 'hidden';
+}
+
+function unlockPageScroll(): void {
+  if (scrollLockCount === 0) return;
+  scrollLockCount -= 1;
+  if (scrollLockCount === 0) document.documentElement.style.overflow = scrollLockPrev;
+}
 
 /** Why the dialog closed. Carried on `e-close` so hosts can tell apart intents. */
 export type DialogCloseReason = 'close-button' | 'escape' | 'backdrop' | 'api';
@@ -39,15 +70,21 @@ export type DialogCloseReason = 'close-button' | 'escape' | 'backdrop' | 'api';
  * </e-dialog>
  */
 export class EDialog extends HTMLElement {
-  static observedAttributes = ['open', 'heading', 'size', 'no-close'];
+  static observedAttributes = ['open', 'heading', 'size', 'no-close', 'aria-label'];
 
   private _wired = false;
   private _dialog: HTMLDialogElement | null = null;
   private _titleEl: HTMLElement | null = null;
   private _closeBtn: HTMLButtonElement | null = null;
   private _headerEl: HTMLElement | null = null;
+  private _titleId = '';
   private _reason: DialogCloseReason = 'api';
-  private _prevOverflow: string | null = null;
+  /** Whether this instance currently holds a share of the shared scroll lock. */
+  private _holdsScrollLock = false;
+  /** Whether the native element is in the top layer, as opposed to merely open. */
+  private _modal = false;
+  /** Native `close` events to swallow because we caused them ourselves. */
+  private _suppressNativeClose = 0;
 
   connectedCallback() {
     if (!this._wired) {
@@ -55,12 +92,45 @@ export class EDialog extends HTMLElement {
       this._build();
     }
     this._bind();
-    if (boolAttr(this, 'open')) this._syncOpen(true);
+    this._restoreOpenState();
   }
 
   disconnectedCallback() {
+    // Removing a modal `<dialog>` runs the browser's cleanup steps: it leaves
+    // the top layer and loses its modal state, but keeps its `open` attribute.
+    // Record that so a later reinsert knows the difference between "still
+    // modal" and "open but inert-less".
+    this._modal = false;
     this._unlockScroll();
     runCleanups(this);
+  }
+
+  /**
+   * Bring the native element back in line with the `open` attribute on
+   * connect.
+   *
+   * Three cases: never opened (normal path, emits `e-open`); still modal from
+   * before (nothing to do); or open-but-no-longer-modal after a detach, where
+   * the equality check in `_syncOpen` would skip `showModal()` and hand back a
+   * dialog with no focus trapping and no inertness behind it. That last case
+   * re-enters the top layer without emitting a close/open pair, because from
+   * the outside the dialog never closed.
+   */
+  private _restoreOpenState(): void {
+    const dialog = this._dialog;
+    if (!dialog || !boolAttr(this, 'open')) return;
+    if (this._modal) return;
+
+    if (dialog.open) {
+      this._suppressNativeClose += 1;
+      dialog.close();
+      dialog.showModal();
+      this._modal = true;
+      this._lockScroll();
+      return;
+    }
+
+    this._syncOpen(true);
   }
 
   attributeChangedCallback(name: string, old: string | null, val: string | null) {
@@ -70,10 +140,13 @@ export class EDialog extends HTMLElement {
     } else if (name === 'heading') {
       if (this._titleEl) patchText(this._titleEl, val ?? '');
       this._syncHeaderVisibility();
+      this._syncLabel();
     } else if (name === 'size') {
       this._dialog?.setAttribute('data-size', this._size());
     } else if (name === 'no-close') {
       this._syncHeaderVisibility();
+    } else if (name === 'aria-label') {
+      this._syncLabel();
     }
   }
 
@@ -111,7 +184,7 @@ export class EDialog extends HTMLElement {
       </header>
       <div class="ink-dialog__body"></div>
       <footer class="ink-dialog__footer"></footer>`;
-    dialog.setAttribute('aria-labelledby', titleId);
+    this._titleId = titleId;
 
     const bodyEl = dialog.querySelector<HTMLElement>('.ink-dialog__body')!;
     for (const node of body) bodyEl.appendChild(node);
@@ -125,6 +198,24 @@ export class EDialog extends HTMLElement {
     this._titleEl = dialog.querySelector('.ink-dialog__title');
     this._closeBtn = dialog.querySelector('.ink-dialog__close');
     this._syncHeaderVisibility();
+    this._syncLabel();
+  }
+
+  /**
+   * Give the native `<dialog>` an accessible name.
+   *
+   * `aria-labelledby` may only point at the title while there *is* one —
+   * aiming it at an empty `<h2>` produces an unnamed modal. `aria-label` on
+   * this custom element does not reach the nested `<dialog>`, so a
+   * host-authored one is forwarded explicitly.
+   */
+  private _syncLabel(): void {
+    const dialog = this._dialog;
+    if (!dialog || !this._titleId) return;
+    const heading = this.getAttribute('heading') ?? '';
+    const hostLabel = (this.getAttribute('aria-label') ?? '').trim();
+    patchAttr(dialog, 'aria-labelledby', heading ? this._titleId : null);
+    patchAttr(dialog, 'aria-label', heading ? null : hostLabel || null);
   }
 
   private _bind(): void {
@@ -184,6 +275,11 @@ export class EDialog extends HTMLElement {
    * already gone and removing it again is a no-op that fires nothing.
    */
   private _onNativeClose = (): void => {
+    this._modal = false;
+    if (this._suppressNativeClose > 0) {
+      this._suppressNativeClose -= 1;
+      return;
+    }
     this.removeAttribute('open');
   };
 
@@ -195,8 +291,13 @@ export class EDialog extends HTMLElement {
     // it before we mirror the change onto the attribute. Skip the call but
     // still run the side effects, so `e-close` fires exactly once either way.
     if (open !== dialog.open) {
-      if (open) dialog.showModal();
-      else dialog.close();
+      if (open) {
+        dialog.showModal();
+        this._modal = true;
+      } else {
+        dialog.close();
+        this._modal = false;
+      }
     }
 
     if (open) this._lockScroll();
@@ -219,15 +320,15 @@ export class EDialog extends HTMLElement {
    * region the user cannot see, which on e-paper costs a refresh for nothing.
    */
   private _lockScroll(): void {
-    if (this._prevOverflow !== null) return;
-    this._prevOverflow = document.documentElement.style.overflow;
-    document.documentElement.style.overflow = 'hidden';
+    if (this._holdsScrollLock) return;
+    this._holdsScrollLock = true;
+    lockPageScroll();
   }
 
   private _unlockScroll(): void {
-    if (this._prevOverflow === null) return;
-    document.documentElement.style.overflow = this._prevOverflow;
-    this._prevOverflow = null;
+    if (!this._holdsScrollLock) return;
+    this._holdsScrollLock = false;
+    unlockPageScroll();
   }
 
   /** Hide the header entirely when it would carry neither title nor button. */

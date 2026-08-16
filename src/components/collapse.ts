@@ -84,10 +84,22 @@ export class ECollapse extends HTMLElement {
     return [...this._panels.entries()].filter(([, d]) => d.open).map(([key]) => key);
   }
 
-  /** Open exactly the given keys, closing every other panel. Emits nothing. */
+  /**
+   * Open exactly the given keys, closing every other panel. Emits nothing.
+   *
+   * In `accordion` mode only the first key that matches a panel is opened —
+   * the public API must not be able to produce a state the mode forbids and
+   * that no user interaction could have reached.
+   */
   set value(keys: string[]) {
+    const accordion = boolAttr(this, 'accordion');
     const wanted = new Set(keys);
-    for (const [key, details] of this._panels) this._setOpen(details, wanted.has(key));
+    let openTaken = false;
+    for (const [key, details] of this._panels) {
+      const open = wanted.has(key) && !(accordion && openTaken);
+      if (open) openTaken = true;
+      this._setOpen(details, open);
+    }
   }
 
   private _build(): void {

@@ -39,4 +39,4 @@ accessible name and find-in-page all come from the browser.
 
 | Property | Type | Read-only | Description |
 | --- | --- | --- | --- |
-| `value` | `string[]` | no | Open exactly the given keys, closing every other panel. Emits nothing. |
+| `value` | `string[]` | no | Open exactly the given keys, closing every other panel. Emits nothing.  In `accordion` mode only the first key that matches a panel is opened — the public API must not be able to produce a state the mode forbids and that no user interaction could have reached. |
