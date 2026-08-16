@@ -33,7 +33,7 @@ import {
   USE_SNIPPET,
   type ComponentEntry,
 } from './data';
-import { PACKAGE_NAME, REPO_URL, ROUTES, type Route } from './routes';
+import { PACKAGE_NAME, REPO_URL, ROUTES, withBase, type Route } from './routes';
 
 export interface ContentOptions {
   /** Deployed Storybook base URL — resolved by the build, not by data.ts. */
@@ -81,7 +81,7 @@ function coverMain(opts: ContentOptions): string {
               components your design system can ship on a Kaleido panel today.
             </p>
             <div class="site-cover__cta">
-              <a class="ink-btn ink-btn--primary" href="/install/">Get started</a>
+              <a class="ink-btn ink-btn--primary" href="${esc(withBase('/install/'))}">Get started</a>
               <a class="ink-btn ink-btn--secondary" href="${esc(REPO_URL)}" rel="noopener"
                 >View on GitHub</a
               >
@@ -289,7 +289,7 @@ function installMain(route: Route): string {
 
         <nav class="site-linkrow" aria-label="Further reading">
           <a class="ink-link" href="${esc(REPO_URL)}#readme" rel="noopener">README</a>
-          <a class="ink-link" href="/components/">Component list</a>
+          <a class="ink-link" href="${esc(withBase('/components/'))}">Component list</a>
           <a class="ink-link" href="${esc(
             REPO_URL,
           )}/blob/main/CONTRIBUTING.md" rel="noopener">Contributing</a>
@@ -374,7 +374,7 @@ export function navHtml(route: Route, storybookBase: string): string {
     // The End key needs to know where the sequence stops.
     const last = i === ROUTES.length - 1 ? ' data-last' : '';
     return `
-          <a href="${esc(r.path)}"${current}${last}>${esc(r.nav)}</a>`;
+          <a href="${esc(withBase(r.path))}"${current}${last}>${esc(r.nav)}</a>`;
   }).join('');
 
   return `
@@ -397,7 +397,7 @@ export function pagenavHtml(route: Route): string {
           <nav class="site-pagenav" aria-label="Page">
             ${
               prev
-                ? `<a class="site-pagenav__prev" rel="prev" href="${esc(prev.path)}">← ${esc(
+                ? `<a class="site-pagenav__prev" rel="prev" href="${esc(withBase(prev.path))}">← ${esc(
                     prev.nav,
                   )}</a>`
                 : ''
@@ -405,7 +405,7 @@ export function pagenavHtml(route: Route): string {
             <span class="site-pagenav__folio">${esc(route.folio)} / ${total}</span>
             ${
               next
-                ? `<a class="site-pagenav__next" rel="next" href="${esc(next.path)}">${esc(
+                ? `<a class="site-pagenav__next" rel="next" href="${esc(withBase(next.path))}">${esc(
                     next.nav,
                   )} →</a>`
                 : ''

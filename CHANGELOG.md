@@ -51,12 +51,32 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   AI crawlers are explicitly allowed in `robots.txt`.
 - A favicon, an apple-touch icon and a 1200×630 Open Graph card
   (`src/site/public/`).
+- Per-pull-request preview deployments
+  (`.github/workflows/preview.yml`). Every PR from a branch in this repository
+  publishes the site and Storybook to
+  `https://epaper-components.dev/preview/pr-<number>/` and gets a sticky
+  comment with the links; closing the PR deletes the directory again. Pull
+  requests from forks are skipped, because they never receive the FTP
+  credentials. Preview pages are stamped `noindex,nofollow` and `/preview/` is
+  disallowed in `robots.txt`, so a throwaway copy cannot compete with the live
+  site in search results.
+- `.github/workflows/visual-baselines.yml`, a manually dispatched job that
+  regenerates the `screenshots.test.ts` PNG baselines inside the same pinned
+  Playwright container CI compares against, and pushes them to a branch. Font
+  rasterisation differs between Chromium builds, so a baseline produced on any
+  other machine fails CI by one to four pixels.
 
 ### Changed
 
 - Tree traversal, expansion, roving tabindex and keyboard navigation moved
   into `src/core/tree.ts`, shared by `<e-tree-select>` and the new `<e-tree>`.
   `<e-tree-select>`'s public behaviour is unchanged.
+- The site's internal links are base-aware. `VITE_SITE_BASE` now drives
+  `SITE_BASE`/`withBase()` in `src/site/routes.ts`, which prefixes the header
+  nav, the page-to-page pager, the in-page calls to action, the favicon and
+  the apple-touch icon. Previously it only moved Vite's asset base, so a site
+  served from a sub-directory linked back to the production root. Output at
+  the root is byte-for-byte unchanged.
 - The tag release path is now staged as `guard → checks → release → update`.
   `checks` calls `ci.yml` as a reusable workflow instead of repeating its steps,
   and `update` installs the published version from the registry, registers the
