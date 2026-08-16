@@ -53,8 +53,10 @@ jobs:
           node-version: 24
           cache: npm
 
+      # --ignore-scripts: this job checks out a caller-chosen ref and holds
+      # `contents: write`, so no dependency hook should run before the tests.
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Regenerate baselines
         run: npm run test:visual:update

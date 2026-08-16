@@ -57,8 +57,12 @@ jobs:
           node-version: 24
           cache: npm
 
+      # --ignore-scripts because this job checks out pull-request code: a
+      # postinstall hook added in a PR would otherwise run in the same job
+      # that holds the FTP credentials. Verified against the full pipeline —
+      # site, Storybook and tests all build without lifecycle scripts.
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Build landing site
         run: npm run build:site
@@ -80,7 +84,9 @@ jobs:
           cp -r storybook-static/. site/storybook/
 
       - name: Sync to FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        # Pinned to a commit rather than a tag: a tag can be moved to point
+        # at new code, and this action is handed the deployment credentials.
+        uses: SamKirkland/FTP-Deploy-Action@8e83cea8672e3fbcbb9fdafff34debf6ae4c5f65 # v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
