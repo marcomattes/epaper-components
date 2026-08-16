@@ -9,6 +9,19 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Added
 
+- SonarQube Cloud analysis on every pull request and every push to `main`.
+  `sonar-project.properties` carries the configuration; the `sonar` job in
+  `ci.yml` consumes the coverage and test reports the test job produced rather
+  than re-running the suite, and a failing quality gate fails CI. The job skips
+  itself with a notice when `SONAR_TOKEN` is unset, so pull requests from forks
+  stay green.
+- Coverage is now measured on every CI run (`npm run test:coverage:ci` replaces
+  `npm run test:ci` in the workflow) and uploaded as a build artifact together
+  with the JUnit, JSON and HTML test reports.
+- `vitest-sonar-reporter` emits `reports/test/sonar.xml` in Sonar's Generic Test
+  Execution format, which is what Sonar reads for JavaScript and TypeScript —
+  it cannot import the JUnit XML the suite already wrote.
+
 - The site is six real URLs — `/`, `/features/`, `/components/`, `/showcase/`,
   `/install/`, `/community/` — instead of one hash-routed scroll page. Every page
   is a complete static document with its own `<title>`, description, canonical

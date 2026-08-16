@@ -133,6 +133,7 @@ npm run dev          # Vite demo at localhost:8085
 npm run storybook    # Storybook at localhost:6006
 npm test             # Vitest watch (browser mode, Playwright)
 npm run test:ci      # Vitest run-once (CI)
+npm run test:coverage:ci  # Vitest run-once + coverage + Sonar reports
 npm run type-check   # tsc --noEmit, must be clean
 npm run lint:check   # ESLint, max-warnings=0
 npm run format:check # Prettier check
@@ -181,6 +182,15 @@ and strand the tag — then tag the merged commit on `main` and push the tag.
   conditional spread or omit the key.
 - **`reports/` is gitignored** but tests sometimes write into it. If
   `git status` shows it, it is a misconfiguration — do not commit it.
+- **`coverage.include` in `vitest.config.ts` and `sonar.coverage.exclusions`
+  in `sonar-project.properties` are one setting in two files.** Sonar reads
+  a source file with no lcov entry as 0% covered, not as unmeasured, so a
+  path outside the Vitest include set must be excluded on the Sonar side
+  too. Change one, change the other.
+- **There is one test runner, not two.** Playwright is Vitest's browser
+  provider, not a separate suite. Both Vitest projects (`unit`, `storybook`)
+  run in a single `vitest run` and V8 merges their coverage into one
+  `lcov.info` — there is nothing to combine afterwards.
 - **CSS imports use sub-paths**: `@marcomattes/epaper-components/styles/tokens.css`
   resolves to `src/styles/tokens.css` via the exports map. The
   `sideEffects` array intentionally lists `./src/styles/*.css` for this

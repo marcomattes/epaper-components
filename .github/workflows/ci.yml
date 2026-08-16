@@ -7,13 +7,19 @@ on:
     branches: [main]
   # Called as the checks stage of release.yml, so the release gate and the PR
   # gate are the same definition rather than two copies that drift apart.
-  workflow_call: {}
+  workflow_call:
+    secrets:
+      # Optional: without it the `sonar` job reports that it skipped rather
+      # than failing, so a fork PR and a token-less clone still get a green CI.
+      SONAR_TOKEN:
+        required: false
 
 permissions:
   contents: read
 
 jobs:
   build:
+    name: Build and test
     runs-on: ubuntu-latest
     container:
       # Keep the browser, its system dependencies, and visual-regression
@@ -43,11 +49,89 @@ jobs:
       - name: Type check
         run: npm run type-check
 
+      # Coverage instead of a bare run: this is the only place the browser
+      # suite executes, so it is also the only place coverage can be measured.
+      # Both Vitest projects (`unit` and `storybook`) report into it, and V8
+      # merges them into a single reports/coverage/lcov.info.
       - name: Tests
-        run: npm run test:ci
+        run: npm run test:coverage:ci
+
+      # `if: always()` on purpose — coverage.reportOnFailure keeps the reports
+      # usable after a failed assertion, and a failed run is exactly when the
+      # HTML report is worth reading.
+      - name: Upload test and coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: reports/
+          retention-days: 14
+          if-no-files-found: warn
 
       - name: Build
         run: npm run build
 
       - name: Size limit
         run: npm run size
+
+  sonar:
+    name: SonarQube
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      # The scanner needs the full history: it reads git blame to decide which
+      # lines are "new code" and who to assign issues to. A shallow clone makes
+      # every line look like it landed in this commit.
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Analysis runs outside the Playwright container and never re-runs the
+      # suite; it only needs the reports the build job already produced.
+      - name: Download test and coverage reports
+        uses: actions/download-artifact@v4
+        with:
+          name: reports
+          path: reports/
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # Not for building — for `sonar.typescript.tsconfigPaths`. Without the
+      # installed types the TypeScript analyzer falls back to a syntax-only
+      # parse and every type-aware rule silently stops firing.
+      - name: Install dependencies
+        run: npm ci
+
+      # A pull request from a fork gets no secrets, so SONAR_TOKEN is empty and
+      # the scan would fail on authentication. The check has to live in the
+      # shell: the `secrets` context is not available in a step-level `if`,
+      # only in `env`.
+      - name: Check for Sonar token
+        id: token
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [ -n "$SONAR_TOKEN" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=SonarQube::SONAR_TOKEN is not set — skipping analysis."
+          fi
+
+      - name: SonarQube scan
+        if: steps.token.outputs.present == 'true'
+        uses: SonarSource/sonarqube-scan-action@v8
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          # Blocks until SonarQube Cloud has finished analysing and returns the
+          # quality gate, so a failing gate fails this job rather than passing
+          # CI and showing up as a red badge on the pull request half a minute
+          # later. Everything else comes from sonar-project.properties.
+          args: >
+            -Dsonar.qualitygate.wait=true

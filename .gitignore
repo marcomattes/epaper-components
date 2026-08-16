@@ -12,6 +12,10 @@ reports/
 test-results/
 playwright-report/
 
+# SonarScanner working directory and downloaded CLI
+.scannerwork/
+.sonar/
+
 # OS / editor cruft 
 .DS_Store
 Thumbs.db

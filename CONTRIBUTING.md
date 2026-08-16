@@ -107,6 +107,40 @@ component or under `src/components/__tests__/` covering at minimum:
 - For form controls: `FormData` round-trip from a `<form>` parent.
 - For interactive components: keyboard activation paths.
 
+## Coverage and SonarQube
+
+`npm run test:coverage:ci` writes everything the analysis needs:
+
+```
+reports/coverage/lcov.info   coverage, read by sonar.javascript.lcov.reportPaths
+reports/test/sonar.xml       test results, read by sonar.testExecutionReportPaths
+reports/coverage/index.html  the report to actually look at while writing tests
+```
+
+Both Vitest projects — `unit` and `storybook` — run in one invocation and V8
+merges their coverage before writing, so a line exercised only by a story counts
+as covered. The thresholds in `vitest.config.ts` (80% lines/functions/statements,
+70% branches) fail the run locally and in CI before Sonar ever sees the report.
+
+Two settings have to move together. `coverage.include` in `vitest.config.ts`
+decides which files are measured; `sonar.coverage.exclusions` in
+`sonar-project.properties` has to exclude everything outside that set, because
+Sonar scores a file with no coverage data as 0% rather than as unmeasured. If
+you add a directory of production code, add it to both.
+
+To reproduce the analysis locally against SonarQube Cloud, with a token from
+**My Account → Security**:
+
+```sh
+npm run test:coverage:ci
+SONAR_TOKEN=<token> npx sonarqube-scanner
+```
+
+CI does the same in the `sonar` job of `ci.yml`, which downloads the reports
+from the test job rather than re-running the suite. The quality gate is
+blocking. Analysis is skipped, not failed, when `SONAR_TOKEN` is absent — that
+is the case for pull requests from forks.
+
 ## Style
 
 - TypeScript is strict. No `any` outside escape hatches.

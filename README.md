@@ -4,6 +4,8 @@
 [![npm downloads](https://img.shields.io/npm/dm/@marcomattes/epaper-components.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/@marcomattes/epaper-components)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/@marcomattes/epaper-components?style=flat-square&label=gzip)](https://bundlephobia.com/package/@marcomattes/epaper-components)
 [![CI](https://img.shields.io/github/actions/workflow/status/marcomattes/epaper-components/ci.yml?branch=main&style=flat-square&logo=github&label=CI)](https://github.com/marcomattes/epaper-components/actions/workflows/ci.yml)
+[![Quality Gate](https://img.shields.io/sonar/quality_gate/marcomattes_epaper-components?server=https%3A%2F%2Fsonarcloud.io&style=flat-square&logo=sonarqubecloud&label=quality%20gate)](https://sonarcloud.io/summary/new_code?id=marcomattes_epaper-components)
+[![Coverage](https://img.shields.io/sonar/coverage/marcomattes_epaper-components?server=https%3A%2F%2Fsonarcloud.io&style=flat-square&logo=sonarqubecloud)](https://sonarcloud.io/component_measures?id=marcomattes_epaper-components&metric=coverage)
 [![Website](https://img.shields.io/website?url=https%3A%2F%2Fepaper-components.dev&style=flat-square&label=epaper-components.dev)](https://epaper-components.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Custom Elements Manifest](https://img.shields.io/badge/CEM-1.0-blueviolet?style=flat-square)](https://github.com/webcomponents/custom-elements-manifest)
@@ -644,6 +646,39 @@ npm run size:why          # size-limit with bundle-analyzer
    `dist/custom-elements.json`, `dist/web-types.json`,
    `dist/vscode.html-custom-data.json`, `dist/vscode.css-custom-data.json` and
    `dist/elements.d.ts`, which carries the `HTMLElementTagNameMap` augmentation.
+
+### Static analysis and coverage
+
+[SonarQube Cloud](https://sonarcloud.io/project/overview?id=marcomattes_epaper-components)
+analyses every pull request and every push to `main`. The scan is the `sonar`
+job in `.github/workflows/ci.yml`; it does not run the suite itself but consumes
+the reports the test job produced, so the numbers on the dashboard are the
+numbers CI actually measured:
+
+| Report                       | Produced by             | Read via                            |
+| ---------------------------- | ----------------------- | ----------------------------------- |
+| `reports/coverage/lcov.info` | `@vitest/coverage-v8`   | `sonar.javascript.lcov.reportPaths` |
+| `reports/test/sonar.xml`     | `vitest-sonar-reporter` | `sonar.testExecutionReportPaths`    |
+
+There is only one test runner. Playwright is not a second suite — it is the
+browser provider Vitest drives in browser mode, and both Vitest projects, `unit`
+(`src/**/*.test.ts`) and `storybook` (the a11y and interaction stories), run in
+that same Chromium instance within a single `vitest run`. V8 collects coverage
+per project and merges it before writing, so `lcov.info` is already the union of
+the two; nothing has to be combined afterwards. Should a genuinely separate
+runner ever be added, `sonar.javascript.lcov.reportPaths` takes a
+comma-separated list and Sonar unions the files itself.
+
+`sonar-project.properties` holds the full configuration. The one rule to
+remember when editing it: `sonar.coverage.exclusions` must mirror
+`coverage.include` in `vitest.config.ts`. Sonar reads a source file with no
+entry in `lcov.info` as 0% covered rather than as unmeasured, so a path that the
+test run deliberately ignores has to be excluded on the Sonar side too.
+
+The quality gate is blocking — `sonar.qualitygate.wait=true` makes a failing
+gate fail the job instead of turning the badge red after CI has already passed.
+Analysis needs a `SONAR_TOKEN` repository secret; without one the job logs a
+notice and skips, which is what happens on pull requests from forks.
 
 ## Contributing
 
