@@ -7,6 +7,20 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+
+- The site is responsive below 1024px. The header nav moves to its own
+  full-width scroll strip instead of widening the document (every page used to
+  scroll sideways to 964px), section heads no longer land under the sticky
+  header, feature cards, key/value pairs and the install stepper stack on
+  narrow viewports, and the tab list, category filter, data table and calendar
+  scroll inside their own box.
+- The cover no longer claims 1.2k GitHub stars. The count is fetched from the
+  GitHub API at build time (`scripts/github-stars.mjs`) and baked into the
+  static HTML, with a committed fallback when the API is unreachable. The
+  component count and the colophon version are likewise generated from
+  `data.ts` and `package.json` rather than typed by hand.
+
 ### Changed
 
 - The tag release path is now staged as `guard → checks → release → update`.

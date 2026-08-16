@@ -37,6 +37,10 @@
         --ink-space-6: 32px;
         --ink-space-7: 48px;
         --ink-space-8: 64px;
+        /* Kept in sync with the real bar heights by main.ts; these are the
+           first-paint defaults. Mirrors site.css. */
+        --site-header-h: 52px;
+        --site-footbar-h: 40px;
       }
       html,
       body {
@@ -46,6 +50,12 @@
         color: #000;
         font-family: var(--ink-sans);
         height: 100%;
+      }
+      html {
+        scroll-padding-top: var(--site-header-h);
+      }
+      body {
+        overflow-x: hidden;
       }
       .ink-page,
       .ink-page *,
@@ -75,9 +85,10 @@
       }
       .site-header__brand {
         font-family: var(--ink-serif);
-        font-size: 20px;
+        font-size: clamp(17px, 4.4vw, 20px);
         font-weight: 700;
         margin: 0;
+        white-space: nowrap;
       }
       .site-header__dot {
         margin: 0 8px;
@@ -97,12 +108,14 @@
         font-size: var(--ink-text-small);
         letter-spacing: 0.12em;
         text-transform: uppercase;
+        min-width: 0;
       }
       #site-nav a {
         color: #000;
         text-decoration: none;
         padding: 4px 6px;
         border-bottom: 2px solid transparent;
+        white-space: nowrap;
       }
       #site-nav a[aria-current='true'] {
         border-bottom-color: #000;
@@ -113,15 +126,19 @@
         scroll-behavior: auto;
       }
       .site-section {
-        min-height: calc(100vh - 60px);
+        min-height: calc(100vh - var(--site-header-h));
+        min-height: calc(100svh - var(--site-header-h));
         scroll-snap-align: start;
-        padding: var(--ink-space-7) var(--ink-space-5) var(--ink-space-8);
+        scroll-margin-top: var(--site-header-h);
+        padding: var(--ink-space-7) var(--ink-space-5)
+          calc(var(--site-footbar-h) + var(--ink-space-6));
         max-width: 1180px;
         margin: 0 auto;
         display: flex;
         flex-direction: column;
         gap: var(--ink-space-5);
         box-sizing: border-box;
+        min-width: 0;
       }
       .site-cover {
         flex: 1;
@@ -188,7 +205,7 @@
       }
       .site-cover__stats {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 0;
         border-top: var(--ink-border);
         border-bottom: var(--ink-border);
@@ -197,6 +214,7 @@
       .site-cover__stats > * {
         padding: 0 var(--ink-space-5);
         border-left: var(--ink-border);
+        min-width: 0;
       }
       .site-cover__stats > *:first-child {
         border-left: none;
@@ -214,6 +232,7 @@
         font-size: 40px;
         font-weight: 700;
         line-height: 1;
+        white-space: nowrap;
       }
       .site-footbar {
         position: fixed;
@@ -253,6 +272,64 @@
       }
       e-site-pager {
         display: none;
+      }
+
+      /* Critical subset of the responsive rules in site.css — the cover is
+         pre-rendered, so it has to be laid out correctly before the bundle
+         arrives. Keep both copies in sync. */
+      @media (max-width: 900px) {
+        .site-header {
+          flex-wrap: wrap;
+          gap: 8px 16px;
+          padding: 10px var(--ink-space-4);
+        }
+        #site-nav {
+          order: 2;
+          width: 100%;
+          gap: 14px;
+          overflow-x: auto;
+          scrollbar-width: none;
+        }
+        #site-nav::-webkit-scrollbar {
+          display: none;
+        }
+        #site-nav a {
+          flex: 0 0 auto;
+        }
+        .site-section {
+          padding-left: var(--ink-space-4);
+          padding-right: var(--ink-space-4);
+        }
+      }
+      @media (max-width: 640px) {
+        .site-section {
+          padding-top: var(--ink-space-6);
+          padding-bottom: calc(var(--site-footbar-h) + var(--ink-space-4));
+          gap: var(--ink-space-4);
+        }
+        .site-cover__hero h1 {
+          font-size: clamp(34px, 9.5vw, 56px);
+        }
+        .site-cover__lede {
+          font-size: var(--ink-text-body);
+        }
+        .site-cover__cta button {
+          flex: 1 1 auto;
+        }
+        .site-cover__stats {
+          padding: var(--ink-space-4) 0;
+        }
+        .site-cover__stats > * {
+          padding: 0 var(--ink-space-3);
+        }
+        .site-cover__stat-value {
+          font-size: 28px;
+        }
+      }
+      @media (max-width: 720px) {
+        .site-footbar__hint {
+          display: none;
+        }
       }
     </style>
 
@@ -321,10 +398,17 @@
               </div>
             </div>
             <div></div>
+            <!--
+                The two data-site-stat values are rewritten at build time by
+                the epaper-site-stats plugin in vite.site.config.ts (component
+                count from data.ts, stars from the GitHub API). The numbers
+                committed here are the fallbacks used when the API is
+                unreachable — they are not maintained by hand.
+              -->
             <div class="site-cover__stats" role="group" aria-label="Library at a glance">
               <div>
                 <div class="site-cover__stat-label">Components</div>
-                <div class="site-cover__stat-value">58</div>
+                <div class="site-cover__stat-value" data-site-stat="components">59</div>
               </div>
               <div>
                 <div class="site-cover__stat-label">Bundle (gz)</div>
@@ -332,7 +416,7 @@
               </div>
               <div>
                 <div class="site-cover__stat-label">GitHub stars</div>
-                <div class="site-cover__stat-value">1.2k</div>
+                <div class="site-cover__stat-value" data-site-stat="stars">29</div>
               </div>
             </div>
           </div>

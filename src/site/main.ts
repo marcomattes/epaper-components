@@ -78,7 +78,7 @@ function renderCover(host: HTMLElement): void {
       <div class="site-cover__stats" role="group" aria-label="Library at a glance">
         <e-statistic label="Components" value="${totalComponents}"></e-statistic>
         <e-statistic label="Bundle (gz)" value="40" suffix=" KB"></e-statistic>
-        <e-statistic label="GitHub stars" value="1.2" suffix="k" trend="up" delta="+24"></e-statistic>
+        <e-statistic label="GitHub stars" value="${esc(__GITHUB_STARS__)}"></e-statistic>
       </div>
     </div>`;
 }
@@ -89,7 +89,12 @@ function renderCover(host: HTMLElement): void {
 function renderFeatures(host: HTMLElement): void {
   host.innerHTML = `
     ${sectionHeader('02', 'Built for ink, not pixels.')}
-    <e-grid cols="3" gap="16" id="feature-grid">
+    <!-- Raw track list rather than cols="3": e-grid passes a non-numeric
+         value straight to grid-template-columns, which is the only way to
+         get a column count that adapts without a media query. The 300px
+         floor is what keeps the widest layout at three columns (the page
+         maxes out at 1180px) while dropping to two and then one. -->
+    <e-grid cols="repeat(auto-fit, minmax(min(100%, 300px), 1fr))" gap="16" id="feature-grid">
       ${FEATURES.map(
         (f) => `
         <e-card title="${esc(f.title)}">
@@ -286,7 +291,7 @@ function renderCommunity(host: HTMLElement): void {
       <e-desc-item term="Maintainer"
         >Marco Mattes — <e-link href="https://mattes.dev">mattes.dev</e-link></e-desc-item
       >
-      <e-desc-item term="Version">V1.0.0</e-desc-item>
+      <e-desc-item term="Version">V${esc(__SITE_VERSION__)}</e-desc-item>
     </e-description-list>
 
     <e-title level="3">Roadmap</e-title>
@@ -312,9 +317,41 @@ function renderCommunity(host: HTMLElement): void {
 /* --------------------------------------------------------------------- *
  * Site chrome wiring (header anchor list, footer pagination, fab, pager)
  * --------------------------------------------------------------------- */
+/**
+ * Publishes the measured height of the sticky header and the fixed footbar as
+ * `--site-header-h` / `--site-footbar-h` on <html>.
+ *
+ * Both bars are out of flow, and the header in particular changes height when
+ * the nav wraps onto its own row below 900px. The CSS defaults are close
+ * enough for first paint; these keep the section min-height, the bottom
+ * padding and the scroll offset exact at every width.
+ */
+function trackChromeHeights(): void {
+  const header = $('#site-header');
+  const footbar = $('#site-footbar');
+  const root = document.documentElement;
+
+  const sync = (): void => {
+    if (header) root.style.setProperty('--site-header-h', `${Math.round(header.offsetHeight)}px`);
+    if (footbar) {
+      root.style.setProperty('--site-footbar-h', `${Math.round(footbar.offsetHeight)}px`);
+    }
+  };
+  sync();
+
+  if (typeof ResizeObserver === 'function') {
+    const ro = new ResizeObserver(sync);
+    if (header) ro.observe(header);
+    if (footbar) ro.observe(footbar);
+  } else {
+    window.addEventListener('resize', sync);
+  }
+}
+
 function wireChrome(): void {
   const pager = $<ESitePager>('#site-pager');
   const nav = $('#site-nav');
+  trackChromeHeights();
   if (!(pager instanceof ESitePager)) return;
 
   // The header Storybook link is static markup (it has to survive first
@@ -330,8 +367,14 @@ function wireChrome(): void {
     if (nav) {
       for (const a of nav.querySelectorAll<HTMLAnchorElement>('a[data-page]')) {
         const on = Number(a.dataset['page']) === page;
-        if (on) a.setAttribute('aria-current', 'true');
-        else a.removeAttribute('aria-current');
+        if (on) {
+          a.setAttribute('aria-current', 'true');
+          // Below 900px the nav is a horizontal scroll strip, so the current
+          // page can sit outside it. 'nearest' is a no-op when it doesn't.
+          a.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        } else {
+          a.removeAttribute('aria-current');
+        }
       }
     }
   });

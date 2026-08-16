@@ -37,7 +37,9 @@ export const CATEGORIES: Array<{ value: ComponentCategory | 'all'; label: string
  * Local dev:   http://localhost:6006 (default)
  * Production:  https://epaper-components.dev/storybook
  */
-export const STORYBOOK_BASE = import.meta.env['VITE_STORYBOOK_BASE'] ?? 'http://localhost:6006';
+// Optional chaining because this module is also imported by
+// vite.site.config.ts (Node, no import.meta.env) to read COMPONENTS.length.
+export const STORYBOOK_BASE = import.meta.env?.['VITE_STORYBOOK_BASE'] ?? 'http://localhost:6006';
 
 /**
  * Build a Storybook docs deep-link for a component entry.

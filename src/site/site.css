@@ -1,6 +1,17 @@
 /* EPaper site chrome — page-only layout, never the library. */
 /* Hard rules from CLAUDE.md still apply: no transitions, no animations, no :hover. */
 
+/*
+ * Both bars are out of flow (sticky header, fixed footbar) but every page
+ * still has to sit between them. main.ts measures them and keeps these two
+ * custom properties on <html> in sync; the values here are the pre-script
+ * defaults for first paint.
+ */
+:root {
+  --site-header-h: 52px;
+  --site-footbar-h: 40px;
+}
+
 html,
 body {
   margin: 0;
@@ -9,6 +20,18 @@ body {
   color: var(--ink-fg);
   font-family: var(--ink-sans);
   height: 100%;
+}
+
+/* Anchor jumps and pager.goto() scroll the document, so the offset that
+   keeps a section head out from under the sticky header belongs here. */
+html {
+  scroll-padding-top: var(--site-header-h);
+}
+
+body {
+  /* Nothing on this page is meant to scroll sideways — a single overflowing
+     child used to widen the whole document. */
+  overflow-x: hidden;
 }
 
 .site-root {
@@ -23,6 +46,11 @@ body {
   background: var(--ink-bg);
   border-bottom: var(--ink-border);
   padding: 12px var(--ink-space-5);
+}
+.site-header__brand {
+  /* Long enough to force an overflow at 320px if it never shrinks. */
+  font-size: clamp(17px, 4.4vw, 20px);
+  white-space: nowrap;
 }
 .site-header__dot {
   margin: 0 8px;
@@ -44,12 +72,14 @@ body {
   font-size: var(--ink-text-small);
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  min-width: 0;
 }
 #site-nav a {
   color: var(--ink-fg);
   text-decoration: none;
   padding: 4px 6px;
   border-bottom: 2px solid transparent;
+  white-space: nowrap;
 }
 #site-nav a[aria-current='true'] {
   border-bottom-color: var(--ink-fg);
@@ -71,15 +101,24 @@ body {
 }
 
 .site-section {
-  min-height: calc(100vh - 60px);
+  min-height: calc(100vh - var(--site-header-h));
+  /* svh — the small viewport, so a page still fits once a mobile browser
+     expands its URL bar again. */
+  min-height: calc(100svh - var(--site-header-h));
   scroll-snap-align: start;
-  padding: var(--ink-space-7) var(--ink-space-5) var(--ink-space-8);
+  /* Matches html's scroll-padding-top, for the pager's scrollIntoView(). */
+  scroll-margin-top: var(--site-header-h);
+  /* Bottom padding clears the fixed footbar on every page, not just the last. */
+  padding: var(--ink-space-7) var(--ink-space-5) calc(var(--site-footbar-h) + var(--ink-space-6));
   max-width: 1180px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: var(--ink-space-5);
   box-sizing: border-box;
+  /* Sections are flex children of nothing, but their own children are grids
+     that must be allowed to shrink below their content width. */
+  min-width: 0;
 }
 
 /* ---------- Bottom pager bar (fixed) ---------- */
@@ -122,17 +161,12 @@ body {
   text-underline-offset: 3px;
 }
 
-/* The keyboard hint is decorative; drop it before the attribution on narrow
-   viewports so the backlink is what survives. */
-@media (max-width: 560px) {
+/* The keyboard hint is decorative — and a lie on a touch device; drop it
+   before the attribution on narrow viewports so the backlink survives. */
+@media (max-width: 720px) {
   .site-footbar__hint {
     display: none;
   }
-}
-
-/* Reserve room above the fixed footbar so last-section content isn't hidden. */
-.site-section:last-of-type {
-  padding-bottom: 96px;
 }
 
 /* ---------- Page 1 cover layout ---------- */
@@ -169,7 +203,7 @@ body {
 }
 .site-cover__stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0;
   border-top: var(--ink-border);
   border-bottom: var(--ink-border);
@@ -178,10 +212,27 @@ body {
 .site-cover__stats > * {
   padding: 0 var(--ink-space-5);
   border-left: var(--ink-border);
+  min-width: 0;
 }
 .site-cover__stats > *:first-child {
   border-left: none;
   padding-left: 0;
+}
+/* Pre-rendered twins of <e-statistic>, styled here so the static cover and
+   the hydrated one look identical. */
+.site-cover__stat-label {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.site-cover__stat-value {
+  font-family: var(--ink-serif);
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 /* ---------- Section headers ---------- */
@@ -290,4 +341,172 @@ body {
 /* The pager controller is invisible. */
 e-site-pager {
   display: none;
+}
+
+/* ============================================================
+ * Responsive
+ *
+ * The library ships zero media queries on purpose — an e-paper panel has
+ * one fixed size. This marketing page does not, so every narrow-viewport
+ * adjustment lives here, scoped to site markup.
+ *
+ * A few rules need !important: e-grid, e-steps and e-description-list write
+ * grid-template-columns as an inline style, which no stylesheet can outrank.
+ * ============================================================ */
+
+/* ---------- Tablet and below ---------- */
+@media (max-width: 900px) {
+  /* The seven nav links never fit next to the wordmark. Give them their own
+     full-width row that scrolls sideways instead of widening the document. */
+  .site-header {
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    padding: 10px var(--ink-space-4);
+  }
+  #site-nav {
+    order: 2;
+    width: 100%;
+    gap: 14px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    /* The scrollbar would sit on the header's bottom rule and flicker on
+       e-ink; the links are keyboard- and swipe-reachable without it. */
+    scrollbar-width: none;
+  }
+  #site-nav::-webkit-scrollbar {
+    display: none;
+  }
+  #site-nav a {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  .site-section {
+    padding-left: var(--ink-space-4);
+    padding-right: var(--ink-space-4);
+  }
+
+  /* Key/value pairs and the install stepper stack instead of splitting a
+     phone-width line into unreadable columns. */
+  .site-section .ink-desc-list {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .site-section .ink-steps--horizontal {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .site-section .ink-steps--horizontal .ink-steps__item + .ink-steps__item {
+    border-left: none;
+    border-top: var(--ink-border);
+  }
+}
+
+/* ---------- Phone ---------- */
+@media (max-width: 640px) {
+  .site-section {
+    padding-top: var(--ink-space-6);
+    /* Two stacked full-height pages already put a lot of air between the
+       last line of one and the first of the next. */
+    padding-bottom: calc(var(--site-footbar-h) + var(--ink-space-4));
+    gap: var(--ink-space-4);
+  }
+
+  /* One tile per row wastes the screen; two short ones read like an index. */
+  .site-comp__grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+  .site-comp__tile {
+    min-height: 62px;
+    padding: 10px 12px;
+  }
+  .site-cover__hero h1 {
+    /* 8vw overshoots on a phone: "components" alone is ~10 characters. */
+    font-size: clamp(34px, 9.5vw, 56px);
+  }
+  .site-cover__lede {
+    font-size: var(--ink-text-body);
+  }
+  .site-cover__cta e-button,
+  .site-cover__cta button {
+    flex: 1 1 auto;
+  }
+
+  /* Three stats stay three stats — the rhythm is the point — but the rules
+     move to hairlines and the numerals scale down so nothing wraps. */
+  .site-cover__stats {
+    padding: var(--ink-space-4) 0;
+  }
+  .site-cover__stats > * {
+    padding: 0 var(--ink-space-3);
+  }
+  .site-cover__stat-value,
+  .site-cover__stats .ink-statistic__row {
+    font-size: 28px;
+  }
+  .site-cover__stats .ink-statistic {
+    border: none;
+    padding: 0 var(--ink-space-3);
+  }
+
+  /* 18px of panel padding on each side is a lot of a 375px screen. */
+  .site-section .ink-tabs__panel {
+    padding: 12px;
+  }
+
+  .site-secthead {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .site-foot {
+    flex-direction: column;
+  }
+  .site-foot__links {
+    flex-wrap: wrap;
+    gap: var(--ink-space-3);
+  }
+}
+
+/* ---------- Overflow guards (all widths) ---------- */
+
+/* Controls that lay their children out in a single row: let them scroll
+   inside their own box rather than push the page wider. */
+.site-comp__filter e-segmented,
+.site-section .ink-tabs__list {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.site-comp__filter .ink-segmented {
+  min-width: max-content;
+}
+.site-section .ink-tabs__list {
+  display: flex;
+}
+.site-section .ink-tabs__tab {
+  flex: 0 0 auto;
+}
+
+/* Tables and the calendar grid keep their column widths and scroll
+   horizontally rather than crushing cells to unreadable slivers. */
+.site-section e-table,
+.site-section e-calendar {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.site-section .ink-table {
+  min-width: 460px;
+}
+.site-section .ink-calendar {
+  min-width: 340px;
+}
+
+/* Package names, import paths and repository URLs are single unbreakable
+   tokens; without this they set the width of the page. */
+.site-section .ink-card__title,
+.site-section .ink-desc-list__detail,
+.site-section .site-comp__tile-tag {
+  overflow-wrap: anywhere;
 }
