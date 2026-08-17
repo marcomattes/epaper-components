@@ -1,0 +1,136 @@
+name: BrowserStack
+
+on:
+  # CI calls this after its local quality, test and build stages. Keeping a
+  # manual trigger is useful for diagnosing BrowserStack without rerunning CI.
+  workflow_call:
+    secrets:
+      BROWSERSTACK_USERNAME:
+        required: false
+      BROWSERSTACK_ACCESS_KEY:
+        required: false
+  workflow_dispatch: {}
+
+concurrency:
+  group: browserstack-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  credentials:
+    name: BrowserStack credentials
+    runs-on: ubuntu-latest
+    permissions: {}
+    outputs:
+      available: ${{ steps.check.outputs.available }}
+    steps:
+      - name: Check credentials
+        id: check
+        env:
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+        run: |
+          if [ -n "$BROWSERSTACK_USERNAME" ] && [ -n "$BROWSERSTACK_ACCESS_KEY" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::BrowserStack is skipped because repository secrets are unavailable. This is expected for fork pull requests."
+          fi
+
+  components:
+    name: Components · ${{ matrix.platform }}
+    needs: credentials
+    if: needs.credentials.outputs.available == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [chrome, edge, firefox, webkit, mobile-webkit]
+    env:
+      BROWSERSTACK_PLATFORM: ${{ matrix.platform }}
+      STORYBOOK_DISABLE_TELEMETRY: '1'
+    steps:
+      - name: BrowserStack environment
+        uses: browserstack/github-actions/setup-env@1ab56d9521ce20f4651bb5d9f3ef39c5ba54805a
+        with:
+          username: ${{ secrets.BROWSERSTACK_USERNAME }}
+          access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+          build-name: epaper-components-${{ github.run_id }}-${{ github.run_attempt }}
+          project-name: epaper-components
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        # No local browser launch happens here — the suite connects to
+        # BrowserStack's remote CDP endpoint — so Playwright's browser-download
+        # postinstall isn't needed either.
+        run: npm ci --ignore-scripts
+
+      - name: Build Storybook
+        run: npm run build-storybook
+
+      - name: Start Storybook server
+        run: |
+          npm run browserstack:serve > /tmp/epaper-storybook.log 2>&1 &
+          echo "$!" > /tmp/epaper-storybook.pid
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:6006/index.json > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/epaper-storybook.log
+          exit 1
+
+      - name: Start BrowserStack Local
+        uses: browserstack/github-actions/setup-local@1ab56d9521ce20f4651bb5d9f3ef39c5ba54805a
+        with:
+          local-testing: start
+          local-identifier: random
+
+      - name: Test every component story (one retry)
+        shell: bash
+        run: |
+          for attempt in 1 2; do
+            if npm run test:browserstack -- --platform=${{ matrix.platform }}; then
+              exit 0
+            fi
+
+            if [ "$attempt" -eq 1 ]; then
+              echo "::warning::BrowserStack failed on the first attempt; retrying once."
+            fi
+          done
+
+          echo "::error::BrowserStack failed again on the retry."
+          exit 1
+
+      - name: Stop BrowserStack Local
+        if: always()
+        uses: browserstack/github-actions/setup-local@1ab56d9521ce20f4651bb5d9f3ef39c5ba54805a
+        with:
+          local-testing: stop
+
+      - name: Stop Storybook server
+        if: always()
+        run: |
+          if [ -f /tmp/epaper-storybook.pid ]; then
+            kill "$(cat /tmp/epaper-storybook.pid)" 2>/dev/null || true
+          fi
+
+      - name: Upload BrowserStack results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browserstack-${{ matrix.platform }}
+          path: reports/browserstack/${{ matrix.platform }}/
+          if-no-files-found: warn
+          retention-days: 14

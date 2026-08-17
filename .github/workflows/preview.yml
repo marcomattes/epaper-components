@@ -21,8 +21,11 @@ name: PR Preview
 #   FTP_SERVER_DIR (optional, default "/"), FTP_PROTOCOL, FTP_PORT
 
 on:
+  # Preview creation is called by ci.yml only after all checks passed. Closing
+  # remains a direct trigger because cleanup must not depend on CI.
   pull_request:
-    types: [opened, synchronize, reopened, closed]
+    types: [closed]
+  workflow_call: {}
 
 permissions:
   contents: read

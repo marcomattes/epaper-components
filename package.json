@@ -376,11 +376,13 @@
     "analyze:watch": "cem analyze --watch",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
+    "browserstack:serve": "node scripts/serve-static.mjs storybook-static 6006",
     "test": "vitest",
     "test:ci": "vitest run",
     "test-storybook": "vitest --project=storybook",
     "test:visual": "vitest run src/components/__tests__/screenshots.test.ts",
     "test:visual:update": "npm run test:visual -- --update",
+    "test:browserstack": "node scripts/browserstack-test.mjs",
     "test:coverage": "vitest --coverage",
     "test:coverage:ci": "vitest run --coverage",
     "size": "size-limit",
@@ -389,7 +391,16 @@
     "validate:sample-app:types": "tsc -p sample-app/tsconfig.json",
     "pages:index": "node scripts/gen-pages-index.mjs",
     "bump-version": "node scripts/bump-version.mjs",
-    "prepublishOnly": "npm run lint:check && npm run type-check && npm run build"
+    "prepublishOnly": "npm run lint:check && npm run type-check && npm run build",
+    "build-browserstack": "vite build && browserstack-node-sdk node scripts/build-css.mjs && tsc -p tsconfig.build.json && cem analyze && node scripts/gen-tag-map.mjs",
+    "build:site-browserstack": "vite build --config vite.site.config.ts && browserstack-node-sdk node scripts/inline-site-css.mjs && node scripts/build-site-routes.mjs",
+    "analyze-browserstack": "cem analyze && browserstack-node-sdk node scripts/gen-tag-map.mjs",
+    "docs:components-browserstack": "cem analyze && browserstack-node-sdk node scripts/gen-readmes.mjs",
+    "browserstack:serve-browserstack": "browserstack-node-sdk node scripts/serve-static.mjs storybook-static 6006",
+    "test:browserstack-browserstack": "browserstack-node-sdk node scripts/browserstack-test.mjs",
+    "validate:sample-app-browserstack": "browserstack-node-sdk node sample-app/validate.mjs",
+    "pages:index-browserstack": "browserstack-node-sdk node scripts/gen-pages-index.mjs",
+    "bump-version-browserstack": "browserstack-node-sdk node scripts/bump-version.mjs"
   },
   "size-limit": [
     {
@@ -420,6 +431,7 @@
     "@vitest/browser-playwright": "4.1.5",
     "@vitest/coverage-v8": "4.1.5",
     "@vitest/ui": "4.1.5",
+    "browserstack-node-sdk": "^1.66.1",
     "cssnano": "^7.1.7",
     "custom-element-jet-brains-integration": "1.7.0",
     "custom-element-vs-code-integration": "1.5.0",
@@ -434,6 +446,7 @@
     "typescript": "6.0.3",
     "typescript-eslint": "8.59.0",
     "vite": "8.0.10",
-    "vitest": "4.1.5"
+    "vitest": "4.1.5",
+    "vitest-sonar-reporter": "3.0.0"
   }
 }

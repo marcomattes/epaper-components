@@ -20,11 +20,9 @@ name: Deploy to FTP
 #   FTP_PORT       default 21
 
 on:
-  push:
-    branches: [main]
+  # Main-branch deploys are called by ci.yml after every preceding gate passed;
+  # tagged releases call this after publishing from release.yml.
   workflow_dispatch: {}
-  # Called as the update stage of release.yml. The checkout then resolves to
-  # the caller's ref, so a release deploys the tagged source, not main's head.
   workflow_call: {}
 
 permissions:

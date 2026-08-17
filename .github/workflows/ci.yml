@@ -7,18 +7,31 @@ on:
     branches: [main]
   # Called as the checks stage of release.yml, so the release gate and the PR
   # gate are the same definition rather than two copies that drift apart.
-  workflow_call: {}
+  workflow_call:
+    secrets:
+      # Optional: without it the `sonar` job reports that it skipped rather
+      # than failing, so a fork PR and a token-less clone still get a green CI.
+      SONAR_TOKEN:
+        required: false
+      # Optional for the same reason: BrowserStack reports a notice and skips
+      # its matrix when the credentials are unavailable.
+      BROWSERSTACK_USERNAME:
+        required: false
+      BROWSERSTACK_ACCESS_KEY:
+        required: false
 
-permissions:
-  contents: read
-
+# Scoped per job rather than here, matching browserstack.yml: a workflow-level
+# grant hands the token to every job whether it needs one or not, and a job
+# added later inherits it silently instead of having to ask.
 jobs:
-  build:
+  # Each stage is an explicit job so GitHub shows the gate that failed and
+  # never schedules the more expensive stages behind it.
+  quality:
+    name: Quality
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     container:
-      # Keep the browser, its system dependencies, and visual-regression
-      # rendering identical to the environment used to create CI baselines.
-      # This tag must match the Playwright version in package-lock.json.
       image: mcr.microsoft.com/playwright:v1.59.1-noble
       options: --user 1001
     steps:
@@ -43,8 +56,74 @@ jobs:
       - name: Type check
         run: npm run type-check
 
+  tests:
+    name: Tests
+    needs: quality
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    container:
+      # Keep browser rendering identical to the environment used to create the
+      # visual-regression baselines. This tag must match package-lock.json.
+      image: mcr.microsoft.com/playwright:v1.59.1-noble
+      options: --user 1001
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      # Coverage instead of a bare run: this is the only place the browser
+      # suite executes, so it is also the only place coverage can be measured.
+      # Both Vitest projects (`unit` and `storybook`) report into it, and V8
+      # merges them into a single reports/coverage/lcov.info.
       - name: Tests
-        run: npm run test:ci
+        run: npm run test:coverage:ci
+
+      # `if: always()` on purpose — coverage.reportOnFailure keeps the reports
+      # usable after a failed assertion, and a failed run is exactly when the
+      # HTML report is worth reading.
+      - name: Upload test and coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: reports/
+          retention-days: 14
+          if-no-files-found: warn
+
+  build:
+    # Keep the current check name stable for branch protection.
+    name: Build and test
+    needs: tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    container:
+      # Keep the browser, its system dependencies, and visual-regression
+      # rendering identical to the environment used to create CI baselines.
+      # This tag must match the Playwright version in package-lock.json.
+      image: mcr.microsoft.com/playwright:v1.59.1-noble
+      options: --user 1001
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
 
       - name: Build
         run: npm run build
@@ -57,3 +136,112 @@ jobs:
 
       - name: Validate sample app (README claims, runtime)
         run: npm run validate:sample-app
+
+  sonar:
+    name: SonarQube
+    needs: build
+    runs-on: ubuntu-latest
+    # Read-only, and only `contents`: the scanner reads the working tree and the
+    # git history, and reports to SonarQube Cloud over its own token. Pull-request
+    # decoration is written by the SonarQube Cloud GitHub App, not by this token.
+    permissions:
+      contents: read
+    steps:
+      # The scanner needs the full history: it reads git blame to decide which
+      # lines are "new code" and who to assign issues to. A shallow clone makes
+      # every line look like it landed in this commit.
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Analysis runs outside the Playwright container and never re-runs the
+      # suite; it only needs the reports the tests job already produced.
+      - name: Download test and coverage reports
+        uses: actions/download-artifact@v4
+        with:
+          name: reports
+          path: reports/
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # Not for building — for `sonar.typescript.tsconfigPaths`. Without the
+      # installed types the TypeScript analyzer falls back to a syntax-only
+      # parse and every type-aware rule silently stops firing.
+      #
+      # `--ignore-scripts` for the same reason as browserstack.yml: type
+      # declarations come out of the package tarballs, so nothing here needs a
+      # postinstall hook, and running one in a pull_request-triggered job is
+      # exposure with no upside. This job never launches a browser.
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      # A pull request from a fork gets no secrets, so SONAR_TOKEN is empty and
+      # the scan would fail on authentication. The check has to live in the
+      # shell: the `secrets` context is not available in a step-level `if`,
+      # only in `env`.
+      - name: Check for Sonar token
+        id: token
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [ -n "$SONAR_TOKEN" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=SonarQube::SONAR_TOKEN is not set — skipping analysis."
+          fi
+
+      - name: SonarQube scan
+        if: steps.token.outputs.present == 'true'
+        # Pinned to a commit, not a tag: a mutable tag lets an upstream
+        # compromise reach a runner that has SONAR_TOKEN. This is v8.2.1.
+        uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          # Blocks until SonarQube Cloud has finished analysing and returns the
+          # quality gate, so a failing gate fails this job rather than passing
+          # CI and showing up as a red badge on the pull request half a minute
+          # later. Everything else comes from sonar-project.properties.
+          args: >
+            -Dsonar.qualitygate.wait=true
+
+  browserstack:
+    name: BrowserStack
+    needs: sonar
+    permissions:
+      contents: read
+    uses: ./.github/workflows/browserstack.yml
+    secrets:
+      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+
+  # Delivery is part of the same gated chain. A pull request gets its preview;
+  # main gets the production site. Tag releases deploy from release.yml after
+  # publishing, so they deliberately match neither condition here.
+  preview:
+    name: PR preview
+    needs: browserstack
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action != 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: ./.github/workflows/preview.yml
+    secrets: inherit
+
+  deploy:
+    name: Deploy site and Storybook
+    needs: browserstack
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit
