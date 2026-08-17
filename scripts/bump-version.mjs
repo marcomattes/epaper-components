@@ -11,7 +11,7 @@ if (!input) {
 }
 
 const allowedRanges = ['patch', 'minor', 'major', 'prepatch', 'preminor', 'premajor', 'prerelease'];
-const VERSION_ARG_RE = /^v?\d+\.\d+\.\d+(?:[-+][\w.-]*)?$/;
+const VERSION_ARG_RE = /^v?\d+\.\d+\.\d+(?:-[\w.-]+)?(?:\+[\w.-]+)?$/;
 const isExactVersion = VERSION_ARG_RE.test(input);
 if (!allowedRanges.includes(input) && !isExactVersion) {
   console.error(`Invalid version argument: ${input}`);
@@ -26,7 +26,7 @@ if (!allowedRanges.includes(input) && !isExactVersion) {
 runCommand('npm', ['version', input, '--no-git-tag-version']);
 
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
-const SEMVER_RE = /^\d+\.\d+\.\d+(?:[-+][\w.-]+)?$/;
+const SEMVER_RE = /^\d+\.\d+\.\d+(?:-[\w.-]+)?(?:\+[\w.-]+)?$/;
 if (typeof pkg.version !== 'string' || !SEMVER_RE.test(pkg.version)) {
   console.error(`package.json version is not a valid semver string: ${pkg.version}`);
   process.exit(1);
