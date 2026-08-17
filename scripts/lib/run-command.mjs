@@ -3,7 +3,7 @@
 // command allowlist below is the only thing standing between a caller and an
 // actual spawned process.
 import { execFileSync } from 'node:child_process';
-import { accessSync, constants } from 'node:fs';
+import { accessSync, constants, statSync } from 'node:fs';
 import { delimiter, join } from 'node:path';
 import process from 'node:process';
 
@@ -24,7 +24,12 @@ function resolveExecutable(name) {
     for (const ext of candidateExts) {
       const candidate = join(dir, name + ext);
       try {
+        // accessSync(X_OK) alone also succeeds for a directory (the execute
+        // bit means "traversable" there) — require a regular file too, or a
+        // directory named "npm"/"git" on PATH would be cached and then fail
+        // at spawn time with a confusing EACCES.
         accessSync(candidate, constants.X_OK);
+        if (!statSync(candidate).isFile()) continue;
         resolvedPathCache.set(name, candidate);
         return candidate;
       } catch {
