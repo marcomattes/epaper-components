@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Barrel registration fixture</title>
+    <link rel="stylesheet" href="/dist/styles/epaper.min.css" />
+    <style>
+      /* Token-override check: this ID's foreground should flow through every
+         component painted with --ink-fg underneath it. */
+      #token-scope {
+        --ink-fg: #123456;
+      }
+    </style>
+    <script type="module">
+      import '/dist/index.js';
+    </script>
+  </head>
+  <body class="ink-page">
+    <div id="token-scope">
+      <e-button id="token-probe" variant="primary">Probe</e-button>
+    </div>
+
+    <e-input id="anim-probe"></e-input>
+
+    <form id="profile-host">
+      <e-form id="e-profile">
+        <e-form-item label="Name">
+          <e-input id="name-input" name="name" required></e-input>
+        </e-form-item>
+        <e-checkbox-group id="topics" name="topics" value="a,b">
+          <e-cbox-option value="a" label="A"></e-cbox-option>
+          <e-cbox-option value="b" label="B"></e-cbox-option>
+        </e-checkbox-group>
+        <e-button id="submit-btn" type="submit" variant="primary">Save</e-button>
+      </e-form>
+    </form>
+
+    <e-tag id="tag-probe" closable>closable</e-tag>
+    <e-table id="table-probe"></e-table>
+    <e-dropdown id="dropdown-probe">
+      <e-button slot="trigger">Open</e-button>
+      <e-dropdown-item label="First"></e-dropdown-item>
+      <e-dropdown-item label="Second"></e-dropdown-item>
+    </e-dropdown>
+  </body>
+</html>

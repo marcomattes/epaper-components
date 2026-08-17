@@ -102,6 +102,7 @@ export class ETextarea extends BaseFormControl {
     this._value = v ?? '';
     if (this._ta) this._ta.value = this._value;
     this.internals.setFormValue(this._value);
+    this._syncValidity();
   }
 
   protected serialize(v: string): string {
