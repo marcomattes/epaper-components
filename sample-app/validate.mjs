@@ -41,7 +41,7 @@ const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
 
 {
   const exportKeys = Object.keys(pkg.exports);
-  let missing = [];
+  const missing = [];
   for (const key of exportKeys) {
     const entry = pkg.exports[key];
     const targets = typeof entry === 'string' ? [entry] : Object.values(entry);
@@ -78,28 +78,44 @@ const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
 // 2. Browser-driven checks against the built dist/ output.
 // ---------------------------------------------------------------------------
 
+// Serves only the fixed set of paths this script itself requests
+// (/dist/**, /sample-app/fixtures/**) — reject anything else outright rather
+// than trying to sanitize an attacker-shaped path, and resolve+verify
+// containment with path.relative rather than a prefix string comparison
+// (a bare `startsWith(root)` accepts sibling directories that merely share
+// the same string prefix, and doesn't catch every `..` encoding).
+const allowedRoots = [path.join(root, 'dist'), path.join(root, 'sample-app', 'fixtures')];
+
 const server = http.createServer((req, res) => {
   const urlPath = decodeURIComponent(req.url.split('?')[0]);
-  const filePath = path.join(root, urlPath === '/' ? '/index.html' : urlPath);
-  if (!filePath.startsWith(root)) {
+  const requested = path.normalize(path.join(root, urlPath));
+  const relative = path.relative(root, requested);
+  const withinAllowedRoot = allowedRoots.some((allowed) => {
+    const rel = path.relative(allowed, requested);
+    return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
+  });
+  if (relative.startsWith('..') || path.isAbsolute(relative) || !withinAllowedRoot) {
     res.writeHead(403);
     res.end();
     return;
   }
-  fs.readFile(filePath, (err, data) => {
+  fs.readFile(requested, (err, data) => {
     if (err) {
       res.writeHead(404);
       res.end();
       return;
     }
-    const ext = path.extname(filePath);
+    const ext = path.extname(requested);
     const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
     res.writeHead(200, { 'Content-Type': types[ext] ?? 'application/octet-stream' });
     res.end(data);
   });
 });
 
-await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+await new Promise((resolve, reject) => {
+  server.once('error', reject);
+  server.listen(0, '127.0.0.1', resolve);
+});
 const port = server.address().port;
 const base = `http://127.0.0.1:${port}`;
 
