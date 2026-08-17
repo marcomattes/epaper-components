@@ -11,8 +11,8 @@ core changes.
 
 ## 1 · What EPaper is (and what it isn't)
 
-EPaper is a **vanilla web component library** (59 component modules
-registering 82 custom elements) built around a single hard constraint:
+EPaper is a **vanilla web component library** (64 component modules
+registering 89 custom elements) built around a single hard constraint:
 **every component must render cleanly on electrophoretic displays**. Every
 other design decision follows from that constraint, not from taste.
 
@@ -212,7 +212,7 @@ your own components.
 | `__tests__/reactivity.test.ts`       | `attributeChangedCallback` updates             | 7 components      |
 | `__tests__/security.test.ts`         | XSS injection through `esc()` paths            | 12 components     |
 | `core/date.test.ts`                  | `parseYMD`, `ymd`, `pad2`                      | core utility      |
-| Storybook + `@storybook/addon-a11y`  | axe-core (WCAG 2A + 2AA + best practice)       | all 59 components |
+| Storybook + `@storybook/addon-a11y`  | axe-core (WCAG 2A + 2AA + best practice)       | all 64 components |
 
 **Intentionally out of scope for V1.0:** visual regression, keyboard
 navigation, touch interaction. These run manually before each release

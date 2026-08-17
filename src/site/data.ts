@@ -10,6 +10,7 @@ export type ComponentCategory =
   | 'inputs'
   | 'layout'
   | 'navigation'
+  | 'feedback'
   | 'composite';
 
 export interface ComponentEntry {
@@ -26,6 +27,7 @@ export const CATEGORIES: Array<{ value: ComponentCategory | 'all'; label: string
   { value: 'inputs', label: 'Inputs' },
   { value: 'layout', label: 'Layout' },
   { value: 'navigation', label: 'Navigation' },
+  { value: 'feedback', label: 'Feedback' },
   { value: 'composite', label: 'Composite' },
 ];
 
@@ -63,6 +65,7 @@ export const COMPONENTS: ComponentEntry[] = [
   { name: 'Link', tag: 'e-link', category: 'typography' },
   // Display
   { name: 'Card', tag: 'e-card', category: 'display' },
+  { name: 'Collapse', tag: 'e-collapse', category: 'display' },
   { name: 'CardImage', tag: 'e-card-image', category: 'display' },
   { name: 'Avatar', tag: 'e-avatar', category: 'display' },
   { name: 'Calendar', tag: 'e-calendar', category: 'display' },
@@ -80,6 +83,8 @@ export const COMPONENTS: ComponentEntry[] = [
   { name: 'Table', tag: 'e-table', category: 'display' },
   { name: 'Tag', tag: 'e-tag', category: 'display' },
   { name: 'Timeline', tag: 'e-timeline', category: 'display' },
+  { name: 'Popover', tag: 'e-popover', category: 'display' },
+  { name: 'Tree', tag: 'e-tree', category: 'display' },
   // Inputs
   { name: 'Input', tag: 'e-input', category: 'inputs' },
   { name: 'InputNumber', tag: 'e-input-number', category: 'inputs' },
@@ -113,6 +118,10 @@ export const COMPONENTS: ComponentEntry[] = [
   { name: 'Pagination', tag: 'e-pagination', category: 'navigation' },
   { name: 'Steps', tag: 'e-steps', category: 'navigation' },
   { name: 'Tabs', tag: 'e-tabs', category: 'navigation' },
+  // Feedback
+  { name: 'Dialog', tag: 'e-dialog', category: 'feedback' },
+  { name: 'Alert', tag: 'e-alert', category: 'feedback' },
+  { name: 'Popconfirm', tag: 'e-popconfirm', category: 'feedback' },
   // Composite
   { name: 'Form', tag: 'e-form', category: 'composite' },
   { name: 'FloatButton', tag: 'e-float-button', category: 'composite' },

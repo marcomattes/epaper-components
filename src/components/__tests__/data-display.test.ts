@@ -1,5 +1,6 @@
 // Component tests for the Data-Display group:
-// e-tag, e-chip, e-empty, e-skeleton, e-progress, e-result, e-list, e-table.
+// e-tag, e-chip, e-empty, e-skeleton, e-progress, e-result, e-list, e-table,
+// e-alert, e-collapse, e-tree.
 import { describe, it, expect, beforeAll } from 'vitest';
 
 beforeAll(async () => {
@@ -11,7 +12,13 @@ beforeAll(async () => {
   await import('../result');
   await import('../list');
   await import('../table');
+  await import('../alert');
+  await import('../collapse');
+  await import('../tree');
 });
+
+/** `<details>` dispatches `toggle` as a queued task, never synchronously. */
+const settle = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
 
 const mount = <T extends HTMLElement = HTMLElement>(html: string): T => {
   const wrap = document.createElement('div');
@@ -419,5 +426,274 @@ describe('global listener cleanup (data-display)', () => {
     el.remove();
     btn.removeEventListener = origRemove;
     expect(removed).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe('e-alert', () => {
+  it('renders icon, heading and body', () => {
+    const el = mount(`<e-alert variant="warning" heading="Battery low">Plug in.</e-alert>`);
+    const root = el.querySelector('.ink-alert')!;
+    expect(root.getAttribute('data-variant')).toBe('warning');
+    expect(el.querySelector('.ink-alert__heading')!.textContent).toBe('Battery low');
+    expect(el.querySelector('.ink-alert__body')!.textContent).toContain('Plug in.');
+    expect(el.querySelector('.ink-alert__icon svg')).not.toBeNull();
+  });
+
+  it('hides the heading when none is given', () => {
+    const el = mount(`<e-alert>Body only.</e-alert>`);
+    expect(el.querySelector<HTMLElement>('.ink-alert__heading')!.hidden).toBe(true);
+  });
+
+  it('uses role=alert only for the error variant', () => {
+    expect(
+      mount(`<e-alert variant="error"></e-alert>`)
+        .querySelector('.ink-alert')!
+        .getAttribute('role'),
+    ).toBe('alert');
+    expect(
+      mount(`<e-alert variant="info"></e-alert>`).querySelector('.ink-alert')!.getAttribute('role'),
+    ).toBe('status');
+  });
+
+  it('hides itself and fires e-close when dismissed', () => {
+    const el = mount(`<e-alert heading="Sync paused" closable>Body</e-alert>`);
+    const btn = el.querySelector<HTMLButtonElement>('.ink-alert__close')!;
+    expect(btn.hidden).toBe(false);
+    let detail: { value: string } | null = null;
+    el.addEventListener('e-close', (e) => {
+      detail = (e as CustomEvent<{ value: string }>).detail;
+    });
+    btn.click();
+    expect(detail).toEqual({ value: 'Sync paused' });
+    expect(el.hidden).toBe(true);
+  });
+
+  it('keeps the close button hidden unless closable', () => {
+    const el = mount(`<e-alert heading="x"></e-alert>`);
+    expect(el.querySelector<HTMLButtonElement>('.ink-alert__close')!.hidden).toBe(true);
+  });
+
+  it('moves slotted action content into the action area', () => {
+    const el = mount(`<e-alert heading="x"><span slot="action" id="act">Retry</span></e-alert>`);
+    expect(el.querySelector('.ink-alert__action #act')).not.toBeNull();
+  });
+});
+
+describe('e-collapse', () => {
+  const markup = (attrs = '') => `<e-collapse ${attrs}>
+      <e-collapse-panel key="a" heading="A">Body A</e-collapse-panel>
+      <e-collapse-panel key="b" heading="B">Body B</e-collapse-panel>
+    </e-collapse>`;
+
+  it('renders one details per panel and adopts the body', () => {
+    const el = mount(markup());
+    const panels = el.querySelectorAll('details');
+    expect(panels.length).toBe(2);
+    expect(panels[0]!.querySelector('.ink-collapse__heading')!.textContent).toBe('A');
+    expect(panels[0]!.querySelector('.ink-collapse__body')!.textContent).toContain('Body A');
+  });
+
+  it('opens the panels named by default-open', () => {
+    const el = mount(markup('default-open="b"'));
+    const panels = el.querySelectorAll('details');
+    expect(panels[0]!.open).toBe(false);
+    expect(panels[1]!.open).toBe(true);
+  });
+
+  it('reports open keys through e-change', async () => {
+    const el = mount(markup());
+    const seen: string[][] = [];
+    el.addEventListener('e-change', (e) => {
+      seen.push((e as CustomEvent<{ value: string[] }>).detail.value);
+    });
+    el.querySelector('details')!.querySelector('summary')!.click();
+    await settle();
+    expect(seen).toEqual([['a']]);
+  });
+
+  it('closes the other panels in accordion mode without a second e-change', async () => {
+    const el = mount(markup('accordion default-open="a"'));
+    const seen: string[][] = [];
+    el.addEventListener('e-change', (e) => {
+      seen.push((e as CustomEvent<{ value: string[] }>).detail.value);
+    });
+    const panels = el.querySelectorAll('details');
+    panels[1]!.querySelector('summary')!.click();
+    await settle();
+    expect(panels[1]!.open).toBe(true);
+    expect(panels[0]!.open).toBe(false);
+    // The close the accordion performs itself must not be reported as a change.
+    expect(seen).toEqual([['b']]);
+  });
+
+  it('keeps only the first declared-open panel in accordion mode', () => {
+    const el = mount(markup('accordion default-open="a,b"'));
+    const panels = el.querySelectorAll('details');
+    expect(panels[0]!.open).toBe(true);
+    expect(panels[1]!.open).toBe(false);
+  });
+
+  it('does not emit when the value property drives the panels', async () => {
+    const el = mount<HTMLElement & { value: string[] }>(markup());
+    let fired = 0;
+    el.addEventListener('e-change', () => {
+      fired++;
+    });
+    el.value = ['b'];
+    await settle();
+    expect(el.value).toEqual(['b']);
+    expect(fired).toBe(0);
+  });
+
+  it('keeps accordion exclusivity when the value property is used', async () => {
+    const el = mount<HTMLElement & { value: string[] }>(markup('accordion'));
+    el.value = ['a', 'b'];
+    await settle();
+    // The public API must not reach a state no user interaction could.
+    expect(el.value).toEqual(['a']);
+  });
+
+  it('refuses to toggle a disabled panel', () => {
+    const el = mount(`<e-collapse>
+        <e-collapse-panel key="a" heading="A" disabled>Body</e-collapse-panel>
+      </e-collapse>`);
+    const details = el.querySelector('details')!;
+    details.querySelector('summary')!.click();
+    expect(details.open).toBe(false);
+  });
+
+  it('exposes and accepts open keys via the value property', () => {
+    const el = mount<HTMLElement & { value: string[] }>(markup('default-open="a"'));
+    expect(el.value).toEqual(['a']);
+    el.value = ['b'];
+    expect(el.value).toEqual(['b']);
+  });
+});
+
+describe('e-tree', () => {
+  const DATA = JSON.stringify([
+    {
+      value: 'p',
+      label: 'Parent',
+      children: [
+        { value: 'c1', label: 'C1' },
+        { value: 'c2', label: 'C2' },
+      ],
+    },
+    { value: 'leaf', label: 'Leaf' },
+  ]);
+
+  it('renders a treeitem per node and expands the defaults', () => {
+    const el = mount(`<e-tree data='${DATA}' default-expanded="p"></e-tree>`);
+    expect(el.querySelector('[role="tree"]')).not.toBeNull();
+    expect(el.querySelector('[data-value="c1"]')).not.toBeNull();
+  });
+
+  it('materialises children only when the node is expanded', () => {
+    const el = mount(`<e-tree data='${DATA}'></e-tree>`);
+    expect(el.querySelector('[data-value="c1"]')).toBeNull();
+    el.querySelector<HTMLElement>('[data-expand="p"]')!.click();
+    expect(el.querySelector('[data-value="c1"]')).not.toBeNull();
+  });
+
+  it('fires e-expand with the new state', () => {
+    const el = mount(`<e-tree data='${DATA}'></e-tree>`);
+    let detail: { value: string; expanded: boolean } | null = null;
+    el.addEventListener('e-expand', (e) => {
+      detail = (e as CustomEvent<{ value: string; expanded: boolean }>).detail;
+    });
+    el.querySelector<HTMLElement>('[data-expand="p"]')!.click();
+    expect(detail).toEqual({ value: 'p', expanded: true });
+  });
+
+  it('marks the activated row when selectable', () => {
+    const el = mount(`<e-tree selectable data='${DATA}' default-expanded="p"></e-tree>`);
+    el.querySelector<HTMLElement>('[data-value="c1"]')!.click();
+    expect(el.getAttribute('value')).toBe('c1');
+    expect(el.querySelector('[data-value="c1"]')!.getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('does not mark rows when neither selectable nor checkable', () => {
+    const el = mount(`<e-tree data='${DATA}' default-expanded="p"></e-tree>`);
+    const row = el.querySelector('[data-value="c1"]')!;
+    row.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(row.hasAttribute('aria-selected')).toBe(false);
+    expect(el.hasAttribute('value')).toBe(false);
+  });
+
+  it('cascades a check down the subtree', () => {
+    const el = mount(`<e-tree checkable data='${DATA}' default-expanded="p"></e-tree>`);
+    let detail: { value: string[] } | null = null;
+    el.addEventListener('e-check', (e) => {
+      detail = (e as CustomEvent<{ value: string[] }>).detail;
+    });
+    el.querySelector<HTMLElement>('[data-value="p"]')!.click();
+    expect(detail).toEqual({ value: ['p', 'c1', 'c2'] });
+    expect(el.querySelector('[data-value="c1"]')!.getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('reports a partially checked parent as mixed', () => {
+    const el = mount(`<e-tree checkable data='${DATA}' default-expanded="p"></e-tree>`);
+    el.querySelector<HTMLElement>('[data-value="c1"]')!.click();
+    expect(el.querySelector('[data-value="p"]')!.getAttribute('aria-checked')).toBe('mixed');
+    expect(el.querySelector('[data-value="c2"]')!.getAttribute('aria-checked')).toBe('false');
+  });
+
+  it('promotes the parent once every child is checked', () => {
+    const el = mount(`<e-tree checkable data='${DATA}' default-expanded="p"></e-tree>`);
+    el.querySelector<HTMLElement>('[data-value="c1"]')!.click();
+    el.querySelector<HTMLElement>('[data-value="c2"]')!.click();
+    expect(el.querySelector('[data-value="p"]')!.getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('seeds the checked set from the attribute, cascading down', () => {
+    const el = mount(`<e-tree checkable data='${DATA}' checked="p" default-expanded="p"></e-tree>`);
+    expect(el.querySelector('[data-value="c2"]')!.getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('falls back to an empty tree and fires e-error on bad JSON', () => {
+    const wrap = document.createElement('div');
+    document.body.appendChild(wrap);
+    const el = document.createElement('e-tree');
+    let detail: { error: Error; source: string } | null = null;
+    el.addEventListener('e-error', (e) => {
+      detail = (e as CustomEvent<{ error: Error; source: string }>).detail;
+    });
+    el.setAttribute('data', '{not json');
+    wrap.appendChild(el);
+    expect(detail).not.toBeNull();
+    expect(detail!.source).toBe('data');
+    expect(el.querySelectorAll('.ink-tree__row').length).toBe(0);
+  });
+
+  it('keeps exactly one visible tabbable row when a selected child is revealed', () => {
+    // The selected node starts inside a collapsed branch, so at render time
+    // the fallback row owns the tab stop. Expanding must hand it over rather
+    // than produce a second one.
+    const el = mount(`<e-tree selectable data='${DATA}' value="c1"></e-tree>`);
+    const tabbable = () =>
+      [...el.querySelectorAll<HTMLElement>('.ink-tree__row')].filter((r) => r.tabIndex === 0);
+    expect(tabbable().length).toBe(1);
+
+    el.querySelector<HTMLElement>('[data-expand="p"]')!.click();
+    expect(tabbable().length).toBe(1);
+    expect(tabbable()[0]!.dataset['value']).toBe('c1');
+  });
+
+  it('never strands the tab stop inside a collapsed branch', () => {
+    const el = mount(`<e-tree data='${DATA}' default-expanded="p"></e-tree>`);
+    const visibleTabbable = () =>
+      [...el.querySelectorAll<HTMLElement>('.ink-tree__row')].filter(
+        (r) => r.tabIndex === 0 && r.closest('ul[hidden]') === null,
+      );
+
+    el.querySelector<HTMLElement>('[data-value="c2"]')!.focus();
+    expect(visibleTabbable().length).toBe(1);
+
+    // Collapsing the parent hides the focused row; the stop moves to the parent.
+    el.querySelector<HTMLElement>('[data-expand="p"]')!.click();
+    const stops = visibleTabbable();
+    expect(stops.length).toBe(1);
+    expect(stops[0]!.dataset['value']).toBe('p');
   });
 });

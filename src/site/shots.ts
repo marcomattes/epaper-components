@@ -6,6 +6,7 @@
 // lookup key and a public URL. Both content.ts (markup) and seo.ts (structured
 // data) go through here, so the slug rule is stated once.
 import type { ComponentEntry } from './data';
+import { withBase } from './routes';
 
 /** One published preview image. Mirrors the `Shot` typedef in site-shots.mjs. */
 export interface Shot {
@@ -37,7 +38,9 @@ export function shotKey(entry: ComponentEntry): string {
 
 /** Site-absolute URL of a preview image. */
 export function shotUrl(shot: Shot): string {
-  return `${SHOTS_URL_BASE}/${shot.slug}.png`;
+  // Site-absolute, so it has to carry the base: under a PR preview served
+  // from a sub-directory these would otherwise resolve against the live site.
+  return withBase(`${SHOTS_URL_BASE}/${shot.slug}.png`);
 }
 
 /**

@@ -14,8 +14,10 @@ import {
   PACKAGE_NAME,
   REPO_URL,
   ROUTES,
+  SITE_BASE,
   SITE_NAME,
   SITE_ORIGIN,
+  withBase,
   type Route,
 } from './routes';
 import { COMPONENTS, FEATURES } from './data';
@@ -205,13 +207,19 @@ export function headHtml(
     ...routeGraph(route, opts.storybookBase, opts.shots),
   ];
 
+  // A PR preview is a throwaway copy of the whole site on the production
+  // host. Without this it would compete with the real pages in search results
+  // and outlive the branch in an index.
+  const noindex =
+    SITE_BASE === '/' ? '' : '\n    <meta name="robots" content="noindex,nofollow" />';
+
   return `<title>${esc(route.title)}</title>
     <meta name="description" content="${esc(route.description)}" />
-    <link rel="canonical" href="${esc(url)}" />
+    <link rel="canonical" href="${esc(url)}" />${noindex}
     <meta name="author" content="Marco Mattes" />
     <link rel="author" href="https://mattes.dev" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" href="${esc(withBase('/favicon.svg'))}" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="${esc(withBase('/apple-touch-icon.png'))}" />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="${esc(SITE_NAME)}" />
@@ -270,11 +278,14 @@ export function robotsTxt(): string {
     'Bytespider',
     'meta-externalagent',
   ];
+  // /preview/ holds per-pull-request copies of this same site. They are
+  // deleted when the PR closes, so they must never enter an index.
   return `# https://epaper-components.dev
 User-agent: *
 Allow: /
+Disallow: /preview/
 
-${aiAgents.map((a) => `User-agent: ${a}\nAllow: /`).join('\n\n')}
+${aiAgents.map((a) => `User-agent: ${a}\nAllow: /\nDisallow: /preview/`).join('\n\n')}
 
 Sitemap: ${SITE_ORIGIN}/sitemap.xml
 `;

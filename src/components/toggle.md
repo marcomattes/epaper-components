@@ -16,8 +16,9 @@ Form-associated: submits its `value` (defaults to `"on"`) when checked.
 | --- | --- | --- | --- |
 | `checked` | `boolean` | — | Whether the switch is on. Reflected to the attribute on user input. |
 | `label` | `string` | — | Inline text label rendered next to the switch. |
-| `name` | `string` | — | Form field name. Required to participate in `FormData`. |
+| `disabled` | `boolean` | — | Disables interaction. |
 | `value` | `string` | `'on'` | Submitted value when checked. |
+| `name` | `string` | — | Form field name. Required to participate in `FormData`. |
 
 ## Events
 

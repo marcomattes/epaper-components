@@ -21,6 +21,7 @@ Form-associated: participates in `<form>` submission and FormData.
 | `readonly` | `boolean` | — | Renders as a non-editable read-only textarea. Still submitted with the form. |
 | `aria-label` | — | — |  |
 | `placeholder` | `string` | — | Native placeholder text. |
+| `required` | `boolean` | — | Requires a non-empty value for form validation. |
 | `name` | `string` | — | Form field name. Required to participate in `FormData`. |
 
 ## Events
