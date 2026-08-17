@@ -563,6 +563,41 @@ describe('form association', () => {
     expect(control.checkValidity()).toBe(false);
   });
 
+  it('a pristine required control is invalid but not marked aria-invalid', () => {
+    const form = mount('<form><e-input name="v" required></e-input></form>');
+    const control = form.firstElementChild as HTMLElement & { checkValidity(): boolean };
+    const input = control.querySelector('input')!;
+    expect(input.hasAttribute('aria-invalid')).toBe(false);
+    expect(form.checkValidity()).toBe(false);
+  });
+
+  it('a required control marks aria-invalid once the user leaves it empty', () => {
+    const form = mount('<form><e-input name="v" required></e-input></form>');
+    const control = form.firstElementChild as HTMLElement;
+    const input = control.querySelector('input')!;
+    expect(input.hasAttribute('aria-invalid')).toBe(false);
+    input.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
+    expect(input.getAttribute('aria-invalid')).toBe('true');
+    control.setAttribute('value', 'Ada');
+    expect(input.hasAttribute('aria-invalid')).toBe(false);
+  });
+
+  it('reportValidity surfaces a pending required violation', () => {
+    const form = mount('<form><e-textarea name="v" required></e-textarea></form>');
+    const control = form.firstElementChild as HTMLElement & { reportValidity(): boolean };
+    const ta = control.querySelector('textarea')!;
+    expect(ta.hasAttribute('aria-invalid')).toBe(false);
+    expect(control.reportValidity()).toBe(false);
+    expect(ta.getAttribute('aria-invalid')).toBe('true');
+  });
+
+  it('an author-set error is marked aria-invalid without any interaction', () => {
+    const form = mount('<form><e-input name="v" error error-message="Nope"></e-input></form>');
+    const control = form.firstElementChild as HTMLElement & { validationMessage: string };
+    expect(control.querySelector('input')!.getAttribute('aria-invalid')).toBe('true');
+    expect(control.validationMessage).toBe('Nope');
+  });
+
   it('required-message overrides the default component message', () => {
     const form = mount(
       '<form><e-checkbox required required-message="Accept the terms"></e-checkbox></form>',
