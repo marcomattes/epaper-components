@@ -130,6 +130,7 @@ export class EInput extends BaseFormControl {
     this._value = v ?? '';
     if (this._input) this._input.value = this._value;
     this.internals.setFormValue(this._value);
+    this._syncValidity();
   }
 
   protected serialize(v: string): string {

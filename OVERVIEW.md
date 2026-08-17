@@ -11,10 +11,10 @@ core changes.
 
 ## 1 · What EPaper is (and what it isn't)
 
-EPaper is a **vanilla web component library** (~43 custom elements) built
-around a single hard constraint: **every component must render cleanly on
-electrophoretic displays**. Every other design decision follows from that
-constraint, not from taste.
+EPaper is a **vanilla web component library** (59 component modules
+registering 82 custom elements) built around a single hard constraint:
+**every component must render cleanly on electrophoretic displays**. Every
+other design decision follows from that constraint, not from taste.
 
 **It is:**
 
@@ -34,8 +34,10 @@ constraint, not from taste.
   only. Components extend `HTMLElement` or `BaseFormControl` directly,
   with zero Lit at runtime. Earlier versions listed `"lit"` as a
   `package.json` keyword; that has been removed in V1.0.
-- A reactivity framework. Updates are explicit, surgical DOM mutations
-  via the `patch*` helpers in `core/dom.ts`.
+- A reactivity framework. Most updates are explicit, surgical DOM mutations
+  via the `patch*` helpers in `core/dom.ts`; components with structural
+  content (`<e-table>` rows, `<e-calendar>`'s grid, `<e-select>`'s options)
+  rebuild their own subtree on a relevant data change instead.
 - An animation framework. Animations and transitions are globally
   forbidden inside `.ink-page` via `base.css`.
 
@@ -51,8 +53,8 @@ constraint, not from taste.
         ┌─────────────────────┴────────────────────┐
         ▼                                           ▼
 ┌────────────────┐                          ┌────────────────┐
-│ src/components │  43 custom elements      │  src/styles    │
-│  *.ts          │  (1 file = 1 component)  │  tokens / base │
+│ src/components │  59 modules / 82 tags    │  src/styles    │
+│  *.ts          │  (1 file = 1+ component) │  tokens / base │
 │                │                          │  components    │
 └────────────────┘                          └────────────────┘
         │
@@ -210,7 +212,7 @@ your own components.
 | `__tests__/reactivity.test.ts`       | `attributeChangedCallback` updates             | 7 components      |
 | `__tests__/security.test.ts`         | XSS injection through `esc()` paths            | 12 components     |
 | `core/date.test.ts`                  | `parseYMD`, `ymd`, `pad2`                      | core utility      |
-| Storybook + `@storybook/addon-a11y`  | axe-core (WCAG 2A + 2AA + best practice)       | all 43 components |
+| Storybook + `@storybook/addon-a11y`  | axe-core (WCAG 2A + 2AA + best practice)       | all 59 components |
 
 **Intentionally out of scope for V1.0:** visual regression, keyboard
 navigation, touch interaction. These run manually before each release

@@ -9,6 +9,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Added
 
+- `sample-app/`: a Playwright-driven runtime check plus a strict-TypeScript
+  compile, both run in CI, that hold `README.md`'s claims to the built
+  `dist/` output — selective vs. barrel registration, compound child-element
+  registration, the 82-tag Custom Elements Manifest, light DOM, token
+  overrides, disabled animations, `ElementInternals`, required validation,
+  the nine typed custom events, native submit/reset, and repeated `FormData`
+  entries from `<e-checkbox-group>`.
 - The site is six real URLs — `/`, `/features/`, `/components/`, `/showcase/`,
   `/install/`, `/community/` — instead of one hash-routed scroll page. Every page
   is a complete static document with its own `<title>`, description, canonical
@@ -31,6 +38,26 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Fixed
 
+- `README.md` and `OVERVIEW.md` corrected against the actual built package:
+  the static-HTML quick start now resolves without a bundler (bare
+  specifiers need an import map or a real file path — it had neither), the
+  `<e-button>` submit example now sets `type="submit"` (the default is
+  `type="button"`), the events table now lists all nine event names instead
+  of five, the typed-listener example now compiles under `strict: true`,
+  bundle size is corrected to its measured ~37 KB gzip / 31.6 KB brotli, the
+  VS Code section no longer claims `contributes.html.customData` is
+  auto-loaded from a dependency, and the "surgical updates", touch-target,
+  gradient/opacity and skeleton/progress claims are scoped to what the
+  library actually does rather than stated as absolutes.
+- `<e-input>` and `<e-textarea>` now re-run constraint validation when `value`
+  is set as a JavaScript property, not only on attribute changes and
+  `form.reset()`. Previously a `required` field populated via `el.value = …`
+  — the pattern every framework uses for a controlled input — stayed
+  permanently `invalid`, silently blocking `form.requestSubmit()`.
+- `claude.md` renamed to `CLAUDE.md`. Every doc in the repo linked to it as
+  `CLAUDE.md`; on a case-sensitive filesystem the link never resolved, and
+  Claude Code's own project-instructions discovery (which looks for
+  `CLAUDE.md` specifically) never found the file.
 - The site is responsive below 1024px. The header nav moves to its own
   full-width scroll strip instead of widening the document (every page used to
   scroll sideways to 964px), section heads no longer land under the sticky
