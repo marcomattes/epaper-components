@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Primary interactive control for triggering actions. Three visual variants — `primary` (filled ink), `secondary` (outlined), and `destructive` (hatched) — plus a disabled state. Always meets the 44 px hit-target token.',
+          '**Version:** v1.0.1\n\nPrimary interactive control for triggering actions. Three visual variants — `primary` (filled ink), `secondary` (outlined), and `destructive` (hatched) — plus a disabled state. Always meets the 44 px hit-target token.',
       },
     },
   },

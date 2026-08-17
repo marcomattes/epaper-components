@@ -2,6 +2,7 @@ import { clampedNumAttr, define, patchAttr, patchText } from '../core/dom';
 
 /**
  * @summary KPI block with a large numeric value, label and optional trend arrow.
+ * @since v1.0.1
  *
  * Use to present a single metric (e.g. revenue, users, score) with an
  * optional secondary delta. Numeric formatting is locale-independent and

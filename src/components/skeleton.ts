@@ -2,6 +2,7 @@ import { define, intAttr, patchAttr } from '../core/dom';
 
 /**
  * @summary Static loading placeholder block.
+ * @since v1.0.1
  *
  * Pure outline — no shimmer, no animation. Use to reserve space for content
  * that is loading. On e-paper this avoids triggering a full GC16 refresh

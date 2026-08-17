@@ -2,6 +2,7 @@ import { captureWrap, define, patchText } from '../core/dom';
 
 /**
  * @summary Decorative ribbon tag overlaid on a child element.
+ * @since v1.0.1
  *
  * Children are wrapped and decorated with the ribbon tag.
  *

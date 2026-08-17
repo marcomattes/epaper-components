@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Empty-state placeholder with icon, title, optional description and an action slot. Use as the body of a list, table or section that has no content yet.',
+          '**Version:** v1.0.1\n\nEmpty-state placeholder with icon, title, optional description and an action slot. Use as the body of a list, table or section that has no content yet.',
       },
     },
   },

@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'File upload control with both click-to-browse and drag-and-drop targets, plus an inline file list. Restrict file types via the `accept` attribute and toggle `multiple` for batch uploads.',
+          '**Version:** v1.0.1\n\nFile upload control with both click-to-browse and drag-and-drop targets, plus an inline file list. Restrict file types via the `accept` attribute and toggle `multiple` for batch uploads.',
       },
     },
   },

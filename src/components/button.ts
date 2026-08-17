@@ -2,6 +2,7 @@ import { boolAttr, define, patchBoolAttr, patchClassModifier } from '../core/dom
 
 /**
  * @summary Primary button with three visual variants.
+ * @since v1.0.1
  *
  * Children are used as the button label.
  *

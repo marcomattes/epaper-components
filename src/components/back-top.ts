@@ -3,6 +3,7 @@ import { iconSvg } from '../core/icons';
 
 /**
  * @summary Floating button that scrolls the window (or a target) to the top.
+ * @since v1.0.1
  *
  * Hidden until the scroll position passes `visibility-height`. Click triggers
  * `window.scrollTo({ top: 0 })`. Position defaults to bottom-right but can

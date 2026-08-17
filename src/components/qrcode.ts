@@ -478,6 +478,7 @@ function qrToSvg(qr: QrCode, scale: number, border: number): string {
 
 /**
  * @summary QR code rendered as inline SVG. Zero runtime dependencies.
+ * @since v1.0.1
  *
  * Encodes text in byte mode (UTF-8) and selects the smallest version that
  * fits at the given error-correction level. The output is pure SVG with two

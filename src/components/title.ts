@@ -2,6 +2,7 @@ import { define, numAttr } from '../core/dom';
 
 /**
  * @summary Heading element rendered as `<h1>`…`<h6>` based on `level`.
+ * @since v1.0.1
  *
  * Children are used as the heading text.
  *

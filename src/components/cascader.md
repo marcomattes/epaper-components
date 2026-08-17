@@ -12,20 +12,22 @@ Form-associated: submits the current path joined with `,`.
 
 ## Attributes
 
-| Attribute | Type | Default | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Comma-separated value path (e.g. `a,b,c`). |
-| `data` | `string` | `'[]'` | JSON-encoded array of `{value, label, children?}` nodes. Canonical attribute, shared with `<e-tree-select>`. |
-| `options` | `string` | `'[]'` | Legacy alias for `data`. When both are set, `data` wins. |
-| `placeholder` | `string` | `'Select…'` | Placeholder shown when no value is selected. |
-| `name` | `string` | — | Form field name. Required to participate in `FormData`. |
+| Attribute          | Type      | Default     | Description                                                                                                  |
+| ------------------ | --------- | ----------- | ------------------------------------------------------------------------------------------------------------ |
+| `value`            | `string`  | —           | Comma-separated value path (e.g. `a,b,c`).                                                                   |
+| `data`             | `string`  | `'[]'`      | JSON-encoded array of `{value, label, children?}` nodes. Canonical attribute, shared with `<e-tree-select>`. |
+| `options`          | `string`  | `'[]'`      | Legacy alias for `data`. When both are set, `data` wins.                                                     |
+| `placeholder`      | `string`  | `'Select…'` | Placeholder shown when no value is selected.                                                                 |
+| `required`         | `boolean` | —           | Requires a completed selection path.                                                                         |
+| `required-message` | `string`  | —           | Message reported when no required path is selected.                                                          |
+| `name`             | `string`  | —           | Form field name. Required to participate in `FormData`.                                                      |
 
 ## Events
 
-| Event | Detail | Description |
-| --- | --- | --- |
-| `e-error` | `CustomEvent<{error: Error, source: 'data' \| 'options'}>` | Fired when the `data` or `options` attribute fails to parse as JSON. The internal options list falls back to `[]`. |
-| `e-change` | `CustomEvent<{value: string[]}>` | Fired when a leaf node is selected. `value` is the path of node values. |
+| Event      | Detail                                                     | Description                                                                                                        |
+| ---------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `e-error`  | `CustomEvent<{error: Error, source: 'data' \| 'options'}>` | Fired when the `data` or `options` attribute fails to parse as JSON. The internal options list falls back to `[]`. |
+| `e-change` | `CustomEvent<{value: string[]}>`                           | Fired when a leaf node is selected. `value` is the path of node values.                                            |
 
 ## Slots
 
@@ -33,6 +35,6 @@ _None._
 
 ## Properties
 
-| Property | Type | Read-only | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | no |  |
+| Property | Type     | Read-only | Description |
+| -------- | -------- | --------- | ----------- |
+| `value`  | `string` | no        |             |

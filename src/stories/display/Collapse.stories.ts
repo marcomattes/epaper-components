@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Stack of expandable sections built on native `<details>`/`<summary>`. Expanding a section mutates one `open` attribute, so the panel repaints only the section that changed instead of reflowing the page — which is what makes a collapse a better fit than a scrolling wall of text on e-paper. Keyboard support, the accessible name and find-in-page all come from the native element.',
+          '**Version:** v1.1.0\n\nStack of expandable sections built on native `<details>`/`<summary>`. Expanding a section mutates one `open` attribute, so the panel repaints only the section that changed instead of reflowing the page — which is what makes a collapse a better fit than a scrolling wall of text on e-paper. Keyboard support, the accessible name and find-in-page all come from the native element.',
       },
     },
   },

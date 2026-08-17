@@ -16,6 +16,7 @@ const isStatus = (s: string | null): s is Status =>
 
 /**
  * @summary Status page block (success / error / 404 / info / warning).
+ * @since v1.0.1
  *
  * Use as the body of a confirmation page or an error fallback. Composes an
  * icon, a large title, optional description and a slotted action area.

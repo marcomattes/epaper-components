@@ -18,7 +18,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Two-dimensional CSS-grid container. Compose with `<e-grid-item col="span N">` to lay out cells. Use the `cols` and `gap` attributes to drive the track count and spacing.',
+          '**Version:** v1.0.1\n\nTwo-dimensional CSS-grid container. Compose with `<e-grid-item col="span N">` to lay out cells. Use the `cols` and `gap` attributes to drive the track count and spacing.',
       },
     },
   },

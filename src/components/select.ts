@@ -4,12 +4,15 @@ import { BaseFormControl } from '../core/base-form-control';
 
 /**
  * @summary Single-select dropdown built from `<e-option>` children.
+ * @since v1.0.1
  *
  * Form-associated: participates in `<form>` submission and FormData.
  *
  * @attr {string} [value] - Currently selected option value.
  * @attr {string} [placeholder='Select…'] - Trigger placeholder when no value is set.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
+ * @attr {boolean} [required] - Requires a selected option.
+ * @attr {string} [required-message] - Message reported when no required option is selected.
  *
  * @fires {CustomEvent<{value: string}>} e-change - Fired when the user picks a different option.
  *
@@ -20,7 +23,7 @@ import { BaseFormControl } from '../core/base-form-control';
  * </e-select>
  */
 export class ESelect extends BaseFormControl {
-  static observedAttributes = ['value', 'placeholder'];
+  static observedAttributes = ['value', 'placeholder', 'required', 'required-message'];
 
   private _wired = false;
   private _trigger: HTMLElement | null = null;
@@ -76,6 +79,7 @@ export class ESelect extends BaseFormControl {
       for (const opt of this._optEls) {
         opt.tabIndex = opt.getAttribute('aria-selected') === 'true' ? 0 : -1;
       }
+      this._syncValidity();
     }
 
     this._trigger!.addEventListener('click', this._onTriggerClick);
@@ -168,6 +172,10 @@ export class ESelect extends BaseFormControl {
       }
       return;
     }
+    if (name === 'required' || name === 'required-message') {
+      this._syncValidity();
+      return;
+    }
     if (name !== 'value') return;
     const newValue = v ?? '';
     if (newValue === this._value) return;
@@ -194,6 +202,7 @@ export class ESelect extends BaseFormControl {
       const opt = this._opts.find((o) => o.value === newValue);
       patchText(this._triggerLabel, opt ? opt.label : this._placeholder);
     }
+    this._syncValidity();
   }
 
   override get value(): string {
@@ -212,6 +221,15 @@ export class ESelect extends BaseFormControl {
 
   override formResetCallback(): void {
     this.value = this.getAttribute('default-value') ?? '';
+  }
+
+  private _syncValidity(): void {
+    this._trigger?.setAttribute('aria-required', String(this.hasAttribute('required')));
+    this.applyRequiredValidity(
+      !!this._value,
+      this._trigger ?? undefined,
+      'Please select an option.',
+    );
   }
 }
 define('e-select', ESelect);

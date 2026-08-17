@@ -2,6 +2,7 @@ import { boolAttr, captureWrap, define, intAttr, patchAttr, patchText } from '..
 
 /**
  * @summary Numeric or dot indicator overlaid on a child element.
+ * @since v1.0.1
  *
  * Wraps its children and decorates them with a count chip in the corner.
  *

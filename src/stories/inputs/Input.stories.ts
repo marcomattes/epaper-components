@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Single-line text field with built-in label, placeholder, hint and error states. Setting `error` switches the border to the error treatment and wires `aria-invalid` automatically.',
+          '**Version:** v1.0.1\n\nSingle-line text field with built-in label, placeholder, hint and error states. Setting `error` switches the border to the error treatment and wires `aria-invalid` automatically.',
       },
     },
   },

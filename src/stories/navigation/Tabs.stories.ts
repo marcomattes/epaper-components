@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Switcher between sibling content panes with an underline-style active indicator. Implements WAI-ARIA tabs pattern with full keyboard support (← → Home End).',
+          '**Version:** v1.0.1\n\nSwitcher between sibling content panes with an underline-style active indicator. Implements WAI-ARIA tabs pattern with full keyboard support (← → Home End).',
       },
     },
   },

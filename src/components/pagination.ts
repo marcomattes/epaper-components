@@ -8,6 +8,7 @@ interface PageCell {
 
 /**
  * @summary Page navigator with previous/next buttons and ellipsized page numbers.
+ * @since v1.0.1
  *
  * @attr {number} [current=1] - Current page (1-indexed). Reflected on user navigation.
  * @attr {number} [total=1] - Total number of pages.

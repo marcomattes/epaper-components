@@ -329,15 +329,17 @@ import '@marcomattes/epaper-components';
 
 Two distributions of the same three layers ship in the package:
 
-| Subpath                                             | Resolves to                      | When to use                         |
-| --------------------------------------------------- | -------------------------------- | ----------------------------------- |
-| `@marcomattes/epaper-components/tokens.css`         | `src/styles/tokens.css` (source) | Bundlers (Vite, Rollup, webpack 5). |
-| `@marcomattes/epaper-components/base.css`           | `src/styles/base.css` (source)   | Bundlers.                           |
-| `@marcomattes/epaper-components/components.css`     | `src/styles/components.css`      | Bundlers.                           |
-| `@marcomattes/epaper-components/styles.min.css`     | `dist/styles/epaper.min.css`     | Combined, minified bundle.          |
-| `@marcomattes/epaper-components/tokens.min.css`     | `dist/styles/tokens.min.css`     | Standalone minified token layer.    |
-| `@marcomattes/epaper-components/base.min.css`       | `dist/styles/base.min.css`       | Standalone minified reset.          |
-| `@marcomattes/epaper-components/components.min.css` | `dist/styles/components.min.css` | Standalone minified component CSS.  |
+| Subpath                                                        | Resolves to                                | When to use                              |
+| -------------------------------------------------------------- | ------------------------------------------ | ---------------------------------------- |
+| `@marcomattes/epaper-components/tokens.css`                    | `src/styles/tokens.css` (source)           | Bundlers (Vite, Rollup, webpack 5).      |
+| `@marcomattes/epaper-components/base.css`                      | `src/styles/base.css` (source)             | Bundlers.                                |
+| `@marcomattes/epaper-components/components.css`                | `src/styles/components.css`                | Bundlers.                                |
+| `@marcomattes/epaper-components/themes/mono-high-contrast.css` | `src/styles/themes/mono-high-contrast.css` | Optional high-contrast monochrome theme. |
+| `@marcomattes/epaper-components/themes/kaleido.css`            | `src/styles/themes/kaleido.css`            | Optional Kaleido panel theme.            |
+| `@marcomattes/epaper-components/styles.min.css`                | `dist/styles/epaper.min.css`               | Combined, minified bundle.               |
+| `@marcomattes/epaper-components/tokens.min.css`                | `dist/styles/tokens.min.css`               | Standalone minified token layer.         |
+| `@marcomattes/epaper-components/base.min.css`                  | `dist/styles/base.min.css`                 | Standalone minified reset.               |
+| `@marcomattes/epaper-components/components.min.css`            | `dist/styles/components.min.css`           | Standalone minified component CSS.       |
 
 The minified files are produced by [`cssnano`](https://cssnano.github.io/cssnano/)
 (see [scripts/build-css.mjs](scripts/build-css.mjs)) during `npm run build`, and
@@ -345,14 +347,16 @@ each one ships with a sibling `*.min.css.map`. Importing the unminified sources
 keeps them readable and allows them to pass through a consumer's own PostCSS
 pipeline.
 
-Sizes as of the 1.0.1 build:
+Sizes as of the current 1.0.1 build:
 
-| File                 |     raw |   gzip |
-| -------------------- | ------: | -----: |
-| `tokens.min.css`     |  1.6 KB | 0.7 KB |
-| `base.min.css`       |  1.4 KB | 0.6 KB |
-| `components.min.css` | 40.5 KB | 6.3 KB |
-| `epaper.min.css`     | 43.5 KB | 7.0 KB |
+| File                         |     raw |   gzip |
+| ---------------------------- | ------: | -----: |
+| `tokens.min.css`             |  1.8 KB | 0.7 KB |
+| `base.min.css`               |  1.5 KB | 0.6 KB |
+| `components.min.css`         | 46.7 KB | 7.2 KB |
+| `epaper.min.css`             | 49.8 KB | 7.9 KB |
+| `mono-high-contrast.min.css` |  0.7 KB | 0.3 KB |
+| `kaleido.min.css`            |  0.4 KB | 0.3 KB |
 
 ## Subpath imports and bundle size
 
@@ -366,9 +370,9 @@ in Vite, Rollup, esbuild and webpack 5.
 Compound elements that a parent component registers alongside itself — such as
 `<e-form-item>` (registered by `form.ts`) or `<e-option>` (registered by
 `select.ts`) — do not get their own subpath; importing the parent module
-registers them too. `package.json` exposes 84 subpaths in total: the barrel,
-69 component entries covering all 89 tags between them, and 14 CSS/source-map
-entries.
+registers them too. `package.json` exposes 92 subpaths in total: the barrel,
+65 component entries covering all 89 tags between them, three core-helper
+entries, 22 CSS/source-map entries and the Custom Elements Manifest.
 
 | Goal               | Import                                                           |
 | ------------------ | ---------------------------------------------------------------- |
@@ -376,24 +380,23 @@ entries.
 | Type imports only  | `import type { EButton } from '@marcomattes/epaper-components';` |
 | Whole library      | `import '@marcomattes/epaper-components';`                       |
 
-Bundling the full library through esbuild produces about 31.6 KB brotli, or
-roughly 37 KB gzip; `npm run size` enforces a 40 KB brotli budget on the barrel
-and separate budgets on `<e-button>` (6 KB, currently 909 B) and `<e-input>`
-(8 KB, currently 1.43 KB). The CSS files are declared as having side effects,
-since they apply globally, and are never tree-shaken.
+Bundling the full library through esbuild currently produces 36.17 KB brotli;
+`npm run size` enforces a 40 KB brotli budget on the barrel and separate budgets
+on `<e-button>` (6 KB, currently 909 B) and `<e-input>` (8 KB, currently
+1.78 KB). The CSS files are declared as having side effects, since they apply
+globally, and are never tree-shaken.
 
 ## Forms
 
 Every interactive control is a [form-associated custom
 element](https://web.dev/articles/more-capable-form-controls). Giving a control
 a `name` attribute is enough for it to participate in submission, `FormData`
-and `form.reset()`. Built-in constraint validation — a `required` field
-reporting itself invalid and blocking submission — is currently only wired up
-for `<e-input>`, `<e-textarea>` (value/pattern rules) and `<e-upload>` (file
-constraints); the other ten `BaseFormControl` subclasses accept `required` and
-render it, but never call `ElementInternals.setValidity()`, so it has no effect
-on `checkValidity()` or submission for those controls today. `form.reset()`
-restores every control's `default-value` attribute (or `default-checked` for
+and `form.reset()`. Built-in constraint validation is shared by all thirteen
+`BaseFormControl` subclasses: `required` reports `valueMissing` for empty text,
+selection and file controls (and for unchecked checkbox/toggle controls), while
+the text and number controls also mirror their native input constraints through
+`ElementInternals.setValidity()`. `form.reset()` restores every control's
+`default-value` attribute (or `default-checked` for
 `<e-checkbox>`/`<e-toggle>`/`<e-radio>`), not its initial `value`.
 
 ```html
@@ -662,7 +665,7 @@ the current release.
 src/
   core/        # Cross-cutting helpers: dom, icons, base-form-control, types.
   components/  # One web component per file. Each calls define(...) at module scope.
-  styles/      # tokens.css, base.css, components.css. Public CSS surface.
+  styles/      # Base CSS layers and optional panel themes. Public CSS surface.
   stories/     # Storybook documentation; not shipped.
   site/        # Source of epaper-components.dev; not shipped.
   demo/        # Demo HTML wiring; not shipped.
@@ -687,6 +690,7 @@ npm run dev               # Vite playground (src/demo) on http://localhost:8085
 npm run storybook         # Storybook on :6006
 npm run test              # Vitest in watch mode (browser/Chromium via Playwright)
 npm run test:ci           # Vitest single run, CI-friendly
+npm run test:refresh      # E-paper mutation and dirty-area budgets
 npm run test:coverage     # Watch mode + v8 coverage report
 npm run test:coverage:ci  # Single run + v8 coverage report
 npm run test-storybook    # Run Storybook a11y/interaction tests
@@ -711,9 +715,10 @@ npm run validate:sample-app:types  # this README's TypeScript snippets, strict-c
 1. **`vite build`** emits per-component ES modules to `dist/components/*.js`, the
    barrel `dist/index.js` and shared chunks under `dist/chunks/`, each with a
    source map.
-2. **`node scripts/build-css.mjs`** copies `src/styles/*.css` to `dist/styles/`,
-   runs them through `cssnano`, writes `*.min.css` plus `*.min.css.map`, and
-   concatenates the three layers into `dist/styles/epaper.min.css`.
+2. **`node scripts/build-css.mjs`** copies the base layers and optional themes
+   from `src/styles/` to `dist/styles/`, runs them through `cssnano`, writes
+   `*.min.css` plus `*.min.css.map`, and concatenates the three base layers into
+   `dist/styles/epaper.min.css`.
 3. **`tsc -p tsconfig.build.json`** emits the `.d.ts` files into `dist/`.
 4. **`cem analyze` and `node scripts/gen-tag-map.mjs`** produce
    `dist/custom-elements.json`, `dist/web-types.json`,

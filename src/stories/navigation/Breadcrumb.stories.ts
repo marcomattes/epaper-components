@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Hierarchical trail showing the user’s location within nested pages. The last item represents the current page and is rendered as plain text.',
+          '**Version:** v1.0.1\n\nHierarchical trail showing the user’s location within nested pages. The last item represents the current page and is rendered as plain text.',
       },
     },
   },

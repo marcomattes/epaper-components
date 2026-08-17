@@ -4,6 +4,7 @@ import { BaseFormControl } from '../core/base-form-control';
 
 /**
  * @summary Drop-zone file picker with live file list and per-file removal.
+ * @since v1.0.1
  *
  * Form-associated: holds real `File` objects and submits them through
  * `ElementInternals.setFormValue`. In multi-file mode each file is appended
@@ -15,6 +16,8 @@ import { BaseFormControl } from '../core/base-form-control';
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
  * @attr {string} [max-size] - Maximum size per file in bytes. Files exceeding the limit are rejected and the control is marked invalid.
  * @attr {string} [max-files] - Maximum number of files allowed in multi-file mode.
+ * @attr {boolean} [required] - Requires at least one selected file.
+ * @attr {string} [required-message] - Message reported when no required file is selected.
  *
  * @fires {CustomEvent<{files: File[]}>} e-change - Fired whenever the selected file list changes (add or remove).
  *
@@ -22,7 +25,14 @@ import { BaseFormControl } from '../core/base-form-control';
  * <e-upload accept=".pdf,.png" multiple name="docs"></e-upload>
  */
 export class EUpload extends BaseFormControl<File[]> {
-  static observedAttributes = ['accept', 'multiple', 'max-size', 'max-files'];
+  static observedAttributes = [
+    'accept',
+    'multiple',
+    'max-size',
+    'max-files',
+    'required',
+    'required-message',
+  ];
 
   private _wired = false;
   private _hint: HTMLElement | null = null;
@@ -53,6 +63,7 @@ export class EUpload extends BaseFormControl<File[]> {
       this._rebuildList();
     }
     this._syncFormValue();
+    this._validate(this._value);
     this._drop?.addEventListener('click', this._onDropClick);
     this._drop?.addEventListener('keydown', this._onDropKeydown);
     this._drop?.addEventListener('dragover', this._onDragOver);
@@ -102,7 +113,7 @@ export class EUpload extends BaseFormControl<File[]> {
     if (this._input) this._input.value = '';
     this._rebuildList();
     this._syncFormValue();
-    this.internals.setValidity({});
+    this._validate(this._value);
   }
 
   override get value(): File[] {
@@ -180,7 +191,7 @@ export class EUpload extends BaseFormControl<File[]> {
         this.internals.setValidity(
           { customError: true },
           `File "${tooBig.name}" exceeds maximum size of ${maxSize} bytes.`,
-          this._input ?? undefined,
+          this._drop ?? this._input ?? undefined,
         );
         return false;
       }
@@ -189,11 +200,15 @@ export class EUpload extends BaseFormControl<File[]> {
       this.internals.setValidity(
         { customError: true },
         `At most ${maxFiles} file(s) allowed.`,
-        this._input ?? undefined,
+        this._drop ?? this._input ?? undefined,
       );
       return false;
     }
-    this.internals.setValidity({});
+    this.applyRequiredValidity(
+      files.length > 0,
+      this._drop ?? this._input ?? undefined,
+      'Please select a file.',
+    );
     return true;
   }
 
@@ -294,7 +309,7 @@ export class EUpload extends BaseFormControl<File[]> {
     this._rebuildIndices();
     if (this._value.length === 0) this._list.hidden = true;
     this._syncFormValue();
-    this.internals.setValidity({});
+    this._validate(this._value);
     this._emitChange();
   };
 }

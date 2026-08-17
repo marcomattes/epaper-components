@@ -13,20 +13,22 @@ of `<input type="number">`). Step buttons support press-and-hold to repeat.
 
 ## Attributes
 
-| Attribute | Type | Default | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Current numeric value as a string. |
-| `min` | `string` | — | Lower bound (inclusive). |
-| `max` | `string` | — | Upper bound (inclusive). |
-| `step` | `string` | `'1'` | Step size for the buttons and native input. |
-| `aria-label` | — | — |  |
-| `default-value` | `string` | — | Initial value used by `formResetCallback`. |
-| `name` | `string` | — | Form field name. Required to participate in `FormData`. |
+| Attribute          | Type      | Default | Description                                                        |
+| ------------------ | --------- | ------- | ------------------------------------------------------------------ |
+| `value`            | `string`  | —       | Current numeric value as a string.                                 |
+| `min`              | `string`  | —       | Lower bound (inclusive).                                           |
+| `max`              | `string`  | —       | Upper bound (inclusive).                                           |
+| `step`             | `string`  | `'1'`   | Step size for the buttons and native input.                        |
+| `aria-label`       | —         | —       |                                                                    |
+| `required`         | `boolean` | —       | Requires a numeric value.                                          |
+| `required-message` | `string`  | —       | Overrides the native message reported for an empty required value. |
+| `default-value`    | `string`  | —       | Initial value used by `formResetCallback`.                         |
+| `name`             | `string`  | —       | Form field name. Required to participate in `FormData`.            |
 
 ## Events
 
-| Event | Detail | Description |
-| --- | --- | --- |
+| Event      | Detail                         | Description                                                |
+| ---------- | ------------------------------ | ---------------------------------------------------------- |
 | `e-change` | `CustomEvent<{value: number}>` | Fired when the value changes via buttons or native commit. |
 
 ## Slots
@@ -35,6 +37,6 @@ _None._
 
 ## Properties
 
-| Property | Type | Read-only | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | no |  |
+| Property | Type     | Read-only | Description |
+| -------- | -------- | --------- | ----------- |
+| `value`  | `string` | no        |             |

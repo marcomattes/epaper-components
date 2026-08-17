@@ -9,7 +9,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Pure-SVG QR code renderer with zero runtime dependencies. Ideal for e-paper devices: every module is a sharp 1-bit cell.',
+          '**Version:** v1.0.1\n\nPure-SVG QR code renderer with zero runtime dependencies. Ideal for e-paper devices: every module is a sharp 1-bit cell.',
       },
     },
   },

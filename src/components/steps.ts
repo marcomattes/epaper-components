@@ -3,6 +3,7 @@ import { iconSvg } from '../core/icons';
 
 /**
  * @summary Numbered or check-marked step list rendered from `<e-step>` children.
+ * @since v1.0.1
  *
  * @attr {number} [current=0] - Index of the active step (0-based). Reactive.
  * @attr {'horizontal'|'vertical'} [orientation='horizontal'] - Layout direction. Reactive.

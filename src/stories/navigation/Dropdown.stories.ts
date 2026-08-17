@@ -9,7 +9,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Lightweight menu that opens from a trigger button to expose secondary actions, filters, or sort options. Closes on outside click and Escape.',
+          '**Version:** v1.0.1\n\nLightweight menu that opens from a trigger button to expose secondary actions, filters, or sort options. Closes on outside click and Escape.',
       },
     },
   },

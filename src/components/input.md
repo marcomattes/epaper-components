@@ -12,27 +12,34 @@ Form-associated: participates in `<form>` submission and FormData.
 
 ## Attributes
 
-| Attribute | Type | Default | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Current value. Reflected via the `value` property. |
-| `error` | `boolean` | — | Marks the input as invalid. Sets `aria-invalid="true"` and a custom `ElementInternals` validity error so `form.checkValidity()` returns `false`. |
-| `error-message` | `string` | — | Message reported to `ElementInternals.setValidity` when `error` is set. Defaults to "Invalid value.". |
-| `disabled` | `boolean` | — | Disables interaction. |
-| `readonly` | `boolean` | — | Renders as a non-editable read-only input. Still submitted with the form. |
-| `aria-label` | — | — |  |
-| `placeholder` | `string` | — | Native placeholder text. |
-| `label` | `string` | — | Label rendered above the input. |
-| `hint` | `string` | — | Helper text rendered below the input. |
-| `type` | `string` | `'text'` | Native input type. |
-| `required` | `boolean` | — | Requires a non-empty value for form validation. |
-| `default-value` | `string` | — | Initial value used when `value` is not set. |
-| `name` | `string` | — | Form field name. Required to participate in `FormData`. |
+| Attribute          | Type      | Default  | Description                                                                                                                                      |
+| ------------------ | --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `value`            | `string`  | —        | Current value. Reflected via the `value` property.                                                                                               |
+| `error`            | `boolean` | —        | Marks the input as invalid. Sets `aria-invalid="true"` and a custom `ElementInternals` validity error so `form.checkValidity()` returns `false`. |
+| `error-message`    | `string`  | —        | Message reported to `ElementInternals.setValidity` when `error` is set. Defaults to "Invalid value.".                                            |
+| `disabled`         | `boolean` | —        | Disables interaction.                                                                                                                            |
+| `readonly`         | `boolean` | —        | Renders as a non-editable read-only input. Still submitted with the form.                                                                        |
+| `aria-label`       | —         | —        |                                                                                                                                                  |
+| `placeholder`      | `string`  | —        | Native placeholder text.                                                                                                                         |
+| `label`            | `string`  | —        | Label rendered above the input.                                                                                                                  |
+| `hint`             | `string`  | —        | Helper text rendered below the input.                                                                                                            |
+| `type`             | `string`  | `'text'` | Native input type.                                                                                                                               |
+| `required`         | `boolean` | —        | Requires a non-empty value for form validation.                                                                                                  |
+| `required-message` | `string`  | —        | Overrides the native message reported when `required` is not satisfied.                                                                          |
+| `pattern`          | `string`  | —        | Regular expression the value must match.                                                                                                         |
+| `minlength`        | `number`  | —        | Minimum text length.                                                                                                                             |
+| `maxlength`        | `number`  | —        | Maximum text length.                                                                                                                             |
+| `min`              | `string`  | —        | Minimum value for numeric and date-like input types.                                                                                             |
+| `max`              | `string`  | —        | Maximum value for numeric and date-like input types.                                                                                             |
+| `step`             | `string`  | —        | Step interval for numeric and date-like input types.                                                                                             |
+| `default-value`    | `string`  | —        | Initial value used when `value` is not set.                                                                                                      |
+| `name`             | `string`  | —        | Form field name. Required to participate in `FormData`.                                                                                          |
 
 ## Events
 
-| Event | Detail | Description |
-| --- | --- | --- |
-| `e-input` | `CustomEvent<{value: string}>` | Fired on every keystroke. |
+| Event      | Detail                         | Description                   |
+| ---------- | ------------------------------ | ----------------------------- |
+| `e-input`  | `CustomEvent<{value: string}>` | Fired on every keystroke.     |
 | `e-change` | `CustomEvent<{value: string}>` | Fired on commit (blur/Enter). |
 
 ## Slots
@@ -41,6 +48,6 @@ _None._
 
 ## Properties
 
-| Property | Type | Read-only | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | no |  |
+| Property | Type     | Read-only | Description |
+| -------- | -------- | --------- | ----------- |
+| `value`  | `string` | no        |             |

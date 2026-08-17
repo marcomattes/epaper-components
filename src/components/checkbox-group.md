@@ -13,16 +13,18 @@ Form-associated: each selected option is appended to FormData under `name`.
 
 ## Attributes
 
-| Attribute | Type | Default | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Comma-separated list of selected option values. Reactive. |
-| `layout` | `'horizontal'\|'vertical'` | `'vertical'` | Stacking direction. Reactive. |
-| `name` | `string` | — | Form field name. Required to participate in `FormData`. |
+| Attribute          | Type                       | Default      | Description                                               |
+| ------------------ | -------------------------- | ------------ | --------------------------------------------------------- |
+| `value`            | `string`                   | —            | Comma-separated list of selected option values. Reactive. |
+| `layout`           | `'horizontal'\|'vertical'` | `'vertical'` | Stacking direction. Reactive.                             |
+| `required`         | `boolean`                  | —            | Requires at least one selected option.                    |
+| `required-message` | `string`                   | —            | Message reported when no required option is selected.     |
+| `name`             | `string`                   | —            | Form field name. Required to participate in `FormData`.   |
 
 ## Events
 
-| Event | Detail | Description |
-| --- | --- | --- |
+| Event      | Detail                           | Description                                                                       |
+| ---------- | -------------------------------- | --------------------------------------------------------------------------------- |
 | `e-change` | `CustomEvent<{value: string[]}>` | Fired when the selection changes. `value` is the array of selected option values. |
 
 ## Slots
@@ -31,6 +33,6 @@ _None._
 
 ## Properties
 
-| Property | Type | Read-only | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | no |  |
+| Property | Type     | Read-only | Description |
+| -------- | -------- | --------- | ----------- |
+| `value`  | `string` | no        |             |

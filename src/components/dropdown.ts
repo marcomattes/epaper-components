@@ -9,6 +9,7 @@ type DropdownItemDef =
 
 /**
  * @summary Trigger-driven menu with items, headers and dividers.
+ * @since v1.0.1
  *
  * @attr {'left'|'right'} [align='left'] - Menu alignment relative to the trigger.
  *

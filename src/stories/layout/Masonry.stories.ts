@@ -20,7 +20,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Pinterest-style multi-column layout that packs items of varying heights without leaving gaps. Configurable column count and inter-item spacing.',
+          '**Version:** v1.0.1\n\nPinterest-style multi-column layout that packs items of varying heights without leaving gaps. Configurable column count and inter-item spacing.',
       },
     },
   },

@@ -2,6 +2,7 @@ import { boolAttr, captureWrap, define, patchClassModifier } from '../core/dom';
 
 /**
  * @summary Inline label badge with an optional inverted color treatment.
+ * @since v1.0.1
  *
  * Children are used as the badge text.
  *

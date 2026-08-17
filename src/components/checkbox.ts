@@ -3,6 +3,7 @@ import { BaseFormControl } from '../core/base-form-control';
 
 /**
  * @summary Single checkbox with an optional inline label.
+ * @since v1.0.1
  *
  * Form-associated: submits its `value` (defaults to `"on"`) when checked,
  * matching native `<input type="checkbox">` behaviour.
@@ -12,6 +13,8 @@ import { BaseFormControl } from '../core/base-form-control';
  * @attr {string} [label] - Inline text label rendered next to the box.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
  * @attr {string} [value='on'] - Submitted value when checked.
+ * @attr {boolean} [required] - Requires the checkbox to be checked.
+ * @attr {string} [required-message] - Message reported when the required checkbox is unchecked.
  *
  * @fires {CustomEvent<{checked: boolean}>} e-change - Fired when the checked state changes.
  *
@@ -19,7 +22,14 @@ import { BaseFormControl } from '../core/base-form-control';
  * <e-checkbox checked label="Accept terms"></e-checkbox>
  */
 export class ECheckbox extends BaseFormControl {
-  static observedAttributes = ['checked', 'label', 'disabled', 'value'];
+  static observedAttributes = [
+    'checked',
+    'label',
+    'disabled',
+    'value',
+    'required',
+    'required-message',
+  ];
 
   private _wired = false;
   private _cb: HTMLInputElement | null = null;
@@ -28,6 +38,10 @@ export class ECheckbox extends BaseFormControl {
     const v = this.getAttribute('value') || 'on';
     const checked = !!this._cb?.checked;
     this.internals.setFormValue(checked ? v : null, checked ? 'checked' : 'unchecked');
+    if (this._cb) {
+      this._cb.required = boolAttr(this, 'required');
+      this.applyRequiredValidity(checked, this._cb, 'Please check this box.');
+    }
   }
 
   connectedCallback() {
@@ -68,6 +82,7 @@ export class ECheckbox extends BaseFormControl {
     }
     if (name === 'disabled') this._cb.disabled = boolAttr(this, 'disabled') || this._formDisabled;
     if (name === 'value') this._syncFormValue();
+    if (name === 'required' || name === 'required-message') this._syncFormValue();
     if (name === 'label') {
       const text = this.getAttribute('label') || '';
       const label = this.querySelector('label.ink-checkbox') as HTMLElement | null;

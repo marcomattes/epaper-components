@@ -2,6 +2,7 @@ import { define, esc, patchAttr, patchText } from '../core/dom';
 
 /**
  * @summary Visual separator with optional label and orientation.
+ * @since v1.0.1
  *
  * @attr {'solid'|'dashed'} [variant='solid'] - Line style.
  * @attr {'horizontal'|'vertical'} [orientation='horizontal'] - Layout direction.

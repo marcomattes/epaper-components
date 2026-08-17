@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Small inline label, optionally removable. Use to mark categories or filters that the user can dismiss. Distinct from `<e-badge>`, which is purely decorative.',
+          '**Version:** v1.0.1\n\nSmall inline label, optionally removable. Use to mark categories or filters that the user can dismiss. Distinct from `<e-badge>`, which is purely decorative.',
       },
     },
   },

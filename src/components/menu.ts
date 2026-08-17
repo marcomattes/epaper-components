@@ -29,6 +29,7 @@ interface RenderedItem {
 
 /**
  * @summary Hierarchical navigation menu rendered from `<e-menu-item>` children.
+ * @since v1.0.1
  *
  * @attr {'horizontal'|'vertical'} [mode='vertical'] - Menu orientation. Reactive.
  * @attr {string} [value] - Currently active item value. Reactive.

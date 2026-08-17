@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import postcss from 'postcss';
 import cssnano from 'cssnano';
 
 const distStylesDir = resolve('dist/styles');
 const srcStylesDir = resolve('src/styles');
 
-const cssFiles = ['tokens.css', 'base.css', 'components.css'];
+const coreCssFiles = ['tokens.css', 'base.css', 'components.css'];
+const themeCssFiles = ['themes/mono-high-contrast.css', 'themes/kaleido.css'];
+const cssFiles = [...coreCssFiles, ...themeCssFiles];
 
 async function buildCSS() {
   // Create dist/styles directory
@@ -28,6 +30,7 @@ async function buildCSS() {
     const srcPath = join(srcStylesDir, file);
     const distPath = join(distStylesDir, file);
     const minPath = join(distStylesDir, file.replace('.css', '.min.css'));
+    mkdirSync(dirname(distPath), { recursive: true });
 
     // Read source file
     const source = readFileSync(srcPath, 'utf-8');
@@ -56,7 +59,7 @@ async function buildCSS() {
   console.log('\n');
 
   // 2. Create combined bundle
-  const allCSS = cssFiles
+  const allCSS = coreCssFiles
     .map((file) => {
       const srcPath = join(srcStylesDir, file);
       return readFileSync(srcPath, 'utf-8');
@@ -88,6 +91,10 @@ async function buildCSS() {
   console.log('  - dist/styles/base.min.css (+.map)');
   console.log('  - dist/styles/components.css');
   console.log('  - dist/styles/components.min.css (+.map)');
+  console.log('  - dist/styles/themes/mono-high-contrast.css');
+  console.log('  - dist/styles/themes/mono-high-contrast.min.css (+.map)');
+  console.log('  - dist/styles/themes/kaleido.css');
+  console.log('  - dist/styles/themes/kaleido.min.css (+.map)');
   console.log('  - dist/styles/epaper.min.css (+.map)');
 }
 

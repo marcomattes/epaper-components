@@ -9,7 +9,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Text field paired with an hour/minute popover for picking a time. Values are exchanged as 24-hour `HH:MM` strings.',
+          '**Version:** v1.0.1\n\nText field paired with an hour/minute popover for picking a time. Values are exchanged as 24-hour `HH:MM` strings.',
       },
     },
   },

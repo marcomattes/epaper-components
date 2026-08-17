@@ -8,7 +8,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Compact numeric indicator for unread or new-item counts. Renders as a small filled chip overflowing past `max` (default 99) or as a simple dot when `dot` is set. Typically overlaid on icons, avatars, or menu items.',
+          '**Version:** v1.0.1\n\nCompact numeric indicator for unread or new-item counts. Renders as a small filled chip overflowing past `max` (default 99) or as a simple dot when `dot` is set. Typically overlaid on icons, avatars, or menu items.',
       },
     },
   },

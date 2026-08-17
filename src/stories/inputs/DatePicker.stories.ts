@@ -9,7 +9,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Text field paired with a popover month calendar for picking a single date. Values are exchanged as ISO `YYYY-MM-DD` strings.',
+          '**Version:** v1.0.1\n\nText field paired with a popover month calendar for picking a single date. Values are exchanged as ISO `YYYY-MM-DD` strings.',
       },
     },
   },

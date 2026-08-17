@@ -2,6 +2,7 @@ import { define, patchText } from '../core/dom';
 
 /**
  * @summary Container with optional eyebrow, title and action area.
+ * @since v1.0.1
  *
  * @attr {string} [title] - Title rendered in the header.
  * @attr {string} [eyebrow] - Small label rendered above the title.

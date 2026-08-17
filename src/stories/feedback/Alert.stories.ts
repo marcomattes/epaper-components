@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Inline status banner. The static counterpart to a toast — nothing appears or disappears on a timer, because a message that auto-dismisses can be missed entirely between two panel refreshes. Severity is carried by an icon, a border weight and a hatch fill, never by color alone. Use `<e-result>` instead when the message *is* the page.',
+          '**Version:** v1.1.0\n\nInline status banner. The static counterpart to a toast — nothing appears or disappears on a timer, because a message that auto-dismisses can be missed entirely between two panel refreshes. Severity is carried by an icon, a border weight and a hatch fill, never by color alone. Use `<e-result>` instead when the message *is* the page.',
       },
     },
   },

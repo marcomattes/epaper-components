@@ -3,6 +3,7 @@ import { iconSvg } from '../core/icons';
 
 /**
  * @summary Empty-state placeholder with optional icon, title, description and action.
+ * @since v1.0.1
  *
  * Used when a list, table, or section has no content to display.
  *

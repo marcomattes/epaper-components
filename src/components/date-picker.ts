@@ -17,12 +17,15 @@ const CELL_COUNT = 42;
 
 /**
  * @summary Single-day picker with a popover month grid.
+ * @since v1.0.1
  *
  * Form-associated: participates in `<form>` submission and FormData.
  *
  * @attr {string} [value] - Selected day in `YYYY-MM-DD` format.
  * @attr {string} [placeholder='YYYY-MM-DD'] - Trigger placeholder when no value is set.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
+ * @attr {boolean} [required] - Requires a selected date.
+ * @attr {string} [required-message] - Message reported when no required date is selected.
  *
  * @fires {CustomEvent<{value: string}>} e-change - Fired when a day is picked. `value` is `YYYY-MM-DD`.
  *
@@ -30,7 +33,7 @@ const CELL_COUNT = 42;
  * <e-date-picker value="2025-04-26"></e-date-picker>
  */
 export class EDatePicker extends BaseFormControl {
-  static observedAttributes = ['value', 'placeholder'];
+  static observedAttributes = ['value', 'placeholder', 'required', 'required-message'];
 
   private _wired = false;
   private _view = { y: 2026, m: 0 };
@@ -59,6 +62,7 @@ export class EDatePicker extends BaseFormControl {
 
       this._build();
       this._patchGrid();
+      this._syncValidity();
     }
 
     this.addEventListener('click', this._onClick);
@@ -419,6 +423,8 @@ export class EDatePicker extends BaseFormControl {
       this._patchTrigger();
     } else if (name === 'value') {
       this._applyValue(val ?? '');
+    } else if (name === 'required' || name === 'required-message') {
+      this._syncValidity();
     }
   }
 
@@ -442,6 +448,12 @@ export class EDatePicker extends BaseFormControl {
     if (parsed) this._view = { y: parsed.getFullYear(), m: parsed.getMonth() };
     this._patchTrigger();
     this._patchGrid();
+    this._syncValidity();
+  }
+
+  private _syncValidity(): void {
+    this._trigger?.setAttribute('aria-required', String(this.hasAttribute('required')));
+    this.applyRequiredValidity(!!this._value, this._trigger ?? undefined, 'Please select a date.');
   }
 }
 

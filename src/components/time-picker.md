@@ -12,15 +12,17 @@ Form-associated: participates in `<form>` submission and FormData.
 
 ## Attributes
 
-| Attribute | Type | Default | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | `'00:00'` | Current time in `HH:MM` format. Wraps around the 24-hour and 60-minute boundaries. |
-| `name` | `string` | — | Form field name. Required to participate in `FormData`. |
+| Attribute          | Type      | Default   | Description                                                                        |
+| ------------------ | --------- | --------- | ---------------------------------------------------------------------------------- |
+| `value`            | `string`  | `'00:00'` | Current time in `HH:MM` format. Wraps around the 24-hour and 60-minute boundaries. |
+| `required`         | `boolean` | —         | Requires a valid time value. The default `00:00` satisfies this constraint.        |
+| `required-message` | `string`  | —         | Message reported when no required time is selected.                                |
+| `name`             | `string`  | —         | Form field name. Required to participate in `FormData`.                            |
 
 ## Events
 
-| Event | Detail | Description |
-| --- | --- | --- |
+| Event      | Detail                         | Description                                               |
+| ---------- | ------------------------------ | --------------------------------------------------------- |
 | `e-change` | `CustomEvent<{value: string}>` | Fired when the user changes the time. `value` is `HH:MM`. |
 
 ## Slots
@@ -29,6 +31,6 @@ _None._
 
 ## Properties
 
-| Property | Type | Read-only | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | no |  |
+| Property | Type     | Read-only | Description |
+| -------- | -------- | --------- | ----------- |
+| `value`  | `string` | no        |             |

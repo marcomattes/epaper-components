@@ -2,6 +2,7 @@ import { addCleanup, boolAttr, captureWrap, define, patchBoolAttr, runCleanups }
 
 /**
  * @summary Small inline label, optionally removable.
+ * @since v1.0.1
  *
  * Children are used as the tag text. Distinct from `<e-badge>` (purely
  * decorative) because a tag can be dismissed by the user via a close button.

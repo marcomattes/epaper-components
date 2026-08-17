@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Card variant with a leading hero region — either an image URL or the built-in diagonal `hatch` cover for editorial layouts. Pairs well with Ribbon for featured items.',
+          '**Version:** v1.0.1\n\nCard variant with a leading hero region — either an image URL or the built-in diagonal `hatch` cover for editorial layouts. Pairs well with Ribbon for featured items.',
       },
     },
   },

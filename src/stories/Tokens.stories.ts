@@ -40,7 +40,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Single source of truth for the visual system. Every component reads from these CSS custom properties — never hard-coded values — so re-skinning the library is a matter of overriding tokens at the page or component level. The system is intentionally narrow: no light/dark theme, no semantic alias layer, only five accent colors.',
+          '**Version:** v1.0.1\n\nSingle source of truth for the visual system. Every component reads from these CSS custom properties — never hard-coded values — so re-skinning the library is a matter of overriding tokens at the page or component level. The system is intentionally narrow: no light/dark theme, no semantic alias layer, only five accent colors.',
       },
     },
   },

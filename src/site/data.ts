@@ -175,7 +175,7 @@ export interface RoadmapItem {
 
 /** Lede above the roadmap. Real prose, because AI crawlers quote prose. */
 export const ROADMAP_INTRO =
-  'EPaper follows semantic versioning. Patch releases ship from every green run on main under the npm dev tag; tagged releases publish to latest.';
+  'EPaper follows an outcome-based roadmap. The next release strengthens native form behaviour, ships panel-specific themes and makes the e-paper refresh cost of interactions measurable in CI.';
 
 export const ROADMAP: RoadmapItem[] = [
   {
@@ -186,18 +186,13 @@ export const ROADMAP: RoadmapItem[] = [
   },
   {
     time: 'V1.1',
-    title: 'Theme Pack',
-    body: 'Additional token packs for Kaleido panels and high-contrast monochrome.',
+    title: 'Reliability & panel themes',
+    body: 'Unified native constraint validation, high-contrast monochrome and Kaleido theme packs, plus automated refresh-budget checks.',
   },
   {
-    time: 'V1.2',
-    title: 'Storybook 9',
-    body: 'Upgrade Storybook devDependency to 9.x and bundle a hosted demo.',
-  },
-  {
-    time: 'V2.0',
-    title: 'SSR helpers',
-    body: 'Optional SSR helpers for declarative-shadow-dom-free hydration on edge runtimes.',
+    time: 'Later',
+    title: 'Hardware integrations',
+    body: 'Driver adapters and SSR helpers will follow real deployment demand instead of being committed to a version prematurely.',
   },
 ];
 
@@ -235,10 +230,10 @@ export const TABLE_ROWS: Array<Record<string, string | number>> = [
 ];
 
 export const CALENDAR_EVENTS: CalendarEvent[] = [
-  { date: '2026-04-29', title: 'V1.1 release' },
-  { date: '2026-05-12', title: 'Storybook upgrade' },
+  { date: '2026-04-29', title: 'Panel field test' },
+  { date: '2026-05-12', title: 'Accessibility review' },
   { date: '2026-05-22', title: 'Office hours' },
-  { date: '2026-04-30', title: 'Roadmap review' },
+  { date: '2026-04-30', title: 'Design review' },
 ];
 
 export const INSTALL_SNIPPETS = {

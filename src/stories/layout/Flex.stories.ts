@@ -13,7 +13,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'One-dimensional flexbox container. Exposes attributes for `direction`, `wrap`, `gap`, `justify` and `align` so layout stays declarative — no ad-hoc inline styles.',
+          '**Version:** v1.0.1\n\nOne-dimensional flexbox container. Exposes attributes for `direction`, `wrap`, `gap`, `justify` and `align` so layout stays declarative — no ad-hoc inline styles.',
       },
     },
   },

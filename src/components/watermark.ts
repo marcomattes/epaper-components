@@ -2,6 +2,7 @@ import { clampedNumAttr, define, esc } from '../core/dom';
 
 /**
  * @summary Repeating background watermark for the host's content area.
+ * @since v1.0.1
  *
  * Renders an SVG-based, tiled watermark behind slotted children. Designed
  * for ownership/draft labels on printable e-paper layouts. The pattern is

@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Inline gap utility that distributes equal spacing between children. Lighter than Flex when all you need is a consistent gutter between elements.',
+          '**Version:** v1.0.1\n\nInline gap utility that distributes equal spacing between children. Lighter than Flex when all you need is a consistent gutter between elements.',
       },
     },
   },

@@ -9,6 +9,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Added
 
+- High-contrast monochrome and Kaleido panel themes, shipped as readable and
+  minified CSS subpath exports. Semantic accent/status tokens collapse to black
+  in the base theme and map to flat Kaleido colors without removing icon,
+  border-weight or hatch cues.
+- An automated e-paper refresh-budget suite for representative progress,
+  time-picker, table, select and tabs interactions. It fails on host-subtree
+  replacement and enforces per-scenario mutation, element-churn and
+  approximated dirty-area limits.
 - SonarQube Cloud analysis on every pull request and every push to `main`.
   `sonar-project.properties` carries the configuration; the `sonar` job in
   `ci.yml` consumes the coverage and test reports the test job produced rather
@@ -87,6 +95,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Changed
 
+- All thirteen `BaseFormControl` subclasses now participate in native
+  constraint validation. Composite controls implement a shared `required`
+  contract through `ElementInternals`; text and number controls mirror their
+  inner native control's validity flags and use its focusable validation
+  anchor.
+- The public roadmap is outcome-based: V1.1 groups form reliability, panel
+  themes and refresh budgets, while hardware adapters and SSR helpers remain
+  demand-driven rather than carrying premature version promises.
 - The coverage thresholds are now a regression floor rather than a target. CI
   previously ran without `--coverage`, so the branch threshold of 70% was never
   evaluated against the 65.5% the suite actually reaches; it is now 65%, which

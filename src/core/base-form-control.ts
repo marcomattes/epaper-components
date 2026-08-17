@@ -61,6 +61,66 @@ export abstract class BaseFormControl<T = string> extends HTMLElement {
     return this.internals.reportValidity();
   }
 
+  /**
+   * Mirror a native inner control's constraint state onto the custom element.
+   * The inner control remains the validation anchor, so the browser can place
+   * its native validation UI next to the actual focus target.
+   */
+  protected mirrorNativeValidity(
+    control: HTMLInputElement | HTMLTextAreaElement,
+    customErrorMessage?: string,
+  ): boolean {
+    if (customErrorMessage) {
+      this.internals.setValidity({ customError: true }, customErrorMessage, control);
+      if (control.getAttribute('aria-invalid') !== 'true')
+        control.setAttribute('aria-invalid', 'true');
+      return false;
+    }
+
+    const validity = control.validity;
+    if (validity.valid) {
+      this.internals.setValidity({});
+      if (control.getAttribute('aria-invalid') === 'true') control.removeAttribute('aria-invalid');
+      return true;
+    }
+
+    const flags: ValidityStateFlags = {};
+    if (validity.badInput) flags.badInput = true;
+    if (validity.customError) flags.customError = true;
+    if (validity.patternMismatch) flags.patternMismatch = true;
+    if (validity.rangeOverflow) flags.rangeOverflow = true;
+    if (validity.rangeUnderflow) flags.rangeUnderflow = true;
+    if (validity.stepMismatch) flags.stepMismatch = true;
+    if (validity.tooLong) flags.tooLong = true;
+    if (validity.tooShort) flags.tooShort = true;
+    if (validity.typeMismatch) flags.typeMismatch = true;
+    if (validity.valueMissing) flags.valueMissing = true;
+    this.internals.setValidity(flags, control.validationMessage, control);
+    if (control.getAttribute('aria-invalid') !== 'true')
+      control.setAttribute('aria-invalid', 'true');
+    return false;
+  }
+
+  /** Apply the shared `required` contract for non-native composite controls. */
+  protected applyRequiredValidity(
+    hasValue: boolean,
+    anchor?: HTMLElement,
+    defaultMessage = 'Please fill out this field.',
+  ): boolean {
+    const missing = this.hasAttribute('required') && !hasValue;
+    if (missing) {
+      const message = this.getAttribute('required-message') || defaultMessage;
+      this.internals.setValidity({ valueMissing: true }, message, anchor);
+      if (anchor?.getAttribute('aria-invalid') !== 'true') {
+        anchor?.setAttribute('aria-invalid', 'true');
+      }
+      return false;
+    }
+    this.internals.setValidity({});
+    if (anchor?.getAttribute('aria-invalid') === 'true') anchor.removeAttribute('aria-invalid');
+    return true;
+  }
+
   /** Keep subclass UI in sync when a containing fieldset disables the control. */
   formDisabledCallback(disabled: boolean): void {
     this._formDisabled = disabled;

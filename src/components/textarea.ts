@@ -3,6 +3,7 @@ import { BaseFormControl } from '../core/base-form-control';
 
 /**
  * @summary Multi-line text input with error and disabled states.
+ * @since v1.0.1
  *
  * Form-associated: participates in `<form>` submission and FormData.
  *
@@ -14,6 +15,9 @@ import { BaseFormControl } from '../core/base-form-control';
  * @attr {boolean} [disabled] - Disables interaction.
  * @attr {boolean} [readonly] - Renders as a non-editable read-only textarea. Still submitted with the form.
  * @attr {boolean} [required] - Requires a non-empty value for form validation.
+ * @attr {string} [required-message] - Overrides the native message reported when `required` is not satisfied.
+ * @attr {number} [minlength] - Minimum text length.
+ * @attr {number} [maxlength] - Maximum text length.
  *
  * @fires {CustomEvent<{value: string}>} e-input - Fired on every keystroke.
  * @fires {CustomEvent<{value: string}>} e-change - Fired on commit (blur / Enter).
@@ -31,6 +35,9 @@ export class ETextarea extends BaseFormControl {
     'aria-label',
     'placeholder',
     'required',
+    'required-message',
+    'minlength',
+    'maxlength',
   ];
 
   private _wired = false;
@@ -51,6 +58,9 @@ export class ETextarea extends BaseFormControl {
       ${ariaLabel ? `aria-label="${esc(ariaLabel)}"` : ''}
       ${error ? 'aria-invalid="true"' : ''} ${disabled ? 'disabled' : ''} ${readonly ? 'readonly' : ''} ${required ? 'required' : ''}>${esc(value)}</textarea>`;
     this._ta = this.querySelector('textarea');
+    for (const name of ['minlength', 'maxlength']) {
+      this._syncNativeConstraint(name, this.getAttribute(name));
+    }
     this._value = value;
     this.internals.setFormValue(value);
     this._syncValidity();
@@ -65,6 +75,7 @@ export class ETextarea extends BaseFormControl {
       const v = (e.target as HTMLTextAreaElement).value;
       this._value = v;
       this.internals.setFormValue(v);
+      this._syncValidity();
       this.dispatchEvent(new CustomEvent('e-change', { detail: { value: v }, bubbles: true }));
     });
   }
@@ -75,22 +86,22 @@ export class ETextarea extends BaseFormControl {
       if (this._ta.value !== (v ?? '')) this._ta.value = v ?? '';
       this._value = v ?? '';
       this.internals.setFormValue(this._value);
+      this._syncValidity();
     }
     if (name === 'aria-label') {
       if (v) this._ta.setAttribute('aria-label', v);
       else this._ta.removeAttribute('aria-label');
     }
-    if (name === 'error' || name === 'error-message') {
-      const on = boolAttr(this, 'error');
-      if (on) this._ta.setAttribute('aria-invalid', 'true');
-      else this._ta.removeAttribute('aria-invalid');
-      this._syncValidity();
-    }
+    if (name === 'error' || name === 'error-message') this._syncValidity();
     if (name === 'disabled') this._ta.disabled = boolAttr(this, 'disabled') || this._formDisabled;
     if (name === 'readonly') this._ta.readOnly = boolAttr(this, 'readonly');
     if (name === 'placeholder') this._ta.placeholder = v ?? '';
-    if (name === 'required') {
+    if (name === 'required' || name === 'required-message') {
       this._ta.required = boolAttr(this, 'required');
+      this._syncValidity();
+    }
+    if (name === 'minlength' || name === 'maxlength') {
+      this._syncNativeConstraint(name, v);
       this._syncValidity();
     }
   }
@@ -119,18 +130,26 @@ export class ETextarea extends BaseFormControl {
   }
 
   private _syncValidity(): void {
-    if (boolAttr(this, 'error')) {
-      const msg = this.getAttribute('error-message') ?? 'Invalid value.';
-      this.internals.setValidity({ customError: true }, msg, this._ta ?? undefined);
-    } else if (boolAttr(this, 'required') && !this.value) {
-      this.internals.setValidity(
-        { valueMissing: true },
-        'Please fill out this field.',
-        this._ta ?? undefined,
-      );
-    } else {
-      this.internals.setValidity({});
+    if (!this._ta) return;
+    this._ta.required = boolAttr(this, 'required');
+    const customMessage = boolAttr(this, 'error')
+      ? (this.getAttribute('error-message') ?? 'Invalid value.')
+      : undefined;
+    if (!customMessage && this._ta.validity.valueMissing) {
+      const message = this.getAttribute('required-message');
+      if (message) {
+        this.internals.setValidity({ valueMissing: true }, message, this._ta);
+        this._ta.setAttribute('aria-invalid', 'true');
+        return;
+      }
     }
+    this.mirrorNativeValidity(this._ta, customMessage);
+  }
+
+  private _syncNativeConstraint(name: string, value: string | null): void {
+    if (!this._ta) return;
+    if (value == null) this._ta.removeAttribute(name);
+    else this._ta.setAttribute(name, value);
   }
 
   protected override formDisabledChanged(): void {

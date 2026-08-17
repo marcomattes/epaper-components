@@ -11,7 +11,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Fixed-position circular action button anchored to a viewport corner. Surfaces a top-priority action (e.g. compose, add) without taking space in the document flow.',
+          '**Version:** v1.0.1\n\nFixed-position circular action button anchored to a viewport corner. Surfaces a top-priority action (e.g. compose, add) without taking space in the document flow.',
       },
     },
   },

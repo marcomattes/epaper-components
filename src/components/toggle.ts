@@ -3,6 +3,7 @@ import { BaseFormControl } from '../core/base-form-control';
 
 /**
  * @summary On/off switch with an optional inline label and ON/OFF state pill.
+ * @since v1.0.1
  *
  * Form-associated: submits its `value` (defaults to `"on"`) when checked.
  *
@@ -11,6 +12,8 @@ import { BaseFormControl } from '../core/base-form-control';
  * @attr {string} [label] - Inline text label rendered next to the switch.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
  * @attr {string} [value='on'] - Submitted value when checked.
+ * @attr {boolean} [required] - Requires the switch to be on.
+ * @attr {string} [required-message] - Message reported when the required switch is off.
  *
  * @fires {CustomEvent<{checked: boolean}>} e-change - Fired when the checked state changes.
  *
@@ -18,7 +21,14 @@ import { BaseFormControl } from '../core/base-form-control';
  * <e-toggle checked label="Enable notifications"></e-toggle>
  */
 export class EToggle extends BaseFormControl {
-  static observedAttributes = ['checked', 'label', 'disabled', 'value'];
+  static observedAttributes = [
+    'checked',
+    'label',
+    'disabled',
+    'value',
+    'required',
+    'required-message',
+  ];
 
   private _wired = false;
   private _cb: HTMLInputElement | null = null;
@@ -28,6 +38,10 @@ export class EToggle extends BaseFormControl {
     const v = this.getAttribute('value') || 'on';
     const checked = !!this._cb?.checked;
     this.internals.setFormValue(checked ? v : null, checked ? 'checked' : 'unchecked');
+    if (this._cb) {
+      this._cb.required = boolAttr(this, 'required');
+      this.applyRequiredValidity(checked, this._cb, 'Please turn on this switch.');
+    }
   }
 
   connectedCallback() {
@@ -72,6 +86,7 @@ export class EToggle extends BaseFormControl {
     }
     if (name === 'disabled') this._cb.disabled = boolAttr(this, 'disabled') || this._formDisabled;
     if (name === 'value') this._syncFormValue();
+    if (name === 'required' || name === 'required-message') this._syncFormValue();
     if (name === 'label') {
       const text = this.getAttribute('label') || '';
       const label = this.querySelector('label.ink-toggle') as HTMLElement | null;

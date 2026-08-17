@@ -1,0 +1,23 @@
+/* EPaper · Kaleido color panel theme
+ * Color is an additional status cue only. Components retain their icon,
+ * border-weight and hatch encodings so every state still survives 1-bit
+ * rendering. Apply with data-ink-theme="kaleido" or .ink-theme--kaleido. */
+
+[data-ink-theme='kaleido'],
+.ink-theme--kaleido {
+  color-scheme: light;
+  --ink-fg: #000;
+  --ink-bg: #fff;
+  --ink-fg-inverted: #fff;
+  --ink-bg-inverted: #000;
+  --ink-accent: var(--kaleido-blue);
+  --ink-info: var(--kaleido-blue);
+  --ink-success: var(--kaleido-green);
+  --ink-warning: var(--kaleido-orange);
+  --ink-danger: var(--kaleido-red);
+  --ink-hatch-error: repeating-linear-gradient(
+    45deg,
+    var(--kaleido-red) 0 2px,
+    transparent 2px 6px
+  );
+}

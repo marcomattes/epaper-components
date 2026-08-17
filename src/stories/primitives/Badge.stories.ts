@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Decorative text label used to mark status, categories or counts. Pure ink — no fill colors, just a flat outlined chip. Use the `inverted` variant for emphasis on light surfaces.',
+          '**Version:** v1.0.1\n\nDecorative text label used to mark status, categories or counts. Pure ink — no fill colors, just a flat outlined chip. Use the `inverted` variant for emphasis on light surfaces.',
       },
     },
   },

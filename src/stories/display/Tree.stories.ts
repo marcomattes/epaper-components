@@ -29,7 +29,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Hierarchical tree for navigation and display — the counterpart to `<e-tree-select>`, sharing its markup and keyboard model (arrows, `Home`/`End`, `Enter`/`Space`) but not form-associated. Expanding a node materialises its children on first open and toggles `hidden` afterwards, so a deep tree costs one small dirty rectangle per interaction rather than a full re-render.',
+          '**Version:** v1.1.0\n\nHierarchical tree for navigation and display — the counterpart to `<e-tree-select>`, sharing its markup and keyboard model (arrows, `Home`/`End`, `Enter`/`Space`) but not form-associated. Expanding a node materialises its children on first open and toggles `hidden` afterwards, so a deep tree costs one small dirty rectangle per interaction rather than a full re-render.',
       },
     },
   },

@@ -2,6 +2,7 @@ import { define, esc, patchClassModifier, patchText } from '../core/dom';
 
 /**
  * @summary Card variant with a top cover area and optional footer slot.
+ * @since v1.0.1
  *
  * @attr {string} [title] - Title rendered in the header.
  * @attr {string} [eyebrow] - Small label rendered above the title.

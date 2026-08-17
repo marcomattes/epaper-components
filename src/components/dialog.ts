@@ -42,6 +42,7 @@ export type DialogCloseReason = 'close-button' | 'escape' | 'backdrop' | 'api';
 
 /**
  * @summary Modal dialog built on the native `<dialog>` element.
+ * @since v1.1.0
  *
  * Opens through `showModal()`, so focus trapping, `Escape` handling, the top
  * layer and inertness of the page behind it come from the browser rather than

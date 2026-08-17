@@ -39,6 +39,14 @@
   --ink-fg-inverted: #fff;
   --ink-bg-inverted: #000;
 
+  /* Semantic colors collapse to monochrome by default. Panel themes may
+     replace them, while component shape/icon/hatch cues remain intact. */
+  --ink-accent: var(--ink-fg);
+  --ink-info: var(--ink-fg);
+  --ink-success: var(--ink-fg);
+  --ink-warning: var(--ink-fg);
+  --ink-danger: var(--ink-fg);
+
   /* Kaleido — only ever as flat fills, reserved for state */
   --kaleido-red: #d11a1a;
   --kaleido-orange: #e26a1b;

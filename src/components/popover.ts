@@ -133,6 +133,7 @@ class Popup {
 
 /**
  * @summary Click-triggered overlay panel anchored to its trigger.
+ * @since v1.1.0
  *
  * The counterpart to a tooltip for hardware that has no hover: capacitive
  * e-paper digitizers report contact, not proximity, so anything that would be

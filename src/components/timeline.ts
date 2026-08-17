@@ -2,6 +2,7 @@ import { define } from '../core/dom';
 
 /**
  * @summary Vertical list of timestamped events with marker bullets.
+ * @since v1.0.1
  *
  * Reads its entries from child `<e-timeline-item>` elements at connect time.
  * Items are rendered as `<li>` rows with a marker, time label, title and

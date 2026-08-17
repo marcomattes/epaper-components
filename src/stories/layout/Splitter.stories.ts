@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Resizable two-pane layout with a draggable divider. Supports horizontal and vertical orientations plus min-size constraints so panes can’t be collapsed past a usable width.',
+          '**Version:** v1.0.1\n\nResizable two-pane layout with a draggable divider. Supports horizontal and vertical orientations plus min-size constraints so panes can’t be collapsed past a usable width.',
       },
     },
   },

@@ -12,16 +12,18 @@ Form-associated: participates in `<form>` submission and FormData.
 
 ## Attributes
 
-| Attribute | Type | Default | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Selected day in `YYYY-MM-DD` format. |
-| `placeholder` | `string` | `'YYYY-MM-DD'` | Trigger placeholder when no value is set. |
-| `name` | `string` | — | Form field name. Required to participate in `FormData`. |
+| Attribute          | Type      | Default        | Description                                             |
+| ------------------ | --------- | -------------- | ------------------------------------------------------- |
+| `value`            | `string`  | —              | Selected day in `YYYY-MM-DD` format.                    |
+| `placeholder`      | `string`  | `'YYYY-MM-DD'` | Trigger placeholder when no value is set.               |
+| `required`         | `boolean` | —              | Requires a selected date.                               |
+| `required-message` | `string`  | —              | Message reported when no required date is selected.     |
+| `name`             | `string`  | —              | Form field name. Required to participate in `FormData`. |
 
 ## Events
 
-| Event | Detail | Description |
-| --- | --- | --- |
+| Event      | Detail                         | Description                                          |
+| ---------- | ------------------------------ | ---------------------------------------------------- |
 | `e-change` | `CustomEvent<{value: string}>` | Fired when a day is picked. `value` is `YYYY-MM-DD`. |
 
 ## Slots
@@ -30,6 +32,6 @@ _None._
 
 ## Properties
 
-| Property | Type | Read-only | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | no |  |
+| Property | Type     | Read-only | Description |
+| -------- | -------- | --------- | ----------- |
+| `value`  | `string` | no        |             |

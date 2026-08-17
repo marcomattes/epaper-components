@@ -2,6 +2,7 @@ import { boolAttr, define, patchText, randId } from '../core/dom';
 
 /**
  * @summary Form wrapper that intercepts `submit` and re-fires it as `e-submit`.
+ * @since v1.0.1
  *
  * @attr {'inline'} [layout] - Set to `inline` to render fields on one line.
  *

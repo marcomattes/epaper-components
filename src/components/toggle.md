@@ -12,18 +12,20 @@ Form-associated: submits its `value` (defaults to `"on"`) when checked.
 
 ## Attributes
 
-| Attribute | Type | Default | Description |
-| --- | --- | --- | --- |
-| `checked` | `boolean` | — | Whether the switch is on. Reflected to the attribute on user input. |
-| `label` | `string` | — | Inline text label rendered next to the switch. |
-| `disabled` | `boolean` | — | Disables interaction. |
-| `value` | `string` | `'on'` | Submitted value when checked. |
-| `name` | `string` | — | Form field name. Required to participate in `FormData`. |
+| Attribute          | Type      | Default | Description                                                         |
+| ------------------ | --------- | ------- | ------------------------------------------------------------------- |
+| `checked`          | `boolean` | —       | Whether the switch is on. Reflected to the attribute on user input. |
+| `label`            | `string`  | —       | Inline text label rendered next to the switch.                      |
+| `disabled`         | `boolean` | —       | Disables interaction.                                               |
+| `value`            | `string`  | `'on'`  | Submitted value when checked.                                       |
+| `required`         | `boolean` | —       | Requires the switch to be on.                                       |
+| `required-message` | `string`  | —       | Message reported when the required switch is off.                   |
+| `name`             | `string`  | —       | Form field name. Required to participate in `FormData`.             |
 
 ## Events
 
-| Event | Detail | Description |
-| --- | --- | --- |
+| Event      | Detail                            | Description                           |
+| ---------- | --------------------------------- | ------------------------------------- |
 | `e-change` | `CustomEvent<{checked: boolean}>` | Fired when the checked state changes. |
 
 ## Slots
@@ -32,7 +34,7 @@ _None._
 
 ## Properties
 
-| Property | Type | Read-only | Description |
-| --- | --- | --- | --- |
-| `checked` | `boolean` | no |  |
-| `value` | `string` | no |  |
+| Property  | Type      | Read-only | Description |
+| --------- | --------- | --------- | ----------- |
+| `checked` | `boolean` | no        |             |
+| `value`   | `string`  | no        |             |

@@ -9,6 +9,7 @@ const CELL_COUNT = 42;
 
 /**
  * @summary Month-grid calendar with selectable day cells and inline event chips.
+ * @since v1.0.1
  *
  * @attr {string} [value] - Currently selected day in `YYYY-MM-DD` format.
  * @attr {string} [events='[]'] - JSON-encoded array of `{date, title}` event objects.

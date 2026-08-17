@@ -22,7 +22,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Data grid with header, optional sort and row selection. Sort is **static**: clicking a header cycles `none → asc → desc → none` and emits `e-sort` — owners decide whether to re-sort or re-fetch.',
+          '**Version:** v1.0.1\n\nData grid with header, optional sort and row selection. Sort is **static**: clicking a header cycles `none → asc → desc → none` and emits `e-sort` — owners decide whether to re-sort or re-fetch.',
       },
     },
   },

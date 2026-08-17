@@ -6,6 +6,7 @@ import { isTreeData } from '../core/data';
 
 /**
  * @summary Multi-column cascading selector for hierarchical options.
+ * @since v1.0.1
  *
  * Form-associated: submits the current path joined with `,`.
  *
@@ -14,6 +15,8 @@ import { isTreeData } from '../core/data';
  * @attr {string} [options='[]'] - Legacy alias for `data`. When both are set, `data` wins.
  * @attr {string} [value] - Comma-separated value path (e.g. `a,b,c`).
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
+ * @attr {boolean} [required] - Requires a completed selection path.
+ * @attr {string} [required-message] - Message reported when no required path is selected.
  *
  * @fires {CustomEvent<{value: string[]}>} e-change - Fired when a leaf node is selected. `value` is the path of node values.
  * @fires {CustomEvent<{error: Error, source: 'data' | 'options'}>} e-error - Fired when the `data` or `options` attribute fails to parse as JSON. The internal options list falls back to `[]`.
@@ -22,7 +25,14 @@ import { isTreeData } from '../core/data';
  * <e-cascader data='[{"value":"eu","label":"Europe","children":[{"value":"de","label":"Germany"}]}]' value="eu,de"></e-cascader>
  */
 export class ECascader extends BaseFormControl {
-  static observedAttributes = ['value', 'data', 'options', 'placeholder'];
+  static observedAttributes = [
+    'value',
+    'data',
+    'options',
+    'placeholder',
+    'required',
+    'required-message',
+  ];
 
   private _options: CascaderOption[] = [];
   private _path: string[] = [];
@@ -41,6 +51,7 @@ export class ECascader extends BaseFormControl {
       this._build();
       this._syncMenu();
       this._syncTrigger();
+      this._syncValidity();
     }
     this._bindEvents();
   }
@@ -56,14 +67,18 @@ export class ECascader extends BaseFormControl {
       this._colKeys = [];
       this._syncMenu();
       this._syncTrigger();
+      this._syncValidity();
     } else if (name === 'value') {
       this._path = (val || '').split(',').filter(Boolean);
       this._value = this._path.join(',');
       this.internals.setFormValue(this._value);
       this._syncMenu();
       this._syncTrigger();
+      this._syncValidity();
     } else if (name === 'placeholder') {
       this._syncTrigger();
+    } else if (name === 'required' || name === 'required-message') {
+      this._syncValidity();
     }
   }
 
@@ -371,6 +386,11 @@ export class ECascader extends BaseFormControl {
   override formResetCallback(): void {
     const dflt = this.getAttribute('default-value') ?? '';
     this.setAttribute('value', dflt);
+  }
+
+  private _syncValidity(): void {
+    this._trigger?.setAttribute('aria-required', String(this.hasAttribute('required')));
+    this.applyRequiredValidity(!!this._value, this._trigger, 'Please select an option.');
   }
 }
 

@@ -2,6 +2,7 @@ import { addCleanup, boolAttr, captureWrap, define, patchBoolAttr, runCleanups }
 
 /**
  * @summary Selectable label, often used for filters or quick choices.
+ * @since v1.0.1
  *
  * Children are used as the chip text. A chip toggles `selected` on click and
  * fires `e-change`. Distinct from `<e-tag>` (which is a removable label) and

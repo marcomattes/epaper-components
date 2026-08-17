@@ -63,9 +63,11 @@ sample-app/           Validates README.md's runtime + TS claims against dist/. N
    `patchBoolAttr` / `patchClassModifier`. Do not replace subtrees with
    `innerHTML` reassignment after the initial render — it forces a full
    GC16 EPDC waveform.
-8. **JSDoc is required** with `@summary`, `@attr`, `@fires`, `@slot`,
-   `@example`. The Custom Elements Manifest analyzer reads it; without
-   JSDoc there is no IDE autocomplete.
+8. **JSDoc is required** with `@summary`, `@since`, `@attr`, `@fires`,
+   `@slot`, `@example`. The Custom Elements Manifest analyzer reads it;
+   without JSDoc there is no IDE autocomplete. Use the first public release
+   version, e.g. `@since v1.0.1` or `@since v1.1.0`, and check the git tag
+   history before claiming a newer version.
 9. **TypeScript is strict.** No `any` outside escape hatches. The CI gate
    is `npm run lint:check` (`--max-warnings=0`). Don't add ESLint disables
    without a comment.
@@ -80,6 +82,7 @@ import { define, esc } from '../core/dom';
 
 /**
  * @summary Short description.
+ * @since v1.0.1
  * @attr {string} [foo] - Description.
  * @fires {CustomEvent<{value: string}>} e-change - Description.
  * @slot - Default slot description.
@@ -134,6 +137,7 @@ npm run dev          # Vite demo at localhost:8085
 npm run storybook    # Storybook at localhost:6006
 npm test             # Vitest watch (browser mode, Playwright)
 npm run test:ci      # Vitest run-once (CI)
+npm run test:refresh # Mutation / node-churn / dirty-area budgets
 npm run test:coverage:ci  # Vitest run-once + coverage + Sonar reports
 npm run type-check   # tsc --noEmit, must be clean
 npm run lint:check   # ESLint, max-warnings=0

@@ -2,6 +2,7 @@ import { define } from '../core/dom';
 
 /**
  * @summary CSS grid container with attribute-driven columns and gap.
+ * @since v1.0.1
  *
  * @attr {string} [cols='12'] - Number of equal columns or a raw `grid-template-columns` value.
  * @attr {string} [gap='0'] - `gap` value. Bare numbers are treated as pixels.

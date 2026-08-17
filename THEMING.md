@@ -51,6 +51,37 @@ For per-instance tweaks, set custom properties on the element:
 > override are listed in the reference table below. Per-component CSS variables
 > are planned but not yet available.
 
+## Panel theme packs
+
+Two optional theme packs ship as plain CSS. Import one after `tokens.css`, then
+activate it on the document root or scope it to a container:
+
+```css
+@import '@marcomattes/epaper-components/tokens.css';
+@import '@marcomattes/epaper-components/themes/mono-high-contrast.css';
+@import '@marcomattes/epaper-components/base.css';
+@import '@marcomattes/epaper-components/components.css';
+```
+
+```html
+<html data-ink-theme="mono-high-contrast">
+  <!-- application -->
+</html>
+
+<section class="ink-theme--kaleido ink-page">
+  <!-- a Kaleido-scoped preview -->
+</section>
+```
+
+`mono-high-contrast` increases border, focus and control-size tokens while
+remaining strictly black and white. `kaleido` maps semantic accent, info,
+success, warning and danger tokens to the five-color panel palette. Color is
+always secondary: status components retain their icon, border-weight and hatch
+cues so they remain meaningful on a one-bit panel.
+
+Minified builds are available as
+`themes/mono-high-contrast.min.css` and `themes/kaleido.min.css`.
+
 ## Token reference
 
 All tokens are defined in `tokens.css` on `:root`.
@@ -99,16 +130,22 @@ All tokens are defined in `tokens.css` on `:root`.
 
 ### Color
 
-| Token               | Default | Description                |
-| ------------------- | ------- | -------------------------- |
-| `--ink-fg`          | `#000`  | Foreground (text, borders) |
-| `--ink-bg`          | `#fff`  | Background                 |
-| `--ink-fg-inverted` | `#fff`  | Inverted foreground        |
-| `--ink-bg-inverted` | `#000`  | Inverted background        |
+| Token               | Default    | Description                 |
+| ------------------- | ---------- | --------------------------- |
+| `--ink-fg`          | `#000`     | Foreground (text, borders)  |
+| `--ink-bg`          | `#fff`     | Background                  |
+| `--ink-fg-inverted` | `#fff`     | Inverted foreground         |
+| `--ink-bg-inverted` | `#000`     | Inverted background         |
+| `--ink-accent`      | foreground | Progress and general accent |
+| `--ink-info`        | foreground | Informational status        |
+| `--ink-success`     | foreground | Success status              |
+| `--ink-warning`     | foreground | Warning status              |
+| `--ink-danger`      | foreground | Error/destructive status    |
 
-Kaleido accent colors (`--kaleido-red`, `--kaleido-orange`, `--kaleido-yellow`,
-`--kaleido-green`, `--kaleido-blue`) are available but reserved for status
-indicators. They render as flat fills — no gradients.
+The semantic colors default to `--ink-fg`, so the base theme remains strictly
+monochrome. The Kaleido theme maps them to `--kaleido-red`,
+`--kaleido-orange`, `--kaleido-green` and `--kaleido-blue`. They render as flat
+fills or two-color hatch patterns, never blended gradients.
 
 ### Borders
 

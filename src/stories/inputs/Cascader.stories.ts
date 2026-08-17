@@ -43,7 +43,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Tiered select that drills into multi-level options column-by-column (e.g. country → region → city). The committed value is the full path joined with commas.',
+          '**Version:** v1.0.1\n\nTiered select that drills into multi-level options column-by-column (e.g. country → region → city). The committed value is the full path joined with commas.',
       },
     },
   },

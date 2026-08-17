@@ -65,6 +65,7 @@ function paintDither(canvas: HTMLCanvasElement, hex: string, size: number, cell:
 
 /**
  * @summary Color palette swatches with Bayer-dithered preview canvases.
+ * @since v1.0.1
  *
  * @attr {number} [cell=3] - Pixel size of a single dither cell. Smaller values produce a finer pattern.
  *

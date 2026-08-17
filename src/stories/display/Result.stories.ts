@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Status page block (success / error / 404 / info / warning). Composes an icon, large title, optional description and a slotted action area.',
+          '**Version:** v1.0.1\n\nStatus page block (success / error / 404 / info / warning). Composes an icon, large title, optional description and a slotted action area.',
       },
     },
   },
