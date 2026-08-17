@@ -6,9 +6,8 @@
 
 CSS-columns based masonry layout for cards of varying height.
 
-Observes `childList` mutations and container resizes via `MutationObserver`
-and `ResizeObserver`, so dynamically inserted/removed children pick up the
-configured `gap` automatically.
+CSS selectors apply the configured gap to current and dynamically inserted
+children without observers or JavaScript layout reads.
 
 > Source: [masonry.ts](./masonry.ts)
 

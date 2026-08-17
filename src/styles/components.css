@@ -2494,3 +2494,330 @@ e-text {
   min-width: 80px;
   text-align: center;
 }
+
+/* ============================================================
+ * Dialog · modal on the native <dialog> element
+ * ============================================================ */
+.ink-dialog {
+  padding: 0;
+  border: var(--ink-border-strong);
+  background: var(--ink-bg);
+  color: var(--ink-fg);
+  font-family: var(--ink-sans);
+  max-width: min(92vw, 640px);
+  max-height: 88vh;
+  overflow: auto;
+  box-sizing: border-box;
+}
+.ink-dialog[data-size='small'] {
+  max-width: min(92vw, 380px);
+}
+.ink-dialog[data-size='large'] {
+  max-width: min(96vw, 880px);
+}
+.ink-dialog[data-size='full'] {
+  max-width: 100vw;
+  max-height: 100vh;
+  width: 100vw;
+  height: 100vh;
+  border-width: 0;
+}
+/* The backdrop is a flat hatch, never a translucent wash: partial tones
+ * dither differently between refreshes, so a dimmed page would not survive
+ * a partial update. ::backdrop only inherits custom properties from its
+ * originating element in newer engines, hence the literal fallback — themes
+ * that redefine the token still win where inheritance works. */
+.ink-dialog::backdrop {
+  background-color: var(--ink-bg, #fff);
+  background-image: var(
+    --ink-hatch-cover,
+    repeating-linear-gradient(45deg, #fff 0 2px, #000 2px 6px)
+  );
+}
+.ink-dialog__header {
+  display: flex;
+  align-items: center;
+  gap: var(--ink-space-3);
+  padding: var(--ink-space-3) var(--ink-space-4);
+  border-bottom: var(--ink-border);
+  background: var(--ink-fg);
+  color: var(--ink-bg);
+}
+.ink-dialog__title {
+  flex: 1;
+  margin: 0;
+  font-size: var(--ink-text-h5);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-tight);
+}
+.ink-dialog__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 2px solid currentColor;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.ink-dialog__close:active {
+  background: var(--ink-bg);
+  color: var(--ink-fg);
+}
+.ink-dialog__body {
+  padding: var(--ink-space-4);
+  font-size: var(--ink-text-body);
+  line-height: var(--ink-lh-body);
+}
+.ink-dialog__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ink-space-3);
+  padding: var(--ink-space-3) var(--ink-space-4);
+  border-top: var(--ink-border);
+}
+
+/* ============================================================
+ * Alert · inline status banner
+ * ============================================================ */
+.ink-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ink-space-3);
+  padding: var(--ink-space-3) var(--ink-space-4);
+  border: var(--ink-border);
+  background: var(--ink-bg);
+  color: var(--ink-fg);
+  font-family: var(--ink-sans);
+  font-size: var(--ink-text-body);
+  line-height: var(--ink-lh-body);
+  box-sizing: border-box;
+}
+.ink-alert[data-variant='warning'] {
+  border-width: var(--ink-border-width-strong);
+}
+.ink-alert[data-variant='error'] {
+  border: var(--ink-border-width-error) solid var(--ink-fg);
+}
+.ink-alert__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border: var(--ink-border);
+  background: var(--ink-bg);
+}
+.ink-alert[data-variant='success'] .ink-alert__icon {
+  background: var(--ink-fg);
+  color: var(--ink-bg);
+}
+.ink-alert[data-variant='error'] .ink-alert__icon {
+  background-image: var(--ink-hatch-error);
+}
+.ink-alert__content {
+  flex: 1;
+  min-width: 0;
+}
+.ink-alert__heading {
+  margin: 0 0 2px;
+  font-weight: 700;
+  font-size: var(--ink-text-h6);
+  letter-spacing: var(--ink-tracking-tight);
+}
+.ink-alert__body:empty {
+  display: none;
+}
+.ink-alert__action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ink-space-2);
+  flex: none;
+}
+.ink-alert__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: var(--ink-border);
+  background: var(--ink-bg);
+  color: var(--ink-fg);
+  cursor: pointer;
+}
+.ink-alert__close:active {
+  background: var(--ink-fg);
+  color: var(--ink-bg);
+}
+
+/* ============================================================
+ * Collapse · disclosure stack on <details>
+ * ============================================================ */
+.ink-collapse {
+  border: var(--ink-border);
+  background: var(--ink-bg);
+  color: var(--ink-fg);
+  font-family: var(--ink-sans);
+}
+.ink-collapse__panel + .ink-collapse__panel {
+  border-top: var(--ink-border);
+}
+.ink-collapse__summary {
+  display: flex;
+  align-items: center;
+  gap: var(--ink-space-3);
+  padding: var(--ink-space-3) var(--ink-space-4);
+  font-size: var(--ink-text-h6);
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+/* Suppress the native disclosure triangle in favour of the ink marker. */
+.ink-collapse__summary::-webkit-details-marker {
+  display: none;
+}
+.ink-collapse__summary::marker {
+  content: '';
+}
+.ink-collapse__summary:focus-visible {
+  outline: var(--ink-focus-width) solid var(--ink-fg);
+  outline-offset: calc(var(--ink-focus-offset) * -1);
+}
+.ink-collapse__marker {
+  position: relative;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border: var(--ink-border);
+  box-sizing: border-box;
+}
+/* Plus / minus drawn from borders rather than an icon, so the glyph stays
+ * crisp at 1-bit and the toggle costs one attribute flip. */
+.ink-collapse__marker::before,
+.ink-collapse__marker::after {
+  content: '';
+  position: absolute;
+  background: currentColor;
+}
+.ink-collapse__marker::before {
+  left: 3px;
+  right: 3px;
+  top: 7px;
+  height: 2px;
+}
+.ink-collapse__marker::after {
+  top: 3px;
+  bottom: 3px;
+  left: 7px;
+  width: 2px;
+}
+.ink-collapse__panel[open] .ink-collapse__marker::after {
+  display: none;
+}
+.ink-collapse__heading {
+  flex: 1;
+}
+.ink-collapse__panel[data-disabled] .ink-collapse__summary {
+  cursor: not-allowed;
+  background-image: var(--ink-hatch-disabled);
+}
+.ink-collapse__body {
+  padding: 0 var(--ink-space-4) var(--ink-space-4);
+  font-size: var(--ink-text-body);
+  line-height: var(--ink-lh-body);
+}
+
+/* ============================================================
+ * Tree · checkable rows (shares .ink-tree with TreeSelect)
+ * ============================================================ */
+.ink-tree__check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border: var(--ink-border);
+  background: var(--ink-bg);
+  color: var(--ink-fg);
+  box-sizing: border-box;
+}
+.ink-tree__row[aria-checked='true'] .ink-tree__check,
+.ink-tree__row[aria-checked='mixed'] .ink-tree__check {
+  background: var(--ink-fg);
+  color: var(--ink-bg);
+}
+.ink-tree__row:focus-visible {
+  outline: var(--ink-focus-width) solid var(--ink-fg);
+  outline-offset: calc(var(--ink-focus-offset) * -1);
+}
+
+/* ============================================================
+ * Popover · click-triggered overlay panel
+ * ============================================================ */
+.ink-popover,
+.ink-popconfirm {
+  position: relative;
+  display: inline-block;
+}
+.ink-popover__panel,
+.ink-popconfirm__panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 240px;
+  max-width: 320px;
+  padding: var(--ink-space-3) var(--ink-space-4);
+  background: var(--ink-bg);
+  color: var(--ink-fg);
+  border: var(--ink-border);
+  font-family: var(--ink-sans);
+  font-size: var(--ink-text-body);
+  line-height: var(--ink-lh-body);
+  box-sizing: border-box;
+  z-index: 10;
+}
+.ink-popover__panel--align-right,
+.ink-popconfirm__panel--align-right {
+  left: auto;
+  right: 0;
+}
+.ink-popover__panel--top,
+.ink-popconfirm__panel--top {
+  top: auto;
+  bottom: calc(100% + 4px);
+}
+.ink-popover__heading {
+  margin: 0 0 var(--ink-space-2);
+  padding-bottom: var(--ink-space-2);
+  border-bottom: var(--ink-border-hair);
+  font-size: var(--ink-text-h6);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-tight);
+}
+.ink-popconfirm__message {
+  margin: 0 0 var(--ink-space-3);
+  font-weight: 600;
+}
+.ink-popconfirm__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ink-space-2);
+}
+
+/* Author `display` beats the UA sheet's `[hidden] { display: none }` no
+ * matter the specificity, so every part these components toggle with the
+ * `hidden` attribute has to opt back out explicitly. */
+.ink-dialog__header[hidden],
+.ink-dialog__footer[hidden],
+.ink-dialog__close[hidden],
+.ink-alert__icon[hidden],
+.ink-alert__action[hidden],
+.ink-alert__close[hidden] {
+  display: none;
+}

@@ -1,0 +1,260 @@
+name: PR Preview
+
+# Publishes a throwaway copy of the site and Storybook per pull request:
+#
+#   https://epaper-components.dev/preview/pr-<number>/
+#   https://epaper-components.dev/preview/pr-<number>/storybook/
+#
+# and deletes it again when the pull request closes. Closing is the reliable
+# signal: deleting the head branch of an open PR closes that PR, so branch
+# deletion is covered without listening for the `delete` event, which does not
+# carry a PR number.
+#
+# The preview is served from the production host, so every page is built with
+# `VITE_SITE_BASE` pointing at the sub-directory. That makes the site's
+# internal links resolve inside the preview instead of jumping back to the
+# live site, and stamps `noindex,nofollow` on every page. `/preview/` is also
+# disallowed in the production robots.txt.
+#
+# Uses the same secrets as deploy.yml:
+#   FTP_SERVER / FTP_USERNAME / FTP_PASSWORD
+#   FTP_SERVER_DIR (optional, default "/"), FTP_PROTOCOL, FTP_PORT
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+permissions:
+  contents: read
+
+concurrency:
+  # One preview per PR. A newer push supersedes an in-flight deploy, but the
+  # teardown must never be cancelled or the directory is orphaned.
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: ${{ github.event.action != 'closed' }}
+
+env:
+  PREVIEW_PATH: preview/pr-${{ github.event.pull_request.number }}
+
+jobs:
+  deploy:
+    # Pull requests from forks never receive the FTP credentials, so a deploy
+    # would fail with empty secrets. Skipping is explicit rather than confusing.
+    if: >-
+      github.event.action != 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # --ignore-scripts because this job checks out pull-request code: a
+      # postinstall hook added in a PR would otherwise run in the same job
+      # that holds the FTP credentials. Verified against the full pipeline —
+      # site, Storybook and tests all build without lifecycle scripts.
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Build landing site
+        run: npm run build:site
+        env:
+          VITE_SITE_BASE: /${{ env.PREVIEW_PATH }}/
+          VITE_STORYBOOK_BASE: https://epaper-components.dev/${{ env.PREVIEW_PATH }}/storybook
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Storybook
+        run: npm run build-storybook
+        env:
+          STORYBOOK_BASE: /${{ env.PREVIEW_PATH }}/storybook/
+
+      - name: Assemble preview
+        run: |
+          rm -rf site
+          mkdir -p site/storybook
+          cp -r dist-site/. site/
+          cp -r storybook-static/. site/storybook/
+
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      # Uploaded with lftp rather than FTP-Deploy-Action. The action's
+      # `ensureDir` walk died with `ECONNRESET (data socket)` creating the
+      # two missing path segments over FTPS, which is a well-worn failure
+      # mode for nested MKD on a passive data channel. lftp creates the tree
+      # in one `mkdir -p`, and it is already the client the teardown uses —
+      # so both halves of a preview's life now speak FTP the same way, with
+      # the TLS settings stated explicitly rather than inferred.
+      - name: Publish over FTPS
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_PORT: ${{ vars.FTP_PORT || 21 }}
+          FTP_PROTOCOL: ${{ vars.FTP_PROTOCOL || 'ftps' }}
+          SERVER_DIR: ${{ vars.FTP_SERVER_DIR || '/' }}
+        run: |
+          set -euo pipefail
+
+          # Certificate verification is off by deliberate decision of the
+          # repository owner. The host presents a certificate whose common
+          # name does not match FTP_SERVER — normal on shared hosting, where
+          # the provider serves its own certificate — and deploy.yml has
+          # always run this way, because FTP-Deploy-Action does not verify
+          # either. The traffic is still encrypted; what is given up is the
+          # guarantee that the peer is who it claims to be, so a
+          # man-in-the-middle with any certificate would be accepted.
+          # Pointing FTP_SERVER at the name the certificate is issued for
+          # would let this be dropped.
+          ssl='set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no;'
+          if [ "$FTP_PROTOCOL" = "ftp" ]; then
+            ssl='set ftp:ssl-protect-data true; set ssl:verify-certificate no;'
+          fi
+
+          target="${SERVER_DIR}${PREVIEW_PATH}"
+          echo "Publishing to ${target}"
+
+          # --delete so a rebuilt preview drops files the branch removed;
+          # the target is an isolated per-PR directory, never the live site.
+          LFTP_PASSWORD="$FTP_PASSWORD" lftp -c "
+            ${ssl}
+            set ftp:passive-mode true;
+            set net:max-retries 3;
+            set net:timeout 20;
+            open -u '${FTP_USERNAME}' --env-password -p '${FTP_PORT}' '${FTP_SERVER}';
+            mkdir -p '${target}';
+            mirror -R --delete --parallel=2 ./site/ '${target}';
+          "
+
+      - name: Comment the preview URL
+        uses: actions/github-script@v7
+        env:
+          PREVIEW_URL: https://epaper-components.dev/${{ env.PREVIEW_PATH }}/
+        with:
+          script: |
+            const marker = '<!-- pr-preview -->';
+            const body = [
+              marker,
+              '### Preview',
+              '',
+              `| | |`,
+              `| --- | --- |`,
+              `| Site | ${process.env.PREVIEW_URL} |`,
+              `| Storybook | ${process.env.PREVIEW_URL}storybook/ |`,
+              '',
+              // head.sha, not context.sha: on a pull_request event the latter
+              // is the ephemeral merge commit, which does not exist in the
+              // branch and so tells the reader nothing they can match against
+              // what they pushed.
+              `Built from ${context.payload.pull_request.head.sha.slice(0, 7)}. Removed when this pull request closes.`,
+              '',
+              '---',
+              '_Generated by [Claude Code](https://claude.ai/code)_',
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100,
+            });
+            const existing = comments.find((c) => c.body?.includes(marker));
+
+            // One sticky comment per PR, updated in place — a new comment on
+            // every push would bury the review conversation.
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+  teardown:
+    if: >-
+      github.event.action == 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      # FTP-Deploy-Action only uploads; removing a directory needs a real
+      # client. lftp's `rm -r` is recursive and `-f` keeps the step green when
+      # the directory never existed (PR closed before a preview was built).
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Remove preview directory
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_PORT: ${{ vars.FTP_PORT || 21 }}
+          FTP_PROTOCOL: ${{ vars.FTP_PROTOCOL || 'ftps' }}
+          SERVER_DIR: ${{ vars.FTP_SERVER_DIR || '/' }}
+        run: |
+          set -euo pipefail
+
+          # Same TLS posture as the deploy job — see the note there on why
+          # certificate verification is off and what it would take to restore.
+          ssl='set ftp:ssl-force true; set ftp:ssl-protect-data true; set ssl:verify-certificate no;'
+          if [ "$FTP_PROTOCOL" = "ftp" ]; then
+            ssl='set ftp:ssl-protect-data true; set ssl:verify-certificate no;'
+          fi
+
+          target="${SERVER_DIR}${PREVIEW_PATH}"
+          echo "Removing ${target}"
+
+          # --env-password keeps the secret out of argv. `rm -rf` is lftp's own
+          # recursive delete; the fallback keeps the step green when the
+          # directory never existed, e.g. a PR closed before its first deploy.
+          LFTP_PASSWORD="$FTP_PASSWORD" lftp -c "
+            ${ssl}
+            open -u '${FTP_USERNAME}' --env-password -p '${FTP_PORT}' '${FTP_SERVER}';
+            rm -rf '${target}';
+          " || echo "Nothing to remove at ${target}"
+
+      - name: Note the teardown on the pull request
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const marker = '<!-- pr-preview -->';
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100,
+            });
+            const existing = comments.find((c) => c.body?.includes(marker));
+            if (!existing) return;
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: existing.id,
+              body: [
+                marker,
+                '### Preview',
+                '',
+                'Removed — this pull request is closed.',
+                '',
+                '---',
+                '_Generated by [Claude Code](https://claude.ai/code)_',
+              ].join('\n'),
+            });

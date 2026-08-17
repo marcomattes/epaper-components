@@ -14,7 +14,7 @@
 > **[Storybook](https://epaper-components.dev/storybook/)**
 
 EPaper is a component library of plain custom elements for user interfaces that
-run on electrophoretic displays. It ships 82 registered elements, a three-layer
+run on electrophoretic displays. It ships 89 registered elements, a three-layer
 CSS token system, strict TypeScript types and a Custom Elements Manifest. There
 is no framework dependency and no runtime dependency at all; components extend
 `HTMLElement` or a shared `BaseFormControl` base class and render into the light
@@ -229,6 +229,8 @@ of the following, a conventional component library is the better choice:
   `<e-skeleton>` and `<e-progress>` exist as static placeholders — an outline
   block and a bar or step indicator that redraw once, with no animated variant.
 - Hover-driven menus and tooltips, which have no input equivalent on e-paper.
+  `<e-popover>` and `<e-dropdown>` cover the tap-driven equivalents; a true
+  hover tooltip has nothing to bind to.
 - Soft drop shadows and decorative color gradients or alpha compositing, which
   dither unpredictably; this is why Kaleido swatches are flat tokens with no
   gradient or alpha (see below). It does not rule out the library's own
@@ -352,8 +354,8 @@ Sizes as of the 1.0.1 build:
 
 ## Subpath imports and bundle size
 
-Every one of the 59 component modules is shipped as a separate ES module under
-`@marcomattes/epaper-components/<tag>`, and the barrel entry registers all 82
+Every one of the 64 component modules is shipped as a separate ES module under
+`@marcomattes/epaper-components/<tag>`, and the barrel entry registers all 89
 of the elements they define. The `sideEffects` allowlist in `package.json`
 covers the component modules and the public CSS files, so importing a single
 subpath pulls in that component plus its shared core chunks and nothing else,
@@ -362,8 +364,8 @@ in Vite, Rollup, esbuild and webpack 5.
 Compound elements that a parent component registers alongside itself — such as
 `<e-form-item>` (registered by `form.ts`) or `<e-option>` (registered by
 `select.ts`) — do not get their own subpath; importing the parent module
-registers them too. `package.json` exposes 78 subpaths in total: the barrel,
-63 component entries covering all 82 tags between them, and 14 CSS/source-map
+registers them too. `package.json` exposes 84 subpaths in total: the barrel,
+69 component entries covering all 89 tags between them, and 14 CSS/source-map
 entries.
 
 | Goal               | Import                                                           |

@@ -95,14 +95,61 @@ export const ROUTES: Route[] = [
   },
 ];
 
-/** Look up a route by path, tolerating a missing trailing slash. */
+/**
+ * Path prefix the site is served under, with a leading and trailing slash.
+ *
+ * `/` in production. PR previews are published into a sub-directory of the
+ * same host (`/preview/pr-42/`), and because every internal link in this file
+ * is site-absolute, they would otherwise point back at the production site.
+ * Read from the environment at build time so the browser bundle and the Node
+ * side of the build agree; `import.meta.env` is absent in Node, hence the
+ * optional chain.
+ */
+export const SITE_BASE: string = normalizeBase(readBase() ?? '/');
+
+function readBase(): string | undefined {
+  // Reached through globalThis rather than `process` / `import.meta.env`
+  // directly: this module is type-checked without @types/node and without
+  // vite/client, and is loaded in both runtimes.
+  const g = globalThis as {
+    process?: { env?: Record<string, string | undefined> };
+  };
+  const fromNode = g.process?.env?.['VITE_SITE_BASE'];
+  if (fromNode) return fromNode;
+  const meta = import.meta as unknown as { env?: Record<string, string | undefined> };
+  return meta.env?.['VITE_SITE_BASE'];
+}
+
+function normalizeBase(raw: string): string {
+  const trimmed = raw.trim();
+  if (trimmed === '' || trimmed === '/') return '/';
+  const lead = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+  return lead.endsWith('/') ? lead : `${lead}/`;
+}
+
+/**
+ * Prefix a site-absolute path with {@link SITE_BASE}.
+ *
+ * Pass paths exactly as they appear in {@link ROUTES} (leading slash); the
+ * function is a no-op when the site is served from the root.
+ */
+export function withBase(path: string): string {
+  if (SITE_BASE === '/') return path;
+  return `${SITE_BASE}${path.replace(/^\//, '')}`;
+}
+
+/** Look up a route by path, tolerating a missing trailing slash and the base. */
 export function routeByPath(path: string): Route | undefined {
   const clean = (path.split('?')[0] ?? '').split('#')[0] ?? '';
   const withSlash = clean.endsWith('/') ? clean : `${clean}/`;
-  return ROUTES.find((r) => r.path === withSlash);
+  const unprefixed =
+    SITE_BASE !== '/' && withSlash.startsWith(SITE_BASE)
+      ? `/${withSlash.slice(SITE_BASE.length)}`
+      : withSlash;
+  return ROUTES.find((r) => r.path === unprefixed);
 }
 
 /** Absolute URL for a route, for canonical tags and structured data. */
 export function absoluteUrl(path: string): string {
-  return `${SITE_ORIGIN}${path}`;
+  return `${SITE_ORIGIN}${withBase(path)}`;
 }

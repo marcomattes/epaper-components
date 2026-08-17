@@ -22,6 +22,10 @@ beforeAll(async () => {
   await import('../chip');
   await import('../table');
   await import('../checkbox-group');
+  await import('../dialog');
+  await import('../popover');
+  await import('../collapse');
+  await import('../tree');
 });
 
 describe('disconnect/reconnect behaviour', () => {
@@ -454,5 +458,113 @@ describe('global listener cleanup', () => {
     el.remove();
     el.removeEventListener = origRemove;
     expect(removed).toBeGreaterThanOrEqual(1);
+  });
+
+  it('e-popover removes its document listeners on disconnect', () => {
+    let added = 0;
+    let removed = 0;
+    const origAdd = document.addEventListener;
+    const origRemove = document.removeEventListener;
+    document.addEventListener = function (...args: Parameters<typeof origAdd>) {
+      added++;
+      return origAdd.apply(this, args);
+    };
+    document.removeEventListener = function (...args: Parameters<typeof origRemove>) {
+      removed++;
+      return origRemove.apply(this, args);
+    };
+
+    try {
+      const el = document.createElement('e-popover');
+      el.setAttribute('heading', 'Status');
+      document.body.appendChild(el);
+      el.remove();
+      expect(added - removed).toBe(0);
+    } finally {
+      document.addEventListener = origAdd;
+      document.removeEventListener = origRemove;
+    }
+  });
+
+  it('e-popconfirm removes its document listeners on disconnect', () => {
+    let added = 0;
+    let removed = 0;
+    const origAdd = document.addEventListener;
+    const origRemove = document.removeEventListener;
+    document.addEventListener = function (...args: Parameters<typeof origAdd>) {
+      added++;
+      return origAdd.apply(this, args);
+    };
+    document.removeEventListener = function (...args: Parameters<typeof origRemove>) {
+      removed++;
+      return origRemove.apply(this, args);
+    };
+
+    try {
+      const el = document.createElement('e-popconfirm');
+      el.setAttribute('message', 'Sure?');
+      document.body.appendChild(el);
+      el.remove();
+      expect(added - removed).toBe(0);
+    } finally {
+      document.addEventListener = origAdd;
+      document.removeEventListener = origRemove;
+    }
+  });
+
+  it('e-dialog cleans up its native listeners and restores page scroll', () => {
+    const el = document.createElement('e-dialog');
+    el.setAttribute('heading', 'Remove?');
+    document.body.appendChild(el);
+    const native = el.querySelector('dialog')!;
+
+    let removed = 0;
+    const origRemove = native.removeEventListener;
+    native.removeEventListener = function (...args: Parameters<typeof origRemove>) {
+      removed++;
+      return origRemove.apply(this, args);
+    };
+
+    el.setAttribute('open', '');
+    expect(document.documentElement.style.overflow).toBe('hidden');
+
+    el.remove();
+    native.removeEventListener = origRemove;
+    expect(removed).toBeGreaterThanOrEqual(1);
+    expect(document.documentElement.style.overflow).not.toBe('hidden');
+  });
+
+  it('e-collapse restores its toggle listeners after a reconnect', async () => {
+    const el = document.createElement('e-collapse');
+    el.setAttribute('accordion', '');
+    el.innerHTML =
+      '<e-collapse-panel key="a" heading="A">A</e-collapse-panel>' +
+      '<e-collapse-panel key="b" heading="B">B</e-collapse-panel>';
+    document.body.appendChild(el);
+    el.remove();
+    document.body.appendChild(el);
+
+    // `toggle` is queued as a task, so each click has to settle before the
+    // next one — two clicks in one tick collapse into a single event.
+    const tick = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
+    const panels = el.querySelectorAll('details');
+    panels[0]!.querySelector('summary')!.click();
+    await tick();
+    panels[1]!.querySelector('summary')!.click();
+    await tick();
+    expect(panels[1]!.open).toBe(true);
+    expect(panels[0]!.open).toBe(false);
+  });
+
+  it('e-tree restores its delegated listeners after a reconnect', () => {
+    const el = document.createElement('e-tree');
+    el.setAttribute('selectable', '');
+    el.setAttribute('data', '[{"value":"a","label":"A"}]');
+    document.body.appendChild(el);
+    el.remove();
+    document.body.appendChild(el);
+
+    el.querySelector<HTMLElement>('[data-value="a"]')!.click();
+    expect(el.getAttribute('value')).toBe('a');
   });
 });
