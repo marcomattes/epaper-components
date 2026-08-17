@@ -90,7 +90,14 @@ const escapeXml = (value) =>
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&apos;');
 
-const safeFileName = (value) => value.replace(/[^a-z0-9._-]+/gi, '-').replace(/^-+|-+$/g, '');
+function safeFileName(value) {
+  const cleaned = value.replace(/[^a-z0-9._-]+/gi, '-');
+  let start = 0;
+  while (start < cleaned.length && cleaned[start] === '-') start += 1;
+  let end = cleaned.length;
+  while (end > start && cleaned[end - 1] === '-') end -= 1;
+  return cleaned.slice(start, end);
+}
 
 async function discoverRegisteredTags() {
   const componentDirectory = resolve('src', 'components');
@@ -103,7 +110,7 @@ async function discoverRegisteredTags() {
   }
 
   if (tags.size === 0) throw new Error('No registered custom elements found in src/components');
-  return [...tags].sort();
+  return [...tags].sort((a, b) => a.localeCompare(b));
 }
 
 async function discoverStories() {
@@ -197,7 +204,7 @@ async function inspectStory(page, story, attempt, runtimeErrors) {
             .map((element) => element.localName)
             .filter((tag) => tag.startsWith('e-')),
         ),
-      ].sort();
+      ].sort((a, b) => a.localeCompare(b));
 
       await Promise.all(
         tags.map((tag) =>
@@ -404,7 +411,7 @@ const summary = {
   duration: elapsed,
   expectedTags,
   failed: results.filter((result) => result.status === 'failed').length,
-  observedTags: [...observedTags].sort(),
+  observedTags: [...observedTags].sort((a, b) => a.localeCompare(b)),
   passed: results.filter((result) => result.status === 'passed').length,
   platform: { key: platformKey, label: platform.label },
   results,
