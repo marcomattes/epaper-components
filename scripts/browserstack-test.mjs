@@ -104,6 +104,18 @@ const escapeXml = (value) =>
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&apos;');
 
+const RESOURCE_LOAD_FAILURE = /Failed to load resource|net::ERR_|Load failed/i;
+
+const storybookOrigin = new URL(remoteBaseUrl).origin;
+
+function isStorybookOrigin(url) {
+  try {
+    return new URL(url).origin === storybookOrigin;
+  } catch {
+    return false;
+  }
+}
+
 function safeFileName(value) {
   const cleaned = value.replace(/[^a-z0-9._-]+/gi, '-');
   let start = 0;
@@ -391,7 +403,22 @@ try {
   const runtimeErrors = [];
   page.on('pageerror', (error) => runtimeErrors.push(`Page error: ${error.message}`));
   page.on('console', (message) => {
-    if (message.type() === 'error') runtimeErrors.push(`Console error: ${message.text()}`);
+    // Subresource failures are judged by the `requestfailed` handler below
+    // instead: the console wording and even whether the engine logs at all
+    // differ per browser, which made Display/Image / Fallback Chain fail on
+    // Chrome and pass on Edge for the same deliberate request.
+    if (message.type() !== 'error') return;
+    if (RESOURCE_LOAD_FAILURE.test(message.text())) return;
+    runtimeErrors.push(`Console error: ${message.text()}`);
+  });
+  // Stories point at unreachable external hosts on purpose to exercise fallback
+  // paths — Display/Image / Fallback Chain loads https://invalid.example/ to
+  // prove `fallback` takes over, and through BrowserStack Local that surfaces
+  // as ERR_TUNNEL_CONNECTION_FAILED. Only a request to the Storybook origin
+  // failing means the library is actually missing an asset.
+  page.on('requestfailed', (request) => {
+    if (!isStorybookOrigin(request.url())) return;
+    runtimeErrors.push(`Request failed: ${request.url()} (${request.failure()?.errorText})`);
   });
 
   for (const [index, story] of stories.entries()) {
