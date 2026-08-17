@@ -16,8 +16,13 @@ For every Storybook entry tagged `test`, the runner:
 4. waits for every rendered `e-*` element to be registered and verifies that
    it was upgraded from `HTMLElement`;
 5. retries one failed load once and captures a screenshot if it still fails;
-6. verifies after the suite that all tags registered by
-   `src/components/*.ts` appeared in at least one story;
+6. verifies after the suite that every tag registered by
+   `src/components/*.ts` appeared in at least one story, except those listed in
+   `CONSUMED_BY_PARENT` in `scripts/browserstack-test.mjs` — child elements like
+   `<e-menu-item>` that their parent reads as a data source and replaces with its
+   own markup, so they never reach the rendered DOM. That list is itself checked:
+   an entry that is no longer a registered element aborts the run, so a rename
+   cannot quietly shrink the gate;
 7. publishes JSON, JUnit XML, and failure screenshots under
    `reports/browserstack/<platform>/` and marks the BrowserStack session
    passed or failed.
@@ -29,6 +34,23 @@ The GitHub Actions matrix runs the entire suite on:
 - Playwright Firefox on Windows 11;
 - Playwright WebKit on macOS Tahoe;
 - Playwright WebKit with an iPhone 15 context.
+
+## Where the matrix is defined
+
+Two files own the remote matrix, and both are read at runtime:
+
+- `.github/workflows/browserstack.yml` — the `matrix.platform` keys and the
+  build/project metadata passed to the BrowserStack Actions;
+- `scripts/browserstack-test.mjs` — the capabilities and Playwright context each
+  key resolves to.
+
+The root `browserstack.yml` is the `browserstack-node-sdk` config. The runner
+connects to BrowserStack's Playwright CDP endpoint directly and assembles its own
+capabilities, so **that file is not read by CI or by `npm run test:browserstack`**.
+It exists so an SDK-driven local invocation lands on the same platforms, and it
+mirrors the two files above — update those first, then reflect the change there.
+`mobile-webkit` has no entry in it: Playwright device emulation is a browser
+context option, not a BrowserStack platform.
 
 ## GitHub setup
 

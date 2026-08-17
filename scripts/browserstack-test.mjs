@@ -3,6 +3,15 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { chromium, devices } from 'playwright';
 
+// `resolution` is the remote machine's screen size and is validated per OS by
+// BrowserStack: 1440x900 is on the Windows list but not the macOS one, so a
+// shared default silently breaks every OS X target at connect time. Keep it
+// alongside the OS it belongs to, and at least as large as `context.viewport`.
+const WINDOWS_RESOLUTION = '1440x900';
+const MAC_RESOLUTION = '1920x1080';
+
+const desktopViewport = { viewport: { width: 1440, height: 900 } };
+
 const platformDefinitions = {
   chrome: {
     label: 'Chrome latest · Windows 11',
@@ -11,8 +20,9 @@ const platformDefinitions = {
       browser_version: 'latest',
       os: 'Windows',
       os_version: '11',
+      resolution: WINDOWS_RESOLUTION,
     },
-    context: { viewport: { width: 1440, height: 900 } },
+    context: desktopViewport,
   },
   edge: {
     label: 'Edge latest · Windows 11',
@@ -21,8 +31,9 @@ const platformDefinitions = {
       browser_version: 'latest',
       os: 'Windows',
       os_version: '11',
+      resolution: WINDOWS_RESOLUTION,
     },
-    context: { viewport: { width: 1440, height: 900 } },
+    context: desktopViewport,
   },
   firefox: {
     label: 'Playwright Firefox · Windows 11',
@@ -30,8 +41,9 @@ const platformDefinitions = {
       browser: 'playwright-firefox',
       os: 'Windows',
       os_version: '11',
+      resolution: WINDOWS_RESOLUTION,
     },
-    context: { viewport: { width: 1440, height: 900 } },
+    context: desktopViewport,
   },
   webkit: {
     label: 'Playwright WebKit · macOS Tahoe',
@@ -39,8 +51,9 @@ const platformDefinitions = {
       browser: 'playwright-webkit',
       os: 'OS X',
       os_version: 'Tahoe',
+      resolution: MAC_RESOLUTION,
     },
-    context: { viewport: { width: 1440, height: 900 } },
+    context: desktopViewport,
   },
   'mobile-webkit': {
     label: 'Playwright WebKit · iPhone 15 emulation',
@@ -48,6 +61,7 @@ const platformDefinitions = {
       browser: 'playwright-webkit',
       os: 'OS X',
       os_version: 'Tahoe',
+      resolution: MAC_RESOLUTION,
     },
     context: devices['iPhone 15'],
   },
@@ -90,6 +104,18 @@ const escapeXml = (value) =>
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&apos;');
 
+const RESOURCE_LOAD_FAILURE = /Failed to load resource|net::ERR_|Load failed/i;
+
+const storybookOrigin = new URL(remoteBaseUrl).origin;
+
+function isStorybookOrigin(url) {
+  try {
+    return new URL(url).origin === storybookOrigin;
+  } catch {
+    return false;
+  }
+}
+
 function safeFileName(value) {
   const cleaned = value.replace(/[^a-z0-9._-]+/gi, '-');
   let start = 0;
@@ -98,6 +124,30 @@ function safeFileName(value) {
   while (end > start && cleaned[end - 1] === '-') end -= 1;
   return cleaned.slice(start, end);
 }
+
+// Declarative authoring API only: the parent reads these as a data source while
+// rendering and replaces them with its own markup, so they never survive into
+// the rendered DOM. `e-menu` reading `:scope > e-menu-item` and emitting
+// `.ink-menu__btn` (src/components/menu.ts) is the canonical example. They are
+// registered and stories do use them, but the coverage check cannot observe
+// them — excluding them keeps that check meaningful for the elements that do
+// render, instead of failing unconditionally. Remove a tag from this list as
+// soon as its parent starts keeping the element in the DOM.
+const CONSUMED_BY_PARENT = new Set([
+  'e-anchor-item',
+  'e-breadcrumb-item',
+  'e-cbox-option',
+  'e-collapse-panel',
+  'e-desc-item',
+  'e-dropdown-item',
+  'e-menu-item',
+  'e-option',
+  'e-radio',
+  'e-segment',
+  'e-step',
+  'e-tab',
+  'e-timeline-item',
+]);
 
 async function discoverRegisteredTags() {
   const componentDirectory = resolve('src', 'components');
@@ -148,7 +198,6 @@ function capabilities(version) {
     build: process.env.BROWSERSTACK_BUILD_NAME ?? `epaper-components-${Date.now()}`,
     name: `All component stories · ${platform.label}`,
     project: process.env.BROWSERSTACK_PROJECT_NAME ?? 'epaper-components',
-    resolution: '1440x900',
   };
 }
 
@@ -157,11 +206,26 @@ async function markSession(page, status, reason) {
     action: 'setSessionStatus',
     arguments: { reason: reason.slice(0, 255), status },
   };
-  // BrowserStack's proxy recognizes this call by its literal evaluated source
-  // text, not by an argument value — it must be the expression Playwright
-  // sends over CDP, not a value passed into an unrelated function.
-  await page.evaluate(`browserstack_executor: ${JSON.stringify(command)}`);
+  // The marker has to reach BrowserStack's proxy verbatim, but it cannot be
+  // evaluated as source: `browserstack_executor: {…}` is a labeled statement,
+  // and page.evaluate(string) evaluates an *expression*, so every engine
+  // rejects it with `SyntaxError: Unexpected token ':'` — WebKit and Chromium
+  // alike. BrowserStack's documented form passes the marker as an argument to a
+  // no-op function, which puts it in the CDP payload the proxy inspects.
+  await page.evaluate(() => {}, `browserstack_executor: ${JSON.stringify(command)}`);
 }
+
+// Storybook ships its error-display markup inside iframe.html and keeps it
+// `display: none` until a story actually fails, so the element — and its ~1 KB
+// of boilerplate advice text — is present on every healthy page. Matching it by
+// selector alone therefore fails every story unconditionally; only a box that
+// actually has layout is a real render error. Kept as an expression string so
+// waitForFunction and evaluate share one definition.
+const VISIBLE_ERROR_TEXT = `(() => {
+  const node = [...document.querySelectorAll('.sb-errordisplay, [data-storybook-error]')]
+    .find((element) => element.getClientRects().length > 0);
+  return node ? (node.textContent ?? '').trim() : '';
+})()`;
 
 async function inspectStory(page, story, attempt, runtimeErrors) {
   const startedAt = Date.now();
@@ -171,20 +235,16 @@ async function inspectStory(page, story, attempt, runtimeErrors) {
   try {
     await page.goto(url, { timeout: storyTimeout, waitUntil: 'domcontentloaded' });
     await page.waitForFunction(
-      () => {
+      `(() => {
         const root = document.querySelector('#storybook-root');
-        const error = document.querySelector('.sb-errordisplay, [data-storybook-error]');
-        return Boolean(error) || (root && (root.childElementCount > 0 || root.textContent?.trim()));
-      },
+        return Boolean(${VISIBLE_ERROR_TEXT}) ||
+          Boolean(root && (root.childElementCount > 0 || root.textContent?.trim()));
+      })()`,
       undefined,
       { timeout: storyTimeout },
     );
 
-    const earlyError = await page.evaluate(
-      () =>
-        document.querySelector('.sb-errordisplay, [data-storybook-error]')?.textContent?.trim() ??
-        '',
-    );
+    const earlyError = await page.evaluate(VISIBLE_ERROR_TEXT);
     if (earlyError) throw new Error(`Storybook render error: ${earlyError}`);
 
     await page.evaluate(async () => {
@@ -221,12 +281,8 @@ async function inspectStory(page, story, attempt, runtimeErrors) {
         [...root.querySelectorAll(tag)].some((element) => element.constructor === HTMLElement),
       );
       const bounds = root.getBoundingClientRect();
-      const errorText = document.querySelector(
-        '.sb-errordisplay, [data-storybook-error]',
-      )?.textContent;
 
       return {
-        errorText: errorText?.trim() ?? '',
         failedUpgrades,
         height: bounds.height,
         tags,
@@ -234,7 +290,10 @@ async function inspectStory(page, story, attempt, runtimeErrors) {
       };
     });
 
-    if (inspection.errorText) throw new Error(`Storybook render error: ${inspection.errorText}`);
+    // Re-checked after the render settles: a story can fail late, once its
+    // custom elements start upgrading.
+    const lateError = await page.evaluate(VISIBLE_ERROR_TEXT);
+    if (lateError) throw new Error(`Storybook render error: ${lateError}`);
     if (inspection.failedUpgrades.length > 0) {
       throw new Error(`Custom element upgrade failed: ${inspection.failedUpgrades.join(', ')}`);
     }
@@ -297,9 +356,22 @@ await mkdir(screenshotDirectory, { recursive: true });
 const expectedTags = await discoverRegisteredTags();
 const stories = await discoverStories();
 
+// A renamed or deleted element would leave a dead entry behind and silently
+// shrink what the coverage check below still guards, so fail loudly and early
+// — this runs in --dry-run too, which is where it costs nothing to catch.
+const staleAllowlist = [...CONSUMED_BY_PARENT].filter((tag) => !expectedTags.includes(tag));
+if (staleAllowlist.length > 0) {
+  throw new Error(
+    `CONSUMED_BY_PARENT lists elements that are no longer registered: ${staleAllowlist.join(', ')}. ` +
+      `Remove them so the coverage check keeps its reach.`,
+  );
+}
+
+const coverageTags = expectedTags.filter((tag) => !CONSUMED_BY_PARENT.has(tag));
+
 if (dryRun) {
   console.log(
-    `BrowserStack plan is valid: ${stories.length} stories, ${expectedTags.length} registered custom elements, ${platform.label}`,
+    `BrowserStack plan is valid: ${stories.length} stories, ${coverageTags.length} of ${expectedTags.length} registered custom elements expected to render (${CONSUMED_BY_PARENT.size} consumed by their parent), ${platform.label}`,
   );
   process.exit(0);
 }
@@ -315,7 +387,7 @@ let context;
 let page;
 
 console.log(
-  `Running ${stories.length} stories and ${expectedTags.length} registered custom elements on ${platform.label}`,
+  `Running ${stories.length} stories and ${coverageTags.length} rendering custom elements on ${platform.label}`,
 );
 
 try {
@@ -331,7 +403,22 @@ try {
   const runtimeErrors = [];
   page.on('pageerror', (error) => runtimeErrors.push(`Page error: ${error.message}`));
   page.on('console', (message) => {
-    if (message.type() === 'error') runtimeErrors.push(`Console error: ${message.text()}`);
+    // Subresource failures are judged by the `requestfailed` handler below
+    // instead: the console wording and even whether the engine logs at all
+    // differ per browser, which made Display/Image / Fallback Chain fail on
+    // Chrome and pass on Edge for the same deliberate request.
+    if (message.type() !== 'error') return;
+    if (RESOURCE_LOAD_FAILURE.test(message.text())) return;
+    runtimeErrors.push(`Console error: ${message.text()}`);
+  });
+  // Stories point at unreachable external hosts on purpose to exercise fallback
+  // paths — Display/Image / Fallback Chain loads https://invalid.example/ to
+  // prove `fallback` takes over, and through BrowserStack Local that surfaces
+  // as ERR_TUNNEL_CONNECTION_FAILED. Only a request to the Storybook origin
+  // failing means the library is actually missing an asset.
+  page.on('requestfailed', (request) => {
+    if (!isStorybookOrigin(request.url())) return;
+    runtimeErrors.push(`Request failed: ${request.url()} (${request.failure()?.errorText})`);
   });
 
   for (const [index, story] of stories.entries()) {
@@ -358,7 +445,7 @@ try {
     }
   }
 
-  const missingTags = expectedTags.filter((tag) => !observedTags.has(tag));
+  const missingTags = coverageTags.filter((tag) => !observedTags.has(tag));
   if (missingTags.length > 0) {
     results.push({
       attempt: 1,
@@ -378,11 +465,14 @@ try {
     page,
     failed.length === 0 ? 'passed' : 'failed',
     failed.length === 0
-      ? `${stories.length} stories passed; all ${expectedTags.length} custom elements covered`
+      ? `${stories.length} stories passed; all ${coverageTags.length} rendering custom elements covered`
       : `${failed.length} checks failed`,
   );
 } catch (error) {
   const reason = error instanceof Error ? (error.stack ?? error.message) : String(error);
+  // Without this the CI log only shows "0 passed, 1 failed" and the cause is
+  // reachable solely by downloading the run artifact.
+  console.error(`BrowserStack session failed on ${platform.label}:\n${reason}`);
   results.push({
     attempt: 1,
     duration: Date.now() - suiteStartedAt,
@@ -408,6 +498,8 @@ try {
 
 const elapsed = Date.now() - suiteStartedAt;
 const summary = {
+  consumedByParent: [...CONSUMED_BY_PARENT].sort((a, b) => a.localeCompare(b)),
+  coverageTags,
   duration: elapsed,
   expectedTags,
   failed: results.filter((result) => result.status === 'failed').length,
