@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
-import { basename, join, resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 import { chromium, devices } from 'playwright';
 
 const platformDefinitions = {
@@ -150,7 +150,10 @@ async function markSession(page, status, reason) {
     action: 'setSessionStatus',
     arguments: { reason: reason.slice(0, 255), status },
   };
-  await page.evaluate(() => undefined, `browserstack_executor: ${JSON.stringify(command)}`);
+  // BrowserStack's proxy recognizes this call by its literal evaluated source
+  // text, not by an argument value — it must be the expression Playwright
+  // sends over CDP, not a value passed into an unrelated function.
+  await page.evaluate(`browserstack_executor: ${JSON.stringify(command)}`);
 }
 
 async function inspectStory(page, story, attempt, runtimeErrors) {
