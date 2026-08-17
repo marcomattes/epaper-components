@@ -75,11 +75,17 @@ export const COMPONENTS: ComponentEntry[] = [
   { name: 'Kaleido', tag: 'e-kaleido', category: 'display' },
   { name: 'List', tag: 'e-list', category: 'display' },
   { name: 'Progress', tag: 'e-progress', category: 'display' },
+  { name: 'Meter', tag: 'e-meter', category: 'display' },
+  { name: 'Sparkline', tag: 'e-sparkline', category: 'display' },
   { name: 'QRCode', tag: 'e-qrcode', category: 'display' },
   { name: 'Result', tag: 'e-result', category: 'display' },
   { name: 'Segmented', tag: 'e-segmented', category: 'display' },
   { name: 'Skeleton', tag: 'e-skeleton', category: 'display' },
   { name: 'Statistic', tag: 'e-statistic', category: 'display' },
+  { name: 'StatusBoard', tag: 'e-status-board', category: 'display' },
+  { name: 'ChangeMarker', tag: 'e-change-marker', category: 'display' },
+  { name: 'LastUpdated', tag: 'e-last-updated', category: 'display' },
+  { name: 'Diff', tag: 'e-diff', category: 'display' },
   { name: 'Table', tag: 'e-table', category: 'display' },
   { name: 'Tag', tag: 'e-tag', category: 'display' },
   { name: 'Timeline', tag: 'e-timeline', category: 'display' },
@@ -175,7 +181,7 @@ export interface RoadmapItem {
 
 /** Lede above the roadmap. Real prose, because AI crawlers quote prose. */
 export const ROADMAP_INTRO =
-  'EPaper follows an outcome-based roadmap. The next release strengthens native form behaviour, ships panel-specific themes and makes the e-paper refresh cost of interactions measurable in CI.';
+  'EPaper follows an outcome-based roadmap. The next release strengthens native form behaviour, ships panel-specific themes, makes refresh cost measurable in CI and adds stable data-display primitives for e-paper dashboards.';
 
 export const ROADMAP: RoadmapItem[] = [
   {
@@ -186,8 +192,8 @@ export const ROADMAP: RoadmapItem[] = [
   },
   {
     time: 'V1.1',
-    title: 'Reliability & panel themes',
-    body: 'Unified native constraint validation, high-contrast monochrome and Kaleido theme packs, plus automated refresh-budget checks.',
+    title: 'Reliability & data display',
+    body: 'Unified native constraint validation, panel theme packs, automated refresh-budget checks and six persistent dashboard components.',
   },
   {
     time: 'Later',

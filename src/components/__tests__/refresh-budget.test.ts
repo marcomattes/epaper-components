@@ -34,6 +34,12 @@ beforeAll(async () => {
     import('../table'),
     import('../select'),
     import('../tabs'),
+    import('../meter'),
+    import('../sparkline'),
+    import('../status-board'),
+    import('../change-marker'),
+    import('../last-updated'),
+    import('../diff'),
   ]);
 });
 
@@ -176,6 +182,52 @@ const scenarios: RefreshScenario[] = [
     selector: 'e-tabs',
     action: (host) => host.querySelectorAll<HTMLButtonElement>('[role="tab"]')[1]?.click(),
     budget: { mutations: 10, elementChurn: 0, dirtyAreaRatio: 1 },
+  },
+  {
+    name: 'meter value update',
+    html: '<e-meter value="40" segments="10" label="Battery" unit="%"></e-meter>',
+    selector: 'e-meter',
+    action: (host) => host.setAttribute('value', '50'),
+    budget: { mutations: 8, elementChurn: 0, dirtyAreaRatio: 1 },
+  },
+  {
+    name: 'sparkline series update',
+    html: '<e-sparkline values="[1,2,3,4]" label="Requests"></e-sparkline>',
+    selector: 'e-sparkline',
+    action: (host) => host.setAttribute('values', '[2,3,4,5]'),
+    budget: { mutations: 8, elementChurn: 0, dirtyAreaRatio: 1 },
+  },
+  {
+    name: 'status-board keyed value update',
+    html: `<e-status-board data='[{"key":"queue","label":"Queue","value":12,"status":"warning"},{"key":"workers","label":"Workers","value":8,"status":"ok"}]'></e-status-board>`,
+    selector: 'e-status-board',
+    action: (host) =>
+      host.setAttribute(
+        'data',
+        '[{"key":"queue","label":"Queue","value":9,"status":"ok"},{"key":"workers","label":"Workers","value":8,"status":"ok"}]',
+      ),
+    budget: { mutations: 8, elementChurn: 0, dirtyAreaRatio: 0.6 },
+  },
+  {
+    name: 'change-marker value update',
+    html: '<e-change-marker previous="10" value="10" label="Readers"></e-change-marker>',
+    selector: 'e-change-marker',
+    action: (host) => host.setAttribute('value', '12'),
+    budget: { mutations: 7, elementChurn: 0, dirtyAreaRatio: 1 },
+  },
+  {
+    name: 'last-updated clock update',
+    html: '<e-last-updated datetime="2026-08-17T14:00:00Z" now="2026-08-17T14:03:00Z"></e-last-updated>',
+    selector: 'e-last-updated',
+    action: (host) => host.setAttribute('now', '2026-08-17T14:06:00Z'),
+    budget: { mutations: 7, elementChurn: 0, dirtyAreaRatio: 1 },
+  },
+  {
+    name: 'diff current-value update',
+    html: '<e-diff before="Partial" after="Full"></e-diff>',
+    selector: 'e-diff',
+    action: (host) => host.setAttribute('after', 'Partial'),
+    budget: { mutations: 6, elementChurn: 0, dirtyAreaRatio: 1 },
   },
 ];
 

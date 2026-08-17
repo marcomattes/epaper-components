@@ -350,7 +350,7 @@ body {
 /* ---------- Component preview ----------
    A fixed-height frame the image is fitted into. The baselines range from
    296×80 (button) to 411×553 (calendar), so nothing but `contain` inside a
-   constant box keeps 59 tiles on a shared baseline grid. The fixed height is
+   constant box keeps 71 tiles on a shared baseline grid. The fixed height is
    also what makes the layout immune to a slow or failed image load. */
 .site-comp__shot {
   display: flex;

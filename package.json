@@ -117,6 +117,10 @@
       "types": "./dist/components/chip.d.ts",
       "import": "./dist/components/chip.js"
     },
+    "./change-marker": {
+      "types": "./dist/components/change-marker.d.ts",
+      "import": "./dist/components/change-marker.js"
+    },
     "./collapse": {
       "types": "./dist/components/collapse.d.ts",
       "import": "./dist/components/collapse.js"
@@ -128,6 +132,10 @@
     "./dialog": {
       "types": "./dist/components/dialog.d.ts",
       "import": "./dist/components/dialog.js"
+    },
+    "./diff": {
+      "types": "./dist/components/diff.d.ts",
+      "import": "./dist/components/diff.js"
     },
     "./divider": {
       "types": "./dist/components/divider.d.ts",
@@ -185,6 +193,10 @@
       "types": "./dist/components/layout.d.ts",
       "import": "./dist/components/layout.js"
     },
+    "./last-updated": {
+      "types": "./dist/components/last-updated.d.ts",
+      "import": "./dist/components/last-updated.js"
+    },
     "./link": {
       "types": "./dist/components/link.d.ts",
       "import": "./dist/components/link.js"
@@ -200,6 +212,10 @@
     "./menu": {
       "types": "./dist/components/menu.d.ts",
       "import": "./dist/components/menu.js"
+    },
+    "./meter": {
+      "types": "./dist/components/meter.d.ts",
+      "import": "./dist/components/meter.js"
     },
     "./pagination": {
       "types": "./dist/components/pagination.d.ts",
@@ -249,6 +265,10 @@
       "types": "./dist/components/space.d.ts",
       "import": "./dist/components/space.js"
     },
+    "./sparkline": {
+      "types": "./dist/components/sparkline.d.ts",
+      "import": "./dist/components/sparkline.js"
+    },
     "./splitter": {
       "types": "./dist/components/splitter.d.ts",
       "import": "./dist/components/splitter.js"
@@ -256,6 +276,10 @@
     "./statistic": {
       "types": "./dist/components/statistic.d.ts",
       "import": "./dist/components/statistic.js"
+    },
+    "./status-board": {
+      "types": "./dist/components/status-board.d.ts",
+      "import": "./dist/components/status-board.js"
     },
     "./steps": {
       "types": "./dist/components/steps.d.ts",

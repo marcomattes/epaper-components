@@ -40,7 +40,7 @@ export const ROUTES: Route[] = [
     nav: 'Cover',
     title: 'EPaper — Web Components for E-Paper Displays',
     description:
-      'A vanilla custom-element library tuned for e-paper displays: surgical DOM updates, no animations, no :hover, no Shadow DOM. 59 framework-agnostic components in 40 KB gzipped, MIT licensed.',
+      'A vanilla custom-element library tuned for e-paper displays: surgical DOM updates, no animations, no :hover, no Shadow DOM. 71 framework-agnostic components in 40 KB gzipped, MIT licensed.',
     heading: 'Web components for ink & paper.',
     folio: '01',
   },
@@ -58,7 +58,7 @@ export const ROUTES: Route[] = [
     path: '/components/',
     dir: 'components',
     nav: 'Components',
-    title: 'Components — All 59 EPaper custom elements',
+    title: 'Components — All 71 EPaper custom elements',
     description:
       'The complete EPaper component inventory: buttons, inputs, pickers, tables, calendars and layout primitives, each shipped as a standalone custom element you can import on its own.',
     heading: 'Every component, one tile each.',

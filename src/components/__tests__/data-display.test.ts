@@ -1,6 +1,7 @@
 // Component tests for the Data-Display group:
 // e-tag, e-chip, e-empty, e-skeleton, e-progress, e-result, e-list, e-table,
-// e-alert, e-collapse, e-tree.
+// e-alert, e-collapse, e-tree, e-meter, e-sparkline, e-status-board,
+// e-change-marker, e-last-updated and e-diff.
 import { describe, it, expect, beforeAll } from 'vitest';
 
 beforeAll(async () => {
@@ -15,6 +16,12 @@ beforeAll(async () => {
   await import('../alert');
   await import('../collapse');
   await import('../tree');
+  await import('../meter');
+  await import('../sparkline');
+  await import('../status-board');
+  await import('../change-marker');
+  await import('../last-updated');
+  await import('../diff');
 });
 
 /** `<details>` dispatches `toggle` as a queued task, never synchronously. */
@@ -695,5 +702,196 @@ describe('e-tree', () => {
     const stops = visibleTabbable();
     expect(stops.length).toBe(1);
     expect(stops[0]!.dataset['value']).toBe('p');
+  });
+});
+
+describe('e-meter', () => {
+  it('renders a discrete accessible measurement', () => {
+    const el = mount(`<e-meter label="Battery" value="72" unit="%" segments="10"></e-meter>`);
+    expect(el.getAttribute('role')).toBe('meter');
+    expect(el.getAttribute('aria-valuenow')).toBe('72');
+    expect(el.getAttribute('aria-valuetext')).toBe('72%');
+    expect(el.querySelectorAll('.ink-meter__segment').length).toBe(10);
+    expect(el.querySelectorAll('.ink-meter__segment[data-on]').length).toBe(7);
+  });
+
+  it('clamps the visual and semantic value to the configured range', () => {
+    const el = mount(`<e-meter min="10" max="20" value="50" segments="5"></e-meter>`);
+    expect(el.getAttribute('aria-valuenow')).toBe('20');
+    expect(el.getAttribute('aria-label')).toBe('Meter');
+    expect(el.querySelectorAll('.ink-meter__segment[data-on]').length).toBe(5);
+  });
+
+  it('updates value and threshold band without replacing segments', () => {
+    const el = mount(`<e-meter value="10" low="20" high="80"></e-meter>`);
+    const first = el.querySelector('.ink-meter__segment');
+    expect(el.querySelector('.ink-meter')!.getAttribute('data-band')).toBe('low');
+    el.setAttribute('value', '90');
+    expect(el.querySelector('.ink-meter')!.getAttribute('data-band')).toBe('high');
+    expect(el.querySelector('.ink-meter__segment')).toBe(first);
+  });
+
+  it('renders labels as text', () => {
+    const el = mount(`<e-meter></e-meter>`);
+    el.setAttribute('label', '<img src=x onerror=alert(1)>');
+    expect(el.querySelector('img')).toBeNull();
+  });
+});
+
+describe('e-sparkline', () => {
+  it('plots finite values and exposes the trend as text', () => {
+    const el = mount(`<e-sparkline label="Requests" values="[1,3,2,5]"></e-sparkline>`);
+    expect(el.getAttribute('role')).toBe('img');
+    expect(el.querySelector('.ink-sparkline')!.getAttribute('data-trend')).toBe('up');
+    expect(el.querySelector('.ink-sparkline__trend')!.textContent).toContain('Rising');
+    expect(el.querySelector('.ink-sparkline__line')!.getAttribute('points')).not.toBe('');
+  });
+
+  it('preserves the SVG line when values change', () => {
+    const el = mount(`<e-sparkline values="[1,2,3]"></e-sparkline>`);
+    const line = el.querySelector('.ink-sparkline__line');
+    el.setAttribute('values', '[3,2,1]');
+    expect(el.querySelector('.ink-sparkline__line')).toBe(line);
+    expect(el.querySelector('.ink-sparkline')!.getAttribute('data-trend')).toBe('down');
+  });
+
+  it('falls back to an explicit empty state for invalid JSON', () => {
+    const el = mount(`<e-sparkline values="not-json"></e-sparkline>`);
+    expect(el.querySelector('.ink-sparkline__empty')!.hasAttribute('hidden')).toBe(false);
+    expect(el.getAttribute('aria-label')).toContain('No data');
+  });
+
+  it('renders labels as text', () => {
+    const el = mount(`<e-sparkline values="[1]"></e-sparkline>`);
+    el.setAttribute('label', '<script>alert(1)</script>');
+    expect(el.querySelector('script')).toBeNull();
+  });
+});
+
+describe('e-status-board', () => {
+  const DATA = JSON.stringify([
+    { key: 'queue', label: 'Queue', value: 12, status: 'warning', detail: '3 delayed' },
+    { key: 'workers', label: 'Workers', value: '8 / 8', status: 'ok' },
+  ]);
+
+  it('renders keyed KPI cells with visible status words', () => {
+    const el = mount(`<e-status-board data='${DATA}' columns="2"></e-status-board>`);
+    expect(el.getAttribute('role')).toBe('region');
+    expect(el.querySelectorAll('[role="listitem"]').length).toBe(2);
+    expect(el.querySelector('[data-key="queue"] .ink-status-board__cue')!.textContent).toContain(
+      'Warning',
+    );
+  });
+
+  it('patches a keyed value without replacing its cell', () => {
+    const el = mount(`<e-status-board data='${DATA}'></e-status-board>`);
+    const queue = el.querySelector('[data-key="queue"]');
+    const next = JSON.stringify([
+      { key: 'queue', label: 'Queue', value: 9, status: 'ok' },
+      { key: 'workers', label: 'Workers', value: '8 / 8', status: 'ok' },
+    ]);
+    el.setAttribute('data', next);
+    expect(el.querySelector('[data-key="queue"]')).toBe(queue);
+    expect(queue!.querySelector('.ink-status-board__value')!.textContent).toBe('9');
+    expect(queue!.getAttribute('data-status')).toBe('ok');
+  });
+
+  it('shows an empty state for malformed data', () => {
+    const el = mount(`<e-status-board data="bad" empty-text="No signals"></e-status-board>`);
+    expect(el.querySelector('.ink-status-board__empty')!.textContent).toBe('No signals');
+    expect(el.querySelector('.ink-status-board__grid')!.hasAttribute('hidden')).toBe(true);
+  });
+
+  it('renders data content as text', () => {
+    const el = mount(`<e-status-board></e-status-board>`);
+    el.setAttribute(
+      'data',
+      JSON.stringify([{ key: 'x', label: '<img src=x>', value: '<script>x</script>' }]),
+    );
+    expect(el.querySelector('img')).toBeNull();
+    expect(el.querySelector('script')).toBeNull();
+  });
+});
+
+describe('e-change-marker', () => {
+  it('marks numeric increases with a delta', () => {
+    const el = mount(
+      `<e-change-marker label="Temperature" previous="21.8" value="22.4" suffix=" °C" precision="1"></e-change-marker>`,
+    );
+    expect(el.querySelector('.ink-change-marker')!.getAttribute('data-change')).toBe('up');
+    expect(el.querySelector('.ink-change-marker__cue')!.textContent).toContain(
+      'Increased by 0.6 °C',
+    );
+  });
+
+  it('suppresses changes inside the numeric tolerance', () => {
+    const el = mount(
+      `<e-change-marker previous="10" value="10.4" tolerance="0.5"></e-change-marker>`,
+    );
+    expect(el.querySelector('.ink-change-marker')!.getAttribute('data-change')).toBe('unchanged');
+    expect(el.querySelector('.ink-change-marker__cue')!.hasAttribute('hidden')).toBe(true);
+  });
+
+  it('marks text changes and retains the value node on updates', () => {
+    const el = mount(
+      `<e-change-marker label="Mode" previous="Standby" value="Active"></e-change-marker>`,
+    );
+    const value = el.querySelector('.ink-change-marker__value');
+    expect(el.querySelector('.ink-change-marker')!.getAttribute('data-change')).toBe('changed');
+    el.setAttribute('value', 'Standby');
+    expect(el.querySelector('.ink-change-marker__value')).toBe(value);
+    expect(el.querySelector('.ink-change-marker')!.getAttribute('data-change')).toBe('unchanged');
+  });
+});
+
+describe('e-last-updated', () => {
+  it('computes a deterministic relative age and fresh state', () => {
+    const el = mount(
+      `<e-last-updated datetime="2026-08-17T14:00:00Z" now="2026-08-17T14:03:00Z"></e-last-updated>`,
+    );
+    expect(el.querySelector('.ink-last-updated')!.getAttribute('data-freshness')).toBe('fresh');
+    expect(el.querySelector('.ink-last-updated__relative')!.textContent).toBe('3 minutes ago');
+  });
+
+  it('moves through stale and expired thresholds when now changes', () => {
+    const el = mount(
+      `<e-last-updated datetime="2026-08-17T14:00:00Z" now="2026-08-17T14:02:00Z" stale-after="60" expired-after="300"></e-last-updated>`,
+    );
+    const root = el.querySelector('.ink-last-updated')!;
+    expect(root.getAttribute('data-freshness')).toBe('stale');
+    el.setAttribute('now', '2026-08-17T14:06:00Z');
+    expect(root.getAttribute('data-freshness')).toBe('expired');
+  });
+
+  it('renders invalid timestamps as unknown', () => {
+    const el = mount(`<e-last-updated datetime="not-a-date"></e-last-updated>`);
+    expect(el.querySelector('.ink-last-updated')!.getAttribute('data-freshness')).toBe('invalid');
+    expect(el.querySelector('.ink-last-updated__relative')!.textContent).toBe('Unknown time');
+  });
+});
+
+describe('e-diff', () => {
+  it('keeps previous and current values visible with a changed cue', () => {
+    const el = mount(`<e-diff label="Firmware" before="1.8.4" after="1.9.0"></e-diff>`);
+    expect(el.querySelector('.ink-diff')!.getAttribute('data-changed')).toBe('true');
+    expect(el.querySelector('.ink-diff__state--before .ink-diff__value')!.textContent).toBe(
+      '1.8.4',
+    );
+    expect(el.querySelector('.ink-diff__state--after .ink-diff__value')!.textContent).toBe('1.9.0');
+  });
+
+  it('patches to unchanged without replacing the current value node', () => {
+    const el = mount(`<e-diff before="A" after="B"></e-diff>`);
+    const current = el.querySelector('.ink-diff__state--after .ink-diff__value');
+    el.setAttribute('after', 'A');
+    expect(el.querySelector('.ink-diff__state--after .ink-diff__value')).toBe(current);
+    expect(el.querySelector('.ink-diff')!.getAttribute('data-changed')).toBe('false');
+    expect(el.querySelector('.ink-diff__cue')!.textContent).toBe('= Unchanged');
+  });
+
+  it('renders compared values as text', () => {
+    const el = mount(`<e-diff></e-diff>`);
+    el.setAttribute('after', '<img src=x onerror=alert(1)>');
+    expect(el.querySelector('img')).toBeNull();
   });
 });

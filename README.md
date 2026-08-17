@@ -16,7 +16,7 @@
 > **[Storybook](https://epaper-components.dev/storybook/)**
 
 EPaper is a component library of plain custom elements for user interfaces that
-run on electrophoretic displays. It ships 89 registered elements, a three-layer
+run on electrophoretic displays. It ships 95 registered elements, a three-layer
 CSS token system, strict TypeScript types and a Custom Elements Manifest. There
 is no framework dependency and no runtime dependency at all; components extend
 `HTMLElement` or a shared `BaseFormControl` base class and render into the light
@@ -360,8 +360,8 @@ Sizes as of the current 1.0.1 build:
 
 ## Subpath imports and bundle size
 
-Every one of the 64 component modules is shipped as a separate ES module under
-`@marcomattes/epaper-components/<tag>`, and the barrel entry registers all 89
+Every one of the 70 component modules is shipped as a separate ES module under
+`@marcomattes/epaper-components/<tag>`, and the barrel entry registers all 95
 of the elements they define. The `sideEffects` allowlist in `package.json`
 covers the component modules and the public CSS files, so importing a single
 subpath pulls in that component plus its shared core chunks and nothing else,
@@ -370,8 +370,8 @@ in Vite, Rollup, esbuild and webpack 5.
 Compound elements that a parent component registers alongside itself — such as
 `<e-form-item>` (registered by `form.ts`) or `<e-option>` (registered by
 `select.ts`) — do not get their own subpath; importing the parent module
-registers them too. `package.json` exposes 92 subpaths in total: the barrel,
-65 component entries covering all 89 tags between them, three core-helper
+registers them too. `package.json` exposes 98 subpaths in total: the barrel,
+71 component entries covering all 95 tags between them, three core-helper
 entries, 22 CSS/source-map entries and the Custom Elements Manifest.
 
 | Goal               | Import                                                           |
@@ -486,6 +486,24 @@ el.addEventListener('e-change', (e: Event) => {
 
 CSS custom properties are the public theming surface; the registry is documented
 in [THEMING.md](./THEMING.md).
+
+## E-paper data display
+
+Six display components cover persistent dashboard states without animation or
+color-only meaning:
+
+| Component         | Purpose                                                        |
+| ----------------- | -------------------------------------------------------------- |
+| `e-meter`         | Bounded measurement rendered as discrete segments.             |
+| `e-sparkline`     | Monochrome mini-chart with a readable trend cue.               |
+| `e-status-board`  | Keyed KPI matrix that patches changed cells in place.          |
+| `e-change-marker` | Compact current value with a cue only when it changed.         |
+| `e-last-updated`  | Relative update age with fresh, stale and expired states.      |
+| `e-diff`          | Persistent previous/current comparison without color reliance. |
+
+`e-last-updated` deliberately starts no timer. Update its `now` attribute from
+the application's existing refresh cycle, or call `refresh()` when a panel
+redraw is already planned.
 
 ## TypeScript and IDE integration
 
