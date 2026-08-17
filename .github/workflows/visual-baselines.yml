@@ -69,7 +69,11 @@ jobs:
         env:
           TARGET_BRANCH: ${{ inputs.branch }}
         run: |
-          set -euo pipefail
+          # POSIX `set`, not `set -euo pipefail`: the Playwright container has
+          # no bash on the runner's lookup path, so GitHub falls back to
+          # `sh -e {0}` and dash rejects `-o pipefail` before the first line
+          # runs. There is no pipeline here, so `-eu` is the whole guarantee.
+          set -eu
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
