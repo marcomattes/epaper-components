@@ -14,6 +14,12 @@ beforeAll(async () => {
   await import('../dialog');
   await import('../tree');
   await import('../popover');
+  await import('../card');
+  await import('../card-image');
+  await import('../avatar');
+  await import('../calendar');
+  await import('../cascader');
+  await import('../date-picker');
 });
 
 // A modal <dialog> makes the rest of the document inert and holds a share of
@@ -356,5 +362,235 @@ describe('events', () => {
 
     el.querySelector<HTMLElement>('[data-action="confirm"] button')!.click();
     expect(document.activeElement).toBe(trigger);
+  });
+});
+
+// The card family shares `syncEyebrowTitle` in core/dom.ts, and the interesting
+// direction is the shrinking one: an attribute going away has to take its
+// element with it instead of leaving a stale heading behind.
+describe('card header teardown', () => {
+  it('e-card drops the title, then the whole header, as the attributes go away', () => {
+    const el = mount<HTMLElement>(`<e-card eyebrow="PROJECT" title="Atlas">Body</e-card>`);
+    expect(el.querySelector('.ink-card__eyebrow')!.textContent).toBe('PROJECT');
+    expect(el.querySelector('.ink-card__title')!.textContent).toBe('Atlas');
+
+    // The eyebrow still needs a header, so only the <h3> goes.
+    el.removeAttribute('title');
+    expect(el.querySelector('.ink-card__title')).toBeNull();
+    expect(el.querySelector('.ink-card__header')).not.toBeNull();
+
+    // Nothing left to head the card with — the header itself goes.
+    el.removeAttribute('eyebrow');
+    expect(el.querySelector('.ink-card__eyebrow')).toBeNull();
+    expect(el.querySelector('.ink-card__header')).toBeNull();
+    expect(el.querySelector('.ink-card__body')!.textContent).toBe('Body');
+
+    // And a later attribute rebuilds it from scratch.
+    el.setAttribute('title', 'Atlas II');
+    expect(el.querySelector('.ink-card__title')!.textContent).toBe('Atlas II');
+  });
+
+  it('e-card keeps an action header after both headings are gone', () => {
+    const el = mount<HTMLElement>(
+      `<e-card eyebrow="PROJECT" title="Atlas"><e-button slot="action">Open</e-button>Body</e-card>`,
+    );
+    const header = el.querySelector<HTMLElement>('.ink-card__header')!;
+
+    // The action slot alone keeps the header alive, so this exercises the
+    // eyebrow and title removals rather than the header teardown.
+    el.removeAttribute('eyebrow');
+    el.removeAttribute('title');
+    expect(el.querySelector('.ink-card__header')).toBe(header);
+    expect(el.querySelector('.ink-card__eyebrow')).toBeNull();
+    expect(el.querySelector('.ink-card__title')).toBeNull();
+    expect(header.querySelector('e-button')).not.toBeNull();
+  });
+
+  it('e-card renders no header at all without headings or an action', () => {
+    const el = mount<HTMLElement>(`<e-card>Body</e-card>`);
+    expect(el.querySelector('.ink-card__header')).toBeNull();
+    expect(el.querySelector('.ink-card__body')!.textContent).toBe('Body');
+
+    // Repeated renders must not conjure one either.
+    el.setAttribute('eyebrow', '');
+    expect(el.querySelector('.ink-card__header')).toBeNull();
+  });
+
+  it('e-card-image drops cover and header without losing the footer', () => {
+    const el = mount<HTMLElement>(
+      `<e-card-image cover="hatch" eyebrow="GUIDE" title="Setup">
+         Body
+         <div slot="footer">Updated today</div>
+       </e-card-image>`,
+    );
+    const footer = el.querySelector<HTMLElement>('.ink-card__footer')!;
+    const cover = el.querySelector<HTMLElement>('.ink-card__cover')!;
+    expect(cover.className).toContain('ink-card__cover--hatch');
+
+    // A plain value keeps the same cover node and renders as its text.
+    el.setAttribute('cover', 'Sunset');
+    expect(el.querySelector('.ink-card__cover')).toBe(cover);
+    expect(cover.className).not.toContain('ink-card__cover--hatch');
+    expect(cover.textContent).toBe('Sunset');
+
+    el.removeAttribute('cover');
+    expect(el.querySelector('.ink-card__cover')).toBeNull();
+
+    el.removeAttribute('title');
+    expect(el.querySelector('.ink-card__title')).toBeNull();
+    el.removeAttribute('eyebrow');
+    expect(el.querySelector('.ink-card__header')).toBeNull();
+
+    // A detached footer is re-attached on the next render rather than rebuilt,
+    // so the slotted content keeps its identity.
+    footer.remove();
+    el.setAttribute('title', 'Setup');
+    expect(el.querySelector('.ink-card__footer')).toBe(footer);
+    expect(footer.textContent).toContain('Updated today');
+  });
+});
+
+describe('grid keyboard navigation', () => {
+  const openGrid = (el: HTMLElement) => {
+    el.querySelector<HTMLButtonElement>('[data-trigger]')!.click();
+    return () => [...el.querySelectorAll<HTMLButtonElement>('.ink-datepicker__cell')];
+  };
+  const press = (key: string) =>
+    document.activeElement!.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+
+  it('e-date-picker Home and End move to the ends of the week row', () => {
+    const el = mount<HTMLElement>(`<e-date-picker value="2026-01-15"></e-date-picker>`);
+    const cells = openGrid(el);
+    const column = () => cells().indexOf(document.activeElement as HTMLButtonElement) % 7;
+    expect(document.activeElement!.getAttribute('data-day')).toBe('15');
+
+    press('Home');
+    expect(column()).toBe(0);
+    const weekStart = document.activeElement!.getAttribute('data-day');
+
+    press('End');
+    expect(column()).toBe(6);
+    expect(document.activeElement!.getAttribute('data-day')).not.toBe(weekStart);
+  });
+
+  it('e-date-picker PageUp and PageDown wrap across the year boundary', () => {
+    const el = mount<HTMLElement>(`<e-date-picker value="2026-01-15"></e-date-picker>`);
+    openGrid(el);
+    const navTitle = el.querySelector<HTMLElement>('.ink-datepicker__nav-title')!;
+    const locale = el.lang || document.documentElement.lang || undefined;
+    const month = (y: number, m: number) =>
+      `${new Date(y, m, 1).toLocaleString(locale, { month: 'long' })} ${y}`;
+    expect(navTitle.textContent).toBe(month(2026, 0));
+
+    // January - 1 month is December of the previous year.
+    press('PageUp');
+    expect(navTitle.textContent).toBe(month(2025, 11));
+
+    // ...and December + 1 month is January of the next.
+    press('PageDown');
+    expect(navTitle.textContent).toBe(month(2026, 0));
+  });
+
+  it('e-date-picker ignores keys with nothing to do', () => {
+    const el = mount<HTMLElement>(`<e-date-picker value="2026-01-15"></e-date-picker>`);
+    const cells = openGrid(el);
+    const navTitle = el.querySelector<HTMLElement>('.ink-datepicker__nav-title')!;
+    const before = navTitle.textContent;
+
+    // A key the grid does not handle leaves focus and the view alone.
+    press('Tab');
+    expect(document.activeElement!.getAttribute('data-day')).toBe('15');
+
+    // Padding cells outside the month are disabled and not part of the grid
+    // ring, so a keydown on one is a no-op rather than a focus move.
+    const padding = cells().find((c) => c.disabled)!;
+    padding.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    expect(document.activeElement!.getAttribute('data-day')).toBe('15');
+    expect(navTitle.textContent).toBe(before);
+
+    // The trigger itself only opens on ArrowDown/Enter/Space.
+    const trigger = el.querySelector<HTMLButtonElement>('[data-trigger]')!;
+    trigger.focus();
+    press('ArrowUp');
+    expect(el.querySelector<HTMLElement>('.ink-datepicker__pop')!.hidden).toBe(false);
+  });
+
+  it('e-cascader Home and End jump to the ends of a column', () => {
+    const el = mount<HTMLElement>(
+      `<e-cascader data='[{"value":"a","label":"A"},{"value":"b","label":"B"},{"value":"c","label":"C"}]'></e-cascader>`,
+    );
+    el.querySelector<HTMLButtonElement>('[data-trigger]')!.click();
+    const items = [...el.querySelectorAll<HTMLElement>('.ink-cascader__item')];
+    items[0].focus();
+
+    press('End');
+    expect(document.activeElement).toBe(items.at(-1));
+
+    press('Home');
+    expect(document.activeElement).toBe(items[0]);
+  });
+});
+
+describe('collection patching', () => {
+  it('e-avatar-group adds, removes and re-counts avatars as max changes', () => {
+    const el = mount<HTMLElement>(
+      `<e-avatar-group max="4">
+         ${['A', 'B', 'C', 'D', 'E'].map((n) => `<e-avatar-item name="${n}"></e-avatar-item>`).join('')}
+       </e-avatar-group>`,
+    );
+    const avatars = () => el.querySelectorAll('.ink-avatar-group > e-avatar');
+    const overflow = () => el.querySelector<HTMLElement>('.ink-avatar-group__overflow');
+    expect(avatars()).toHaveLength(4);
+    expect(overflow()!.textContent).toBe('+1');
+
+    // Room for everyone: the fifth avatar appears and the chip goes away.
+    el.setAttribute('max', '5');
+    expect(avatars()).toHaveLength(5);
+    expect(overflow()).toBeNull();
+
+    // Shrinking pops the excess from the end and brings the chip back.
+    el.setAttribute('max', '2');
+    expect(avatars()).toHaveLength(2);
+    expect(overflow()!.textContent).toBe('+3');
+  });
+
+  it('e-calendar repaints a day when event titles or the overflow count change', () => {
+    const events = (...titles: string[]) =>
+      JSON.stringify(titles.map((title) => ({ date: '2026-04-10', title })));
+    const el = mount<HTMLElement>(
+      `<e-calendar value="2026-04-10" events='${events('Release')}'></e-calendar>`,
+    );
+    const chips = () => [
+      ...el.querySelectorAll<HTMLElement>('[data-day="10"] .ink-calendar__events > *'),
+    ];
+    expect(chips().map((c) => c.textContent)).toEqual(['Release']);
+
+    // Same chip count, different text: the container still has to be repainted.
+    el.setAttribute('events', events('Freeze'));
+    expect(chips().map((c) => c.textContent)).toEqual(['Freeze']);
+
+    // Two shown plus a "+N" chip, then the same three slots with a higher N.
+    el.setAttribute('events', events('Freeze', 'Review', 'Ship'));
+    expect(chips().map((c) => c.textContent)).toEqual(['Freeze', 'Review', '+1']);
+    el.setAttribute('events', events('Freeze', 'Review', 'Ship', 'Retro'));
+    expect(chips().map((c) => c.textContent)).toEqual(['Freeze', 'Review', '+2']);
+  });
+
+  it('e-calendar leaves an untouched day alone when a neighbour changes', () => {
+    const el = mount<HTMLElement>(
+      `<e-calendar value="2026-04-10" events='[{"date":"2026-04-10","title":"Release"}]'></e-calendar>`,
+    );
+    const chip = el.querySelector<HTMLElement>('[data-day="10"] .ink-calendar__event')!;
+
+    el.setAttribute(
+      'events',
+      JSON.stringify([
+        { date: '2026-04-10', title: 'Release' },
+        { date: '2026-04-11', title: 'Retro' },
+      ]),
+    );
+    // Same title, same count — the chip is not rebuilt, so the node survives.
+    expect(el.querySelector('[data-day="10"] .ink-calendar__event')).toBe(chip);
+    expect(el.querySelector('[data-day="11"] .ink-calendar__event')!.textContent).toBe('Retro');
   });
 });
