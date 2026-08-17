@@ -1,6 +1,6 @@
-import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import process from 'node:process';
+import { runCommand, captureCommand } from './lib/run-command.mjs';
 
 const input = process.argv[2];
 if (!input) {
@@ -11,7 +11,8 @@ if (!input) {
 }
 
 const allowedRanges = ['patch', 'minor', 'major', 'prepatch', 'preminor', 'premajor', 'prerelease'];
-const isExactVersion = /^v?\d+\.\d+\.\d+(?:[-+].*)?$/.test(input);
+const VERSION_ARG_RE = /^v?\d+\.\d+\.\d+(?:-[\w.-]+)?(?:\+[\w.-]+)?$/;
+const isExactVersion = VERSION_ARG_RE.test(input);
 if (!allowedRanges.includes(input) && !isExactVersion) {
   console.error(`Invalid version argument: ${input}`);
   console.error(
@@ -20,34 +21,38 @@ if (!allowedRanges.includes(input) && !isExactVersion) {
   process.exit(1);
 }
 
-function run(command) {
-  execSync(command, { stdio: 'inherit' });
-}
-
-function capture(command) {
-  return execSync(command, { encoding: 'utf8' }).trim();
-}
-
-run(`npm version ${input} --no-git-tag-version`);
+// `input` is now provably one of `allowedRanges` or matches VERSION_ARG_RE — it is
+// never passed to runCommand unchecked beyond this point.
+runCommand('npm', ['version', input, '--no-git-tag-version']);
 
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
+const SEMVER_RE = /^\d+\.\d+\.\d+(?:-[\w.-]+)?(?:\+[\w.-]+)?$/;
+if (typeof pkg.version !== 'string' || !SEMVER_RE.test(pkg.version)) {
+  console.error(`package.json version is not a valid semver string: ${pkg.version}`);
+  process.exit(1);
+}
 const version = pkg.version;
 const commitMessage = `chore(release): bump version to v${version}`;
 
-run('npm run build');
-run('git add --all');
-run(`git commit -m "${commitMessage}"`);
+runCommand('npm', ['run', 'build']);
+runCommand('git', ['add', '--all']);
+runCommand('git', ['commit', '-m', commitMessage]);
 
 // `main` is protected by a ruleset that requires a pull request, so the bump
 // lands through a PR. Tagging here would be wrong: a squash or rebase merge
 // rewrites this commit, and the tag would point at an object that never
 // reaches `main`. On a release branch the tag is therefore left to the
 // maintainer, after the merge.
-const branch = capture('git rev-parse --abbrev-ref HEAD');
+const branch = captureCommand('git', ['rev-parse', '--abbrev-ref', 'HEAD']);
+const BRANCH_RE = /^[\w./-]+$/;
+if (!BRANCH_RE.test(branch)) {
+  console.error(`Unexpected characters in current branch name: ${branch}`);
+  process.exit(1);
+}
 const defaultBranch = 'main';
 
 if (branch === defaultBranch) {
-  run(`git tag -a v${version} -m "Release v${version}"`);
+  runCommand('git', ['tag', '-a', `v${version}`, '-m', `Release v${version}`]);
   console.log(`\n✅ Bumped to v${version}, committed and tagged.`);
   console.log('   Push with: git push --follow-tags');
 } else {

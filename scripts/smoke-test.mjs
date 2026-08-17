@@ -46,9 +46,15 @@ for (const key of globals) {
 
 // Not implemented by jsdom; a few components observe size or visibility.
 class NoopObserver {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
+  observe() {
+    // Intentionally a no-op: jsdom has no layout engine to observe.
+  }
+  unobserve() {
+    // Intentionally a no-op: jsdom has no layout engine to observe.
+  }
+  disconnect() {
+    // Intentionally a no-op: jsdom has no layout engine to observe.
+  }
 }
 globalThis.ResizeObserver ??= NoopObserver;
 globalThis.IntersectionObserver ??= NoopObserver;

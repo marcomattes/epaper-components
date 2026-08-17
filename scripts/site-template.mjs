@@ -20,7 +20,7 @@ const SLOTS = /** @type {const} */ (['head', 'main', 'nav', 'pagenav']);
 export function applyRouteBlocks(html, blocks) {
   let out = html;
   for (const slot of SLOTS) {
-    const re = new RegExp(`<!--site:${slot}-->[\\s\\S]*?<!--/site:${slot}-->`);
+    const re = new RegExp(String.raw`<!--site:${slot}-->[\s\S]*?<!--/site:${slot}-->`);
     if (!re.test(out)) {
       throw new Error(`site-template: slot "${slot}" not found — did the shell markers change?`);
     }

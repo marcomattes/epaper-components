@@ -12,7 +12,7 @@ import { boolAttr, captureWrap, define, patchClassModifier } from '../core/dom';
  * <e-badge inverted>NEW</e-badge>
  */
 export class EBadge extends HTMLElement {
-  static observedAttributes = ['inverted'];
+  static readonly observedAttributes = ['inverted'];
 
   private _wrap: HTMLElement | null = null;
 

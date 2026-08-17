@@ -20,11 +20,11 @@ import { boolAttr, define, patchBoolAttr, patchClassModifier } from '../core/dom
  * <e-button variant="primary">Save</e-button>
  */
 export class EButton extends HTMLElement {
-  static formAssociated = true;
+  static readonly formAssociated = true;
   // `autofocus` is not observed — it only applies at mount time.
-  static observedAttributes = ['variant', 'disabled'];
+  static readonly observedAttributes = ['variant', 'disabled'];
 
-  private internals: ElementInternals;
+  private readonly internals: ElementInternals;
   private _wired = false;
   private _btn: HTMLButtonElement | null = null;
   private _glyph: HTMLElement | null = null;

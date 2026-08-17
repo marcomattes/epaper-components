@@ -145,7 +145,7 @@ describe('e-skeleton', () => {
 
   it('renders N text lines when shape="text"', () => {
     const el = mount(`<e-skeleton shape="text" lines="4"></e-skeleton>`);
-    expect(el.querySelectorAll('.ink-skeleton__line').length).toBe(4);
+    expect(el.querySelectorAll('.ink-skeleton__line')).toHaveLength(4);
   });
 
   it('renders a circle variant', () => {
@@ -178,8 +178,8 @@ describe('e-progress', () => {
   it('steps variant renders N segments and fills the right amount', () => {
     const el = mount(`<e-progress value="3" max="5" variant="steps" steps="5"></e-progress>`);
     const segs = el.querySelectorAll('.ink-progress__seg');
-    expect(segs.length).toBe(5);
-    expect(el.querySelectorAll('.ink-progress__seg[data-on]').length).toBe(3);
+    expect(segs).toHaveLength(5);
+    expect(el.querySelectorAll('.ink-progress__seg[data-on]')).toHaveLength(3);
   });
 
   it('clamps value to max in aria and fill', () => {
@@ -246,7 +246,7 @@ describe('e-list', () => {
       </e-list>`,
     );
     const items = el.querySelectorAll('e-list-item');
-    expect(items.length).toBe(2);
+    expect(items).toHaveLength(2);
     expect(items[0].getAttribute('role')).toBe('listitem');
     expect(el.querySelector('.ink-list')!.getAttribute('role')).toBe('list');
   });
@@ -302,7 +302,7 @@ describe('e-table', () => {
   it('renders a header with the given columns', () => {
     const el = mount(`<e-table columns='${COLS}' data='${ROWS}'></e-table>`);
     const ths = el.querySelectorAll('thead th');
-    expect(ths.length).toBe(2);
+    expect(ths).toHaveLength(2);
     expect(ths[0].textContent).toContain('Name');
     expect(ths[1].textContent).toContain('Role');
   });
@@ -310,7 +310,7 @@ describe('e-table', () => {
   it('renders one row per data entry, with cells in column order', () => {
     const el = mount(`<e-table columns='${COLS}' data='${ROWS}'></e-table>`);
     const rows = el.querySelectorAll('tbody tr');
-    expect(rows.length).toBe(3);
+    expect(rows).toHaveLength(3);
     const firstCells = rows[0].querySelectorAll('td');
     expect(firstCells[0].textContent).toBe('Anna');
     expect(firstCells[1].textContent).toBe('Editor');
@@ -495,7 +495,7 @@ describe('e-collapse', () => {
   it('renders one details per panel and adopts the body', () => {
     const el = mount(markup());
     const panels = el.querySelectorAll('details');
-    expect(panels.length).toBe(2);
+    expect(panels).toHaveLength(2);
     expect(panels[0]!.querySelector('.ink-collapse__heading')!.textContent).toBe('A');
     expect(panels[0]!.querySelector('.ink-collapse__body')!.textContent).toContain('Body A');
   });
@@ -670,7 +670,7 @@ describe('e-tree', () => {
     wrap.appendChild(el);
     expect(detail).not.toBeNull();
     expect(detail!.source).toBe('data');
-    expect(el.querySelectorAll('.ink-tree__row').length).toBe(0);
+    expect(el.querySelectorAll('.ink-tree__row')).toHaveLength(0);
   });
 
   it('keeps exactly one visible tabbable row when a selected child is revealed', () => {
@@ -680,10 +680,10 @@ describe('e-tree', () => {
     const el = mount(`<e-tree selectable data='${DATA}' value="c1"></e-tree>`);
     const tabbable = () =>
       [...el.querySelectorAll<HTMLElement>('.ink-tree__row')].filter((r) => r.tabIndex === 0);
-    expect(tabbable().length).toBe(1);
+    expect(tabbable()).toHaveLength(1);
 
     el.querySelector<HTMLElement>('[data-expand="p"]')!.click();
-    expect(tabbable().length).toBe(1);
+    expect(tabbable()).toHaveLength(1);
     expect(tabbable()[0]!.dataset['value']).toBe('c1');
   });
 
@@ -695,12 +695,12 @@ describe('e-tree', () => {
       );
 
     el.querySelector<HTMLElement>('[data-value="c2"]')!.focus();
-    expect(visibleTabbable().length).toBe(1);
+    expect(visibleTabbable()).toHaveLength(1);
 
     // Collapsing the parent hides the focused row; the stop moves to the parent.
     el.querySelector<HTMLElement>('[data-expand="p"]')!.click();
     const stops = visibleTabbable();
-    expect(stops.length).toBe(1);
+    expect(stops).toHaveLength(1);
     expect(stops[0]!.dataset['value']).toBe('p');
   });
 });

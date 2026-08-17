@@ -20,7 +20,7 @@ import {
  * <e-avatar name="Ada Lovelace" size="48" shape="circle"></e-avatar>
  */
 export class EAvatar extends HTMLElement {
-  static observedAttributes = ['name', 'src', 'size', 'shape'];
+  static readonly observedAttributes = ['name', 'src', 'size', 'shape'];
 
   private _wrap: HTMLElement | null = null;
   private _failedSrc: string | null = null;
@@ -99,7 +99,7 @@ define('e-avatar', EAvatar);
  * </e-avatar-group>
  */
 export class EAvatarGroup extends HTMLElement {
-  static observedAttributes = ['max', 'size'];
+  static readonly observedAttributes = ['max', 'size'];
 
   private _wired = false;
   private _avatarData: Array<{ name: string; src: string | null }> = [];
@@ -168,7 +168,7 @@ export class EAvatarGroup extends HTMLElement {
 
     // Remove excess avatars from the end.
     while (this._avatarEls.length > max) {
-      group.removeChild(this._avatarEls.pop()!);
+      this._avatarEls.pop()!.remove();
     }
     // Add missing avatars (insert before overflow chip).
     while (this._avatarEls.length < Math.min(max, this._avatarData.length)) {
@@ -188,7 +188,7 @@ export class EAvatarGroup extends HTMLElement {
         patchText(this._overflowEl, `+${overflow}`);
       }
     } else if (this._overflowEl) {
-      group.removeChild(this._overflowEl);
+      this._overflowEl.remove();
       this._overflowEl = null;
     }
   }

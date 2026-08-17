@@ -168,3 +168,47 @@ export function captureWrap(host: HTMLElement, tag = 'span'): HTMLElement {
   host.appendChild(wrap);
   return wrap;
 }
+
+/** Current eyebrow/title child elements tracked by {@link syncEyebrowTitle}'s caller. */
+export interface EyebrowTitleRefs {
+  eyebrow: HTMLElement | null;
+  titleEl: HTMLElement | null;
+}
+
+/**
+ * Shared by `e-card` and `e-card-image`: syncs the optional eyebrow label and
+ * title heading inside a card header's left column, creating/removing each
+ * element only as needed. Returns the (possibly updated) refs for the caller
+ * to store back on its instance.
+ */
+export function syncEyebrowTitle(
+  left: HTMLElement,
+  eyebrow: string | null,
+  title: string | null,
+  refs: EyebrowTitleRefs,
+): EyebrowTitleRefs {
+  let { eyebrow: eyebrowEl, titleEl } = refs;
+  if (eyebrow) {
+    if (!eyebrowEl) {
+      eyebrowEl = document.createElement('div');
+      eyebrowEl.className = 'ink-card__eyebrow';
+      left.insertBefore(eyebrowEl, left.firstChild);
+    }
+    patchText(eyebrowEl, eyebrow);
+  } else if (eyebrowEl) {
+    eyebrowEl.remove();
+    eyebrowEl = null;
+  }
+  if (title) {
+    if (!titleEl) {
+      titleEl = document.createElement('h3');
+      titleEl.className = 'ink-card__title';
+      left.appendChild(titleEl);
+    }
+    patchText(titleEl, title);
+  } else if (titleEl) {
+    titleEl.remove();
+    titleEl = null;
+  }
+  return { eyebrow: eyebrowEl, titleEl };
+}

@@ -26,7 +26,8 @@ const results = [];
 function record(name, pass, detail) {
   results.push({ name, pass, detail });
   const mark = pass ? 'PASS' : 'FAIL';
-  console.log(`[${mark}] ${name}${detail ? ` — ${detail}` : ''}`);
+  const detailSuffix = detail ? ` — ${detail}` : '';
+  console.log(`[${mark}] ${name}${detailSuffix}`);
 }
 function assert(name, condition, detail) {
   record(name, !!condition, detail);
@@ -429,6 +430,9 @@ console.log('');
 console.log(`${results.length - failed.length}/${results.length} checks passed.`);
 if (failed.length) {
   console.log('Failed:');
-  for (const f of failed) console.log(`  - ${f.name}${f.detail ? ` (${f.detail})` : ''}`);
+  for (const f of failed) {
+    const detailSuffix = f.detail ? ` (${f.detail})` : '';
+    console.log(`  - ${f.name}${detailSuffix}`);
+  }
   process.exit(1);
 }

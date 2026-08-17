@@ -22,7 +22,7 @@ import { define, numAttr } from '../core/dom';
  * </e-affix>
  */
 export class EAffix extends HTMLElement {
-  static observedAttributes = ['offset-top'];
+  static readonly observedAttributes = ['offset-top'];
 
   private _wired = false;
   private _wrap: HTMLElement | null = null;

@@ -145,7 +145,7 @@ jobs:
           fi
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Build
         run: npm run build
@@ -226,7 +226,7 @@ jobs:
           cd "$RUNNER_TEMP/smoke"
           npm init -y >/dev/null
           npm pkg set type=module >/dev/null
-          npm install "@marcomattes/epaper-components@$VERSION" jsdom --silent
+          npm install "@marcomattes/epaper-components@$VERSION" jsdom@30.0.1 --save-exact --ignore-scripts --silent
 
       - name: Run smoke test
         run: |
@@ -272,7 +272,8 @@ jobs:
       github.repository == 'marcomattes/epaper-components' &&
       (github.event_name == 'workflow_dispatch' ||
         (github.event.workflow_run.conclusion == 'success' &&
-         github.event.workflow_run.event == 'push'))
+         github.event.workflow_run.event == 'push' &&
+         github.event.workflow_run.head_repository.full_name == github.repository))
     runs-on: ubuntu-latest
     environment: npm
     permissions:
@@ -304,7 +305,7 @@ jobs:
           fi
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Compute dev version
         id: version
