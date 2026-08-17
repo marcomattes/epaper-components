@@ -19,7 +19,7 @@ import { iconSvg } from '../core/icons';
  * <e-back-top visibility-height="200"></e-back-top>
  */
 export class EBackTop extends HTMLElement {
-  static observedAttributes = ['visibility-height', 'label', 'target'];
+  static readonly observedAttributes = ['visibility-height', 'label', 'target'];
 
   private _wired = false;
   private _btn: HTMLButtonElement | null = null;

@@ -16,7 +16,7 @@ import { define, patchText } from '../core/dom';
  * </e-card>
  */
 export class ECard extends HTMLElement {
-  static observedAttributes = ['title', 'eyebrow'];
+  static readonly observedAttributes = ['title', 'eyebrow'];
 
   private _section: HTMLElement | null = null;
   private _header: HTMLElement | null = null;
@@ -48,51 +48,62 @@ export class ECard extends HTMLElement {
 
   private _render(): void {
     const section = this._section!;
-    const title = this.getAttribute('title');
-    const eyebrow = this.getAttribute('eyebrow');
-    const needHeader = !!(title || eyebrow || this._action);
+    this._syncHeader(section, this.getAttribute('title'), this.getAttribute('eyebrow'));
+    if (this._body && this._body.parentElement !== section) section.appendChild(this._body);
+  }
 
-    if (needHeader) {
-      if (!this._header) {
-        this._header = document.createElement('header');
-        this._header.className = 'ink-card__header';
-        const left = document.createElement('div');
-        this._header.appendChild(left);
-        section.insertBefore(this._header, section.firstChild);
-      }
-      const left = this._header.firstElementChild as HTMLElement;
-      if (eyebrow) {
-        if (!this._eyebrow) {
-          this._eyebrow = document.createElement('div');
-          this._eyebrow.className = 'ink-card__eyebrow';
-          left.insertBefore(this._eyebrow, left.firstChild);
-        }
-        patchText(this._eyebrow, eyebrow);
-      } else if (this._eyebrow) {
-        this._eyebrow.remove();
+  private _syncHeader(section: HTMLElement, title: string | null, eyebrow: string | null): void {
+    const needHeader = !!(title || eyebrow || this._action);
+    if (!needHeader) {
+      if (this._header) {
+        this._header.remove();
+        this._header = null;
         this._eyebrow = null;
-      }
-      if (title) {
-        if (!this._titleEl) {
-          this._titleEl = document.createElement('h3');
-          this._titleEl.className = 'ink-card__title';
-          left.appendChild(this._titleEl);
-        }
-        patchText(this._titleEl, title);
-      } else if (this._titleEl) {
-        this._titleEl.remove();
         this._titleEl = null;
       }
-      if (this._action && this._action.parentElement !== this._header) {
-        this._header.appendChild(this._action);
+      return;
+    }
+    if (!this._header) {
+      this._header = document.createElement('header');
+      this._header.className = 'ink-card__header';
+      const left = document.createElement('div');
+      this._header.appendChild(left);
+      section.insertBefore(this._header, section.firstChild);
+    }
+    const left = this._header.firstElementChild as HTMLElement;
+    this._syncEyebrow(left, eyebrow);
+    this._syncTitle(left, title);
+    if (this._action && this._action.parentElement !== this._header) {
+      this._header.appendChild(this._action);
+    }
+  }
+
+  private _syncEyebrow(left: HTMLElement, eyebrow: string | null): void {
+    if (eyebrow) {
+      if (!this._eyebrow) {
+        this._eyebrow = document.createElement('div');
+        this._eyebrow.className = 'ink-card__eyebrow';
+        left.insertBefore(this._eyebrow, left.firstChild);
       }
-    } else if (this._header) {
-      this._header.remove();
-      this._header = null;
+      patchText(this._eyebrow, eyebrow);
+    } else if (this._eyebrow) {
+      this._eyebrow.remove();
       this._eyebrow = null;
+    }
+  }
+
+  private _syncTitle(left: HTMLElement, title: string | null): void {
+    if (title) {
+      if (!this._titleEl) {
+        this._titleEl = document.createElement('h3');
+        this._titleEl.className = 'ink-card__title';
+        left.appendChild(this._titleEl);
+      }
+      patchText(this._titleEl, title);
+    } else if (this._titleEl) {
+      this._titleEl.remove();
       this._titleEl = null;
     }
-    if (this._body && this._body.parentElement !== section) section.appendChild(this._body);
   }
 }
 

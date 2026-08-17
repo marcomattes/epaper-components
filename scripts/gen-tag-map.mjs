@@ -55,7 +55,7 @@ for (const e of entries) {
 
 // Simpler & more robust: import everything from the package's own type entry.
 // Since this file lives in dist/elements.d.ts, sibling import is "./index.js".
-const classNames = [...new Set(entries.map((e) => e.className))].sort();
+const classNames = [...new Set(entries.map((e) => e.className))].sort((a, b) => a.localeCompare(b));
 const importLine = `import type { ${classNames.join(', ')} } from './index.js';`;
 
 const mapLines = entries

@@ -48,7 +48,7 @@ const roleFor = (variant: Variant): string => (variant === 'error' ? 'alert' : '
  * </e-alert>
  */
 export class EAlert extends HTMLElement {
-  static observedAttributes = ['variant', 'heading', 'closable', 'no-icon'];
+  static readonly observedAttributes = ['variant', 'heading', 'closable', 'no-icon'];
 
   private _wired = false;
   private _root: HTMLElement | null = null;
@@ -77,7 +77,7 @@ export class EAlert extends HTMLElement {
     if (!this._wired || old === val || !this._root) return;
     if (name === 'variant') {
       const variant = this._variant();
-      this._root.setAttribute('data-variant', variant);
+      this._root.dataset.variant = variant;
       // The live-region role follows severity, so it has to move with it:
       // an info banner promoted to error must start interrupting, and an
       // error demoted to info must stop.
@@ -107,7 +107,7 @@ export class EAlert extends HTMLElement {
 
     const root = document.createElement('div');
     root.className = 'ink-alert';
-    root.setAttribute('data-variant', variant);
+    root.dataset.variant = variant;
     root.setAttribute('role', roleFor(variant));
     root.innerHTML = `<span class="ink-alert__icon" aria-hidden="true">${iconSvg(VARIANT_ICON[variant], 20)}</span>
       <div class="ink-alert__content">

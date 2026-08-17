@@ -1,4 +1,4 @@
-import { define, esc, patchClassModifier, patchText } from '../core/dom';
+import { define, patchClassModifier, patchText } from '../core/dom';
 
 /**
  * @summary Card variant with a top cover area and optional footer slot.
@@ -17,7 +17,7 @@ import { define, esc, patchClassModifier, patchText } from '../core/dom';
  * </e-card-image>
  */
 export class ECardImage extends HTMLElement {
-  static observedAttributes = ['title', 'eyebrow', 'cover'];
+  static readonly observedAttributes = ['title', 'eyebrow', 'cover'];
 
   private _section: HTMLElement | null = null;
   private _cover: HTMLElement | null = null;
@@ -51,77 +51,92 @@ export class ECardImage extends HTMLElement {
 
   private _render(): void {
     const section = this._section!;
-    const cover = this.getAttribute('cover');
-    const title = this.getAttribute('title');
-    const eyebrow = this.getAttribute('eyebrow');
+    this._syncCover(section, this.getAttribute('cover'));
+    this._syncHeader(section, this.getAttribute('title'), this.getAttribute('eyebrow'));
+    if (this._body && this._body.parentElement !== section) section.appendChild(this._body);
+    this._syncFooter(section);
+  }
 
-    if (cover != null) {
-      if (!this._cover) {
-        this._cover = document.createElement('div');
-        this._cover.classList.add('ink-card__cover');
-        section.insertBefore(this._cover, section.firstChild);
+  private _syncCover(section: HTMLElement, cover: string | null): void {
+    if (cover == null) {
+      if (this._cover) {
+        this._cover.remove();
+        this._cover = null;
       }
-      const isHatch = cover === 'hatch' || cover.startsWith('hatch');
-      patchClassModifier(this._cover, 'ink-card__cover--', isHatch ? 'hatch' : null);
-      patchText(this._cover, isHatch ? '' : cover);
-    } else if (this._cover) {
-      this._cover.remove();
-      this._cover = null;
+      return;
     }
+    if (!this._cover) {
+      this._cover = document.createElement('div');
+      this._cover.classList.add('ink-card__cover');
+      section.insertBefore(this._cover, section.firstChild);
+    }
+    const isHatch = cover === 'hatch' || cover.startsWith('hatch');
+    patchClassModifier(this._cover, 'ink-card__cover--', isHatch ? 'hatch' : null);
+    patchText(this._cover, isHatch ? '' : cover);
+  }
 
+  private _syncHeader(section: HTMLElement, title: string | null, eyebrow: string | null): void {
     const needHeader = !!(title || eyebrow);
-    if (needHeader) {
-      if (!this._header) {
-        this._header = document.createElement('header');
-        this._header.className = 'ink-card__header';
-        const left = document.createElement('div');
-        this._header.appendChild(left);
-        const ref = this._cover ? this._cover.nextSibling : section.firstChild;
-        section.insertBefore(this._header, ref);
-      }
-      const left = this._header.firstElementChild as HTMLElement;
-      if (eyebrow) {
-        if (!this._eyebrow) {
-          this._eyebrow = document.createElement('div');
-          this._eyebrow.className = 'ink-card__eyebrow';
-          left.insertBefore(this._eyebrow, left.firstChild);
-        }
-        patchText(this._eyebrow, eyebrow);
-      } else if (this._eyebrow) {
-        this._eyebrow.remove();
+    if (!needHeader) {
+      if (this._header) {
+        this._header.remove();
+        this._header = null;
         this._eyebrow = null;
-      }
-      if (title) {
-        if (!this._titleEl) {
-          this._titleEl = document.createElement('h3');
-          this._titleEl.className = 'ink-card__title';
-          left.appendChild(this._titleEl);
-        }
-        patchText(this._titleEl, title);
-      } else if (this._titleEl) {
-        this._titleEl.remove();
         this._titleEl = null;
       }
-    } else if (this._header) {
-      this._header.remove();
-      this._header = null;
+      return;
+    }
+    if (!this._header) {
+      this._header = document.createElement('header');
+      this._header.className = 'ink-card__header';
+      const left = document.createElement('div');
+      this._header.appendChild(left);
+      const ref = this._cover ? this._cover.nextSibling : section.firstChild;
+      section.insertBefore(this._header, ref);
+    }
+    const left = this._header.firstElementChild as HTMLElement;
+    this._syncEyebrow(left, eyebrow);
+    this._syncTitle(left, title);
+  }
+
+  private _syncEyebrow(left: HTMLElement, eyebrow: string | null): void {
+    if (eyebrow) {
+      if (!this._eyebrow) {
+        this._eyebrow = document.createElement('div');
+        this._eyebrow.className = 'ink-card__eyebrow';
+        left.insertBefore(this._eyebrow, left.firstChild);
+      }
+      patchText(this._eyebrow, eyebrow);
+    } else if (this._eyebrow) {
+      this._eyebrow.remove();
       this._eyebrow = null;
+    }
+  }
+
+  private _syncTitle(left: HTMLElement, title: string | null): void {
+    if (title) {
+      if (!this._titleEl) {
+        this._titleEl = document.createElement('h3');
+        this._titleEl.className = 'ink-card__title';
+        left.appendChild(this._titleEl);
+      }
+      patchText(this._titleEl, title);
+    } else if (this._titleEl) {
+      this._titleEl.remove();
       this._titleEl = null;
     }
+  }
 
-    if (this._body && this._body.parentElement !== section) section.appendChild(this._body);
-
-    if (this._footerSlot) {
-      if (!this._footer) {
-        this._footer = document.createElement('footer');
-        this._footer.className = 'ink-card__footer';
-        this._footer.appendChild(this._footerSlot);
-        section.appendChild(this._footer);
-      } else if (this._footer.parentElement !== section) {
-        section.appendChild(this._footer);
-      }
+  private _syncFooter(section: HTMLElement): void {
+    if (!this._footerSlot) return;
+    if (!this._footer) {
+      this._footer = document.createElement('footer');
+      this._footer.className = 'ink-card__footer';
+      this._footer.appendChild(this._footerSlot);
+      section.appendChild(this._footer);
+    } else if (this._footer.parentElement !== section) {
+      section.appendChild(this._footer);
     }
-    void esc;
   }
 }
 

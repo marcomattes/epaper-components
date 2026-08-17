@@ -33,18 +33,18 @@ interface PanelDef {
  * </e-collapse>
  */
 export class ECollapse extends HTMLElement {
-  static observedAttributes = ['accordion'];
+  static readonly observedAttributes = ['accordion'];
 
   private _wired = false;
   private _root: HTMLElement | null = null;
-  private _panels = new Map<string, HTMLDetailsElement>();
+  private readonly _panels = new Map<string, HTMLDetailsElement>();
   /**
    * Panels whose next `toggle` we caused ourselves. `toggle` is dispatched
    * asynchronously, so a synchronous "am I syncing" flag would already be back
    * to false by the time the event lands — the closes an accordion performs
    * would then be reported as if the user had made them.
    */
-  private _suppressed = new Set<HTMLDetailsElement>();
+  private readonly _suppressed = new Set<HTMLDetailsElement>();
 
   connectedCallback() {
     if (!this._wired) {

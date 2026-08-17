@@ -91,7 +91,9 @@ async function buildCSS() {
   console.log('  - dist/styles/epaper.min.css (+.map)');
 }
 
-buildCSS().catch((err) => {
+try {
+  await buildCSS();
+} catch (err) {
   console.error('Error building CSS:', err);
   process.exit(1);
-});
+}

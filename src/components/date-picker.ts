@@ -9,7 +9,7 @@ import {
   runCleanups,
 } from '../core/dom';
 import { iconSvg } from '../core/icons';
-import { pad2, parseYMD, ymd } from '../core/date';
+import { parseYMD, ymd } from '../core/date';
 import { BaseFormControl } from '../core/base-form-control';
 
 const DOW_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -30,7 +30,7 @@ const CELL_COUNT = 42;
  * <e-date-picker value="2025-04-26"></e-date-picker>
  */
 export class EDatePicker extends BaseFormControl {
-  static observedAttributes = ['value', 'placeholder'];
+  static readonly observedAttributes = ['value', 'placeholder'];
 
   private _wired = false;
   private _view = { y: 2026, m: 0 };
@@ -132,85 +132,105 @@ export class EDatePicker extends BaseFormControl {
     const ke = e as KeyboardEvent;
     const target = ke.target as Element;
 
-    /* Trigger: ArrowDown / Enter / Space opens popover */
-    if (target.closest('[data-trigger]') && this._pop) {
-      if (ke.key === 'ArrowDown' || ke.key === 'Enter' || ke.key === ' ') {
-        ke.preventDefault();
-        this._setOpen(true);
-        this._focusInitialCell();
-      }
-      return;
-    }
+    if (this._handleTriggerKeydown(ke, target)) return;
 
     /* Inside grid */
     const cell = target.closest<HTMLButtonElement>('.ink-datepicker__cell');
     if (!cell || !this._pop || this._pop.hidden) return;
 
     const focusables = this._cells.filter((b) => !b.disabled);
-    const idx = focusables.indexOf(cell);
-    if (idx < 0) return;
+    if (focusables.indexOf(cell) < 0) return;
 
-    const moveBy = (delta: number): void => {
-      const dayNum = Number(cell.dataset['day']);
-      const target = new Date(this._view.y, this._view.m, dayNum + delta);
-      this._view = { y: target.getFullYear(), m: target.getMonth() };
-      this._patchGrid();
-      const newCell = this._cells.find(
-        (b) => Number(b.dataset['day']) === target.getDate() && !b.disabled,
-      );
-      newCell?.focus();
-    };
-
-    if (ke.key === 'ArrowLeft') {
-      ke.preventDefault();
-      moveBy(-1);
-    } else if (ke.key === 'ArrowRight') {
-      ke.preventDefault();
-      moveBy(1);
-    } else if (ke.key === 'ArrowUp') {
-      ke.preventDefault();
-      moveBy(-7);
-    } else if (ke.key === 'ArrowDown') {
-      ke.preventDefault();
-      moveBy(7);
-    } else if (ke.key === 'PageUp') {
-      ke.preventDefault();
-      let m = this._view.m - 1;
-      let y = this._view.y;
-      if (m < 0) {
-        m = 11;
-        y -= 1;
-      }
-      this._view = { y, m };
-      this._patchGrid();
-      this._focusInitialCell();
-    } else if (ke.key === 'PageDown') {
-      ke.preventDefault();
-      let m = this._view.m + 1;
-      let y = this._view.y;
-      if (m > 11) {
-        m = 0;
-        y += 1;
-      }
-      this._view = { y, m };
-      this._patchGrid();
-      this._focusInitialCell();
-    } else if (ke.key === 'Home') {
-      ke.preventDefault();
-      moveBy(-(this._cells.indexOf(cell) % 7));
-    } else if (ke.key === 'End') {
-      ke.preventDefault();
-      moveBy(6 - (this._cells.indexOf(cell) % 7));
-    } else if (ke.key === 'Enter' || ke.key === ' ') {
-      ke.preventDefault();
-      cell.click();
-    }
+    this._handleGridKeydown(ke, cell);
   };
+
+  /** Trigger: ArrowDown / Enter / Space opens popover. Returns whether the key targeted the trigger. */
+  private _handleTriggerKeydown(ke: KeyboardEvent, target: Element): boolean {
+    if (!target.closest('[data-trigger]') || !this._pop) return false;
+    if (ke.key === 'ArrowDown' || ke.key === 'Enter' || ke.key === ' ') {
+      ke.preventDefault();
+      this._setOpen(true);
+      this._focusInitialCell();
+    }
+    return true;
+  }
+
+  /** Keyboard navigation once focus is inside the grid. */
+  private _handleGridKeydown(ke: KeyboardEvent, cell: HTMLButtonElement): void {
+    switch (ke.key) {
+      case 'ArrowLeft':
+        ke.preventDefault();
+        this._moveFocusBy(cell, -1);
+        break;
+      case 'ArrowRight':
+        ke.preventDefault();
+        this._moveFocusBy(cell, 1);
+        break;
+      case 'ArrowUp':
+        ke.preventDefault();
+        this._moveFocusBy(cell, -7);
+        break;
+      case 'ArrowDown':
+        ke.preventDefault();
+        this._moveFocusBy(cell, 7);
+        break;
+      case 'PageUp':
+        ke.preventDefault();
+        this._pageMonth(-1);
+        break;
+      case 'PageDown':
+        ke.preventDefault();
+        this._pageMonth(1);
+        break;
+      case 'Home':
+        ke.preventDefault();
+        this._moveFocusBy(cell, -(this._cells.indexOf(cell) % 7));
+        break;
+      case 'End':
+        ke.preventDefault();
+        this._moveFocusBy(cell, 6 - (this._cells.indexOf(cell) % 7));
+        break;
+      case 'Enter':
+      case ' ':
+        ke.preventDefault();
+        cell.click();
+        break;
+    }
+  }
+
+  /** Move grid focus `delta` days from `cell`, paging the month view if needed. */
+  private _moveFocusBy(cell: HTMLButtonElement, delta: number): void {
+    const dayNum = Number(cell.dataset['day']);
+    const target = new Date(this._view.y, this._view.m, dayNum + delta);
+    this._view = { y: target.getFullYear(), m: target.getMonth() };
+    this._patchGrid();
+    const newCell = this._cells.find(
+      (b) => Number(b.dataset['day']) === target.getDate() && !b.disabled,
+    );
+    newCell?.focus();
+  }
+
+  /** Step the view by `delta` months (PageUp/PageDown) and refocus. */
+  private _pageMonth(delta: number): void {
+    let m = this._view.m + delta;
+    let y = this._view.y;
+    if (m < 0) {
+      m = 11;
+      y -= 1;
+    }
+    if (m > 11) {
+      m = 0;
+      y += 1;
+    }
+    this._view = { y, m };
+    this._patchGrid();
+    this._focusInitialCell();
+  }
 
   private _focusInitialCell(): void {
     const sel = parseYMD(this._value);
     let target: HTMLButtonElement | undefined;
-    if (sel && sel.getFullYear() === this._view.y && sel.getMonth() === this._view.m) {
+    if (sel?.getFullYear() === this._view.y && sel.getMonth() === this._view.m) {
       target = this._cells.find((b) => Number(b.dataset['day']) === sel.getDate() && !b.disabled);
     }
     if (!target) {
@@ -221,7 +241,7 @@ export class EDatePicker extends BaseFormControl {
         );
       }
     }
-    if (!target) target = this._cells.find((b) => !b.disabled);
+    target ??= this._cells.find((b) => !b.disabled);
     for (const cell of this._cells) cell.tabIndex = cell === target ? 0 : -1;
     target?.focus();
   }
@@ -323,7 +343,7 @@ export class EDatePicker extends BaseFormControl {
       const weekRow = document.createElement('div');
       weekRow.className = 'ink-datepicker__row';
       weekRow.setAttribute('role', 'row');
-      for (let col = 0; col < DOW_LABELS.length; col++) {
+      for (const _dow of DOW_LABELS) {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'ink-datepicker__cell';
@@ -349,12 +369,10 @@ export class EDatePicker extends BaseFormControl {
       } else {
         this._triggerSpan.textContent = this._value;
       }
-    } else {
+    } else if (this._triggerSpan.firstChild !== this._placeholderSpan) {
       // Show the cached placeholder span — no innerHTML reassignment.
-      if (this._triggerSpan.firstChild !== this._placeholderSpan) {
-        this._triggerSpan.textContent = '';
-        this._triggerSpan.appendChild(this._placeholderSpan);
-      }
+      this._triggerSpan.textContent = '';
+      this._triggerSpan.appendChild(this._placeholderSpan);
     }
   }
 
@@ -379,7 +397,7 @@ export class EDatePicker extends BaseFormControl {
         /* Empty cell */
         patchText(btn, '');
         patchBoolAttr(btn, 'disabled', true);
-        btn.removeAttribute('data-day');
+        delete btn.dataset['day'];
         patchAttr(btn, 'aria-selected', null);
         patchAttr(btn, 'aria-label', null);
         patchAttr(btn, 'data-today', null);
@@ -387,8 +405,7 @@ export class EDatePicker extends BaseFormControl {
         patchText(btn, String(dayNum));
         patchBoolAttr(btn, 'disabled', false);
         btn.dataset['day'] = String(dayNum);
-        const isSel =
-          sel && sel.getFullYear() === y && sel.getMonth() === m && sel.getDate() === dayNum;
+        const isSel = sel?.getFullYear() === y && sel.getMonth() === m && sel.getDate() === dayNum;
         patchAttr(btn, 'aria-selected', String(!!isSel));
         const isToday =
           today.getFullYear() === y && today.getMonth() === m && today.getDate() === dayNum;
@@ -399,7 +416,7 @@ export class EDatePicker extends BaseFormControl {
     }
 
     const selectedCell = this._cells.find((cell) => cell.getAttribute('aria-selected') === 'true');
-    const todayCell = this._cells.find((cell) => cell.getAttribute('data-today') === 'true');
+    const todayCell = this._cells.find((cell) => cell.dataset['today'] === 'true');
     const tabStop = selectedCell ?? todayCell ?? this._cells.find((cell) => !cell.disabled);
     for (const cell of this._cells) cell.tabIndex = cell === tabStop ? 0 : -1;
   }
@@ -447,4 +464,4 @@ export class EDatePicker extends BaseFormControl {
 
 define('e-date-picker', EDatePicker);
 
-export { pad2 };
+export { pad2 } from '../core/date';

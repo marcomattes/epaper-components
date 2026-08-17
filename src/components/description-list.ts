@@ -21,7 +21,7 @@ import { define, intAttr } from '../core/dom';
  * </e-description-list>
  */
 export class EDescriptionList extends HTMLElement {
-  static observedAttributes = ['columns', 'layout', 'bordered'];
+  static readonly observedAttributes = ['columns', 'layout', 'bordered'];
 
   private _wired = false;
   private _dl: HTMLElement | null = null;

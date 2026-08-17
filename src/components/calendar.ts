@@ -19,13 +19,13 @@ const CELL_COUNT = 42;
  * <e-calendar value="2025-04-26" events='[{"date":"2025-04-30","title":"Release"}]'></e-calendar>
  */
 export class ECalendar extends HTMLElement {
-  static observedAttributes = ['value', 'events'];
+  static readonly observedAttributes = ['value', 'events'];
 
   private _wired = false;
   private _view = { y: 2026, m: 0 };
   private _value = '';
   private _events: CalendarEvent[] = [];
-  private _eventMap = new Map<string, CalendarEvent[]>();
+  private readonly _eventMap = new Map<string, CalendarEvent[]>();
 
   /* DOM references */
   private _titleEyebrow: HTMLElement | null = null;
@@ -223,7 +223,7 @@ export class ECalendar extends HTMLElement {
       const weekRow = document.createElement('div');
       weekRow.className = 'ink-calendar__row';
       weekRow.setAttribute('role', 'row');
-      for (let col = 0; col < DOW_LABELS.length; col++) {
+      for (const _dow of DOW_LABELS) {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'ink-calendar__cell';
@@ -275,7 +275,7 @@ export class ECalendar extends HTMLElement {
         /* Empty cell — shown as inert div-like */
         patchText(dayNum, '');
         patchBoolAttr(btn, 'disabled', true);
-        btn.removeAttribute('data-day');
+        delete btn.dataset['day'];
         patchAttr(btn, 'aria-selected', null);
         patchAttr(btn, 'aria-hidden', null);
         patchAttr(btn, 'aria-label', 'Outside current month');
@@ -287,7 +287,7 @@ export class ECalendar extends HTMLElement {
         btn.dataset['day'] = String(d);
         patchAttr(btn, 'aria-hidden', null);
 
-        const isSel = sel && sel.getFullYear() === y && sel.getMonth() === m && sel.getDate() === d;
+        const isSel = sel?.getFullYear() === y && sel.getMonth() === m && sel.getDate() === d;
         patchAttr(btn, 'aria-selected', String(!!isSel));
 
         const isToday =
@@ -302,7 +302,7 @@ export class ECalendar extends HTMLElement {
       }
     }
     const selectedCell = this._cells.find((cell) => cell.getAttribute('aria-selected') === 'true');
-    const todayCell = this._cells.find((cell) => cell.getAttribute('data-today') === 'true');
+    const todayCell = this._cells.find((cell) => cell.dataset['today'] === 'true');
     const tabStop = selectedCell ?? todayCell ?? this._cells.find((cell) => !cell.disabled);
     for (const cell of this._cells) cell.tabIndex = cell === tabStop ? 0 : -1;
   }
@@ -342,13 +342,9 @@ export class ECalendar extends HTMLElement {
   ): boolean {
     const children = container.children;
     for (let i = 0; i < shown.length; i++) {
-      if (!children[i] || children[i].textContent !== shown[i].title) return true;
+      if (children[i]?.textContent !== shown[i].title) return true;
     }
-    if (
-      overflow &&
-      (!children[shown.length] || children[shown.length].textContent !== `+${overflow}`)
-    )
-      return true;
+    if (overflow && children[shown.length]?.textContent !== `+${overflow}`) return true;
     return false;
   }
 }

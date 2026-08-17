@@ -20,7 +20,7 @@ import { BaseFormControl } from '../core/base-form-control';
  * </e-checkbox-group>
  */
 export class ECheckboxGroup extends BaseFormControl {
-  static observedAttributes = ['value', 'layout'];
+  static readonly observedAttributes = ['value', 'layout'];
 
   private _wired = false;
   private _opts: Array<{ value: string; label: string }> = [];

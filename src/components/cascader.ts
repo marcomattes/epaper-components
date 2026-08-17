@@ -22,7 +22,7 @@ import { isTreeData } from '../core/data';
  * <e-cascader data='[{"value":"eu","label":"Europe","children":[{"value":"de","label":"Germany"}]}]' value="eu,de"></e-cascader>
  */
 export class ECascader extends BaseFormControl {
-  static observedAttributes = ['value', 'data', 'options', 'placeholder'];
+  static readonly observedAttributes = ['value', 'data', 'options', 'placeholder'];
 
   private _options: CascaderOption[] = [];
   private _path: string[] = [];
@@ -118,7 +118,7 @@ export class ECascader extends BaseFormControl {
     this._trigger = document.createElement('button');
     this._trigger.type = 'button';
     this._trigger.className = 'ink-select__trigger';
-    this._trigger.setAttribute('data-trigger', '');
+    this._trigger.dataset['trigger'] = '';
     this._trigger.setAttribute('aria-haspopup', 'listbox');
     this._trigger.setAttribute('aria-expanded', 'false');
 
@@ -218,7 +218,7 @@ export class ECascader extends BaseFormControl {
       items[0]?.focus();
     } else if (e.key === 'End') {
       e.preventDefault();
-      items[items.length - 1]?.focus();
+      items.at(-1)?.focus();
     } else if (e.key === 'ArrowRight') {
       e.preventDefault();
       const v = item.dataset['value'] ?? '';
@@ -301,7 +301,7 @@ export class ECascader extends BaseFormControl {
     const cols = this._resolveCols();
 
     while (this._menu.children.length > cols.length) {
-      this._menu.removeChild(this._menu.lastChild!);
+      this._menu.lastChild!.remove();
     }
 
     const newKeys: string[] = [];

@@ -70,7 +70,7 @@ export type DialogCloseReason = 'close-button' | 'escape' | 'backdrop' | 'api';
  * </e-dialog>
  */
 export class EDialog extends HTMLElement {
-  static observedAttributes = ['open', 'heading', 'size', 'no-close', 'aria-label'];
+  static readonly observedAttributes = ['open', 'heading', 'size', 'no-close', 'aria-label'];
 
   private _wired = false;
   private _dialog: HTMLDialogElement | null = null;

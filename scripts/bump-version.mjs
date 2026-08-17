@@ -1,4 +1,4 @@
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import process from 'node:process';
 
@@ -20,34 +20,34 @@ if (!allowedRanges.includes(input) && !isExactVersion) {
   process.exit(1);
 }
 
-function run(command) {
-  execSync(command, { stdio: 'inherit' });
+function run(command, args) {
+  execFileSync(command, args, { stdio: 'inherit' });
 }
 
-function capture(command) {
-  return execSync(command, { encoding: 'utf8' }).trim();
+function capture(command, args) {
+  return execFileSync(command, args, { encoding: 'utf8' }).trim();
 }
 
-run(`npm version ${input} --no-git-tag-version`);
+run('npm', ['version', input, '--no-git-tag-version']);
 
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
 const version = pkg.version;
 const commitMessage = `chore(release): bump version to v${version}`;
 
-run('npm run build');
-run('git add --all');
-run(`git commit -m "${commitMessage}"`);
+run('npm', ['run', 'build']);
+run('git', ['add', '--all']);
+run('git', ['commit', '-m', commitMessage]);
 
 // `main` is protected by a ruleset that requires a pull request, so the bump
 // lands through a PR. Tagging here would be wrong: a squash or rebase merge
 // rewrites this commit, and the tag would point at an object that never
 // reaches `main`. On a release branch the tag is therefore left to the
 // maintainer, after the merge.
-const branch = capture('git rev-parse --abbrev-ref HEAD');
+const branch = capture('git', ['rev-parse', '--abbrev-ref', 'HEAD']);
 const defaultBranch = 'main';
 
 if (branch === defaultBranch) {
-  run(`git tag -a v${version} -m "Release v${version}"`);
+  run('git', ['tag', '-a', `v${version}`, '-m', `Release v${version}`]);
   console.log(`\n✅ Bumped to v${version}, committed and tagged.`);
   console.log('   Push with: git push --follow-tags');
 } else {
