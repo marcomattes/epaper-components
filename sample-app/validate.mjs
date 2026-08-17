@@ -78,34 +78,42 @@ const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
 // 2. Browser-driven checks against the built dist/ output.
 // ---------------------------------------------------------------------------
 
-// Serves only the fixed set of paths this script itself requests
-// (/dist/**, /sample-app/fixtures/**) — reject anything else outright rather
-// than trying to sanitize an attacker-shaped path, and resolve+verify
-// containment with path.relative rather than a prefix string comparison
-// (a bare `startsWith(root)` accepts sibling directories that merely share
-// the same string prefix, and doesn't catch every `..` encoding).
-const allowedRoots = [path.join(root, 'dist'), path.join(root, 'sample-app', 'fixtures')];
+// Build a fixed manifest of every file this script is allowed to serve, up
+// front, from trusted (non-request) input only. The request handler below
+// then only ever uses the incoming URL as a lookup key into this map — it
+// never concatenates request data into a filesystem path, so there is no
+// path-traversal sink to sanitize in the first place.
+function collectFiles(dir, out) {
+  for (const name of fs.readdirSync(dir)) {
+    const abs = path.join(dir, name);
+    if (fs.statSync(abs).isDirectory()) collectFiles(abs, out);
+    else out.push(abs);
+  }
+}
+
+const servableFiles = [];
+for (const dir of [distDir, path.join(root, 'sample-app', 'fixtures')]) {
+  if (fs.existsSync(dir)) collectFiles(dir, servableFiles);
+}
+const fileManifest = new Map(
+  servableFiles.map((abs) => ['/' + path.relative(root, abs).split(path.sep).join('/'), abs]),
+);
 
 const server = http.createServer((req, res) => {
   const urlPath = decodeURIComponent(req.url.split('?')[0]);
-  const requested = path.normalize(path.join(root, urlPath));
-  const relative = path.relative(root, requested);
-  const withinAllowedRoot = allowedRoots.some((allowed) => {
-    const rel = path.relative(allowed, requested);
-    return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
-  });
-  if (relative.startsWith('..') || path.isAbsolute(relative) || !withinAllowedRoot) {
-    res.writeHead(403);
+  const filePath = fileManifest.get(urlPath);
+  if (!filePath) {
+    res.writeHead(404);
     res.end();
     return;
   }
-  fs.readFile(requested, (err, data) => {
+  fs.readFile(filePath, (err, data) => {
     if (err) {
       res.writeHead(404);
       res.end();
       return;
     }
-    const ext = path.extname(requested);
+    const ext = path.extname(filePath);
     const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
     res.writeHead(200, { 'Content-Type': types[ext] ?? 'application/octet-stream' });
     res.end(data);
