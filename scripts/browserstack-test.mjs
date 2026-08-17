@@ -164,11 +164,18 @@ async function inspectStory(page, story, attempt, runtimeErrors) {
       () => {
         const root = document.querySelector('#storybook-root');
         const error = document.querySelector('.sb-errordisplay, [data-storybook-error]');
-        return !error && root && (root.childElementCount > 0 || root.textContent?.trim());
+        return Boolean(error) || (root && (root.childElementCount > 0 || root.textContent?.trim()));
       },
       undefined,
       { timeout: storyTimeout },
     );
+
+    const earlyError = await page.evaluate(
+      () =>
+        document.querySelector('.sb-errordisplay, [data-storybook-error]')?.textContent?.trim() ??
+        '',
+    );
+    if (earlyError) throw new Error(`Storybook render error: ${earlyError}`);
 
     await page.evaluate(async () => {
       if (document.fonts) await document.fonts.ready;

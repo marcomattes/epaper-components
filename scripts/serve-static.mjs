@@ -1,7 +1,7 @@
 import { createReadStream } from 'node:fs';
-import { stat } from 'node:fs/promises';
+import { readdir, stat } from 'node:fs/promises';
 import { createServer } from 'node:http';
-import { extname, resolve, sep } from 'node:path';
+import { extname, join, posix, resolve } from 'node:path';
 
 const root = resolve(process.argv[2] ?? 'storybook-static');
 const port = Number(process.argv[3] ?? 6006);
@@ -24,28 +24,57 @@ const contentTypes = new Map([
   ['.woff2', 'font/woff2'],
 ]);
 
+// Build a fixed manifest of every file this server is allowed to serve, up
+// front, from trusted (non-request) input only — walking `root` once. The
+// request handler below then only ever uses the incoming URL as a lookup key
+// into this map; it never concatenates request data into a filesystem path,
+// so there is no path-traversal sink to sanitize in the first place. This
+// mirrors the fixed-manifest approach already used for sample-app's local
+// static server.
+async function collectFiles(dir, out) {
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    const abs = join(dir, entry.name);
+    if (entry.isDirectory()) await collectFiles(abs, out);
+    else out.push(abs);
+  }
+}
+
+async function buildManifest() {
+  const files = [];
+  await collectFiles(root, files);
+
+  const manifest = new Map();
+  for (const abs of files) {
+    const urlPath = `/${posix.join(
+      ...abs
+        .slice(root.length)
+        .split(/[/\\]+/)
+        .filter(Boolean),
+    )}`;
+    manifest.set(urlPath, abs);
+    if (posix.basename(urlPath) === 'index.html') {
+      const dir = posix.dirname(urlPath);
+      manifest.set(dir, abs);
+      if (dir !== '/') manifest.set(`${dir}/`, abs);
+    }
+  }
+  return manifest;
+}
+
+const manifest = await buildManifest();
+
 const server = createServer(async (request, response) => {
   try {
     const url = new URL(request.url ?? '/', 'http://localhost');
     const requestedPath = decodeURIComponent(url.pathname);
-    let filePath = resolve(root, `.${requestedPath}`);
+    const filePath = manifest.get(requestedPath);
 
-    if (filePath !== root && !filePath.startsWith(`${root}${sep}`)) {
-      response.writeHead(403).end('Forbidden');
-      return;
-    }
-
-    let fileStat = await stat(filePath);
-    if (fileStat.isDirectory()) {
-      filePath = resolve(filePath, 'index.html');
-      fileStat = await stat(filePath);
-    }
-
-    if (!fileStat.isFile()) {
+    if (!filePath) {
       response.writeHead(404).end('Not found');
       return;
     }
 
+    const fileStat = await stat(filePath);
     response.writeHead(200, {
       'Cache-Control': 'no-store',
       'Content-Length': fileStat.size,
