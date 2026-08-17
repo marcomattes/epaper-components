@@ -74,6 +74,12 @@ jobs:
       - name: Size limit
         run: npm run size
 
+      - name: Validate sample app (README claims, compiled)
+        run: npm run validate:sample-app:types
+
+      - name: Validate sample app (README claims, runtime)
+        run: npm run validate:sample-app
+
   sonar:
     name: SonarQube
     needs: build

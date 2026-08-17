@@ -16,7 +16,7 @@
 > **[Storybook](https://epaper-components.dev/storybook/)**
 
 EPaper is a component library of plain custom elements for user interfaces that
-run on electrophoretic displays. It ships 82 registered elements, a three-layer
+run on electrophoretic displays. It ships 89 registered elements, a three-layer
 CSS token system, strict TypeScript types and a Custom Elements Manifest. There
 is no framework dependency and no runtime dependency at all; components extend
 `HTMLElement` or a shared `BaseFormControl` base class and render into the light
@@ -116,6 +116,14 @@ The practical effect is that an `attributeChangedCallback` routed through
 which is a common pattern in reactive renderers and would otherwise cause a
 refresh per render pass.
 
+Not every update goes through the patch helpers, though. Components whose
+content is structural rather than a single value — `<e-table>` rebuilding its
+rows, `<e-calendar>` rebuilding its grid, `<e-select>` rebuilding its option
+list — call an internal `_build()` that replaces the whole subtree on a
+relevant data change, the same tradeoff a bare `innerHTML` re-render would
+make. That subtree is still bounded to the one component rather than the
+page, but it is a full-subtree refresh, not a surgical patch.
+
 ### Light DOM
 
 No component calls `attachShadow`; everything renders into the light tree via
@@ -182,7 +190,9 @@ The 44px default follows the iOS Human Interface Guidelines minimum, which at
 300 ppi corresponds to about 3.7 mm of physical glass. Capacitive layers
 laminated onto e-paper modules generally resolve touch less precisely than those
 on OLED panels, so the larger default is a reasonable baseline rather than a
-generous one.
+generous one. It is a default, not a floor: compact controls opt into
+`--ink-control-h-sm` deliberately — `<e-chip>` is 36px — and dense grids such
+as the calendar's day cells size to content rather than to a control token.
 
 ### Color on Kaleido panels
 
@@ -217,10 +227,18 @@ before it ships.
 The constraints above exclude several common UI patterns. If a project needs any
 of the following, a conventional component library is the better choice:
 
-- Skeleton loaders, shimmer effects or progress spinners, all of which depend on
-  motion.
+- Shimmer effects or spinning progress indicators, which depend on motion.
+  `<e-skeleton>` and `<e-progress>` exist as static placeholders — an outline
+  block and a bar or step indicator that redraw once, with no animated variant.
 - Hover-driven menus and tooltips, which have no input equivalent on e-paper.
-- Drop shadows, gradients and translucency, which dither unpredictably.
+  `<e-popover>` and `<e-dropdown>` cover the tap-driven equivalents; a true
+  hover tooltip has nothing to bind to.
+- Soft drop shadows and decorative color gradients or alpha compositing, which
+  dither unpredictably; this is why Kaleido swatches are flat tokens with no
+  gradient or alpha (see below). It does not rule out the library's own
+  1-bit hatch fills, which are `repeating-linear-gradient`s of two flat colors
+  rather than a blended one, or the `opacity: 0` used to keep a native
+  `<input>` interactive while visually hidden under a styled control.
 - Color-coded status indicators, since Carta is grayscale and Kaleido provides
   roughly five reliably distinguishable colors.
 - Interaction at 60 fps, which the panel hardware cannot deliver.
@@ -248,6 +266,15 @@ assumes `node_modules` is reachable from the document, so in a served
 application either copy the file into the public directory or point the tag at
 your own asset path.
 
+A bare specifier such as `@marcomattes/epaper-components/button` is a Node.js
+resolution convention read from the package's `exports` map; a plain
+`<script type="module">` cannot resolve it on its own. Either import the
+built files by their real path under `dist/`, as below, or add an
+[import map](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/script/type/importmap)
+that reproduces the `exports` map's `import` targets one subpath at a time —
+a single prefix mapping does not work here because the barrel resolves to
+`dist/index.js` while every other subpath resolves under `dist/components/`.
+
 ```html
 <!doctype html>
 <html lang="en">
@@ -259,10 +286,12 @@ your own asset path.
       href="node_modules/@marcomattes/epaper-components/dist/styles/epaper.min.css"
     />
     <script type="module">
-      // Register only the components you use:
-      import '@marcomattes/epaper-components/button';
-      import '@marcomattes/epaper-components/input';
-      import '@marcomattes/epaper-components/form';
+      // Register only the components you use, by their built path. A leading
+      // "./" is required — without it these would be bare specifiers, which
+      // only a bundler or an import map can resolve.
+      import './node_modules/@marcomattes/epaper-components/dist/components/button.js';
+      import './node_modules/@marcomattes/epaper-components/dist/components/input.js';
+      import './node_modules/@marcomattes/epaper-components/dist/components/form.js';
     </script>
   </head>
   <body class="ink-page">
@@ -270,7 +299,8 @@ your own asset path.
       <e-form-item label="Name">
         <e-input name="name" required></e-input>
       </e-form-item>
-      <e-button variant="primary">Save</e-button>
+      <!-- e-button defaults to type="button"; a form submit control needs type="submit" explicitly. -->
+      <e-button type="submit" variant="primary">Save</e-button>
     </e-form>
   </body>
 </html>
@@ -326,12 +356,19 @@ Sizes as of the 1.0.1 build:
 
 ## Subpath imports and bundle size
 
-Every component is shipped as a separate ES module under
-`@marcomattes/epaper-components/<tag>`, and the barrel entry registers all of
-them. The `sideEffects` allowlist in `package.json` covers the component modules
-and the public CSS files, so importing a single subpath pulls in that component
-plus its shared core chunks and nothing else, in Vite, Rollup, esbuild and
-webpack 5.
+Every one of the 64 component modules is shipped as a separate ES module under
+`@marcomattes/epaper-components/<tag>`, and the barrel entry registers all 89
+of the elements they define. The `sideEffects` allowlist in `package.json`
+covers the component modules and the public CSS files, so importing a single
+subpath pulls in that component plus its shared core chunks and nothing else,
+in Vite, Rollup, esbuild and webpack 5.
+
+Compound elements that a parent component registers alongside itself — such as
+`<e-form-item>` (registered by `form.ts`) or `<e-option>` (registered by
+`select.ts`) — do not get their own subpath; importing the parent module
+registers them too. `package.json` exposes 84 subpaths in total: the barrel,
+69 component entries covering all 89 tags between them, and 14 CSS/source-map
+entries.
 
 | Goal               | Import                                                           |
 | ------------------ | ---------------------------------------------------------------- |
@@ -340,7 +377,7 @@ webpack 5.
 | Whole library      | `import '@marcomattes/epaper-components';`                       |
 
 Bundling the full library through esbuild produces about 31.6 KB brotli, or
-roughly 46 KB gzip; `npm run size` enforces a 40 KB brotli budget on the barrel
+roughly 37 KB gzip; `npm run size` enforces a 40 KB brotli budget on the barrel
 and separate budgets on `<e-button>` (6 KB, currently 909 B) and `<e-input>`
 (8 KB, currently 1.43 KB). The CSS files are declared as having side effects,
 since they apply globally, and are never tree-shaken.
@@ -349,8 +386,15 @@ since they apply globally, and are never tree-shaken.
 
 Every interactive control is a [form-associated custom
 element](https://web.dev/articles/more-capable-form-controls). Giving a control
-a `name` attribute is enough for it to participate in submission, `FormData`,
-reset and constraint validation.
+a `name` attribute is enough for it to participate in submission, `FormData`
+and `form.reset()`. Built-in constraint validation — a `required` field
+reporting itself invalid and blocking submission — is currently only wired up
+for `<e-input>`, `<e-textarea>` (value/pattern rules) and `<e-upload>` (file
+constraints); the other ten `BaseFormControl` subclasses accept `required` and
+render it, but never call `ElementInternals.setValidity()`, so it has no effect
+on `checkValidity()` or submission for those controls today. `form.reset()`
+restores every control's `default-value` attribute (or `default-checked` for
+`<e-checkbox>`/`<e-toggle>`/`<e-radio>`), not its initial `value`.
 
 ```html
 <form id="profile">
@@ -378,7 +422,12 @@ reset and constraint validation.
   import '@marcomattes/epaper-components';
   document.getElementById('profile').addEventListener('submit', (e) => {
     e.preventDefault();
-    const data = Object.fromEntries(new FormData(e.target));
+    const fd = new FormData(e.target);
+    // Object.fromEntries(fd) keeps only the last value for a repeated key,
+    // which silently drops all but one of a checkbox-group's selections.
+    // Read multi-value fields with getAll() instead:
+    const data = Object.fromEntries(fd);
+    data.topics = fd.getAll('topics');
     console.log(data);
   });
 </script>
@@ -390,31 +439,43 @@ Form controls also expose the standard `value`, `validity`, `validationMessage`,
 
 ## Events
 
-Components communicate through `CustomEvent`s with an `e-` prefix and a typed
-`detail` payload. The default is an `e-change` event carrying `{ value: T }`;
-the following contracts differ from that default and are stable API:
+Components communicate through `CustomEvent`s with an `e-` prefix, all of them
+bubbling, and a typed `detail` payload. The default is an `e-change` event
+carrying `{ value: T }`; the following contracts differ from that default and
+are stable API. There are nine distinct event names in total:
 
-| Event      | Detail                             | Fired by                                                                 |
-| ---------- | ---------------------------------- | ------------------------------------------------------------------------ |
-| `e-change` | `{ value: string }`                | `e-input`, `e-textarea`, `e-select`, `e-date-picker`, `e-tree-select`, … |
-| `e-change` | `{ value: string[] }`              | `e-cascader`, `e-checkbox-group`                                         |
-| `e-change` | `{ value: number }`                | `e-pagination`, `e-input-number`                                         |
-| `e-change` | `{ checked: boolean }`             | `e-checkbox`, `e-toggle`                                                 |
-| `e-change` | `{ files: File[] }`                | `e-upload`                                                               |
-| `e-click`  | `{ originalEvent: MouseEvent }`    | `e-button`                                                               |
-| `e-select` | `{ index: number }`                | `e-dropdown`                                                             |
-| `e-submit` | `{ form: HTMLFormElement }`        | `e-form` (the native submit is `preventDefault`-ed)                      |
-| `e-error`  | `{ error: Error, source: string }` | `e-cascader`, `e-tree-select` on malformed JSON attributes               |
+| Event      | Detail                                                  | Fired by                                                                      |
+| ---------- | ------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `e-change` | `{ value: string }`                                     | `e-input`, `e-textarea`, `e-select`, `e-date-picker`, `e-tree-select`, …      |
+| `e-change` | `{ value: string[] }`                                   | `e-cascader`, `e-checkbox-group`                                              |
+| `e-change` | `{ value: number }`                                     | `e-pagination`, `e-input-number`                                              |
+| `e-change` | `{ checked: boolean }`                                  | `e-checkbox`, `e-toggle`                                                      |
+| `e-change` | `{ files: File[] }`                                     | `e-upload`                                                                    |
+| `e-input`  | `{ value: string }`                                     | `e-input`, `e-textarea`, on every keystroke (before the committed `e-change`) |
+| `e-click`  | `{ originalEvent: MouseEvent }`                         | `e-button`                                                                    |
+| `e-select` | `{ index: number }`                                     | `e-dropdown`                                                                  |
+| `e-close`  | `{ value: string }`                                     | `e-tag`, when its close control is activated                                  |
+| `e-load`   | `{ value: 'src' \| 'fallback' \| 'placeholder' }`       | `e-image`, when a source finishes rendering                                   |
+| `e-sort`   | `{ key: string, direction: 'asc' \| 'desc' \| 'none' }` | `e-table`, on a header sort click (the component never reorders rows itself)  |
+| `e-submit` | `{ form: HTMLFormElement }`                             | `e-form` (the native submit is `preventDefault`-ed)                           |
+| `e-error`  | `{ error: Error, source: string }`                      | `e-cascader`, `e-tree-select` on malformed JSON attributes                    |
 
 The complete per-component list, including slots and attributes, is generated
 into `dist/custom-elements.json`. For typed listeners the package exports an
-`EChangeDetail<T>` helper:
+`EChangeDetail<T>` helper. Because `'e-change'` isn't a key of
+`HTMLElementEventMap`, `addEventListener` falls back to its untyped overload,
+whose listener parameter type is `Event` — a listener typed to take
+`CustomEvent<EChangeDetail<T>>` directly is narrower, and TypeScript's `strict`
+mode rejects the assignment (`Argument of type '(e: CustomEvent<...>) => void'
+is not assignable to parameter of type 'EventListenerOrEventListenerObject'`).
+Type the parameter as `Event` and narrow inside the body instead:
 
 ```ts
 import type { EChangeDetail } from '@marcomattes/epaper-components';
 
-el.addEventListener('e-change', (e: CustomEvent<EChangeDetail<string>>) => {
-  console.log(e.detail.value);
+el.addEventListener('e-change', (e: Event) => {
+  const { value } = (e as CustomEvent<EChangeDetail<string>>).detail;
+  console.log(value);
 });
 ```
 
@@ -428,8 +489,17 @@ in [THEMING.md](./THEMING.md).
 - **TypeScript:** importing the package augments `HTMLElementTagNameMap`, so
   `document.querySelector('e-button')` is typed as `EButton`.
 - **VS Code:** `dist/vscode.html-custom-data.json` provides tag and attribute
-  completion in plain HTML and is loaded automatically through the package's
-  `contributes.html.customData` entry.
+  completion in plain HTML. The package's `contributes.html.customData` entry
+  is the manifest field VS Code _extensions_ use — npm does not install it as
+  one, so VS Code never reads it from a dependency automatically. Point the
+  workspace at the file explicitly in `.vscode/settings.json`:
+  ```json
+  {
+    "html.customData": [
+      "./node_modules/@marcomattes/epaper-components/dist/vscode.html-custom-data.json"
+    ]
+  }
+  ```
 - **WebStorm:** `dist/web-types.json` provides the same in JetBrains IDEs via the
   `web-types` field.
 - **Custom Elements Manifest:** `dist/custom-elements.json` follows the
@@ -596,6 +666,7 @@ src/
   stories/     # Storybook documentation; not shipped.
   site/        # Source of epaper-components.dev; not shipped.
   demo/        # Demo HTML wiring; not shipped.
+sample-app/    # Runtime + compiled checks that this README stays accurate; not shipped.
 ```
 
 ### Companion docs
@@ -629,6 +700,8 @@ npm run format            # Prettier write
 npm run format:check      # Prettier check (CI gate)
 npm run size              # size-limit budget check on dist/
 npm run size:why          # size-limit with bundle-analyzer
+npm run validate:sample-app        # this README's runtime claims, against dist/, in Chromium
+npm run validate:sample-app:types  # this README's TypeScript snippets, strict-compiled against dist/
 ```
 
 ### Build pipeline
@@ -724,8 +797,14 @@ push to `main` by `.github/workflows/deploy.yml`.
 `main` requires a pull request, so the version bump is merged before the tag is
 pushed; [CONTRIBUTING.md](./CONTRIBUTING.md) documents the exact sequence.
 
+## Cross-browser testing
+
+Every component story is tested on Chrome, Edge, Firefox, desktop WebKit, and a
+mobile WebKit context through BrowserStack. The suite rejects runtime and
+rendering failures and also enforces that every registered custom element is
+covered by Storybook. See [BROWSERSTACK.md](./BROWSERSTACK.md) for the complete
+matrix, CI setup, reports, and local commands.
+
 ## License
 
 MIT. See [LICENSE](./LICENSE).
-
-This project is tested with BrowserStack

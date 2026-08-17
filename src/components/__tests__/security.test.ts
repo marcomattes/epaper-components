@@ -14,6 +14,11 @@ beforeAll(async () => {
   await import('../input-number');
   await import('../checkbox-group');
   await import('../upload');
+  await import('../alert');
+  await import('../dialog');
+  await import('../popover');
+  await import('../collapse');
+  await import('../tree');
 });
 
 const mount = (html: string): HTMLElement => {
@@ -119,4 +124,61 @@ describe('XSS prevention', () => {
     expect(el.querySelector('img[onerror]')).toBeNull();
     el.remove();
   });
+
+  for (const payload of XSS_PAYLOADS) {
+    it(`e-alert heading does not inject HTML: ${payload.slice(0, 30)}`, () => {
+      const el = mount(`<e-alert heading="${payload.replace(/"/g, '&quot;')}"></e-alert>`);
+      expect(el.querySelector('img[onerror]')).toBeNull();
+      expect(el.querySelector('script')).toBeNull();
+      expect(el.querySelector('svg[onload]')).toBeNull();
+      expect(el.querySelector('.ink-alert__heading')!.textContent).toBe(payload);
+    });
+
+    it(`e-dialog heading does not inject HTML: ${payload.slice(0, 30)}`, () => {
+      const el = mount(`<e-dialog heading="${payload.replace(/"/g, '&quot;')}"></e-dialog>`);
+      expect(el.querySelector('img[onerror]')).toBeNull();
+      expect(el.querySelector('script')).toBeNull();
+      expect(el.querySelector('svg[onload]')).toBeNull();
+      expect(el.querySelector('.ink-dialog__title')!.textContent).toBe(payload);
+    });
+
+    it(`e-popover heading does not inject HTML: ${payload.slice(0, 30)}`, () => {
+      const el = mount(`<e-popover heading="${payload.replace(/"/g, '&quot;')}"></e-popover>`);
+      expect(el.querySelector('img[onerror]')).toBeNull();
+      expect(el.querySelector('script')).toBeNull();
+      expect(el.querySelector('svg[onload]')).toBeNull();
+      expect(el.querySelector('.ink-popover__heading')!.textContent).toBe(payload);
+    });
+
+    it(`e-popconfirm message and labels do not inject HTML: ${payload.slice(0, 30)}`, () => {
+      const escaped = payload.replace(/"/g, '&quot;');
+      const el = mount(
+        `<e-popconfirm message="${escaped}" confirm-label="${escaped}" cancel-label="${escaped}"></e-popconfirm>`,
+      );
+      expect(el.querySelector('img[onerror]')).toBeNull();
+      expect(el.querySelector('script')).toBeNull();
+      expect(el.querySelector('svg[onload]')).toBeNull();
+      expect(el.querySelector('.ink-popconfirm__message')!.textContent).toBe(payload);
+      expect(el.querySelector('.ink-popconfirm__confirm')!.textContent).toBe(payload);
+    });
+
+    it(`e-collapse heading does not inject HTML: ${payload.slice(0, 30)}`, () => {
+      const el = mount(
+        `<e-collapse><e-collapse-panel key="a" heading="${payload.replace(/"/g, '&quot;')}">b</e-collapse-panel></e-collapse>`,
+      );
+      expect(el.querySelector('img[onerror]')).toBeNull();
+      expect(el.querySelector('script')).toBeNull();
+      expect(el.querySelector('svg[onload]')).toBeNull();
+      expect(el.querySelector('.ink-collapse__heading')!.textContent).toBe(payload);
+    });
+
+    it(`e-tree labels do not inject HTML: ${payload.slice(0, 30)}`, () => {
+      const data = JSON.stringify([{ value: 'a', label: payload }]).replace(/"/g, '&quot;');
+      const el = mount(`<e-tree data="${data}"></e-tree>`);
+      expect(el.querySelector('img[onerror]')).toBeNull();
+      expect(el.querySelector('script')).toBeNull();
+      expect(el.querySelector('svg[onload]')).toBeNull();
+      expect(el.querySelector('.ink-tree__label')!.textContent).toBe(payload);
+    });
+  }
 });

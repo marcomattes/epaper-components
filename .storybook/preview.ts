@@ -69,6 +69,7 @@ const preview: Preview = {
           'Inputs',
           'Layout',
           'Navigation',
+          'Feedback',
           'Composite',
         ],
       },

@@ -18,8 +18,8 @@ matching native `<input type="checkbox">` behaviour.
 | `checked` | `boolean` | — | Whether the box is checked. Reflected to the attribute on user input. |
 | `label` | `string` | — | Inline text label rendered next to the box. |
 | `disabled` | `boolean` | — | Disables interaction. |
-| `name` | `string` | — | Form field name. Required to participate in `FormData`. |
 | `value` | `string` | `'on'` | Submitted value when checked. |
+| `name` | `string` | — | Form field name. Required to participate in `FormData`. |
 
 ## Events
 

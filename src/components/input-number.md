@@ -19,6 +19,7 @@ of `<input type="number">`). Step buttons support press-and-hold to repeat.
 | `min` | `string` | — | Lower bound (inclusive). |
 | `max` | `string` | — | Upper bound (inclusive). |
 | `step` | `string` | `'1'` | Step size for the buttons and native input. |
+| `aria-label` | — | — |  |
 | `default-value` | `string` | — | Initial value used by `formResetCallback`. |
 | `name` | `string` | — | Form field name. Required to participate in `FormData`. |
 

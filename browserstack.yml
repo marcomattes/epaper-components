@@ -1,0 +1,100 @@
+# BrowserStack SDK configuration.
+#
+# The authoritative definition of the remote matrix lives in two places:
+#
+#   .github/workflows/browserstack.yml  — the matrix keys and build metadata
+#   scripts/browserstack-test.mjs       — the capabilities each key resolves to
+#
+# The runner talks to wss://cdp.browserstack.com/playwright directly and builds
+# its own capability object, so it does not read this file. Everything below
+# mirrors those two files so an SDK-driven local run (`browserstack-node-sdk
+# <cmd>`) lands on the same platforms as CI. Change the runner and the workflow
+# first, then reflect the change here.
+
+# ======================
+# BrowserStack Reporting
+# ======================
+# Matches `project-name` in the workflow's setup-env step and the
+# BROWSERSTACK_PROJECT_NAME default in scripts/browserstack-test.mjs.
+projectName: epaper-components
+# In CI, setup-env exports BROWSERSTACK_BUILD_NAME as
+# `epaper-components-<run_id>-<run_attempt>`, which takes precedence over this
+# value. This is the local-run fallback; the runner's own fallback is
+# `epaper-components-<timestamp>`, so a timestamp identifier matches it.
+buildName: epaper-components
+buildIdentifier: '${DATE_TIME}'
+
+# =======================================
+# Platforms (Browsers / Devices to test)
+# =======================================
+# One entry per `matrix.platform` key in .github/workflows/browserstack.yml.
+# `mobile-webkit` is deliberately absent: it is not a distinct BrowserStack
+# platform but the `webkit` platform driven with Playwright's `iPhone 15`
+# device descriptor, which is applied in the runner's browser context and
+# cannot be expressed here.
+platforms:
+  # matrix.platform: chrome
+  - os: Windows
+    osVersion: '11'
+    browserName: chrome
+    browserVersion: latest
+  # matrix.platform: edge
+  - os: Windows
+    osVersion: '11'
+    browserName: edge
+    browserVersion: latest
+  # matrix.platform: firefox
+  - os: Windows
+    osVersion: '11'
+    browserName: playwright-firefox
+  # matrix.platform: webkit — also the host platform for mobile-webkit
+  - os: OS X
+    osVersion: Tahoe
+    browserName: playwright-webkit
+
+# =======================
+# Parallels per Platform
+# =======================
+# The workflow fans out over the platforms with `fail-fast: false`, and each job
+# runs the whole story suite in a single remote session. One thread per platform
+# keeps an SDK run equivalent to one matrix job.
+parallelsPerPlatform: 1
+
+# ==========================================
+# BrowserStack Local
+# (For localhost, staging/private websites)
+# ==========================================
+# Storybook is served from 127.0.0.1:6006 by `npm run browserstack:serve`, so
+# the tunnel is required. The workflow starts it with `local-identifier: random`
+# and the runner forwards BROWSERSTACK_LOCAL_IDENTIFIER into
+# `browserstack.localIdentifier`; set that variable for local runs too rather
+# than hardcoding an identifier here.
+browserstackLocal: true
+# browserStackLocalOptions:
+#   localIdentifier: # <string> Needed only when running several tunnels at once.
+#   forceLocal: true # <boolean> Route all traffic through the tunnel.
+
+# ===================
+# Debugging features
+# ===================
+# Mirrors the `browserstack.debug`, `browserstack.networkLogs`, and
+# `browserstack.console` capabilities set in scripts/browserstack-test.mjs.
+# Console errors are load-bearing, not just diagnostics: the runner fails a
+# story on any console error.
+debug: true
+networkLogs: true
+consoleLogs: errors
+
+# Test Reporting And Analytics is an intelligent test reporting & debugging product. It collects data using the SDK. Read more about what data is collected at https://www.browserstack.com/docs/test-reporting-and-analytics/references/terms-and-conditions
+# Visit automation.browserstack.com to see your test reports and insights. To disable test reporting and analytics, specify `testReporting: false` in the key below.
+testReporting: true
+
+# =======================
+# Test Management
+# =======================
+# Auto-link this build / test-run to a Test Case Management (TCM) Test Plan.
+# Set `testPlanId` to the ID of the Test Plan you want this run associated with.
+# This can also be provided via the BROWSERSTACK_TEST_PLAN_ID env variable or the
+# --browserstack.testManagementOptions.testPlanId CLI argument (CLI > env > config).
+# testManagementOptions:
+#   testPlanId: # <string> (Default: null) The TCM Test Plan ID to link this build to.

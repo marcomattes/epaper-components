@@ -21,17 +21,36 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - `vitest-sonar-reporter` emits `reports/test/sonar.xml` in Sonar's Generic Test
   Execution format, which is what Sonar reads for JavaScript and TypeScript —
   it cannot import the JUnit XML the suite already wrote.
-
-### Changed
-
-- The coverage thresholds are now a regression floor rather than a target. CI
-  previously ran without `--coverage`, so the branch threshold of 70% was never
-  evaluated against the 65.5% the suite actually reaches; it is now 65%, which
-  fails on a drop instead of blocking every build. The bar for new code is
-  Sonar's quality gate, which applies to changed lines only.
-- `src/core/types.ts` is excluded from coverage. It is type-only and compiles to
-  an empty module, so it could only ever be reported as 0% covered.
-
+- `sample-app/`: a Playwright-driven runtime check plus a strict-TypeScript
+  compile, both run in CI, that hold `README.md`'s claims to the built
+  `dist/` output — selective vs. barrel registration, compound child-element
+  registration, the 89-tag Custom Elements Manifest, light DOM, token
+  overrides, disabled animations, `ElementInternals`, required validation,
+  the nine typed custom events, native submit/reset, and repeated `FormData`
+  entries from `<e-checkbox-group>`.
+- `<e-dialog>` — modal dialog on the native `<dialog>` element. Opens via
+  `showModal()`, so focus trapping, `Escape`, the top layer and inertness of
+  the page behind it come from the browser. The backdrop is a flat
+  `--ink-hatch-cover` fill rather than a translucent wash, which would dither
+  unpredictably between refreshes. Supports `size`, `no-close` and `static`,
+  a `footer` slot, `data-close` on any descendant, and reports what dismissed
+  it through `e-close`'s `reason`.
+- `<e-alert>` — inline status banner in four severities. The static
+  counterpart to a toast: nothing appears or disappears on a timer, because a
+  message that auto-dismisses can be missed between two panel refreshes.
+  Severity is carried by an icon, a border weight and a hatch fill, never by
+  color alone.
+- `<e-collapse>` / `<e-collapse-panel>` — disclosure stack on native
+  `<details>`/`<summary>`, with an `accordion` mode and `default-open`.
+  Expanding mutates one attribute, so only the section that changed repaints.
+- `<e-tree>` — standalone hierarchical tree for navigation and display, with
+  optional `selectable` rows and `checkable` rows whose checks cascade through
+  the subtree and report partially checked parents as `aria-checked="mixed"`.
+- `<e-popover>` and `<e-popconfirm>` — click-triggered overlays, the
+  counterpart to hover-driven tooltips on hardware whose digitizer reports
+  contact rather than proximity. Both are non-modal and position through CSS,
+  mirroring `<e-dropdown>`; the Popover API and CSS anchor positioning both
+  sit above this library's browser floor.
 - The site is six real URLs — `/`, `/features/`, `/components/`, `/showcase/`,
   `/install/`, `/community/` — instead of one hash-routed scroll page. Every page
   is a complete static document with its own `<title>`, description, canonical
@@ -51,9 +70,70 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   AI crawlers are explicitly allowed in `robots.txt`.
 - A favicon, an apple-touch icon and a 1200×630 Open Graph card
   (`src/site/public/`).
+- Per-pull-request preview deployments
+  (`.github/workflows/preview.yml`). Every PR from a branch in this repository
+  publishes the site and Storybook to
+  `https://epaper-components.dev/preview/pr-<number>/` and gets a sticky
+  comment with the links; closing the PR deletes the directory again. Pull
+  requests from forks are skipped, because they never receive the FTP
+  credentials. Preview pages are stamped `noindex,nofollow` and `/preview/` is
+  disallowed in `robots.txt`, so a throwaway copy cannot compete with the live
+  site in search results.
+- `.github/workflows/visual-baselines.yml`, a manually dispatched job that
+  regenerates the `screenshots.test.ts` PNG baselines inside the same pinned
+  Playwright container CI compares against, and pushes them to a branch. Font
+  rasterisation differs between Chromium builds, so a baseline produced on any
+  other machine fails CI by one to four pixels.
+
+### Changed
+
+- The coverage thresholds are now a regression floor rather than a target. CI
+  previously ran without `--coverage`, so the branch threshold of 70% was never
+  evaluated against the 65.5% the suite actually reaches; it is now 65%, which
+  fails on a drop instead of blocking every build. The bar for new code is
+  Sonar's quality gate, which applies to changed lines only.
+- `src/core/types.ts` is excluded from coverage. It is type-only and compiles to
+  an empty module, so it could only ever be reported as 0% covered.
+- Tree traversal, expansion, roving tabindex and keyboard navigation moved
+  into `src/core/tree.ts`, shared by `<e-tree-select>` and the new `<e-tree>`.
+  `<e-tree-select>`'s public behaviour is unchanged.
+- The site's internal links are base-aware. `VITE_SITE_BASE` now drives
+  `SITE_BASE`/`withBase()` in `src/site/routes.ts`, which prefixes the header
+  nav, the page-to-page pager, the in-page calls to action, the favicon and
+  the apple-touch icon. Previously it only moved Vite's asset base, so a site
+  served from a sub-directory linked back to the production root. Output at
+  the root is byte-for-byte unchanged.
+- The tag release path is now staged as `guard → checks → release → update`.
+  `checks` calls `ci.yml` as a reusable workflow instead of repeating its steps,
+  and `update` installs the published version from the registry, registers the
+  elements in jsdom (`scripts/smoke-test.mjs`), verifies the provenance
+  attestation and redeploys the site and Storybook from the tagged source.
+- `npm run bump-version` no longer creates the tag when run off `main`, since
+  `main` requires a pull request and a squash or rebase merge would strand a
+  tag created on the branch. It prints the post-merge tagging steps instead.
 
 ### Fixed
 
+- `README.md` and `OVERVIEW.md` corrected against the actual built package:
+  the static-HTML quick start now resolves without a bundler (bare
+  specifiers need an import map or a real file path — it had neither), the
+  `<e-button>` submit example now sets `type="submit"` (the default is
+  `type="button"`), the events table now lists all nine event names instead
+  of five, the typed-listener example now compiles under `strict: true`,
+  bundle size is corrected to its measured ~37 KB gzip / 31.6 KB brotli, the
+  VS Code section no longer claims `contributes.html.customData` is
+  auto-loaded from a dependency, and the "surgical updates", touch-target,
+  gradient/opacity and skeleton/progress claims are scoped to what the
+  library actually does rather than stated as absolutes.
+- `<e-input>` and `<e-textarea>` now re-run constraint validation when `value`
+  is set as a JavaScript property, not only on attribute changes and
+  `form.reset()`. Previously a `required` field populated via `el.value = …`
+  — the pattern every framework uses for a controlled input — stayed
+  permanently `invalid`, silently blocking `form.requestSubmit()`.
+- `claude.md` renamed to `CLAUDE.md`. Every doc in the repo linked to it as
+  `CLAUDE.md`; on a case-sensitive filesystem the link never resolved, and
+  Claude Code's own project-instructions discovery (which looks for
+  `CLAUDE.md` specifically) never found the file.
 - The site is responsive below 1024px. The header nav moves to its own
   full-width scroll strip instead of widening the document (every page used to
   scroll sideways to 964px), section heads no longer land under the sticky
@@ -65,17 +145,6 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   static HTML, with a committed fallback when the API is unreachable. The
   component count and the colophon version are likewise generated from
   `data.ts` and `package.json` rather than typed by hand.
-
-### Changed
-
-- The tag release path is now staged as `guard → checks → release → update`.
-  `checks` calls `ci.yml` as a reusable workflow instead of repeating its steps,
-  and `update` installs the published version from the registry, registers the
-  elements in jsdom (`scripts/smoke-test.mjs`), verifies the provenance
-  attestation and redeploys the site and Storybook from the tagged source.
-- `npm run bump-version` no longer creates the tag when run off `main`, since
-  `main` requires a pull request and a squash or rebase merge would strand a
-  tag created on the branch. It prints the post-merge tagging steps instead.
 
 ## [1.0.1] — 2026-08-12
 

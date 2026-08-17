@@ -19,9 +19,9 @@ submitted directly.
 | --- | --- | --- | --- |
 | `accept` | `string` | — | Comma-separated MIME types or extensions forwarded to the underlying file input. |
 | `multiple` | `boolean` | — | Accept more than one file. When absent, picking a new file replaces the prior one. |
-| `name` | `string` | — | Form field name. Required to participate in `FormData`. |
 | `max-size` | `string` | — | Maximum size per file in bytes. Files exceeding the limit are rejected and the control is marked invalid. |
 | `max-files` | `string` | — | Maximum number of files allowed in multi-file mode. |
+| `name` | `string` | — | Form field name. Required to participate in `FormData`. |
 
 ## Events
 
