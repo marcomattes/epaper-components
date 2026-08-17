@@ -55,7 +55,17 @@ for (const e of entries) {
 
 // Simpler & more robust: import everything from the package's own type entry.
 // Since this file lives in dist/elements.d.ts, sibling import is "./index.js".
-const classNames = [...new Set(entries.map((e) => e.className))].sort((a, b) => a.localeCompare(b));
+// Explicit code-unit comparator rather than `localeCompare`: this ordering ends
+// up in the shipped `dist/elements.d.ts`, and `localeCompare` resolves against
+// the runtime's default locale and ICU data, so the same source would generate
+// a different file on a differently-configured Node (e.g. a `small-icu` build).
+// Code-unit order keeps the build reproducible while still passing an explicit
+// compare function.
+const byCodeUnit = (a, b) => {
+  if (a < b) return -1;
+  return a > b ? 1 : 0;
+};
+const classNames = [...new Set(entries.map((e) => e.className))].sort(byCodeUnit);
 const importLine = `import type { ${classNames.join(', ')} } from './index.js';`;
 
 const mapLines = entries
