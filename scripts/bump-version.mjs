@@ -1,6 +1,6 @@
-import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import process from 'node:process';
+import { runCommand, captureCommand } from './lib/run-command.mjs';
 
 const input = process.argv[2];
 if (!input) {
@@ -22,8 +22,8 @@ if (!allowedRanges.includes(input) && !isExactVersion) {
 }
 
 // `input` is now provably one of `allowedRanges` or matches VERSION_ARG_RE — it is
-// never passed to execFileSync unchecked beyond this point.
-execFileSync('npm', ['version', input, '--no-git-tag-version'], { stdio: 'inherit' });
+// never passed to runCommand unchecked beyond this point.
+runCommand('npm', ['version', input, '--no-git-tag-version']);
 
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
 const SEMVER_RE = /^\d+\.\d+\.\d+(?:[-+][\w.-]+)?$/;
@@ -34,18 +34,16 @@ if (typeof pkg.version !== 'string' || !SEMVER_RE.test(pkg.version)) {
 const version = pkg.version;
 const commitMessage = `chore(release): bump version to v${version}`;
 
-execFileSync('npm', ['run', 'build'], { stdio: 'inherit' });
-execFileSync('git', ['add', '--all'], { stdio: 'inherit' });
-execFileSync('git', ['commit', '-m', commitMessage], { stdio: 'inherit' });
+runCommand('npm', ['run', 'build']);
+runCommand('git', ['add', '--all']);
+runCommand('git', ['commit', '-m', commitMessage]);
 
 // `main` is protected by a ruleset that requires a pull request, so the bump
 // lands through a PR. Tagging here would be wrong: a squash or rebase merge
 // rewrites this commit, and the tag would point at an object that never
 // reaches `main`. On a release branch the tag is therefore left to the
 // maintainer, after the merge.
-const branch = execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
-  encoding: 'utf8',
-}).trim();
+const branch = captureCommand('git', ['rev-parse', '--abbrev-ref', 'HEAD']);
 const BRANCH_RE = /^[\w./-]+$/;
 if (!BRANCH_RE.test(branch)) {
   console.error(`Unexpected characters in current branch name: ${branch}`);
@@ -54,9 +52,7 @@ if (!BRANCH_RE.test(branch)) {
 const defaultBranch = 'main';
 
 if (branch === defaultBranch) {
-  execFileSync('git', ['tag', '-a', `v${version}`, '-m', `Release v${version}`], {
-    stdio: 'inherit',
-  });
+  runCommand('git', ['tag', '-a', `v${version}`, '-m', `Release v${version}`]);
   console.log(`\n✅ Bumped to v${version}, committed and tagged.`);
   console.log('   Push with: git push --follow-tags');
 } else {
