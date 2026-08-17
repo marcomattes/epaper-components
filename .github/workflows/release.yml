@@ -96,6 +96,11 @@ jobs:
     name: Checks
     needs: guard
     uses: ./.github/workflows/ci.yml
+    # Passed explicitly rather than via `secrets: inherit`, so the reusable
+    # workflow never sees NPM_TOKEN or the FTP credentials. Unset in a fork,
+    # where ci.yml then skips the analysis instead of failing.
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   # ---------------------------------------------------- stage 3 · release
   release:

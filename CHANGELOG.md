@@ -9,6 +9,18 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Added
 
+- SonarQube Cloud analysis on every pull request and every push to `main`.
+  `sonar-project.properties` carries the configuration; the `sonar` job in
+  `ci.yml` consumes the coverage and test reports the test job produced rather
+  than re-running the suite, and a failing quality gate fails CI. The job skips
+  itself with a notice when `SONAR_TOKEN` is unset, so pull requests from forks
+  stay green.
+- Coverage is now measured on every CI run (`npm run test:coverage:ci` replaces
+  `npm run test:ci` in the workflow) and uploaded as a build artifact together
+  with the JUnit, JSON and HTML test reports.
+- `vitest-sonar-reporter` emits `reports/test/sonar.xml` in Sonar's Generic Test
+  Execution format, which is what Sonar reads for JavaScript and TypeScript —
+  it cannot import the JUnit XML the suite already wrote.
 - `sample-app/`: a Playwright-driven runtime check plus a strict-TypeScript
   compile, both run in CI, that hold `README.md`'s claims to the built
   `dist/` output — selective vs. barrel registration, compound child-element
@@ -75,6 +87,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Changed
 
+- The coverage thresholds are now a regression floor rather than a target. CI
+  previously ran without `--coverage`, so the branch threshold of 70% was never
+  evaluated against the 65.5% the suite actually reaches; it is now 65%, which
+  fails on a drop instead of blocking every build. The bar for new code is
+  Sonar's quality gate, which applies to changed lines only.
+- `src/core/types.ts` is excluded from coverage. It is type-only and compiles to
+  an empty module, so it could only ever be reported as 0% covered.
 - Tree traversal, expansion, roving tabindex and keyboard navigation moved
   into `src/core/tree.ts`, shared by `<e-tree-select>` and the new `<e-tree>`.
   `<e-tree-select>`'s public behaviour is unchanged.

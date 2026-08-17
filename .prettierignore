@@ -4,5 +4,7 @@ storybook-static
 test-results
 playwright-report
 coverage
+reports
+.scannerwork
 *.log
 package-lock.json
