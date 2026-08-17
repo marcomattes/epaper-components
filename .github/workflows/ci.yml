@@ -78,7 +78,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       # Coverage instead of a bare run: this is the only place the browser
       # suite executes, so it is also the only place coverage can be measured.
@@ -123,7 +123,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Build
         run: npm run build
