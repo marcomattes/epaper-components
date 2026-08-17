@@ -14,13 +14,15 @@ on:
       SONAR_TOKEN:
         required: false
 
-permissions:
-  contents: read
-
+# Scoped per job rather than here, matching browserstack.yml: a workflow-level
+# grant hands the token to every job whether it needs one or not, and a job
+# added later inherits it silently instead of having to ask.
 jobs:
   build:
     name: Build and test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     container:
       # Keep the browser, its system dependencies, and visual-regression
       # rendering identical to the environment used to create CI baselines.
@@ -84,6 +86,11 @@ jobs:
     name: SonarQube
     needs: build
     runs-on: ubuntu-latest
+    # Read-only, and only `contents`: the scanner reads the working tree and the
+    # git history, and reports to SonarQube Cloud over its own token. Pull-request
+    # decoration is written by the SonarQube Cloud GitHub App, not by this token.
+    permissions:
+      contents: read
     steps:
       # The scanner needs the full history: it reads git blame to decide which
       # lines are "new code" and who to assign issues to. A shallow clone makes
@@ -110,8 +117,13 @@ jobs:
       # Not for building — for `sonar.typescript.tsconfigPaths`. Without the
       # installed types the TypeScript analyzer falls back to a syntax-only
       # parse and every type-aware rule silently stops firing.
+      #
+      # `--ignore-scripts` for the same reason as browserstack.yml: type
+      # declarations come out of the package tarballs, so nothing here needs a
+      # postinstall hook, and running one in a pull_request-triggered job is
+      # exposure with no upside. This job never launches a browser.
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       # A pull request from a fork gets no secrets, so SONAR_TOKEN is empty and
       # the scan would fail on authentication. The check has to live in the
