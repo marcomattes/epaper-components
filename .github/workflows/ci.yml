@@ -143,7 +143,9 @@ jobs:
 
       - name: SonarQube scan
         if: steps.token.outputs.present == 'true'
-        uses: SonarSource/sonarqube-scan-action@v8
+        # Pinned to a commit, not a tag: a mutable tag lets an upstream
+        # compromise reach a runner that has SONAR_TOKEN. This is v8.2.1.
+        uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
