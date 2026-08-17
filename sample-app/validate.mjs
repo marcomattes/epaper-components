@@ -168,7 +168,7 @@ async function withPage(fn) {
 // --- Compound child-element registration: importing select.js also
 //     registers e-option, without registering unrelated tags.
 {
-  await withPage(async (page) => {
+  const errors = await withPage(async (page) => {
     await page.goto(`${base}/sample-app/fixtures/compound.html`);
     const state = await page.evaluate(() => ({
       select: !!customElements.get('e-select'),
@@ -181,6 +181,8 @@ async function withPage(fn) {
       JSON.stringify(state),
     );
   });
+  if (errors.length)
+    assert('compound.html loads without console/network errors', false, errors.join('; '));
 }
 
 // --- Barrel registration + everything else, on one page.
@@ -312,16 +314,7 @@ await withPage(async (page, consoleErrors) => {
           'e-submit',
         ];
 
-        for (const name of [
-          'e-change',
-          'e-input',
-          'e-click',
-          'e-close',
-          'e-load',
-          'e-sort',
-          'e-select',
-          'e-submit',
-        ]) {
+        for (const name of expect) {
           document.addEventListener(
             name,
             (e) => {
@@ -389,7 +382,7 @@ await withPage(async (page, consoleErrors) => {
   );
   assert(
     'e-click fires with { originalEvent }',
-    events['e-click']?.originalEvent instanceof Object,
+    Object.hasOwn(events['e-click'] ?? {}, 'originalEvent'),
     JSON.stringify(Object.keys(events['e-click'] ?? {})),
   );
   assert(
