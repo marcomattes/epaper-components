@@ -161,12 +161,11 @@ Form controls behave like native ones:
 - `formResetCallback` (Reset button) → re-applies `default-value`.
 - `formStateRestoreCallback` → BFCache and autofill restore.
 
-> **Validation note (V1.0).** `<e-input>` and `<e-textarea>` set
-> `aria-invalid="true"` via the `error` attribute but do not call
-> `internals.setValidity()`. `<e-upload>` does. If you rely on
-> `form.checkValidity()`, attach native HTML attributes (`required`,
-> `pattern`, `minlength`) alongside `error` on V1.0. A unified
-> validation API is on the V1.1 roadmap.
+> **Validation note.** All thirteen `BaseFormControl` subclasses participate in
+> constraint validation through `ElementInternals`. Text and number controls
+> mirror the validity flags of their native inner control; selection, boolean
+> and file controls report `valueMissing` from their component-level
+> `required` attribute.
 
 ---
 
@@ -208,15 +207,17 @@ your own components.
 | Test suite                           | Verifies                                       | Coverage          |
 | ------------------------------------ | ---------------------------------------------- | ----------------- |
 | `__tests__/cleanup.test.ts`          | `onGlobal` / `runCleanups` memory-leak pattern | 9 components      |
-| `__tests__/form-association.test.ts` | `FormData` round-trip, reset callback          | 14 form controls  |
+| `__tests__/form-association.test.ts` | `FormData`, reset/restore, constraint validity | 14 form controls  |
 | `__tests__/reactivity.test.ts`       | `attributeChangedCallback` updates             | 7 components      |
 | `__tests__/security.test.ts`         | XSS injection through `esc()` paths            | 12 components     |
+| `__tests__/screenshots.test.ts`      | Pixel visual regression                        | all story modules |
+| `__tests__/refresh-budget.test.ts`   | Mutation, node-churn and dirty-area budgets    | key interactions  |
 | `core/date.test.ts`                  | `parseYMD`, `ymd`, `pad2`                      | core utility      |
 | Storybook + `@storybook/addon-a11y`  | axe-core (WCAG 2A + 2AA + best practice)       | all 64 components |
 
-**Intentionally out of scope for V1.0:** visual regression, keyboard
-navigation, touch interaction. These run manually before each release
-through Storybook stories.
+Visual regression, keyboard navigation and refresh budgets run in CI. Physical
+panel ghosting and waveform selection remain hardware checks because browser
+DOM APIs cannot observe the EPDC's final refresh decision.
 
 ---
 
@@ -232,6 +233,7 @@ through Storybook stories.
 | VS Code Custom Data                  | `dist/vscode.html-custom-data.json`            | HTML autocomplete                             |
 | WebStorm/IntelliJ Web-Types          | `dist/web-types.json`                          | JetBrains autocomplete                        |
 | CSS layers                           | `dist/styles/{tokens,base,components}.min.css` | Includes `.map` files                         |
+| Panel themes                         | `dist/styles/themes/*.min.css`                 | Optional mono-high-contrast / Kaleido packs   |
 | Combined CSS bundle                  | `dist/styles/epaper.min.css`                   | Single-file drop-in                           |
 
 `npm pack --dry-run` shows what is actually published — recommended
@@ -245,34 +247,18 @@ before any release. The `files` whitelist in `package.json` ships only
 These are intentional V1.0 trade-offs. They are tracked in
 `CHANGELOG.md` under "Known limitations" and slated for V1.1.
 
-1. **Validation API split.** `<e-input>` and `<e-textarea>` set
-   `aria-invalid="true"` from the `error` attribute but do not call
-   `internals.setValidity()`, so `form.checkValidity()` ignores them.
-   `<e-upload>` uses the validation API correctly. Workaround: combine
-   `error` with native HTML attributes for form-level validation.
-2. **Keyboard navigation.** `dropdown`, `select`, `menu`, `date-picker`,
-   `time-picker`, `cascader` and `tree-select` support full keyboard
-   traversal (arrow keys, `Home`/`End`, `PageUp`/`PageDown` for
-   `date-picker`, `Enter`/`Space` to activate, `Escape` to close).
-   Implemented in V1.0.
-3. **`<e-cascader>` `options` vs `<e-tree-select>` `data`.** Same
-   mechanism (JSON in an attribute), different attribute names.
-   Parse errors are silent (empty array instead of an error event).
-4. **`<e-masonry>` does not observe child mutations or container
-   resizes.** Pages embedding it must trigger reflow manually after
-   dynamic child changes.
-5. **`<e-kaleido>`** is a hardware-fingerprint visualisation tool
+1. **`<e-kaleido>`** is a hardware-fingerprint visualisation tool
    kept in the public API for demo purposes; it is not a
    general-purpose layout primitive.
-6. **`tsconfig` is missing `noUncheckedIndexedAccess`.** Enabling it
+2. **`tsconfig` is missing `noUncheckedIndexedAccess`.** Enabling it
    surfaces ~90 latent index-access cases in pickers, calendar and
    stories. They are runtime-safe by construction but deserve precise
    typing rather than blanket non-null assertions. Tracked for V1.1.
-7. **Test coverage is thematic, not per-component.** Cross-cutting
+3. **Test coverage is thematic, not per-component.** Cross-cutting
    suites cover form-association (14 controls), reactivity (7
    components), cleanup (9 components) and security (12 components).
-   Display-only components rely on the Storybook a11y addon (axe-core)
-   for regression coverage.
+   Display-only components rely on the Storybook a11y addon (axe-core),
+   visual baselines and the refresh-budget suite for regression coverage.
 
 ---
 

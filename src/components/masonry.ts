@@ -2,6 +2,7 @@ import { define, intAttr, numAttr } from '../core/dom';
 
 /**
  * @summary CSS-columns based masonry layout for cards of varying height.
+ * @since v1.0.1
  *
  * CSS selectors apply the configured gap to current and dynamically inserted
  * children without observers or JavaScript layout reads.

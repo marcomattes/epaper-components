@@ -22,6 +22,7 @@ const roleFor = (variant: Variant): string => (variant === 'error' ? 'alert' : '
 
 /**
  * @summary Inline status banner for a message attached to a region of the page.
+ * @since v1.1.0
  *
  * The static counterpart to a toast: nothing appears or disappears on a timer,
  * because an auto-dismissing message can be missed entirely between two panel

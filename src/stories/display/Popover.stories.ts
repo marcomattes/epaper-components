@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Click-triggered overlay panel anchored to its trigger — the counterpart to a tooltip for hardware that has no hover. Capacitive e-paper digitizers report contact, not proximity, so anything that would be revealed on hover has to be revealed on tap instead. Content is arbitrary, which separates this from `<e-dropdown>` (a list of commands). The panel is non-modal and does not trap focus; reach for `<e-dialog>` when the user must deal with it before continuing.',
+          '**Version:** v1.1.0\n\nClick-triggered overlay panel anchored to its trigger — the counterpart to a tooltip for hardware that has no hover. Capacitive e-paper digitizers report contact, not proximity, so anything that would be revealed on hover has to be revealed on tap instead. Content is arbitrary, which separates this from `<e-dropdown>` (a list of commands). The panel is non-modal and does not trap focus; reach for `<e-dialog>` when the user must deal with it before continuing.',
       },
     },
   },

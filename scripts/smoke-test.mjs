@@ -83,6 +83,8 @@ check('public asset subpaths resolve to real files', () => {
     '/tokens.css',
     '/base.css',
     '/components.css',
+    '/themes/mono-high-contrast.css',
+    '/themes/kaleido.css',
     '/custom-elements.json',
     '/core/dom',
   ];

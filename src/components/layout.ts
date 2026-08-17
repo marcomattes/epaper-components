@@ -2,6 +2,7 @@ import { boolAttr, captureWrap, clampedNumAttr, define } from '../core/dom';
 
 /**
  * @summary Page-level layout container that arranges header, sider, content and footer children.
+ * @since v1.0.1
  *
  * @attr {boolean} [has-sider] - Switches the inner direction so a sider can sit beside the content.
  *

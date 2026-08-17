@@ -9,7 +9,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Body-text element bound to the system type scale. Pick a `kind` (`body`, `prose`, `small`, `mono`, `label`) to map onto the matching `--ink-text-*` token and line-height.',
+          '**Version:** v1.0.1\n\nBody-text element bound to the system type scale. Pick a `kind` (`body`, `prose`, `small`, `mono`, `label`) to map onto the matching `--ink-text-*` token and line-height.',
       },
     },
   },

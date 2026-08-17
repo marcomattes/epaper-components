@@ -3,6 +3,12 @@ import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
 import { playwright } from '@vitest/browser-playwright';
 import { resolve } from 'node:path';
 
+const playwrightExecutable = process.env['PLAYWRIGHT_EXECUTABLE_PATH'];
+const browserProvider = () =>
+  playwright(
+    playwrightExecutable ? { launchOptions: { executablePath: playwrightExecutable } } : {},
+  );
+
 export default defineConfig({
   test: {
     projects: [
@@ -13,7 +19,7 @@ export default defineConfig({
           browser: {
             enabled: true,
             headless: true,
-            provider: playwright(),
+            provider: browserProvider(),
             instances: [{ browser: 'chromium' }],
             expect: {
               toMatchScreenshot: {
@@ -46,7 +52,7 @@ export default defineConfig({
           browser: {
             enabled: true,
             headless: true,
-            provider: playwright(),
+            provider: browserProvider(),
             instances: [{ browser: 'chromium' }],
           },
         },

@@ -3,6 +3,7 @@ import { iconSvg } from '../core/icons';
 
 /**
  * @summary Standalone floating action button.
+ * @since v1.0.1
  *
  * @attr {string} [icon='plus'] - Icon name rendered inside the button.
  * @attr {string} [label] - Accessible label. Falls back to the icon name.

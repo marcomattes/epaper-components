@@ -2,6 +2,7 @@ import { addCleanup, clampedNumAttr, define, onGlobal, patchAttr, runCleanups } 
 
 /**
  * @summary Two-pane resizable splitter with mouse and keyboard support.
+ * @since v1.0.1
  *
  * @attr {'horizontal'|'vertical'} [orientation='horizontal'] - Layout direction. Horizontal places panes side by side; vertical stacks them.
  * @attr {number} [initial=50] - Initial size of pane `a` as a percentage.

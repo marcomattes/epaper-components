@@ -11,7 +11,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Page chrome scaffold composed of optional `<e-header>`, `<e-sider>`, `<e-content>` and `<e-footer>` regions. Provides the top-level frame for application screens.',
+          '**Version:** v1.0.1\n\nPage chrome scaffold composed of optional `<e-header>`, `<e-sider>`, `<e-content>` and `<e-footer>` regions. Provides the top-level frame for application screens.',
       },
     },
   },

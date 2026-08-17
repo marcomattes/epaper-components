@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Framed container with optional eyebrow, title and slotted body content. Uses the standard 2 px ink border so cards line up with the rest of the system.',
+          '**Version:** v1.0.1\n\nFramed container with optional eyebrow, title and slotted body content. Uses the standard 2 px ink border so cards line up with the rest of the system.',
       },
     },
   },

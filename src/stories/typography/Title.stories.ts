@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Heading element across the H1–H6 scale. The `level` attribute drives both the rendered tag (for semantics) and the `--ink-text-h*` token used for sizing.',
+          '**Version:** v1.0.1\n\nHeading element across the H1–H6 scale. The `level` attribute drives both the rendered tag (for semantics) and the `--ink-text-h*` token used for sizing.',
       },
     },
   },

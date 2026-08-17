@@ -438,4 +438,138 @@ describe('form association', () => {
     expect(up.value).toHaveLength(1);
     expect(up.value[0].name).toBe('x.txt');
   });
+
+  const requiredCases: Array<{
+    name: string;
+    html: string;
+    satisfy: (control: HTMLElement) => void;
+  }> = [
+    {
+      name: 'e-input',
+      html: '<e-input name="v" required></e-input>',
+      satisfy: (el) => el.setAttribute('value', 'Ada'),
+    },
+    {
+      name: 'e-textarea',
+      html: '<e-textarea name="v" required></e-textarea>',
+      satisfy: (el) => el.setAttribute('value', 'Notes'),
+    },
+    {
+      name: 'e-checkbox',
+      html: '<e-checkbox name="v" required></e-checkbox>',
+      satisfy: (el) => el.setAttribute('checked', ''),
+    },
+    {
+      name: 'e-toggle',
+      html: '<e-toggle name="v" required></e-toggle>',
+      satisfy: (el) => el.setAttribute('checked', ''),
+    },
+    {
+      name: 'e-select',
+      html: '<e-select name="v" required><e-option value="a" label="A"></e-option></e-select>',
+      satisfy: (el) => el.setAttribute('value', 'a'),
+    },
+    {
+      name: 'e-radio-group',
+      html: '<e-radio-group name="v" required><e-radio value="a" label="A"></e-radio></e-radio-group>',
+      satisfy: (el) => el.setAttribute('value', 'a'),
+    },
+    {
+      name: 'e-checkbox-group',
+      html: '<e-checkbox-group name="v" required><e-cbox-option value="a" label="A"></e-cbox-option></e-checkbox-group>',
+      satisfy: (el) => el.setAttribute('value', 'a'),
+    },
+    {
+      name: 'e-input-number',
+      html: '<e-input-number name="v" required></e-input-number>',
+      satisfy: (el) => el.setAttribute('value', '1'),
+    },
+    {
+      name: 'e-date-picker',
+      html: '<e-date-picker name="v" required></e-date-picker>',
+      satisfy: (el) => el.setAttribute('value', '2026-08-17'),
+    },
+    {
+      name: 'e-cascader',
+      html: '<e-cascader name="v" required data=\'[{"value":"a","label":"A"}]\'></e-cascader>',
+      satisfy: (el) => el.setAttribute('value', 'a'),
+    },
+    {
+      name: 'e-tree-select',
+      html: '<e-tree-select name="v" required data=\'[{"value":"a","label":"A"}]\'></e-tree-select>',
+      satisfy: (el) => el.setAttribute('value', 'a'),
+    },
+    {
+      name: 'e-upload',
+      html: '<e-upload name="v" required></e-upload>',
+      satisfy: (el) => {
+        (el as HTMLElement & { value: File[] }).value = [new File(['a'], 'a.txt')];
+      },
+    },
+  ];
+
+  for (const testCase of requiredCases) {
+    it(`${testCase.name} mirrors required through ElementInternals`, () => {
+      const form = mount(`<form>${testCase.html}</form>`);
+      const control = form.firstElementChild as HTMLElement & { checkValidity(): boolean };
+      expect(control.checkValidity()).toBe(false);
+      expect(form.checkValidity()).toBe(false);
+      testCase.satisfy(control);
+      expect(control.checkValidity()).toBe(true);
+      expect(form.checkValidity()).toBe(true);
+    });
+  }
+
+  it('e-time-picker has a valid required default of 00:00', () => {
+    const form = mount('<form><e-time-picker name="v" required></e-time-picker></form>');
+    const control = form.firstElementChild as HTMLElement & {
+      value: string;
+      checkValidity(): boolean;
+    };
+    expect(control.value).toBe('00:00');
+    expect(control.checkValidity()).toBe(true);
+  });
+
+  it('e-input-number mirrors native range constraints', () => {
+    const form = mount('<form><e-input-number name="v" value="2" min="3"></e-input-number></form>');
+    const control = form.firstElementChild as HTMLElement & { checkValidity(): boolean };
+    expect(control.checkValidity()).toBe(false);
+    control.setAttribute('value', '3');
+    expect(control.checkValidity()).toBe(true);
+  });
+
+  it('e-input-number updates host validity while the user edits', () => {
+    const form = mount(
+      '<form><e-input-number name="v" value="1" required></e-input-number></form>',
+    );
+    const control = form.firstElementChild as HTMLElement & { checkValidity(): boolean };
+    const input = control.querySelector('input')!;
+    expect(control.checkValidity()).toBe(true);
+    input.value = '';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(control.checkValidity()).toBe(false);
+  });
+
+  it('e-input sanitizes native typed values before form submission', () => {
+    const form = mount(
+      '<form><e-input name="v" type="number" value="not-a-number" required></e-input></form>',
+    );
+    const control = form.firstElementChild as HTMLElement & {
+      value: string;
+      checkValidity(): boolean;
+    };
+    expect(control.value).toBe('');
+    expect(new FormData(form as HTMLFormElement).get('v')).toBe('');
+    expect(control.checkValidity()).toBe(false);
+  });
+
+  it('required-message overrides the default component message', () => {
+    const form = mount(
+      '<form><e-checkbox required required-message="Accept the terms"></e-checkbox></form>',
+    );
+    const control = form.firstElementChild as HTMLElement & {
+      validationMessage: string;
+    };
+    expect(control.validationMessage).toBe('Accept the terms');
+  });
 });

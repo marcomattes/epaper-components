@@ -7,6 +7,7 @@ type CheckState = 'true' | 'false' | 'mixed';
 
 /**
  * @summary Hierarchical tree for navigation and display, with optional checkboxes.
+ * @since v1.1.0
  *
  * The display counterpart to `<e-tree-select>`: same markup, same keyboard
  * model (arrows, `Home`/`End`, `Enter`/`Space`), but not form-associated. Use

@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Form layout with consistent label/control rows, hint text and validation messaging. Use `stacked` for most cases and `inline` for filter bars or single-row queries.',
+          '**Version:** v1.0.1\n\nForm layout with consistent label/control rows, hint text and validation messaging. Use `stacked` for most cases and `inline` for filter bars or single-row queries.',
       },
     },
   },

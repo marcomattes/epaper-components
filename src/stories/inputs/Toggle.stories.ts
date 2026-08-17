@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Two-state switch for binary settings that take effect immediately. Use as an alternative to Checkbox in settings panels and toolbars.',
+          '**Version:** v1.0.1\n\nTwo-state switch for binary settings that take effect immediately. Use as an alternative to Checkbox in settings panels and toolbars.',
       },
     },
   },

@@ -54,6 +54,7 @@ const parseJson = <T>(s: string | null, fallback: T): T => {
 
 /**
  * @summary Data grid with header, optional sort and row-selection.
+ * @since v1.0.1
  *
  * Sort is **static**: clicking the header toggles `none → asc → desc → none`
  * and emits `e-sort`. The component never re-orders rows itself — owners

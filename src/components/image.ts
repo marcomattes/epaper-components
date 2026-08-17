@@ -2,6 +2,7 @@ import { boolAttr, define, patchAttr, patchText } from '../core/dom';
 
 /**
  * @summary Image with fallback, native lazy-loading and optional caption.
+ * @since v1.0.1
  *
  * Renders a `<figure>` wrapping an `<img>` (and an optional
  * `<figcaption>`). When loading fails, the element swaps to the `fallback`

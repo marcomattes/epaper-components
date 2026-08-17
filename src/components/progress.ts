@@ -2,6 +2,7 @@ import { define, intAttr, numAttr, patchAttr, patchBoolAttr, patchText } from '.
 
 /**
  * @summary Static progress indicator (linear bar or discrete steps).
+ * @since v1.0.1
  *
  * No animation: the bar updates as a single dirty rectangle which the EPDC
  * can resolve with a partial waveform.

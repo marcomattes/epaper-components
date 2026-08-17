@@ -3,6 +3,7 @@ import { BaseFormControl } from '../core/base-form-control';
 
 /**
  * @summary Single-line text input with label, hint and error states.
+ * @since v1.0.1
  *
  * Form-associated: participates in `<form>` submission and FormData.
  *
@@ -18,6 +19,13 @@ import { BaseFormControl } from '../core/base-form-control';
  * @attr {boolean} [disabled] - Disables interaction.
  * @attr {boolean} [readonly] - Renders as a non-editable read-only input. Still submitted with the form.
  * @attr {boolean} [required] - Requires a non-empty value for form validation.
+ * @attr {string} [required-message] - Overrides the native message reported when `required` is not satisfied.
+ * @attr {string} [pattern] - Regular expression the value must match.
+ * @attr {number} [minlength] - Minimum text length.
+ * @attr {number} [maxlength] - Maximum text length.
+ * @attr {string} [min] - Minimum value for numeric and date-like input types.
+ * @attr {string} [max] - Maximum value for numeric and date-like input types.
+ * @attr {string} [step] - Step interval for numeric and date-like input types.
  *
  * @fires {CustomEvent<{value: string}>} e-input - Fired on every keystroke.
  * @fires {CustomEvent<{value: string}>} e-change - Fired on commit (blur/Enter).
@@ -38,6 +46,13 @@ export class EInput extends BaseFormControl {
     'hint',
     'type',
     'required',
+    'required-message',
+    'pattern',
+    'minlength',
+    'maxlength',
+    'min',
+    'max',
+    'step',
   ];
 
   private _wired = false;
@@ -70,8 +85,11 @@ export class EInput extends BaseFormControl {
     this._input = this.querySelector('input');
     this._label = this.querySelector('label.ink-label');
     this._hint = this.querySelector('.ink-hint');
-    this._value = value;
-    this.internals.setFormValue(value);
+    for (const name of ['pattern', 'minlength', 'maxlength', 'min', 'max', 'step']) {
+      this._syncNativeConstraint(name, this.getAttribute(name));
+    }
+    this._value = this._input!.value;
+    this.internals.setFormValue(this._value);
     this._syncValidity();
     this._input!.addEventListener('input', (e) => {
       const v = (e.target as HTMLInputElement).value;
@@ -84,6 +102,7 @@ export class EInput extends BaseFormControl {
       const v = (e.target as HTMLInputElement).value;
       this._value = v;
       this.internals.setFormValue(v);
+      this._syncValidity();
       this.dispatchEvent(new CustomEvent('e-change', { detail: { value: v }, bubbles: true }));
     });
   }
@@ -92,15 +111,11 @@ export class EInput extends BaseFormControl {
     if (!this._input) return;
     if (name === 'value') {
       if (this._input.value !== (v ?? '')) this._input.value = v ?? '';
-      this._value = v ?? '';
+      this._value = this._input.value;
       this.internals.setFormValue(this._value);
-    }
-    if (name === 'error' || name === 'error-message') {
-      const on = boolAttr(this, 'error');
-      if (on) this._input.setAttribute('aria-invalid', 'true');
-      else this._input.removeAttribute('aria-invalid');
       this._syncValidity();
     }
+    if (name === 'error' || name === 'error-message') this._syncValidity();
     if (name === 'disabled') {
       this._input.disabled = boolAttr(this, 'disabled') || this._formDisabled;
     }
@@ -114,9 +129,18 @@ export class EInput extends BaseFormControl {
     if (name === 'placeholder') {
       this._input.placeholder = v ?? '';
     }
-    if (name === 'type') this._input.type = v || 'text';
-    if (name === 'required') {
+    if (name === 'type') {
+      this._input.type = v || 'text';
+      this._value = this._input.value;
+      this.internals.setFormValue(this._value);
+      this._syncValidity();
+    }
+    if (name === 'required' || name === 'required-message') {
       this._input.required = boolAttr(this, 'required');
+      this._syncValidity();
+    }
+    if (['pattern', 'minlength', 'maxlength', 'min', 'max', 'step'].includes(name)) {
+      this._syncNativeConstraint(name, v);
       this._syncValidity();
     }
     if (name === 'label') this._syncLabel(v ?? '');
@@ -127,8 +151,13 @@ export class EInput extends BaseFormControl {
     return this._input?.value ?? this._value;
   }
   override set value(v: string) {
-    this._value = v ?? '';
-    if (this._input) this._input.value = this._value;
+    const next = v ?? '';
+    if (this._input) {
+      this._input.value = next;
+      this._value = this._input.value;
+    } else {
+      this._value = next;
+    }
     this.internals.setFormValue(this._value);
     this._syncValidity();
   }
@@ -147,18 +176,26 @@ export class EInput extends BaseFormControl {
   }
 
   private _syncValidity(): void {
-    if (boolAttr(this, 'error')) {
-      const msg = this.getAttribute('error-message') ?? 'Invalid value.';
-      this.internals.setValidity({ customError: true }, msg, this._input ?? undefined);
-    } else if (boolAttr(this, 'required') && !this.value) {
-      this.internals.setValidity(
-        { valueMissing: true },
-        'Please fill out this field.',
-        this._input ?? undefined,
-      );
-    } else {
-      this.internals.setValidity({});
+    if (!this._input) return;
+    this._input.required = boolAttr(this, 'required');
+    const customMessage = boolAttr(this, 'error')
+      ? (this.getAttribute('error-message') ?? 'Invalid value.')
+      : undefined;
+    if (!customMessage && this._input.validity.valueMissing) {
+      const message = this.getAttribute('required-message');
+      if (message) {
+        this.internals.setValidity({ valueMissing: true }, message, this._input);
+        this._input.setAttribute('aria-invalid', 'true');
+        return;
+      }
     }
+    this.mirrorNativeValidity(this._input, customMessage);
+  }
+
+  private _syncNativeConstraint(name: string, value: string | null): void {
+    if (!this._input) return;
+    if (value == null) this._input.removeAttribute(name);
+    else this._input.setAttribute(name, value);
   }
 
   private _syncLabel(value: string): void {

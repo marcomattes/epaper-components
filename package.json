@@ -42,8 +42,11 @@
     "./src/components/*.ts",
     "./src/site/*.ts",
     "./src/styles/*.css",
+    "./src/styles/themes/*.css",
     "./dist/styles/*.css",
-    "./dist/styles/*.min.css"
+    "./dist/styles/*.min.css",
+    "./dist/styles/themes/*.css",
+    "./dist/styles/themes/*.min.css"
   ],
   "exports": {
     ".": {
@@ -328,13 +331,21 @@
     "./styles/tokens.css": "./src/styles/tokens.css",
     "./styles/base.css": "./src/styles/base.css",
     "./styles/components.css": "./src/styles/components.css",
+    "./themes/mono-high-contrast.css": "./src/styles/themes/mono-high-contrast.css",
+    "./themes/kaleido.css": "./src/styles/themes/kaleido.css",
+    "./styles/themes/mono-high-contrast.css": "./src/styles/themes/mono-high-contrast.css",
+    "./styles/themes/kaleido.css": "./src/styles/themes/kaleido.css",
     "./tokens.min.css": "./dist/styles/tokens.min.css",
     "./base.min.css": "./dist/styles/base.min.css",
     "./components.min.css": "./dist/styles/components.min.css",
+    "./themes/mono-high-contrast.min.css": "./dist/styles/themes/mono-high-contrast.min.css",
+    "./themes/kaleido.min.css": "./dist/styles/themes/kaleido.min.css",
     "./styles.min.css": "./dist/styles/epaper.min.css",
     "./tokens.min.css.map": "./dist/styles/tokens.min.css.map",
     "./base.min.css.map": "./dist/styles/base.min.css.map",
     "./components.min.css.map": "./dist/styles/components.min.css.map",
+    "./themes/mono-high-contrast.min.css.map": "./dist/styles/themes/mono-high-contrast.min.css.map",
+    "./themes/kaleido.min.css.map": "./dist/styles/themes/kaleido.min.css.map",
     "./styles.min.css.map": "./dist/styles/epaper.min.css.map",
     "./custom-elements.json": "./dist/custom-elements.json"
   },
@@ -382,6 +393,7 @@
     "test-storybook": "vitest --project=storybook",
     "test:visual": "vitest run src/components/__tests__/screenshots.test.ts",
     "test:visual:update": "npm run test:visual -- --update",
+    "test:refresh": "vitest run src/components/__tests__/refresh-budget.test.ts",
     "test:browserstack": "node scripts/browserstack-test.mjs",
     "test:coverage": "vitest --coverage",
     "test:coverage:ci": "vitest run --coverage",

@@ -2,6 +2,7 @@ import { boolAttr, define, numAttr } from '../core/dom';
 
 /**
  * @summary Inline-flex container that distributes children with a uniform gap.
+ * @since v1.0.1
  *
  * @attr {string} [size='8'] - Pixel gap between children.
  * @attr {'horizontal'|'vertical'} [direction='horizontal'] - Stacking direction.

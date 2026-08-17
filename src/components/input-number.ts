@@ -4,6 +4,7 @@ import { BaseFormControl } from '../core/base-form-control';
 
 /**
  * @summary Numeric input with increment/decrement buttons.
+ * @since v1.0.1
  *
  * Form-associated: the value is submitted as a string (matching the behaviour
  * of `<input type="number">`). Step buttons support press-and-hold to repeat.
@@ -14,6 +15,8 @@ import { BaseFormControl } from '../core/base-form-control';
  * @attr {string} [min] - Lower bound (inclusive).
  * @attr {string} [max] - Upper bound (inclusive).
  * @attr {string} [step='1'] - Step size for the buttons and native input.
+ * @attr {boolean} [required] - Requires a numeric value.
+ * @attr {string} [required-message] - Overrides the native message reported for an empty required value.
  *
  * @fires {CustomEvent<{value: number}>} e-change - Fired when the value changes via buttons or native commit.
  *
@@ -21,7 +24,15 @@ import { BaseFormControl } from '../core/base-form-control';
  * <e-input-number value="3" min="0" max="10" step="1"></e-input-number>
  */
 export class EInputNumber extends BaseFormControl<string> {
-  static observedAttributes = ['value', 'min', 'max', 'step', 'aria-label'];
+  static observedAttributes = [
+    'value',
+    'min',
+    'max',
+    'step',
+    'aria-label',
+    'required',
+    'required-message',
+  ];
 
   private _wired = false;
   private _input: HTMLInputElement | null = null;
@@ -48,6 +59,7 @@ export class EInputNumber extends BaseFormControl<string> {
     this.addEventListener('mouseleave', this._stopHold);
     this.addEventListener('touchend', this._stopHold);
     this.addEventListener('touchcancel', this._stopHold);
+    this._input?.addEventListener('input', this._onInput);
     this._input?.addEventListener('change', this._onInputChange);
     addCleanup(this, () => {
       this.removeEventListener('click', this._onClick);
@@ -56,6 +68,7 @@ export class EInputNumber extends BaseFormControl<string> {
       this.removeEventListener('mouseleave', this._stopHold);
       this.removeEventListener('touchend', this._stopHold);
       this.removeEventListener('touchcancel', this._stopHold);
+      this._input?.removeEventListener('input', this._onInput);
       this._input?.removeEventListener('change', this._onInputChange);
     });
   }
@@ -70,17 +83,27 @@ export class EInputNumber extends BaseFormControl<string> {
     if (name === 'value') {
       const next = v ?? '';
       this._input.value = next;
-      this._value = next;
-      this.internals.setFormValue(next);
+      this._value = this._input.value;
+      this.internals.setFormValue(this._value);
+      this._syncValidity();
     }
     if (name === 'min') {
       this._setFiniteInputAttr('min', v);
+      this._syncValidity();
     }
     if (name === 'max') {
       this._setFiniteInputAttr('max', v);
+      this._syncValidity();
     }
-    if (name === 'step') this._input.step = this._validStep(v);
+    if (name === 'step') {
+      this._input.step = this._validStep(v);
+      this._syncValidity();
+    }
     if (name === 'aria-label') patchAttr(this._input, 'aria-label', v);
+    if (name === 'required' || name === 'required-message') {
+      this._input.required = this.hasAttribute('required');
+      this._syncValidity();
+    }
   }
 
   override get value(): string {
@@ -111,8 +134,10 @@ export class EInputNumber extends BaseFormControl<string> {
     this._input.step = this._validStep(this.getAttribute('step'));
     this._setFiniteInputAttr('min', min);
     this._setFiniteInputAttr('max', max);
-    this._value = initial;
-    this.internals.setFormValue(initial);
+    this._input.required = this.hasAttribute('required');
+    this._value = this._input.value;
+    this.internals.setFormValue(this._value);
+    this._syncValidity();
   }
 
   private _step(direction: number): void {
@@ -122,6 +147,7 @@ export class EInputNumber extends BaseFormControl<string> {
     const next = this._input.value;
     this._value = next;
     this.internals.setFormValue(next);
+    this._syncValidity();
     this.setAttribute('value', next);
     this.dispatchEvent(
       new CustomEvent('e-change', {
@@ -174,6 +200,7 @@ export class EInputNumber extends BaseFormControl<string> {
     const value = this._input.value;
     this._value = value;
     this.internals.setFormValue(value);
+    this._syncValidity();
     this.setAttribute('value', value);
     this.dispatchEvent(
       new CustomEvent('e-change', {
@@ -182,6 +209,26 @@ export class EInputNumber extends BaseFormControl<string> {
       }),
     );
   };
+
+  private _onInput = (): void => {
+    if (!this._input) return;
+    this._value = this._input.value;
+    this.internals.setFormValue(this._value);
+    this._syncValidity();
+  };
+
+  private _syncValidity(): void {
+    if (!this._input) return;
+    if (this._input.validity.valueMissing) {
+      const message = this.getAttribute('required-message');
+      if (message) {
+        this.internals.setValidity({ valueMissing: true }, message, this._input);
+        this._input.setAttribute('aria-invalid', 'true');
+        return;
+      }
+    }
+    this.mirrorNativeValidity(this._input);
+  }
 }
 
 define('e-input-number', EInputNumber);

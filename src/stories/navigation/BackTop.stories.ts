@@ -8,7 +8,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Floating button that scrolls the window (or a target container) to the top. Hidden until the user has scrolled past `visibility-height`.',
+          '**Version:** v1.0.1\n\nFloating button that scrolls the window (or a target container) to the top. Hidden until the user has scrolled past `visibility-height`.',
       },
     },
   },

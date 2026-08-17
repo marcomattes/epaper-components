@@ -11,6 +11,7 @@ import {
 
 /**
  * @summary In-page navigation that highlights the current section while scrolling.
+ * @since v1.0.1
  *
  * Reads its items from child `<e-anchor-item>` elements at connect time.
  *

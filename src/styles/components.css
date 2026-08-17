@@ -1928,7 +1928,7 @@ e-text {
 }
 .ink-progress__fill {
   height: 100%;
-  background: var(--ink-fg);
+  background: var(--ink-accent);
 }
 .ink-progress__steps {
   display: grid;
@@ -1944,7 +1944,7 @@ e-text {
   box-sizing: border-box;
 }
 .ink-progress__seg[data-on] {
-  background: var(--ink-fg);
+  background: var(--ink-accent);
 }
 .ink-progress__label {
   margin-top: 6px;
@@ -1979,14 +1979,19 @@ e-text {
 }
 .ink-result[data-status='success'] .ink-result__icon,
 .ink-result[data-status='404'] .ink-result__icon {
-  background: var(--ink-fg);
+  background: var(--ink-success);
   color: var(--ink-bg);
+  border-color: var(--ink-success);
 }
 .ink-result[data-status='error'] .ink-result__icon {
   background-image: var(--ink-hatch-error);
+  border-color: var(--ink-danger);
+  color: var(--ink-danger);
 }
 .ink-result[data-status='warning'] .ink-result__icon {
   background-image: var(--ink-hatch-disabled);
+  border-color: var(--ink-warning);
+  color: var(--ink-warning);
 }
 .ink-result__title {
   font-family: var(--ink-serif);
@@ -2597,9 +2602,16 @@ e-text {
 }
 .ink-alert[data-variant='warning'] {
   border-width: var(--ink-border-width-strong);
+  border-color: var(--ink-warning);
 }
 .ink-alert[data-variant='error'] {
-  border: var(--ink-border-width-error) solid var(--ink-fg);
+  border: var(--ink-border-width-error) solid var(--ink-danger);
+}
+.ink-alert[data-variant='info'] {
+  border-color: var(--ink-info);
+}
+.ink-alert[data-variant='success'] {
+  border-color: var(--ink-success);
 }
 .ink-alert__icon {
   display: inline-flex;
@@ -2612,11 +2624,22 @@ e-text {
   background: var(--ink-bg);
 }
 .ink-alert[data-variant='success'] .ink-alert__icon {
-  background: var(--ink-fg);
+  background: var(--ink-success);
   color: var(--ink-bg);
+  border-color: var(--ink-success);
+}
+.ink-alert[data-variant='info'] .ink-alert__icon {
+  border-color: var(--ink-info);
+  color: var(--ink-info);
+}
+.ink-alert[data-variant='warning'] .ink-alert__icon {
+  border-color: var(--ink-warning);
+  color: var(--ink-warning);
 }
 .ink-alert[data-variant='error'] .ink-alert__icon {
   background-image: var(--ink-hatch-error);
+  border-color: var(--ink-danger);
+  color: var(--ink-danger);
 }
 .ink-alert__content {
   flex: 1;

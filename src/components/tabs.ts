@@ -4,6 +4,7 @@ import './badge';
 
 /**
  * @summary Tab strip with persistent panels rendered from `<e-tab>` children.
+ * @since v1.0.1
  *
  * All panels are built once at connect time and toggled with `hidden` on
  * tab switch — nested Custom Elements (form controls etc.) keep their state.

@@ -3,6 +3,7 @@ import { BaseFormControl } from '../core/base-form-control';
 
 /**
  * @summary Group of radio options sharing a single value.
+ * @since v1.0.1
  *
  * Reads options from `<e-radio>` children at connect time.
  * Form-associated: participates in `<form>` submission and FormData.
@@ -10,6 +11,8 @@ import { BaseFormControl } from '../core/base-form-control';
  * @attr {string} [value] - Currently selected option value.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
  * @attr {'horizontal'|'vertical'} [layout='horizontal'] - Stacking direction.
+ * @attr {boolean} [required] - Requires one selected option.
+ * @attr {string} [required-message] - Message reported when no required option is selected.
  *
  * @fires {CustomEvent<{value: string}>} e-change - Fired when the selection changes.
  *
@@ -20,7 +23,7 @@ import { BaseFormControl } from '../core/base-form-control';
  * </e-radio-group>
  */
 export class ERadioGroup extends BaseFormControl {
-  static observedAttributes = ['value', 'layout'];
+  static observedAttributes = ['value', 'layout', 'required', 'required-message'];
 
   private _wired = false;
 
@@ -48,6 +51,7 @@ export class ERadioGroup extends BaseFormControl {
     </div>`;
     this._value = value;
     this.internals.setFormValue(value);
+    this._syncValidity();
     this.addEventListener('change', (e) => {
       const target = e.target as HTMLInputElement;
       if (target.matches('input[type="radio"]')) {
@@ -68,6 +72,10 @@ export class ERadioGroup extends BaseFormControl {
       if (group) group.classList.toggle('ink-radio-group--vertical', v === 'vertical');
       return;
     }
+    if (name === 'required' || name === 'required-message') {
+      this._syncValidity();
+      return;
+    }
     if (name !== 'value') return;
     const newValue = v ?? '';
     if (newValue === this._value) return;
@@ -76,6 +84,7 @@ export class ERadioGroup extends BaseFormControl {
     this.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((r) => {
       r.checked = r.value === newValue;
     });
+    this._syncValidity();
   }
 
   override get value(): string {
@@ -94,6 +103,12 @@ export class ERadioGroup extends BaseFormControl {
 
   override formResetCallback(): void {
     this.value = this.getAttribute('default-value') ?? '';
+  }
+
+  private _syncValidity(): void {
+    const group = this.querySelector<HTMLElement>('[role="radiogroup"]') ?? undefined;
+    group?.setAttribute('aria-required', String(this.hasAttribute('required')));
+    this.applyRequiredValidity(!!this.value, group, 'Please select an option.');
   }
 }
 define('e-radio-group', ERadioGroup);

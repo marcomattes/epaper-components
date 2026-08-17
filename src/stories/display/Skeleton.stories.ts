@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Static loading placeholder. Pure outline — no shimmer, no animation. Use to reserve space while content loads. Avoids triggering a full GC16 refresh on e-paper.',
+          '**Version:** v1.0.1\n\nStatic loading placeholder. Pure outline — no shimmer, no animation. Use to reserve space while content loads. Avoids triggering a full GC16 refresh on e-paper.',
       },
     },
   },

@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Selectable label for filters or quick choices. Toggles `selected` on click and fires `e-change`. Distinct from `<e-tag>` (removable label) and `<e-badge>` (decorative).',
+          '**Version:** v1.0.1\n\nSelectable label for filters or quick choices. Toggles `selected` on click and fires `e-change`. Distinct from `<e-tag>` (removable label) and `<e-badge>` (decorative).',
       },
     },
   },

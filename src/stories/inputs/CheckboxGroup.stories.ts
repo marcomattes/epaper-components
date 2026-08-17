@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Collection of related checkboxes managed as one form field. Lays out children either vertically (default) or horizontally, exposing the joined selection as a comma-separated string.',
+          '**Version:** v1.0.1\n\nCollection of related checkboxes managed as one form field. Lays out children either vertically (default) or horizontally, exposing the joined selection as a comma-separated string.',
       },
     },
   },

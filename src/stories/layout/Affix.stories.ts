@@ -8,7 +8,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Wraps content in a CSS `position: sticky` container. Pure CSS — no scroll listeners, no e-paper waveform on scroll.',
+          '**Version:** v1.0.1\n\nWraps content in a CSS `position: sticky` container. Pure CSS — no scroll listeners, no e-paper waveform on scroll.',
       },
     },
   },

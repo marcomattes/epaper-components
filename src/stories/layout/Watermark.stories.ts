@@ -8,7 +8,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Tiled SVG watermark layered behind slotted content. Designed for print-style "DRAFT" / "CONFIDENTIAL" labels on e-paper layouts.',
+          '**Version:** v1.0.1\n\nTiled SVG watermark layered behind slotted content. Designed for print-style "DRAFT" / "CONFIDENTIAL" labels on e-paper layouts.',
       },
     },
   },

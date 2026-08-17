@@ -9,7 +9,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Modal dialog built on the native `<dialog>` element, opened through `showModal()`. Focus trapping, `Escape` handling, the top layer and inertness of the page behind it come from the browser. A modal is a deliberate context switch, which is the one place a full-panel refresh is appropriate on e-paper — so the backdrop is a flat hatch fill, never a translucent wash, which would dither unpredictably between refreshes.',
+          '**Version:** v1.1.0\n\nModal dialog built on the native `<dialog>` element, opened through `showModal()`. Focus trapping, `Escape` handling, the top layer and inertness of the page behind it come from the browser. A modal is a deliberate context switch, which is the one place a full-panel refresh is appropriate on e-paper — so the backdrop is a flat hatch fill, never a translucent wash, which would dither unpredictably between refreshes.',
       },
     },
   },

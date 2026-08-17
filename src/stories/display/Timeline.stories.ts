@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Vertical event list with a hairline rail and bullet markers. Use for activity feeds, audit logs or order tracking. Static layout — no animations.',
+          '**Version:** v1.0.1\n\nVertical event list with a hairline rail and bullet markers. Use for activity feeds, audit logs or order tracking. Static layout — no animations.',
       },
     },
   },

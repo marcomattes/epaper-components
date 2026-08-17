@@ -9,6 +9,7 @@ import {
 
 /**
  * @summary User avatar with image or initials fallback.
+ * @since v1.0.1
  *
  * @attr {string} [name='?'] - Display name; the first one or two initials are rendered when no image is supplied.
  * @attr {string} [src] - Image URL. When set, replaces the initials.

@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Sequential progress indicator for multi-step flows such as onboarding, checkout or wizards. Renders horizontally by default; switch to `vertical` for tall sidebars.',
+          '**Version:** v1.0.1\n\nSequential progress indicator for multi-step flows such as onboarding, checkout or wizards. Renders horizontally by default; switch to `vertical` for tall sidebars.',
       },
     },
   },

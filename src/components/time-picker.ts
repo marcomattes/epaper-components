@@ -5,11 +5,14 @@ import { BaseFormControl } from '../core/base-form-control';
 
 /**
  * @summary Hour/minute picker with stepper buttons.
+ * @since v1.0.1
  *
  * Form-associated: participates in `<form>` submission and FormData.
  *
  * @attr {string} [value='00:00'] - Current time in `HH:MM` format. Wraps around the 24-hour and 60-minute boundaries.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
+ * @attr {boolean} [required] - Requires a valid time value. The default `00:00` satisfies this constraint.
+ * @attr {string} [required-message] - Message reported when no required time is selected.
  *
  * @fires {CustomEvent<{value: string}>} e-change - Fired when the user changes the time. `value` is `HH:MM`.
  *
@@ -17,7 +20,7 @@ import { BaseFormControl } from '../core/base-form-control';
  * <e-time-picker value="09:30"></e-time-picker>
  */
 export class ETimePicker extends BaseFormControl {
-  static observedAttributes = ['value'];
+  static observedAttributes = ['value', 'required', 'required-message'];
 
   private _wired = false;
   private _hCell: HTMLElement | null = null;
@@ -30,6 +33,7 @@ export class ETimePicker extends BaseFormControl {
       this._value = initial;
       this.internals.setFormValue(initial);
       this._build();
+      this._syncValidity();
     }
 
     this.addEventListener('click', this._onClick);
@@ -43,6 +47,10 @@ export class ETimePicker extends BaseFormControl {
   }
 
   attributeChangedCallback(name: string, _old: string | null, v: string | null) {
+    if (name === 'required' || name === 'required-message') {
+      this._syncValidity();
+      return;
+    }
     if (name !== 'value') return;
     const normalized = this._normalize(v);
     if (v != null && v !== normalized) {
@@ -52,6 +60,7 @@ export class ETimePicker extends BaseFormControl {
     this._value = normalized;
     this.internals.setFormValue(this._value);
     if (this._wired) this._applyValue(this._value);
+    this._syncValidity();
   }
 
   private _build(): void {
@@ -186,6 +195,12 @@ export class ETimePicker extends BaseFormControl {
   override formResetCallback(): void {
     const dflt = this.getAttribute('default-value') ?? '00:00';
     this.setAttribute('value', dflt);
+  }
+
+  private _syncValidity(): void {
+    const anchor = this._hCell ?? undefined;
+    anchor?.setAttribute('aria-required', String(this.hasAttribute('required')));
+    this.applyRequiredValidity(!!this._value, anchor, 'Please select a time.');
   }
 }
 

@@ -2,6 +2,7 @@ import { define, intAttr } from '../core/dom';
 
 /**
  * @summary Key/value list rendered as a semantic `<dl>` grid.
+ * @since v1.0.1
  *
  * Reads entries from child `<e-desc-item>` elements at connect time. Each
  * item contributes a term/detail pair. The grid wraps after `columns`

@@ -54,7 +54,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Monochrome line icon rendered as inline SVG from the built-in icon set. Sized in pixels (default 20) and styled with the current ink color. Provide a `label` whenever the icon is the only thing conveying meaning.',
+          '**Version:** v1.0.1\n\nMonochrome line icon rendered as inline SVG from the built-in icon set. Sized in pixels (default 20) and styled with the current ink color. Provide a `label` whenever the icon is the only thing conveying meaning.',
       },
     },
   },

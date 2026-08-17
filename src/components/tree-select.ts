@@ -4,6 +4,7 @@ import { TreeView, parseTreeAttr } from '../core/tree';
 
 /**
  * @summary Single-select hierarchical tree with expand/collapse controls.
+ * @since v1.0.1
  *
  * Form-associated: submits the selected node's value.
  *
@@ -12,6 +13,8 @@ import { TreeView, parseTreeAttr } from '../core/tree';
  * @attr {string} [value] - Currently selected node value.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
  * @attr {string} [default-expanded] - Comma-separated list of node values that are expanded on first render.
+ * @attr {boolean} [required] - Requires a selected tree node.
+ * @attr {string} [required-message] - Message reported when no required node is selected.
  *
  * @fires {CustomEvent<{value: string}>} e-change - Fired when the user selects a node. `value` is the node's value.
  * @fires {CustomEvent<{error: Error, source: 'data' | 'options'}>} e-error - Fired when the `data` or `options` attribute fails to parse as JSON. The internal tree falls back to `[]`.
@@ -20,7 +23,7 @@ import { TreeView, parseTreeAttr } from '../core/tree';
  * <e-tree-select data='[{"value":"a","label":"A","children":[{"value":"a1","label":"A1"}]}]' default-expanded="a"></e-tree-select>
  */
 export class ETreeSelect extends BaseFormControl {
-  static observedAttributes = ['value', 'data', 'options'];
+  static observedAttributes = ['value', 'data', 'options', 'required', 'required-message'];
 
   private _built = false;
   private _view = new TreeView(this, {
@@ -38,6 +41,7 @@ export class ETreeSelect extends BaseFormControl {
       this.internals.setFormValue(this._value);
       this._view.render();
       this._built = true;
+      this._syncValidity();
     }
     this.addEventListener('click', this._onClick);
     this.addEventListener('keydown', this._onKeydown);
@@ -59,6 +63,9 @@ export class ETreeSelect extends BaseFormControl {
       this._value = val ?? '';
       this.internals.setFormValue(this._value);
       this._view.patchSelection(oldVal, this._value);
+      this._syncValidity();
+    } else if (name === 'required' || name === 'required-message') {
+      this._syncValidity();
     }
   }
 
@@ -83,6 +90,7 @@ export class ETreeSelect extends BaseFormControl {
     this._value = v;
     this.internals.setFormValue(v);
     this.setAttribute('value', v);
+    this._syncValidity();
     this.dispatchEvent(new CustomEvent('e-change', { detail: { value: v }, bubbles: true }));
   }
 
@@ -103,6 +111,12 @@ export class ETreeSelect extends BaseFormControl {
   override formResetCallback(): void {
     const dflt = this.getAttribute('default-value') ?? '';
     this.setAttribute('value', dflt);
+  }
+
+  private _syncValidity(): void {
+    const tree = this.querySelector<HTMLElement>('[role="tree"]') ?? undefined;
+    tree?.setAttribute('aria-required', String(this.hasAttribute('required')));
+    this.applyRequiredValidity(!!this._value, tree, 'Please select an option.');
   }
 }
 

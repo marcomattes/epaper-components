@@ -10,6 +10,7 @@ interface PanelDef {
 
 /**
  * @summary Stack of expandable sections built on native `<details>`/`<summary>`.
+ * @since v1.1.0
  *
  * Reads its panels from child `<e-collapse-panel>` elements at connect time.
  * Expanding a section mutates one `open` attribute, so the EPDC repaints only

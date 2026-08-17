@@ -2,6 +2,7 @@ import { addCleanup, define, patchAttr, runCleanups } from '../core/dom';
 
 /**
  * @summary Single-select toggle row built from `<e-segment>` children.
+ * @since v1.0.1
  *
  * @attr {string} [value] - Currently selected segment value. Reactive.
  *

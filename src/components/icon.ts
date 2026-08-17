@@ -3,6 +3,7 @@ import { ICONS, iconSvg } from '../core/icons';
 
 /**
  * @summary Inline SVG icon resolved by name from the built-in icon set.
+ * @since v1.0.1
  *
  * @attr {string} name - Icon identifier (must exist in the `ICONS` registry).
  * @attr {number} [size=20] - Pixel size (width and height).

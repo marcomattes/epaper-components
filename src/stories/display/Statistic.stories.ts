@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'KPI block: large numeric value with label and an optional trend marker. The trend glyph is static (no animation) so it does not provoke an e-paper full refresh.',
+          '**Version:** v1.0.1\n\nKPI block: large numeric value with label and an optional trend marker. The trend glyph is static (no animation) so it does not provoke an e-paper full refresh.',
       },
     },
   },

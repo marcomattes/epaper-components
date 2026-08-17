@@ -9,7 +9,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Image wrapper with native lazy-loading, fallback source and optional caption. On error, swaps to `fallback`; if that fails too, shows a hatched placeholder.',
+          '**Version:** v1.0.1\n\nImage wrapper with native lazy-loading, fallback source and optional caption. On error, swaps to `fallback`; if that fails too, shows a hatched placeholder.',
       },
     },
   },

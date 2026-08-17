@@ -13,18 +13,20 @@ matching native `<input type="checkbox">` behaviour.
 
 ## Attributes
 
-| Attribute | Type | Default | Description |
-| --- | --- | --- | --- |
-| `checked` | `boolean` | — | Whether the box is checked. Reflected to the attribute on user input. |
-| `label` | `string` | — | Inline text label rendered next to the box. |
-| `disabled` | `boolean` | — | Disables interaction. |
-| `value` | `string` | `'on'` | Submitted value when checked. |
-| `name` | `string` | — | Form field name. Required to participate in `FormData`. |
+| Attribute          | Type      | Default | Description                                                           |
+| ------------------ | --------- | ------- | --------------------------------------------------------------------- |
+| `checked`          | `boolean` | —       | Whether the box is checked. Reflected to the attribute on user input. |
+| `label`            | `string`  | —       | Inline text label rendered next to the box.                           |
+| `disabled`         | `boolean` | —       | Disables interaction.                                                 |
+| `value`            | `string`  | `'on'`  | Submitted value when checked.                                         |
+| `required`         | `boolean` | —       | Requires the checkbox to be checked.                                  |
+| `required-message` | `string`  | —       | Message reported when the required checkbox is unchecked.             |
+| `name`             | `string`  | —       | Form field name. Required to participate in `FormData`.               |
 
 ## Events
 
-| Event | Detail | Description |
-| --- | --- | --- |
+| Event      | Detail                            | Description                           |
+| ---------- | --------------------------------- | ------------------------------------- |
 | `e-change` | `CustomEvent<{checked: boolean}>` | Fired when the checked state changes. |
 
 ## Slots
@@ -33,7 +35,7 @@ _None._
 
 ## Properties
 
-| Property | Type | Read-only | Description |
-| --- | --- | --- | --- |
-| `checked` | `boolean` | no |  |
-| `value` | `string` | no | Submitted value when checked (defaults to "on"). |
+| Property  | Type      | Read-only | Description                                      |
+| --------- | --------- | --------- | ------------------------------------------------ |
+| `checked` | `boolean` | no        |                                                  |
+| `value`   | `string`  | no        | Submitted value when checked (defaults to "on"). |

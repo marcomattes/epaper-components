@@ -2,6 +2,7 @@ import { captureWrap, define, patchAttr } from '../core/dom';
 
 /**
  * @summary Inline anchor styled with the design-system underline.
+ * @since v1.0.1
  *
  * Children are used as the link text.
  *

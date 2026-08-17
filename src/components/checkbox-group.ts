@@ -3,6 +3,7 @@ import { BaseFormControl } from '../core/base-form-control';
 
 /**
  * @summary Group of checkbox options sharing a single comma-separated value.
+ * @since v1.0.1
  *
  * Reads options from `<e-cbox-option>` children at connect time.
  * Form-associated: each selected option is appended to FormData under `name`.
@@ -10,6 +11,8 @@ import { BaseFormControl } from '../core/base-form-control';
  * @attr {string} [value] - Comma-separated list of selected option values. Reactive.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
  * @attr {'horizontal'|'vertical'} [layout='vertical'] - Stacking direction. Reactive.
+ * @attr {boolean} [required] - Requires at least one selected option.
+ * @attr {string} [required-message] - Message reported when no required option is selected.
  *
  * @fires {CustomEvent<{value: string[]}>} e-change - Fired when the selection changes. `value` is the array of selected option values.
  *
@@ -20,7 +23,7 @@ import { BaseFormControl } from '../core/base-form-control';
  * </e-checkbox-group>
  */
 export class ECheckboxGroup extends BaseFormControl {
-  static observedAttributes = ['value', 'layout'];
+  static observedAttributes = ['value', 'layout', 'required', 'required-message'];
 
   private _wired = false;
   private _opts: Array<{ value: string; label: string }> = [];
@@ -30,11 +33,13 @@ export class ECheckboxGroup extends BaseFormControl {
     const name = this.getAttribute('name');
     if (!name) {
       this.internals.setFormValue(values.join(','));
+      this._syncValidity(values);
       return;
     }
     const fd = new FormData();
     for (const v of values) fd.append(name, v);
     this.internals.setFormValue(fd);
+    this._syncValidity(values);
   }
 
   connectedCallback() {
@@ -77,6 +82,8 @@ export class ECheckboxGroup extends BaseFormControl {
       if (this._container)
         this._container.style.flexDirection =
           this.getAttribute('layout') === 'horizontal' ? 'row' : 'column';
+    } else if (name === 'required' || name === 'required-message') {
+      this._syncValidity(this.value.split(',').filter(Boolean));
     }
   }
 
@@ -159,6 +166,15 @@ export class ECheckboxGroup extends BaseFormControl {
       .getAll(name)
       .filter((v): v is string => typeof v === 'string')
       .join(',');
+  }
+
+  private _syncValidity(values: string[]): void {
+    this._container?.setAttribute('aria-required', String(this.hasAttribute('required')));
+    this.applyRequiredValidity(
+      values.length > 0,
+      this._container ?? undefined,
+      'Please select at least one option.',
+    );
   }
 }
 define('e-checkbox-group', ECheckboxGroup);

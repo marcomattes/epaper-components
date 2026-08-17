@@ -9,7 +9,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Numeric input with stepper buttons. Supports `min`, `max` and `step` constraints and clamps the value on commit.',
+          '**Version:** v1.0.1\n\nNumeric input with stepper buttons. Supports `min`, `max` and `step` constraints and clamps the value on commit.',
       },
     },
   },

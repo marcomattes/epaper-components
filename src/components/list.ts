@@ -2,6 +2,7 @@ import { boolAttr, define, patchBoolAttr, patchText } from '../core/dom';
 
 /**
  * @summary Structured list with header / footer slots and `<e-list-item>` rows.
+ * @since v1.0.1
  *
  * Different from a native `<ul>` because items are slot-driven (title,
  * description, leading, trailing) and the container owns the framing.

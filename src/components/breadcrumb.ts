@@ -2,6 +2,7 @@ import { define, patchText } from '../core/dom';
 
 /**
  * @summary Hierarchical navigation trail rendered from `<e-breadcrumb-item>` children.
+ * @since v1.0.1
  *
  * @attr {string} [separator='/'] - Glyph rendered between entries.
  *

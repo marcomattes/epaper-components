@@ -8,7 +8,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Horizontal or vertical rule used to separate sections. Supports `solid` and `dashed` strokes and an optional centered inline label.',
+          '**Version:** v1.0.1\n\nHorizontal or vertical rule used to separate sections. Supports `solid` and `dashed` strokes and an optional centered inline label.',
       },
     },
   },

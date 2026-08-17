@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Semantic key/value list rendered with a `<dl>`. Prefer this over a raw `<dl>` when you want consistent layout, optional borders and a multi-column grid.',
+          '**Version:** v1.0.1\n\nSemantic key/value list rendered with a `<dl>`. Prefer this over a raw `<dl>` when you want consistent layout, optional borders and a multi-column grid.',
       },
     },
   },

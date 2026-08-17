@@ -2,6 +2,7 @@ import { boolAttr, define } from '../core/dom';
 
 /**
  * @summary Flexbox container with attribute-driven layout.
+ * @since v1.0.1
  *
  * @attr {'row'|'column'|'row-reverse'|'column-reverse'} [direction='row'] - `flex-direction` value.
  * @attr {'nowrap'|'wrap'|'wrap-reverse'} [wrap='nowrap'] - `flex-wrap` value.

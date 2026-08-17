@@ -2,6 +2,7 @@ import { define, numAttr } from '../core/dom';
 
 /**
  * @summary Wraps slotted content in a `position: sticky` container.
+ * @since v1.0.1
  *
  * Use to keep a sidebar, toolbar or header pinned while the page scrolls.
  * Implementation is pure CSS sticky — no scroll listeners — so it never

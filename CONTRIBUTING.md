@@ -106,6 +106,14 @@ component or under `src/components/__tests__/` covering at minimum:
 - Event emission with the documented detail shape.
 - For form controls: `FormData` round-trip from a `<form>` parent.
 - For interactive components: keyboard activation paths.
+- For a frequently updated component: add or update a scenario in
+  `refresh-budget.test.ts`. Value-only interactions must not replace the host
+  subtree; keep mutation count, element churn and approximated dirty area under
+  an explicit per-scenario budget.
+
+Run only the refresh scenarios with `npm run test:refresh`. The dirty-area
+metric is a browser-side approximation based on mutated elements' bounding
+rectangles; physical ghosting and waveform choice still require panel testing.
 
 ## Coverage and SonarQube
 

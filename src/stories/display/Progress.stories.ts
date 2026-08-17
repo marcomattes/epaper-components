@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Static progress indicator. Renders as a linear bar or as discrete steps. No animation: the bar updates as a single dirty rectangle for partial-refresh-friendly behaviour.',
+          '**Version:** v1.0.1\n\nStatic progress indicator. Renders as a linear bar or as discrete steps. No animation: the bar updates as a single dirty rectangle for partial-refresh-friendly behaviour.',
       },
     },
   },

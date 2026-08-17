@@ -2,6 +2,7 @@ import { captureWrap, define, patchClassModifier } from '../core/dom';
 
 /**
  * @summary Typography wrapper with semantic tag and visual kind selectors.
+ * @since v1.0.1
  *
  * Children are used as the text content.
  *

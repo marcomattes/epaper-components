@@ -1,0 +1,30 @@
+/* EPaper · High-contrast monochrome panel theme
+ * Import after tokens.css, then apply data-ink-theme="mono-high-contrast" to
+ * an ancestor (usually <html>) or add .ink-theme--mono-high-contrast to a
+ * scoped container. */
+
+[data-ink-theme='mono-high-contrast'],
+.ink-theme--mono-high-contrast {
+  color-scheme: light;
+  --ink-fg: #000;
+  --ink-bg: #fff;
+  --ink-fg-inverted: #fff;
+  --ink-bg-inverted: #000;
+  --ink-accent: #000;
+  --ink-info: #000;
+  --ink-success: #000;
+  --ink-warning: #000;
+  --ink-danger: #000;
+  --ink-border-width: 3px;
+  --ink-border-width-strong: 5px;
+  --ink-border-width-hair: 2px;
+  --ink-border-width-error: 4px;
+  --ink-focus-width: 4px;
+  --ink-focus-offset: 3px;
+  --ink-control-h-sm: 40px;
+  --ink-control-h-md: 48px;
+  --ink-control-h-lg: 52px;
+  --ink-hatch-disabled: repeating-linear-gradient(45deg, #000 0 2px, transparent 2px 5px);
+  --ink-hatch-error: repeating-linear-gradient(135deg, #000 0 2px, transparent 2px 6px);
+  --ink-hatch-cover: repeating-linear-gradient(45deg, #fff 0 2px, #000 2px 5px);
+}

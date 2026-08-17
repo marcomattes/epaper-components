@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Single-select control rendered as a list of radio options. Use when the user needs to see all available choices at once.',
+          '**Version:** v1.0.1\n\nSingle-select control rendered as a list of radio options. Use when the user needs to see all available choices at once.',
       },
     },
   },

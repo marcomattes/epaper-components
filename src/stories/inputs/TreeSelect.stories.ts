@@ -38,7 +38,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Select that exposes a hierarchical tree of options collapsible by branch. Useful for taxonomies, org charts or geo selectors where parent/child context matters.',
+          '**Version:** v1.0.1\n\nSelect that exposes a hierarchical tree of options collapsible by branch. Useful for taxonomies, org charts or geo selectors where parent/child context matters.',
       },
     },
   },

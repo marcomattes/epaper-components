@@ -9,7 +9,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'In-page navigation that highlights the section currently in view as the user scrolls. Useful for long documentation or article pages.',
+          '**Version:** v1.0.1\n\nIn-page navigation that highlights the section currently in view as the user scrolls. Useful for long documentation or article pages.',
       },
     },
   },

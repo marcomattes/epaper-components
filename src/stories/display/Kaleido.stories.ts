@@ -8,7 +8,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Showcase swatch for the five Kaleido accent colors (red, orange, yellow, green, blue). These are the **only** fills permitted in the system and are reserved for state — destructive, warning, attention, success, link/info.',
+          '**Version:** v1.0.1\n\nShowcase swatch for the five Kaleido accent colors (red, orange, yellow, green, blue). These are the **only** fills permitted in the system and are reserved for state — destructive, warning, attention, success, link/info.',
       },
     },
   },

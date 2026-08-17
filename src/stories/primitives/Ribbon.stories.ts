@@ -9,7 +9,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          'Diagonal corner banner attached to a parent container — typically a card. Used sparingly for promotions, status flags or “new” callouts.',
+          '**Version:** v1.0.1\n\nDiagonal corner banner attached to a parent container — typically a card. Used sparingly for promotions, status flags or “new” callouts.',
       },
     },
   },
