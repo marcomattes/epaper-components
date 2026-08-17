@@ -762,8 +762,14 @@ push to `main` by `.github/workflows/deploy.yml`.
 `main` requires a pull request, so the version bump is merged before the tag is
 pushed; [CONTRIBUTING.md](./CONTRIBUTING.md) documents the exact sequence.
 
+## Cross-browser testing
+
+Every component story is tested on Chrome, Edge, Firefox, desktop WebKit, and a
+mobile WebKit context through BrowserStack. The suite rejects runtime and
+rendering failures and also enforces that every registered custom element is
+covered by Storybook. See [BROWSERSTACK.md](./BROWSERSTACK.md) for the complete
+matrix, CI setup, reports, and local commands.
+
 ## License
 
 MIT. See [LICENSE](./LICENSE).
-
-This project is tested with BrowserStack
