@@ -12,10 +12,64 @@ export abstract class BaseFormControl<T = string> extends HTMLElement {
   protected _value: T = '' as unknown as T;
   protected _formDisabled = false;
 
+  // Constraint violations are reported to the form immediately but are not
+  // *shown* until the user has had a chance to satisfy them. Without this an
+  // untouched `<e-input required>` renders `aria-invalid="true"` on first
+  // paint: screen readers announce an error before any interaction, and
+  // `.ink-control:focus-visible:not([aria-invalid='true'])` stops matching, so
+  // the focus ring disappears from exactly the fields that need it. Explicit
+  // author errors (`error` / `error-message`) are unaffected — those are a
+  // deliberate statement by the page, not a guess about user intent.
+  private _validationSurfaced = false;
+  private _pendingAnchor: HTMLElement | null = null;
+
   constructor() {
     super();
     // attachInternals is supported in all evergreen browsers since 2022.
     this.internals = this.attachInternals();
+    // `change`, `focusout` and `invalid` all reach the host: the first two
+    // bubble out of whatever native control the subclass renders, and the
+    // third is dispatched on this element by ElementInternals during
+    // `checkValidity()` and form submission. One listener per host therefore
+    // covers every subclass. These are listeners on `this`, not on `document`,
+    // so they are collected with the element and need no `onGlobal` teardown.
+    const surface = (): void => this._surfaceValidation();
+    this.addEventListener('change', surface);
+    this.addEventListener('focusout', surface);
+    this.addEventListener('invalid', surface);
+  }
+
+  /** Allow constraint violations to be shown, and paint any pending one. */
+  private _surfaceValidation(): void {
+    if (this._validationSurfaced) return;
+    this._validationSurfaced = true;
+    this._paintInvalid(this._pendingAnchor);
+  }
+
+  private _paintInvalid(anchor: HTMLElement | null): void {
+    if (anchor && anchor.getAttribute('aria-invalid') !== 'true') {
+      anchor.setAttribute('aria-invalid', 'true');
+    }
+  }
+
+  private _clearInvalid(anchor: HTMLElement | null): void {
+    if (anchor?.getAttribute('aria-invalid') === 'true') anchor.removeAttribute('aria-invalid');
+  }
+
+  /**
+   * Record a constraint violation on `anchor`, showing it only once validation
+   * has been surfaced. Held state lets a later blur or submit paint it.
+   */
+  private _markInvalid(anchor: HTMLElement | null | undefined): void {
+    this._pendingAnchor = anchor ?? null;
+    if (!anchor) return;
+    if (this._validationSurfaced) this._paintInvalid(anchor);
+    else this._clearInvalid(anchor);
+  }
+
+  private _markValid(anchor: HTMLElement | null | undefined): void {
+    this._pendingAnchor = null;
+    this._clearInvalid(anchor ?? null);
   }
 
   /** Convert the in-memory value to the form-submission representation. */
@@ -58,6 +112,8 @@ export abstract class BaseFormControl<T = string> extends HTMLElement {
     return this.internals.checkValidity();
   }
   reportValidity(): boolean {
+    // Asking for the violation to be reported is itself a request to show it.
+    this._surfaceValidation();
     return this.internals.reportValidity();
   }
 
@@ -71,16 +127,17 @@ export abstract class BaseFormControl<T = string> extends HTMLElement {
     customErrorMessage?: string,
   ): boolean {
     if (customErrorMessage) {
+      // An author-set error is always shown: the page has already decided.
       this.internals.setValidity({ customError: true }, customErrorMessage, control);
-      if (control.getAttribute('aria-invalid') !== 'true')
-        control.setAttribute('aria-invalid', 'true');
+      this._pendingAnchor = null;
+      this._paintInvalid(control);
       return false;
     }
 
     const validity = control.validity;
     if (validity.valid) {
       this.internals.setValidity({});
-      if (control.getAttribute('aria-invalid') === 'true') control.removeAttribute('aria-invalid');
+      this._markValid(control);
       return true;
     }
 
@@ -96,8 +153,7 @@ export abstract class BaseFormControl<T = string> extends HTMLElement {
     if (validity.typeMismatch) flags.typeMismatch = true;
     if (validity.valueMissing) flags.valueMissing = true;
     this.internals.setValidity(flags, control.validationMessage, control);
-    if (control.getAttribute('aria-invalid') !== 'true')
-      control.setAttribute('aria-invalid', 'true');
+    this._markInvalid(control);
     return false;
   }
 
@@ -111,13 +167,11 @@ export abstract class BaseFormControl<T = string> extends HTMLElement {
     if (missing) {
       const message = this.getAttribute('required-message') || defaultMessage;
       this.internals.setValidity({ valueMissing: true }, message, anchor);
-      if (anchor?.getAttribute('aria-invalid') !== 'true') {
-        anchor?.setAttribute('aria-invalid', 'true');
-      }
+      this._markInvalid(anchor);
       return false;
     }
     this.internals.setValidity({});
-    if (anchor?.getAttribute('aria-invalid') === 'true') anchor.removeAttribute('aria-invalid');
+    this._markValid(anchor);
     return true;
   }
 
@@ -131,7 +185,14 @@ export abstract class BaseFormControl<T = string> extends HTMLElement {
     // Optional subclass hook for forwarding the state to its focusable control.
   }
 
-  /** Default reset behaviour: parse `default-value` and assign. */
+  /**
+   * Default reset behaviour: parse `default-value` and assign.
+   *
+   * Note: a reset does not return the control to "untouched". Every subclass
+   * overrides this callback without calling `super`, so there is no base-class
+   * seam to clear the surfaced-validation flag from; a control the user has
+   * already blurred keeps showing its violation after a form reset.
+   */
   formResetCallback(): void {
     const dflt = this.getAttribute('default-value') ?? '';
     this.value = this.parse(dflt);

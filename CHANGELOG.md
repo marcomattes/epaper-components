@@ -9,6 +9,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Added
 
+- Six e-paper data-display components: `<e-meter>` for discrete bounded
+  measurements, `<e-sparkline>` for monochrome mini-charts,
+  `<e-status-board>` for keyed KPI matrices, `<e-change-marker>` for persistent
+  change cues, `<e-last-updated>` for host-scheduled freshness states and
+  `<e-diff>` for visible previous/current comparisons. All six encode state
+  with text, geometry and patterns rather than animation or color alone.
 - High-contrast monochrome and Kaleido panel themes, shipped as readable and
   minified CSS subpath exports. Semantic accent/status tokens collapse to black
   in the base theme and map to flat Kaleido colors without removing icon,
@@ -32,7 +38,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - `sample-app/`: a Playwright-driven runtime check plus a strict-TypeScript
   compile, both run in CI, that hold `README.md`'s claims to the built
   `dist/` output — selective vs. barrel registration, compound child-element
-  registration, the 89-tag Custom Elements Manifest, light DOM, token
+  registration, the 95-tag Custom Elements Manifest, light DOM, token
   overrides, disabled animations, `ElementInternals`, required validation,
   the nine typed custom events, native submit/reset, and repeated `FormData`
   entries from `<e-checkbox-group>`.

@@ -11,8 +11,8 @@ core changes.
 
 ## 1 · What EPaper is (and what it isn't)
 
-EPaper is a **vanilla web component library** (64 component modules
-registering 89 custom elements) built around a single hard constraint:
+EPaper is a **vanilla web component library** (70 component modules
+registering 95 custom elements) built around a single hard constraint:
 **every component must render cleanly on electrophoretic displays**. Every
 other design decision follows from that constraint, not from taste.
 
@@ -53,7 +53,7 @@ other design decision follows from that constraint, not from taste.
         ┌─────────────────────┴────────────────────┐
         ▼                                           ▼
 ┌────────────────┐                          ┌────────────────┐
-│ src/components │  64 modules / 89 tags    │  src/styles    │
+│ src/components │  70 modules / 95 tags    │  src/styles    │
 │  *.ts          │  (1 file = 1+ component) │  tokens / base │
 │                │                          │  components    │
 └────────────────┘                          └────────────────┘
@@ -213,7 +213,7 @@ your own components.
 | `__tests__/screenshots.test.ts`      | Pixel visual regression                        | all story modules |
 | `__tests__/refresh-budget.test.ts`   | Mutation, node-churn and dirty-area budgets    | key interactions  |
 | `core/date.test.ts`                  | `parseYMD`, `ymd`, `pad2`                      | core utility      |
-| Storybook + `@storybook/addon-a11y`  | axe-core (WCAG 2A + 2AA + best practice)       | all 64 components |
+| Storybook + `@storybook/addon-a11y`  | axe-core (WCAG 2A + 2AA + best practice)       | all 70 components |
 
 Visual regression, keyboard navigation and refresh budgets run in CI. Physical
 panel ghosting and waveform selection remain hardware checks because browser
