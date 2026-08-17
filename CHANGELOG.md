@@ -12,7 +12,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - `sample-app/`: a Playwright-driven runtime check plus a strict-TypeScript
   compile, both run in CI, that hold `README.md`'s claims to the built
   `dist/` output — selective vs. barrel registration, compound child-element
-  registration, the 82-tag Custom Elements Manifest, light DOM, token
+  registration, the 89-tag Custom Elements Manifest, light DOM, token
   overrides, disabled animations, `ElementInternals`, required validation,
   the nine typed custom events, native submit/reset, and repeated `FormData`
   entries from `<e-checkbox-group>`.

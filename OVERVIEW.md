@@ -53,7 +53,7 @@ other design decision follows from that constraint, not from taste.
         ┌─────────────────────┴────────────────────┐
         ▼                                           ▼
 ┌────────────────┐                          ┌────────────────┐
-│ src/components │  59 modules / 82 tags    │  src/styles    │
+│ src/components │  64 modules / 89 tags    │  src/styles    │
 │  *.ts          │  (1 file = 1+ component) │  tokens / base │
 │                │                          │  components    │
 └────────────────┘                          └────────────────┘

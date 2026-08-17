@@ -364,8 +364,8 @@ in Vite, Rollup, esbuild and webpack 5.
 Compound elements that a parent component registers alongside itself — such as
 `<e-form-item>` (registered by `form.ts`) or `<e-option>` (registered by
 `select.ts`) — do not get their own subpath; importing the parent module
-registers them too. `package.json` exposes 78 subpaths in total: the barrel,
-63 component entries covering all 82 tags between them, and 14 CSS/source-map
+registers them too. `package.json` exposes 84 subpaths in total: the barrel,
+69 component entries covering all 89 tags between them, and 14 CSS/source-map
 entries.
 
 | Goal               | Import                                                           |
