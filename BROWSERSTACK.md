@@ -59,16 +59,18 @@ Create these repository Actions secrets:
 - `BROWSERSTACK_USERNAME`
 - `BROWSERSTACK_ACCESS_KEY`
 
-`.github/workflows/browserstack.yml` runs for every pull request and every push
-to `main`. Fork pull requests do not receive repository secrets, so the workflow
+`.github/workflows/ci.yml` calls `.github/workflows/browserstack.yml` after the
+local quality, test, and build stages for every pull request and every push to
+`main`. Fork pull requests do not receive repository secrets, so the workflow
 reports a notice and skips the remote matrix for those runs. It never uses
 `pull_request_target` and therefore never exposes BrowserStack credentials to
 untrusted fork code.
 
 Each matrix job builds a static Storybook, starts an isolated BrowserStack Local
-tunnel, runs all stories in one remote session, stops the tunnel even on failure,
-and uploads the reports for 14 days. The official BrowserStack Actions are pinned
-to an immutable commit.
+tunnel, runs all stories in one remote session, and retries that complete remote
+test once if it fails. Setup and build failures are not retried. The job stops
+the tunnel even on failure and uploads the reports for 14 days. The official
+BrowserStack Actions are pinned to an immutable commit.
 
 ## Run locally
 

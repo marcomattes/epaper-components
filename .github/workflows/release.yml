@@ -95,12 +95,20 @@ jobs:
   checks:
     name: Checks
     needs: guard
+    # Nested workflows may only retain or reduce the caller's permissions.
+    # ci.yml uses this permission only in its PR-preview job, which is skipped
+    # for a tag release; declaring it here keeps the reusable graph valid.
+    permissions:
+      contents: read
+      pull-requests: write
     uses: ./.github/workflows/ci.yml
     # Passed explicitly rather than via `secrets: inherit`, so the reusable
-    # workflow never sees NPM_TOKEN or the FTP credentials. Unset in a fork,
-    # where ci.yml then skips the analysis instead of failing.
+    # workflow never sees NPM_TOKEN or the FTP credentials. Missing optional
+    # credentials make their corresponding remote check skip with a notice.
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
 
   # ---------------------------------------------------- stage 3 · release
   release:

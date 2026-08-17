@@ -791,8 +791,8 @@ stages, each gating the next:
    Storybook from the tagged source.
 
 Tags carrying a prerelease part, such as `v1.1.0-rc.1`, are published under the
-`next` dist-tag instead of `latest`. The site is additionally redeployed on every
-push to `main` by `.github/workflows/deploy.yml`.
+`next` dist-tag instead of `latest`. The site is additionally redeployed after
+the complete staged CI has passed on every push to `main`.
 
 `main` requires a pull request, so the version bump is merged before the tag is
 pushed; [CONTRIBUTING.md](./CONTRIBUTING.md) documents the exact sequence.

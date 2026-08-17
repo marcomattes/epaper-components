@@ -1,10 +1,14 @@
 name: BrowserStack
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  # CI calls this after its local quality, test and build stages. Keeping a
+  # manual trigger is useful for diagnosing BrowserStack without rerunning CI.
+  workflow_call:
+    secrets:
+      BROWSERSTACK_USERNAME:
+        required: false
+      BROWSERSTACK_ACCESS_KEY:
+        required: false
   workflow_dispatch: {}
 
 concurrency:
@@ -93,8 +97,21 @@ jobs:
           local-testing: start
           local-identifier: random
 
-      - name: Test every component story
-        run: npm run test:browserstack -- --platform=${{ matrix.platform }}
+      - name: Test every component story (one retry)
+        shell: bash
+        run: |
+          for attempt in 1 2; do
+            if npm run test:browserstack -- --platform=${{ matrix.platform }}; then
+              exit 0
+            fi
+
+            if [ "$attempt" -eq 1 ]; then
+              echo "::warning::BrowserStack failed on the first attempt; retrying once."
+            fi
+          done
+
+          echo "::error::BrowserStack failed again on the retry."
+          exit 1
 
       - name: Stop BrowserStack Local
         if: always()
