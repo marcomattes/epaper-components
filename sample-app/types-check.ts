@@ -17,9 +17,8 @@ const input: EInput | null = document.querySelector('e-input');
 button?.addEventListener('e-click', (e) => {
   // e-click's detail is { originalEvent: MouseEvent }, not the EChangeDetail
   // default; this line only compiles if the JSDoc-derived type is honored.
-  const original: MouseEvent = (e as CustomEvent<{ originalEvent: MouseEvent }>).detail
-    .originalEvent;
-  void original;
+  const { originalEvent } = (e as CustomEvent<{ originalEvent: MouseEvent }>).detail;
+  originalEvent satisfies MouseEvent;
 });
 
 // The README's documented pattern for a custom event listener under
@@ -28,6 +27,5 @@ button?.addEventListener('e-click', (e) => {
 // typed `Event` and narrowed inside the body, or this file fails to compile.
 input?.addEventListener('e-change', (e: Event) => {
   const { value } = (e as CustomEvent<EChangeDetail<string>>).detail;
-  const upper: string = value.toUpperCase();
-  void upper;
+  value.toUpperCase() satisfies string;
 });
