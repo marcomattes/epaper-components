@@ -391,7 +391,17 @@
     "validate:sample-app:types": "tsc -p sample-app/tsconfig.json",
     "pages:index": "node scripts/gen-pages-index.mjs",
     "bump-version": "node scripts/bump-version.mjs",
-    "prepublishOnly": "npm run lint:check && npm run type-check && npm run build"
+    "prepublishOnly": "npm run lint:check && npm run type-check && npm run build",
+    "postinstall": "npm update browserstack-node-sdk",
+    "build-browserstack": "vite build && browserstack-node-sdk node scripts/build-css.mjs && tsc -p tsconfig.build.json && cem analyze && node scripts/gen-tag-map.mjs",
+    "build:site-browserstack": "vite build --config vite.site.config.ts && browserstack-node-sdk node scripts/inline-site-css.mjs && node scripts/build-site-routes.mjs",
+    "analyze-browserstack": "cem analyze && browserstack-node-sdk node scripts/gen-tag-map.mjs",
+    "docs:components-browserstack": "cem analyze && browserstack-node-sdk node scripts/gen-readmes.mjs",
+    "browserstack:serve-browserstack": "browserstack-node-sdk node scripts/serve-static.mjs storybook-static 6006",
+    "test:browserstack-browserstack": "browserstack-node-sdk node scripts/browserstack-test.mjs",
+    "validate:sample-app-browserstack": "browserstack-node-sdk node sample-app/validate.mjs",
+    "pages:index-browserstack": "browserstack-node-sdk node scripts/gen-pages-index.mjs",
+    "bump-version-browserstack": "browserstack-node-sdk node scripts/bump-version.mjs"
   },
   "size-limit": [
     {
@@ -422,6 +432,7 @@
     "@vitest/browser-playwright": "4.1.5",
     "@vitest/coverage-v8": "4.1.5",
     "@vitest/ui": "4.1.5",
+    "browserstack-node-sdk": "^1.66.1",
     "cssnano": "^7.1.7",
     "custom-element-jet-brains-integration": "1.7.0",
     "custom-element-vs-code-integration": "1.5.0",
