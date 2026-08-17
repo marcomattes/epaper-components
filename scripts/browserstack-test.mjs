@@ -113,6 +113,30 @@ function safeFileName(value) {
   return cleaned.slice(start, end);
 }
 
+// Declarative authoring API only: the parent reads these as a data source while
+// rendering and replaces them with its own markup, so they never survive into
+// the rendered DOM. `e-menu` reading `:scope > e-menu-item` and emitting
+// `.ink-menu__btn` (src/components/menu.ts) is the canonical example. They are
+// registered and stories do use them, but the coverage check cannot observe
+// them — excluding them keeps that check meaningful for the elements that do
+// render, instead of failing unconditionally. Remove a tag from this list as
+// soon as its parent starts keeping the element in the DOM.
+const CONSUMED_BY_PARENT = new Set([
+  'e-anchor-item',
+  'e-breadcrumb-item',
+  'e-cbox-option',
+  'e-collapse-panel',
+  'e-desc-item',
+  'e-dropdown-item',
+  'e-menu-item',
+  'e-option',
+  'e-radio',
+  'e-segment',
+  'e-step',
+  'e-tab',
+  'e-timeline-item',
+]);
+
 async function discoverRegisteredTags() {
   const componentDirectory = resolve('src', 'components');
   const files = (await readdir(componentDirectory)).filter((file) => file.endsWith('.ts'));
@@ -170,10 +194,13 @@ async function markSession(page, status, reason) {
     action: 'setSessionStatus',
     arguments: { reason: reason.slice(0, 255), status },
   };
-  // BrowserStack's proxy recognizes this call by its literal evaluated source
-  // text, not by an argument value — it must be the expression Playwright
-  // sends over CDP, not a value passed into an unrelated function.
-  await page.evaluate(`browserstack_executor: ${JSON.stringify(command)}`);
+  // The marker has to reach BrowserStack's proxy verbatim, but it cannot be
+  // evaluated as source: `browserstack_executor: {…}` is a labeled statement,
+  // and page.evaluate(string) evaluates an *expression*, so every engine
+  // rejects it with `SyntaxError: Unexpected token ':'` — WebKit and Chromium
+  // alike. BrowserStack's documented form passes the marker as an argument to a
+  // no-op function, which puts it in the CDP payload the proxy inspects.
+  await page.evaluate(() => {}, `browserstack_executor: ${JSON.stringify(command)}`);
 }
 
 // Storybook ships its error-display markup inside iframe.html and keeps it
@@ -317,9 +344,22 @@ await mkdir(screenshotDirectory, { recursive: true });
 const expectedTags = await discoverRegisteredTags();
 const stories = await discoverStories();
 
+// A renamed or deleted element would leave a dead entry behind and silently
+// shrink what the coverage check below still guards, so fail loudly and early
+// — this runs in --dry-run too, which is where it costs nothing to catch.
+const staleAllowlist = [...CONSUMED_BY_PARENT].filter((tag) => !expectedTags.includes(tag));
+if (staleAllowlist.length > 0) {
+  throw new Error(
+    `CONSUMED_BY_PARENT lists elements that are no longer registered: ${staleAllowlist.join(', ')}. ` +
+      `Remove them so the coverage check keeps its reach.`,
+  );
+}
+
+const coverageTags = expectedTags.filter((tag) => !CONSUMED_BY_PARENT.has(tag));
+
 if (dryRun) {
   console.log(
-    `BrowserStack plan is valid: ${stories.length} stories, ${expectedTags.length} registered custom elements, ${platform.label}`,
+    `BrowserStack plan is valid: ${stories.length} stories, ${coverageTags.length} of ${expectedTags.length} registered custom elements expected to render (${CONSUMED_BY_PARENT.size} consumed by their parent), ${platform.label}`,
   );
   process.exit(0);
 }
@@ -335,7 +375,7 @@ let context;
 let page;
 
 console.log(
-  `Running ${stories.length} stories and ${expectedTags.length} registered custom elements on ${platform.label}`,
+  `Running ${stories.length} stories and ${coverageTags.length} rendering custom elements on ${platform.label}`,
 );
 
 try {
@@ -378,7 +418,7 @@ try {
     }
   }
 
-  const missingTags = expectedTags.filter((tag) => !observedTags.has(tag));
+  const missingTags = coverageTags.filter((tag) => !observedTags.has(tag));
   if (missingTags.length > 0) {
     results.push({
       attempt: 1,
@@ -398,7 +438,7 @@ try {
     page,
     failed.length === 0 ? 'passed' : 'failed',
     failed.length === 0
-      ? `${stories.length} stories passed; all ${expectedTags.length} custom elements covered`
+      ? `${stories.length} stories passed; all ${coverageTags.length} rendering custom elements covered`
       : `${failed.length} checks failed`,
   );
 } catch (error) {
@@ -431,6 +471,8 @@ try {
 
 const elapsed = Date.now() - suiteStartedAt;
 const summary = {
+  consumedByParent: [...CONSUMED_BY_PARENT].sort((a, b) => a.localeCompare(b)),
+  coverageTags,
   duration: elapsed,
   expectedTags,
   failed: results.filter((result) => result.status === 'failed').length,

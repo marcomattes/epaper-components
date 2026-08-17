@@ -16,8 +16,13 @@ For every Storybook entry tagged `test`, the runner:
 4. waits for every rendered `e-*` element to be registered and verifies that
    it was upgraded from `HTMLElement`;
 5. retries one failed load once and captures a screenshot if it still fails;
-6. verifies after the suite that all tags registered by
-   `src/components/*.ts` appeared in at least one story;
+6. verifies after the suite that every tag registered by
+   `src/components/*.ts` appeared in at least one story, except those listed in
+   `CONSUMED_BY_PARENT` in `scripts/browserstack-test.mjs` — child elements like
+   `<e-menu-item>` that their parent reads as a data source and replaces with its
+   own markup, so they never reach the rendered DOM. That list is itself checked:
+   an entry that is no longer a registered element aborts the run, so a rename
+   cannot quietly shrink the gate;
 7. publishes JSON, JUnit XML, and failure screenshots under
    `reports/browserstack/<platform>/` and marks the BrowserStack session
    passed or failed.
