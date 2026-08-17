@@ -1,4 +1,4 @@
-import { define, patchText } from '../core/dom';
+import { define, syncEyebrowTitle } from '../core/dom';
 
 /**
  * @summary Container with optional eyebrow, title and action area.
@@ -71,38 +71,14 @@ export class ECard extends HTMLElement {
       section.insertBefore(this._header, section.firstChild);
     }
     const left = this._header.firstElementChild as HTMLElement;
-    this._syncEyebrow(left, eyebrow);
-    this._syncTitle(left, title);
+    const refs = syncEyebrowTitle(left, eyebrow, title, {
+      eyebrow: this._eyebrow,
+      titleEl: this._titleEl,
+    });
+    this._eyebrow = refs.eyebrow;
+    this._titleEl = refs.titleEl;
     if (this._action && this._action.parentElement !== this._header) {
       this._header.appendChild(this._action);
-    }
-  }
-
-  private _syncEyebrow(left: HTMLElement, eyebrow: string | null): void {
-    if (eyebrow) {
-      if (!this._eyebrow) {
-        this._eyebrow = document.createElement('div');
-        this._eyebrow.className = 'ink-card__eyebrow';
-        left.insertBefore(this._eyebrow, left.firstChild);
-      }
-      patchText(this._eyebrow, eyebrow);
-    } else if (this._eyebrow) {
-      this._eyebrow.remove();
-      this._eyebrow = null;
-    }
-  }
-
-  private _syncTitle(left: HTMLElement, title: string | null): void {
-    if (title) {
-      if (!this._titleEl) {
-        this._titleEl = document.createElement('h3');
-        this._titleEl.className = 'ink-card__title';
-        left.appendChild(this._titleEl);
-      }
-      patchText(this._titleEl, title);
-    } else if (this._titleEl) {
-      this._titleEl.remove();
-      this._titleEl = null;
     }
   }
 }

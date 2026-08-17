@@ -28,10 +28,26 @@ function capture(command, args) {
   return execFileSync(command, args, { encoding: 'utf8' }).trim();
 }
 
-run('npm', ['version', input, '--no-git-tag-version']);
+/** Validate a dynamic argument against an allowlist pattern before it reaches execFileSync. */
+function assertSafeArg(value, pattern, label) {
+  if (!pattern.test(value)) {
+    console.error(`Refusing to run: ${label} "${value}" failed validation.`);
+    process.exit(1);
+  }
+  return value;
+}
+
+const SEMVER_RE = /^\d+\.\d+\.\d+(?:[-+][\w.-]+)?$/;
+const BRANCH_RE = /^[\w./-]+$/;
+
+run('npm', [
+  'version',
+  assertSafeArg(input, /^[\w.+-]+$/, 'version argument'),
+  '--no-git-tag-version',
+]);
 
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
-const version = pkg.version;
+const version = assertSafeArg(pkg.version, SEMVER_RE, 'package.json version');
 const commitMessage = `chore(release): bump version to v${version}`;
 
 run('npm', ['run', 'build']);
@@ -43,7 +59,11 @@ run('git', ['commit', '-m', commitMessage]);
 // rewrites this commit, and the tag would point at an object that never
 // reaches `main`. On a release branch the tag is therefore left to the
 // maintainer, after the merge.
-const branch = capture('git', ['rev-parse', '--abbrev-ref', 'HEAD']);
+const branch = assertSafeArg(
+  capture('git', ['rev-parse', '--abbrev-ref', 'HEAD']),
+  BRANCH_RE,
+  'current branch name',
+);
 const defaultBranch = 'main';
 
 if (branch === defaultBranch) {

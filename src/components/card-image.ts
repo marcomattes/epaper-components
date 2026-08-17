@@ -1,4 +1,4 @@
-import { define, patchClassModifier, patchText } from '../core/dom';
+import { define, patchClassModifier, patchText, syncEyebrowTitle } from '../core/dom';
 
 /**
  * @summary Card variant with a top cover area and optional footer slot.
@@ -95,36 +95,12 @@ export class ECardImage extends HTMLElement {
       section.insertBefore(this._header, ref);
     }
     const left = this._header.firstElementChild as HTMLElement;
-    this._syncEyebrow(left, eyebrow);
-    this._syncTitle(left, title);
-  }
-
-  private _syncEyebrow(left: HTMLElement, eyebrow: string | null): void {
-    if (eyebrow) {
-      if (!this._eyebrow) {
-        this._eyebrow = document.createElement('div');
-        this._eyebrow.className = 'ink-card__eyebrow';
-        left.insertBefore(this._eyebrow, left.firstChild);
-      }
-      patchText(this._eyebrow, eyebrow);
-    } else if (this._eyebrow) {
-      this._eyebrow.remove();
-      this._eyebrow = null;
-    }
-  }
-
-  private _syncTitle(left: HTMLElement, title: string | null): void {
-    if (title) {
-      if (!this._titleEl) {
-        this._titleEl = document.createElement('h3');
-        this._titleEl.className = 'ink-card__title';
-        left.appendChild(this._titleEl);
-      }
-      patchText(this._titleEl, title);
-    } else if (this._titleEl) {
-      this._titleEl.remove();
-      this._titleEl = null;
-    }
+    const refs = syncEyebrowTitle(left, eyebrow, title, {
+      eyebrow: this._eyebrow,
+      titleEl: this._titleEl,
+    });
+    this._eyebrow = refs.eyebrow;
+    this._titleEl = refs.titleEl;
   }
 
   private _syncFooter(section: HTMLElement): void {
