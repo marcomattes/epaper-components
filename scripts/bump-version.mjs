@@ -11,7 +11,8 @@ if (!input) {
 }
 
 const allowedRanges = ['patch', 'minor', 'major', 'prepatch', 'preminor', 'premajor', 'prerelease'];
-const isExactVersion = /^v?\d+\.\d+\.\d+(?:[-+].*)?$/.test(input);
+const VERSION_ARG_RE = /^v?\d+\.\d+\.\d+(?:[-+][\w.-]*)?$/;
+const isExactVersion = VERSION_ARG_RE.test(input);
 if (!allowedRanges.includes(input) && !isExactVersion) {
   console.error(`Invalid version argument: ${input}`);
   console.error(
@@ -20,54 +21,42 @@ if (!allowedRanges.includes(input) && !isExactVersion) {
   process.exit(1);
 }
 
-function run(command, args) {
-  execFileSync(command, args, { stdio: 'inherit' });
-}
-
-function capture(command, args) {
-  return execFileSync(command, args, { encoding: 'utf8' }).trim();
-}
-
-/** Validate a dynamic argument against an allowlist pattern before it reaches execFileSync. */
-function assertSafeArg(value, pattern, label) {
-  if (!pattern.test(value)) {
-    console.error(`Refusing to run: ${label} "${value}" failed validation.`);
-    process.exit(1);
-  }
-  return value;
-}
-
-const SEMVER_RE = /^\d+\.\d+\.\d+(?:[-+][\w.-]+)?$/;
-const BRANCH_RE = /^[\w./-]+$/;
-
-run('npm', [
-  'version',
-  assertSafeArg(input, /^[\w.+-]+$/, 'version argument'),
-  '--no-git-tag-version',
-]);
+// `input` is now provably one of `allowedRanges` or matches VERSION_ARG_RE — it is
+// never passed to execFileSync unchecked beyond this point.
+execFileSync('npm', ['version', input, '--no-git-tag-version'], { stdio: 'inherit' });
 
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
-const version = assertSafeArg(pkg.version, SEMVER_RE, 'package.json version');
+const SEMVER_RE = /^\d+\.\d+\.\d+(?:[-+][\w.-]+)?$/;
+if (typeof pkg.version !== 'string' || !SEMVER_RE.test(pkg.version)) {
+  console.error(`package.json version is not a valid semver string: ${pkg.version}`);
+  process.exit(1);
+}
+const version = pkg.version;
 const commitMessage = `chore(release): bump version to v${version}`;
 
-run('npm', ['run', 'build']);
-run('git', ['add', '--all']);
-run('git', ['commit', '-m', commitMessage]);
+execFileSync('npm', ['run', 'build'], { stdio: 'inherit' });
+execFileSync('git', ['add', '--all'], { stdio: 'inherit' });
+execFileSync('git', ['commit', '-m', commitMessage], { stdio: 'inherit' });
 
 // `main` is protected by a ruleset that requires a pull request, so the bump
 // lands through a PR. Tagging here would be wrong: a squash or rebase merge
 // rewrites this commit, and the tag would point at an object that never
 // reaches `main`. On a release branch the tag is therefore left to the
 // maintainer, after the merge.
-const branch = assertSafeArg(
-  capture('git', ['rev-parse', '--abbrev-ref', 'HEAD']),
-  BRANCH_RE,
-  'current branch name',
-);
+const branch = execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
+  encoding: 'utf8',
+}).trim();
+const BRANCH_RE = /^[\w./-]+$/;
+if (!BRANCH_RE.test(branch)) {
+  console.error(`Unexpected characters in current branch name: ${branch}`);
+  process.exit(1);
+}
 const defaultBranch = 'main';
 
 if (branch === defaultBranch) {
-  run('git', ['tag', '-a', `v${version}`, '-m', `Release v${version}`]);
+  execFileSync('git', ['tag', '-a', `v${version}`, '-m', `Release v${version}`], {
+    stdio: 'inherit',
+  });
   console.log(`\n✅ Bumped to v${version}, committed and tagged.`);
   console.log('   Push with: git push --follow-tags');
 } else {
