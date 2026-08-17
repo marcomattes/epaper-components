@@ -13,20 +13,25 @@ on:
       # than failing, so a fork PR and a token-less clone still get a green CI.
       SONAR_TOKEN:
         required: false
+      # Optional for the same reason: BrowserStack reports a notice and skips
+      # its matrix when the credentials are unavailable.
+      BROWSERSTACK_USERNAME:
+        required: false
+      BROWSERSTACK_ACCESS_KEY:
+        required: false
 
 # Scoped per job rather than here, matching browserstack.yml: a workflow-level
 # grant hands the token to every job whether it needs one or not, and a job
 # added later inherits it silently instead of having to ask.
 jobs:
-  build:
-    name: Build and test
+  # Each stage is an explicit job so GitHub shows the gate that failed and
+  # never schedules the more expensive stages behind it.
+  quality:
+    name: Quality
     runs-on: ubuntu-latest
     permissions:
       contents: read
     container:
-      # Keep the browser, its system dependencies, and visual-regression
-      # rendering identical to the environment used to create CI baselines.
-      # This tag must match the Playwright version in package-lock.json.
       image: mcr.microsoft.com/playwright:v1.59.1-noble
       options: --user 1001
     steps:
@@ -51,6 +56,30 @@ jobs:
       - name: Type check
         run: npm run type-check
 
+  tests:
+    name: Tests
+    needs: quality
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    container:
+      # Keep browser rendering identical to the environment used to create the
+      # visual-regression baselines. This tag must match package-lock.json.
+      image: mcr.microsoft.com/playwright:v1.59.1-noble
+      options: --user 1001
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
       # Coverage instead of a bare run: this is the only place the browser
       # suite executes, so it is also the only place coverage can be measured.
       # Both Vitest projects (`unit` and `storybook`) report into it, and V8
@@ -69,6 +98,32 @@ jobs:
           path: reports/
           retention-days: 14
           if-no-files-found: warn
+
+  build:
+    # Keep the current check name stable for branch protection.
+    name: Build and test
+    needs: tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    container:
+      # Keep the browser, its system dependencies, and visual-regression
+      # rendering identical to the environment used to create CI baselines.
+      # This tag must match the Playwright version in package-lock.json.
+      image: mcr.microsoft.com/playwright:v1.59.1-noble
+      options: --user 1001
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
 
       - name: Build
         run: npm run build
@@ -101,7 +156,7 @@ jobs:
           fetch-depth: 0
 
       # Analysis runs outside the Playwright container and never re-runs the
-      # suite; it only needs the reports the build job already produced.
+      # suite; it only needs the reports the tests job already produced.
       - name: Download test and coverage reports
         uses: actions/download-artifact@v4
         with:
@@ -155,3 +210,38 @@ jobs:
           # later. Everything else comes from sonar-project.properties.
           args: >
             -Dsonar.qualitygate.wait=true
+
+  browserstack:
+    name: BrowserStack
+    needs: sonar
+    permissions:
+      contents: read
+    uses: ./.github/workflows/browserstack.yml
+    secrets:
+      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+
+  # Delivery is part of the same gated chain. A pull request gets its preview;
+  # main gets the production site. Tag releases deploy from release.yml after
+  # publishing, so they deliberately match neither condition here.
+  preview:
+    name: PR preview
+    needs: browserstack
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action != 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: ./.github/workflows/preview.yml
+    secrets: inherit
+
+  deploy:
+    name: Deploy site and Storybook
+    needs: browserstack
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit
