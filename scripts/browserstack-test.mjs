@@ -3,6 +3,15 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { chromium, devices } from 'playwright';
 
+// `resolution` is the remote machine's screen size and is validated per OS by
+// BrowserStack: 1440x900 is on the Windows list but not the macOS one, so a
+// shared default silently breaks every OS X target at connect time. Keep it
+// alongside the OS it belongs to, and at least as large as `context.viewport`.
+const WINDOWS_RESOLUTION = '1440x900';
+const MAC_RESOLUTION = '1920x1080';
+
+const desktopViewport = { viewport: { width: 1440, height: 900 } };
+
 const platformDefinitions = {
   chrome: {
     label: 'Chrome latest · Windows 11',
@@ -11,8 +20,9 @@ const platformDefinitions = {
       browser_version: 'latest',
       os: 'Windows',
       os_version: '11',
+      resolution: WINDOWS_RESOLUTION,
     },
-    context: { viewport: { width: 1440, height: 900 } },
+    context: desktopViewport,
   },
   edge: {
     label: 'Edge latest · Windows 11',
@@ -21,8 +31,9 @@ const platformDefinitions = {
       browser_version: 'latest',
       os: 'Windows',
       os_version: '11',
+      resolution: WINDOWS_RESOLUTION,
     },
-    context: { viewport: { width: 1440, height: 900 } },
+    context: desktopViewport,
   },
   firefox: {
     label: 'Playwright Firefox · Windows 11',
@@ -30,8 +41,9 @@ const platformDefinitions = {
       browser: 'playwright-firefox',
       os: 'Windows',
       os_version: '11',
+      resolution: WINDOWS_RESOLUTION,
     },
-    context: { viewport: { width: 1440, height: 900 } },
+    context: desktopViewport,
   },
   webkit: {
     label: 'Playwright WebKit · macOS Tahoe',
@@ -39,8 +51,9 @@ const platformDefinitions = {
       browser: 'playwright-webkit',
       os: 'OS X',
       os_version: 'Tahoe',
+      resolution: MAC_RESOLUTION,
     },
-    context: { viewport: { width: 1440, height: 900 } },
+    context: desktopViewport,
   },
   'mobile-webkit': {
     label: 'Playwright WebKit · iPhone 15 emulation',
@@ -48,6 +61,7 @@ const platformDefinitions = {
       browser: 'playwright-webkit',
       os: 'OS X',
       os_version: 'Tahoe',
+      resolution: MAC_RESOLUTION,
     },
     context: devices['iPhone 15'],
   },
@@ -148,7 +162,6 @@ function capabilities(version) {
     build: process.env.BROWSERSTACK_BUILD_NAME ?? `epaper-components-${Date.now()}`,
     name: `All component stories · ${platform.label}`,
     project: process.env.BROWSERSTACK_PROJECT_NAME ?? 'epaper-components',
-    resolution: '1440x900',
   };
 }
 
@@ -163,6 +176,18 @@ async function markSession(page, status, reason) {
   await page.evaluate(`browserstack_executor: ${JSON.stringify(command)}`);
 }
 
+// Storybook ships its error-display markup inside iframe.html and keeps it
+// `display: none` until a story actually fails, so the element — and its ~1 KB
+// of boilerplate advice text — is present on every healthy page. Matching it by
+// selector alone therefore fails every story unconditionally; only a box that
+// actually has layout is a real render error. Kept as an expression string so
+// waitForFunction and evaluate share one definition.
+const VISIBLE_ERROR_TEXT = `(() => {
+  const node = [...document.querySelectorAll('.sb-errordisplay, [data-storybook-error]')]
+    .find((element) => element.getClientRects().length > 0);
+  return node ? (node.textContent ?? '').trim() : '';
+})()`;
+
 async function inspectStory(page, story, attempt, runtimeErrors) {
   const startedAt = Date.now();
   const url = `${remoteBaseUrl}/iframe.html?id=${encodeURIComponent(story.id)}&viewMode=story`;
@@ -171,20 +196,16 @@ async function inspectStory(page, story, attempt, runtimeErrors) {
   try {
     await page.goto(url, { timeout: storyTimeout, waitUntil: 'domcontentloaded' });
     await page.waitForFunction(
-      () => {
+      `(() => {
         const root = document.querySelector('#storybook-root');
-        const error = document.querySelector('.sb-errordisplay, [data-storybook-error]');
-        return Boolean(error) || (root && (root.childElementCount > 0 || root.textContent?.trim()));
-      },
+        return Boolean(${VISIBLE_ERROR_TEXT}) ||
+          Boolean(root && (root.childElementCount > 0 || root.textContent?.trim()));
+      })()`,
       undefined,
       { timeout: storyTimeout },
     );
 
-    const earlyError = await page.evaluate(
-      () =>
-        document.querySelector('.sb-errordisplay, [data-storybook-error]')?.textContent?.trim() ??
-        '',
-    );
+    const earlyError = await page.evaluate(VISIBLE_ERROR_TEXT);
     if (earlyError) throw new Error(`Storybook render error: ${earlyError}`);
 
     await page.evaluate(async () => {
@@ -221,12 +242,8 @@ async function inspectStory(page, story, attempt, runtimeErrors) {
         [...root.querySelectorAll(tag)].some((element) => element.constructor === HTMLElement),
       );
       const bounds = root.getBoundingClientRect();
-      const errorText = document.querySelector(
-        '.sb-errordisplay, [data-storybook-error]',
-      )?.textContent;
 
       return {
-        errorText: errorText?.trim() ?? '',
         failedUpgrades,
         height: bounds.height,
         tags,
@@ -234,7 +251,10 @@ async function inspectStory(page, story, attempt, runtimeErrors) {
       };
     });
 
-    if (inspection.errorText) throw new Error(`Storybook render error: ${inspection.errorText}`);
+    // Re-checked after the render settles: a story can fail late, once its
+    // custom elements start upgrading.
+    const lateError = await page.evaluate(VISIBLE_ERROR_TEXT);
+    if (lateError) throw new Error(`Storybook render error: ${lateError}`);
     if (inspection.failedUpgrades.length > 0) {
       throw new Error(`Custom element upgrade failed: ${inspection.failedUpgrades.join(', ')}`);
     }
@@ -383,6 +403,9 @@ try {
   );
 } catch (error) {
   const reason = error instanceof Error ? (error.stack ?? error.message) : String(error);
+  // Without this the CI log only shows "0 passed, 1 failed" and the cause is
+  // reachable solely by downloading the run artifact.
+  console.error(`BrowserStack session failed on ${platform.label}:\n${reason}`);
   results.push({
     attempt: 1,
     duration: Date.now() - suiteStartedAt,

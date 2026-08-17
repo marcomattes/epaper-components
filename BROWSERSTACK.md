@@ -30,6 +30,23 @@ The GitHub Actions matrix runs the entire suite on:
 - Playwright WebKit on macOS Tahoe;
 - Playwright WebKit with an iPhone 15 context.
 
+## Where the matrix is defined
+
+Two files own the remote matrix, and both are read at runtime:
+
+- `.github/workflows/browserstack.yml` — the `matrix.platform` keys and the
+  build/project metadata passed to the BrowserStack Actions;
+- `scripts/browserstack-test.mjs` — the capabilities and Playwright context each
+  key resolves to.
+
+The root `browserstack.yml` is the `browserstack-node-sdk` config. The runner
+connects to BrowserStack's Playwright CDP endpoint directly and assembles its own
+capabilities, so **that file is not read by CI or by `npm run test:browserstack`**.
+It exists so an SDK-driven local invocation lands on the same platforms, and it
+mirrors the two files above — update those first, then reflect the change there.
+`mobile-webkit` has no entry in it: Playwright device emulation is a browser
+context option, not a BrowserStack platform.
+
 ## GitHub setup
 
 Create these repository Actions secrets:

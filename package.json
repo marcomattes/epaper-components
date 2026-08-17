@@ -392,7 +392,6 @@
     "pages:index": "node scripts/gen-pages-index.mjs",
     "bump-version": "node scripts/bump-version.mjs",
     "prepublishOnly": "npm run lint:check && npm run type-check && npm run build",
-    "postinstall": "npm update browserstack-node-sdk",
     "build-browserstack": "vite build && browserstack-node-sdk node scripts/build-css.mjs && tsc -p tsconfig.build.json && cem analyze && node scripts/gen-tag-map.mjs",
     "build:site-browserstack": "vite build --config vite.site.config.ts && browserstack-node-sdk node scripts/inline-site-css.mjs && node scripts/build-site-routes.mjs",
     "analyze-browserstack": "cem analyze && browserstack-node-sdk node scripts/gen-tag-map.mjs",
