@@ -191,12 +191,6 @@ export class EInput extends BaseFormControl {
     return s;
   }
 
-  override formResetCallback(): void {
-    const dflt = this.getAttribute('default-value') ?? '';
-    this.value = dflt;
-    this._syncValidity();
-  }
-
   private _syncValidity(): void {
     if (!this._input) return;
     this._input.required = boolAttr(this, 'required');

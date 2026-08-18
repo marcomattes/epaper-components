@@ -192,7 +192,7 @@ export class ETimePicker extends BaseFormControl {
     return this._normalize(s);
   }
 
-  override formResetCallback(): void {
+  protected override resetValue(): void {
     const dflt = this.getAttribute('default-value') ?? '00:00';
     this.setAttribute('value', dflt);
   }

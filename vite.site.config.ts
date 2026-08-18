@@ -17,6 +17,7 @@ import { copyShots, readShots, SHOTS_SRC } from './scripts/site-shots.mjs';
 import { mainHtml, navHtml, pagenavHtml, type ContentOptions } from './src/site/content';
 import {
   headHtml,
+  htaccessConfig,
   llmsFullTxt,
   llmsTxt,
   markdownAlternateHeaders,
@@ -25,7 +26,14 @@ import {
   routeMarkdown,
   sitemapXml,
 } from './src/site/seo';
-import { ALL_ROUTES, routeByPath, ROUTES, type Route } from './src/site/routes';
+import {
+  ALL_ROUTES,
+  NOT_FOUND_PATH,
+  NOT_FOUND_ROUTE,
+  routeByPath,
+  ROUTES,
+  type Route,
+} from './src/site/routes';
 
 const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf8')) as {
   version: string;
@@ -128,12 +136,20 @@ function sitePagesPlugin(opts: ContentOptions): Plugin {
           markdownPath: markdownRoutePath(r.path),
           markdown: routeMarkdown(r, { version: opts.version, stars: opts.stars }),
         })),
+        // Written through the shell like any other page, but to a file
+        // rather than a directory: a host looks for /404.html.
+        notFound: {
+          file: NOT_FOUND_PATH.replace(/^\/+/, ''),
+          blocks: blocksFor(NOT_FOUND_ROUTE, opts),
+        },
         files: {
           'robots.txt': robotsTxt(),
           'sitemap.xml': sitemapXml(lastmod),
           'llms.txt': llmsTxt({ version: opts.version, stars: opts.stars }),
           'llms-full.txt': llmsFullTxt({ version: opts.version, stars: opts.stars }),
           _headers: markdownAlternateHeaders(),
+          // Netlify reads _headers; this host reads .htaccess. Both ship.
+          '.htaccess': htaccessConfig(),
         },
       };
       writeFileSync(join(outDir, '_site-routes.json'), JSON.stringify(manifest), 'utf8');

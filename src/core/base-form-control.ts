@@ -186,14 +186,20 @@ export abstract class BaseFormControl<T = string> extends HTMLElement {
   }
 
   /**
-   * Default reset behaviour: parse `default-value` and assign.
-   *
-   * Note: a reset does not return the control to "untouched". Every subclass
-   * overrides this callback without calling `super`, so there is no base-class
-   * seam to clear the surfaced-validation flag from; a control the user has
-   * already blurred keeps showing its violation after a form reset.
+   * Form-reset entry point. Not overridden by subclasses — it clears the
+   * surfaced-validation flag first so a reset returns the control to
+   * "untouched" (matching first-paint behaviour) before `resetValue()` runs
+   * and re-derives validity from the restored value. Subclasses implement
+   * `resetValue()` instead.
    */
   formResetCallback(): void {
+    this._validationSurfaced = false;
+    this._pendingAnchor = null;
+    this.resetValue();
+  }
+
+  /** Default reset behaviour: parse `default-value` and assign. */
+  protected resetValue(): void {
     const dflt = this.getAttribute('default-value') ?? '';
     this.value = this.parse(dflt);
   }

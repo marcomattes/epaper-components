@@ -383,11 +383,6 @@ export class ECascader extends BaseFormControl {
     return s;
   }
 
-  override formResetCallback(): void {
-    const dflt = this.getAttribute('default-value') ?? '';
-    this.setAttribute('value', dflt);
-  }
-
   private _syncValidity(): void {
     this._trigger?.setAttribute('aria-required', String(this.hasAttribute('required')));
     this.applyRequiredValidity(!!this._value, this._trigger, 'Please select an option.');

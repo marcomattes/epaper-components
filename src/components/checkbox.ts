@@ -134,7 +134,7 @@ export class ECheckbox extends BaseFormControl {
     return s;
   }
 
-  override formResetCallback(): void {
+  protected override resetValue(): void {
     const dflt = this.hasAttribute('default-checked');
     this.checked = dflt;
   }

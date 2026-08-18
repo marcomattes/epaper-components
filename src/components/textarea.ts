@@ -141,12 +141,6 @@ export class ETextarea extends BaseFormControl {
     return s;
   }
 
-  override formResetCallback(): void {
-    const dflt = this.getAttribute('default-value') ?? '';
-    this.value = dflt;
-    this._syncValidity();
-  }
-
   private _syncValidity(): void {
     if (!this._ta) return;
     this._ta.required = boolAttr(this, 'required');
