@@ -196,8 +196,18 @@ jobs:
             echo "::notice title=SonarQube::SONAR_TOKEN is not set — skipping analysis."
           fi
 
+      # release.yml calls this workflow again on the `v*` tag push, re-checking
+      # out the same commit that already went through this job on its `main`
+      # push. GITHUB_REF_NAME on a tag ref is the tag itself, so the scanner's
+      # CI auto-detection reports the analysis as branch `v1.1.0` (etc.)
+      # instead of `main`; SonarCloud only recognizes the configured main
+      # branch (and PRs) for this project, so the quality-gate read-back for
+      # that unknown branch is rejected after the upload — surfacing as
+      # "Not authorized or project not found" regardless of token validity.
+      # The commit was already analyzed under the right branch name, so skip
+      # the repeat run rather than re-analyze under a ref Sonar will reject.
       - name: SonarQube scan
-        if: steps.token.outputs.present == 'true'
+        if: steps.token.outputs.present == 'true' && github.ref_type != 'tag'
         # Pinned to a commit, not a tag: a mutable tag lets an upstream
         # compromise reach a runner that has SONAR_TOKEN. This is v8.2.1.
         uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f
