@@ -59,3 +59,18 @@ export const Group: Story = {
     </div>
   `,
 };
+
+export const DisabledClosable: Story = {
+  args: { label: 'Locked', closable: true, disabled: true },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const tag = canvasElement.querySelector('e-tag')!;
+    const onClose = fn();
+    tag.addEventListener('e-close', onClose);
+    const button = canvas.getByRole('button', { name: 'Remove' });
+    expect(button).toBeDisabled();
+    button.click();
+    expect(onClose).not.toHaveBeenCalled();
+    await checkA11y(canvasElement);
+  },
+};

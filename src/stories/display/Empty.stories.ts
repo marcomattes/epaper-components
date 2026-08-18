@@ -61,3 +61,18 @@ export const WithAction: Story = {
 export const Minimal: Story = {
   args: { icon: 'search', title: 'No results' },
 };
+
+export const ReactiveOptionalDescription: Story = {
+  args: { icon: 'search', title: 'No results' },
+  play: async ({ canvasElement }) => {
+    const empty = canvasElement.querySelector('e-empty')!;
+    const root = empty.querySelector('.ink-empty');
+    empty.setAttribute('description', 'Try a broader search.');
+    const description = empty.querySelector('.ink-empty__desc');
+    expect(description).toHaveTextContent('Try a broader search.');
+    expect(empty.querySelector('.ink-empty')).toBe(root);
+    empty.removeAttribute('description');
+    expect(empty.querySelector('.ink-empty__desc')).not.toBeInTheDocument();
+    await checkA11y(canvasElement);
+  },
+};

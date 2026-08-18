@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/web-components';
+import { expect } from 'storybook/test';
 import { html } from 'lit';
+import { checkA11y } from '../a11y';
 
 const meta: Meta = {
   title: 'Primitives/BadgeCount',
@@ -33,12 +35,41 @@ export const WithCount: Story = {
 
 export const Overflow: Story = {
   args: { count: 120, max: 99, dot: false },
+  play: async ({ canvasElement }) => {
+    await checkA11y(canvasElement);
+    expect(canvasElement.querySelector('.ink-badge-count__num')?.textContent).toBe('99+');
+  },
 };
 
 export const DotOnly: Story = {
   args: { count: 3, max: 99, dot: true },
+  play: async ({ canvasElement }) => {
+    await checkA11y(canvasElement);
+    const dot = canvasElement.querySelector('.ink-badge-count__dot');
+    expect(dot).toHaveAttribute('role', 'status');
+    expect(dot).toHaveAttribute('aria-label', '3');
+  },
 };
 
 export const Zero: Story = {
   args: { count: 0, max: 99, dot: false },
+  play: async ({ canvasElement }) => {
+    await checkA11y(canvasElement);
+    expect(canvasElement.querySelector('.ink-badge-count__num')).not.toBeInTheDocument();
+  },
+};
+
+export const ReactiveBoundaryChanges: Story = {
+  args: { count: 1, max: 5, dot: false },
+  play: async ({ canvasElement }) => {
+    const badge = canvasElement.querySelector('e-badge-count')!;
+    const initialIndicator = badge.querySelector('.ink-badge-count__num');
+    badge.setAttribute('count', '6');
+    expect(badge.querySelector('.ink-badge-count__num')).toBe(initialIndicator);
+    expect(initialIndicator).toHaveTextContent('5+');
+    badge.setAttribute('dot', '');
+    expect(badge.querySelector('.ink-badge-count__num')).not.toBeInTheDocument();
+    expect(badge.querySelector('.ink-badge-count__dot')).toHaveAttribute('aria-label', '6');
+    await checkA11y(canvasElement);
+  },
 };

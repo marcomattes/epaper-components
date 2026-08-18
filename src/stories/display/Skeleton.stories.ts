@@ -64,3 +64,18 @@ export const ProfileCard: Story = {
     </div>
   `,
 };
+
+export const ReactiveLineBoundaries: Story = {
+  args: { shape: 'text', lines: 2, width: '75%' },
+  play: async ({ canvasElement }) => {
+    const skeleton = canvasElement.querySelector('e-skeleton')!;
+    const firstLine = skeleton.querySelector('.ink-skeleton__line');
+    skeleton.setAttribute('lines', '0');
+    expect(skeleton.querySelectorAll('.ink-skeleton__line')).toHaveLength(1);
+    expect(skeleton.querySelector('.ink-skeleton__line')).toBe(firstLine);
+    skeleton.setAttribute('lines', '101');
+    expect(skeleton.querySelectorAll('.ink-skeleton__line')).toHaveLength(100);
+    expect(skeleton).toHaveAttribute('aria-busy', 'true');
+    await checkA11y(canvasElement);
+  },
+};

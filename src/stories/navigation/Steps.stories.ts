@@ -77,3 +77,12 @@ export const Vertical: Story = {
     expect(canvasElement.textContent).toContain('PENDING');
   },
 };
+
+export const BeyondLastStep: Story = {
+  args: { current: 99, orientation: 'horizontal' },
+  play: async ({ canvasElement }) => {
+    await checkA11y(canvasElement);
+    expect(canvasElement.querySelectorAll('[data-done="true"]')).toHaveLength(4);
+    expect(canvasElement.querySelector('[data-active="true"]')).not.toBeInTheDocument();
+  },
+};
