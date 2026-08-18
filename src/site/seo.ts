@@ -213,7 +213,11 @@ export function routeMarkdown(route: Route, opts: { version: string; stars: stri
       );
       break;
     case 'features':
-      lines.push('## Feature summary', '', ...FEATURES.flatMap((f) => [`- **${f.title}**: ${f.body}`]));
+      lines.push(
+        '## Feature summary',
+        '',
+        ...FEATURES.flatMap((f) => [`- **${f.title}**: ${f.body}`]),
+      );
       break;
     case 'components':
       lines.push(
@@ -493,7 +497,9 @@ export function markdownAlternateHeaders(): string {
   }));
 
   const htmlHeaders = pairs
-    .map((pair) => `${pair.html}\n  Link: <${pair.markdown}>; rel="alternate"; type="text/markdown"`)
+    .map(
+      (pair) => `${pair.html}\n  Link: <${pair.markdown}>; rel="alternate"; type="text/markdown"`,
+    )
     .join('\n\n');
   const markdownHeaders = pairs
     .map((pair) => `${pair.markdown}\n  Link: <${pair.html}>; rel="alternate"; type="text/html"`)
