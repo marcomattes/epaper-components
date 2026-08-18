@@ -24,7 +24,7 @@ import {
  * </e-anchor>
  */
 export class EAnchor extends HTMLElement {
-  static observedAttributes = ['offset-top'];
+  static readonly observedAttributes = ['offset-top'];
 
   private _wired = false;
   private _scrollHandler: (() => void) | null = null;

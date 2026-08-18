@@ -391,7 +391,12 @@ describe('global listener cleanup', () => {
     }
   });
 
-  it('e-cascader removes its document listener on disconnect', () => {
+  it.each([
+    { tag: 'e-cascader', attr: 'options', value: '[{"value":"a","label":"A"}]' },
+    { tag: 'e-date-picker', attr: 'value', value: '2026-04-26' },
+    { tag: 'e-popover', attr: 'heading', value: 'Status' },
+    { tag: 'e-popconfirm', attr: 'message', value: 'Sure?' },
+  ])('$tag removes its document listener(s) on disconnect', ({ tag, attr, value }) => {
     let added = 0;
     let removed = 0;
     const origAdd = document.addEventListener;
@@ -406,34 +411,8 @@ describe('global listener cleanup', () => {
     };
 
     try {
-      const el = document.createElement('e-cascader');
-      el.setAttribute('options', '[{"value":"a","label":"A"}]');
-      document.body.appendChild(el);
-      el.remove();
-      expect(added - removed).toBe(0);
-    } finally {
-      document.addEventListener = origAdd;
-      document.removeEventListener = origRemove;
-    }
-  });
-
-  it('e-date-picker removes its document listener on disconnect', () => {
-    let added = 0;
-    let removed = 0;
-    const origAdd = document.addEventListener;
-    const origRemove = document.removeEventListener;
-    document.addEventListener = function (...args: Parameters<typeof origAdd>) {
-      added++;
-      return origAdd.apply(this, args);
-    };
-    document.removeEventListener = function (...args: Parameters<typeof origRemove>) {
-      removed++;
-      return origRemove.apply(this, args);
-    };
-
-    try {
-      const el = document.createElement('e-date-picker');
-      el.setAttribute('value', '2026-04-26');
+      const el = document.createElement(tag);
+      el.setAttribute(attr, value);
       document.body.appendChild(el);
       el.remove();
       expect(added - removed).toBe(0);
@@ -458,58 +437,6 @@ describe('global listener cleanup', () => {
     el.remove();
     el.removeEventListener = origRemove;
     expect(removed).toBeGreaterThanOrEqual(1);
-  });
-
-  it('e-popover removes its document listeners on disconnect', () => {
-    let added = 0;
-    let removed = 0;
-    const origAdd = document.addEventListener;
-    const origRemove = document.removeEventListener;
-    document.addEventListener = function (...args: Parameters<typeof origAdd>) {
-      added++;
-      return origAdd.apply(this, args);
-    };
-    document.removeEventListener = function (...args: Parameters<typeof origRemove>) {
-      removed++;
-      return origRemove.apply(this, args);
-    };
-
-    try {
-      const el = document.createElement('e-popover');
-      el.setAttribute('heading', 'Status');
-      document.body.appendChild(el);
-      el.remove();
-      expect(added - removed).toBe(0);
-    } finally {
-      document.addEventListener = origAdd;
-      document.removeEventListener = origRemove;
-    }
-  });
-
-  it('e-popconfirm removes its document listeners on disconnect', () => {
-    let added = 0;
-    let removed = 0;
-    const origAdd = document.addEventListener;
-    const origRemove = document.removeEventListener;
-    document.addEventListener = function (...args: Parameters<typeof origAdd>) {
-      added++;
-      return origAdd.apply(this, args);
-    };
-    document.removeEventListener = function (...args: Parameters<typeof origRemove>) {
-      removed++;
-      return origRemove.apply(this, args);
-    };
-
-    try {
-      const el = document.createElement('e-popconfirm');
-      el.setAttribute('message', 'Sure?');
-      document.body.appendChild(el);
-      el.remove();
-      expect(added - removed).toBe(0);
-    } finally {
-      document.addEventListener = origAdd;
-      document.removeEventListener = origRemove;
-    }
   });
 
   it('e-dialog cleans up its native listeners and restores page scroll', () => {

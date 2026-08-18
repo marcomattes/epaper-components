@@ -43,7 +43,7 @@ function localDefinePlugin() {
         const mod = customElementsManifest.modules.find((m) => m.path === modulePath);
         if (!mod) continue;
         mod.exports = mod.exports ?? [];
-        const already = mod.exports.find(
+        const already = mod.exports.some(
           (e) => e.kind === 'custom-element-definition' && e.name === tag,
         );
         if (already) continue;

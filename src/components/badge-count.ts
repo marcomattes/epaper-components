@@ -14,7 +14,7 @@ import { boolAttr, captureWrap, define, intAttr, patchAttr, patchText } from '..
  * <e-badge-count count="12"><e-button>Inbox</e-button></e-badge-count>
  */
 export class EBadgeCount extends HTMLElement {
-  static observedAttributes = ['count', 'max', 'dot'];
+  static readonly observedAttributes = ['count', 'max', 'dot'];
 
   private _wrap: HTMLElement | null = null;
   private _badge: HTMLElement | null = null;
@@ -48,7 +48,7 @@ export class EBadgeCount extends HTMLElement {
       return;
     }
 
-    if (!this._badge || this._badge.className !== wantClass) {
+    if (this._badge?.className !== wantClass) {
       if (this._badge) this._badge.remove();
       this._badge = document.createElement('span');
       this._badge.className = wantClass;

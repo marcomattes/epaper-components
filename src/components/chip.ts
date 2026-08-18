@@ -19,7 +19,7 @@ import { addCleanup, boolAttr, captureWrap, define, patchBoolAttr, runCleanups }
  * <e-chip selected>Today</e-chip>
  */
 export class EChip extends HTMLElement {
-  static observedAttributes = ['selected', 'disabled'];
+  static readonly observedAttributes = ['selected', 'disabled'];
 
   private _wrap: HTMLButtonElement | null = null;
 

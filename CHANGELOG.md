@@ -133,8 +133,27 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - `npm run bump-version` no longer creates the tag when run off `main`, since
   `main` requires a pull request and a squash or rebase merge would strand a
   tag created on the branch. It prints the post-merge tagging steps instead.
+- The build and release tooling no longer reaches a shell. `scripts/bump-version.mjs`
+  and `scripts/gen-*.mjs` run through `scripts/lib/run-command.mjs`, which
+  resolves an allowlisted executable and spawns it with an argv array, so no
+  interpolated value — version argument, `package.json` version or branch name
+  — can be interpreted as a command. Every `npm ci`/`npm install` step in CI
+  passes `--ignore-scripts`, third-party actions are pinned to commit SHAs, and
+  the `workflow_run` dev-publish job checks the head repository before running.
+- `<e-card>` and `<e-card-image>` share one `syncEyebrowTitle()` helper in
+  `src/core/dom.ts` instead of duplicating the eyebrow/title reconciliation.
+  Rendered output is unchanged.
 
 ### Fixed
+
+- Sixteen visual-regression baselines refreshed inside the pinned Playwright
+  container (`mcr.microsoft.com/playwright:v1.59.1-noble`) that CI compares
+  against, the environment `.github/workflows/visual-baselines.yml` exists to
+  provide. They had been captured where font metrics differ, so
+  `screenshots.test.ts` failed on `main` and on every branch cut from it, with
+  dimension deltas (e.g. 296×70 vs. 296×73) that no pixel tolerance absorbs.
+  Rendering itself is unchanged: regenerated from `main` and from this branch,
+  all 67 baselines come out byte-identical.
 
 - `README.md` and `OVERVIEW.md` corrected against the actual built package:
   the static-HTML quick start now resolves without a bundler (bare

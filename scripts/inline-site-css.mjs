@@ -11,10 +11,8 @@ const assetsDir = join(distDir, 'assets');
 
 // Mirrors `base` in vite.site.config.ts. Normalised to a single leading and
 // trailing slash so the rewritten chunk URLs resolve from any page depth.
-const siteBase = `/${(process.env.VITE_SITE_BASE || '/').replace(/^\/+|\/+$/g, '')}/`.replace(
-  '//',
-  '/',
-);
+const trimmedSiteBase = (process.env.VITE_SITE_BASE || '/').replace(/^\/+/, '').replace(/\/+$/, '');
+const siteBase = `/${trimmedSiteBase}/`.replace('//', '/');
 const assetPrefix = `${siteBase}assets/`;
 
 const html = await readFile(htmlPath, 'utf8');

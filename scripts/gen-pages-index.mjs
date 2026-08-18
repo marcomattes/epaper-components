@@ -3,9 +3,15 @@
 // Env:   BASE_URL (e.g. "/epaper-components/")
 
 import { writeFileSync, readFileSync, existsSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { resolve, sep } from 'node:path';
 
-const out = process.argv[2] ?? '_site/index.html';
+const outArg = process.argv[2] ?? '_site/index.html';
+const outRoot = resolve(process.cwd());
+const out = resolve(outRoot, outArg);
+if (out !== outRoot && !out.startsWith(outRoot + sep)) {
+  console.error(`[gen-pages-index] refusing to write outside ${outRoot}: ${out}`);
+  process.exit(1);
+}
 const base = (process.env.BASE_URL ?? '/').replace(/\/?$/, '/');
 
 const pkg = JSON.parse(readFileSync(resolve('package.json'), 'utf8'));

@@ -22,7 +22,7 @@ import { BaseFormControl } from '../core/base-form-control';
  * <e-checkbox checked label="Accept terms"></e-checkbox>
  */
 export class ECheckbox extends BaseFormControl {
-  static observedAttributes = [
+  static readonly observedAttributes = [
     'checked',
     'label',
     'disabled',
@@ -67,11 +67,21 @@ export class ECheckbox extends BaseFormControl {
     this._syncFormValue();
     this._cb!.addEventListener('change', (e) => {
       const v = (e.target as HTMLInputElement).checked;
-      if (v) this.setAttribute('checked', '');
-      else this.removeAttribute('checked');
+      if (v) this._markChecked();
+      else this._markUnchecked();
       this._syncFormValue();
       this.dispatchEvent(new CustomEvent('e-change', { detail: { checked: v }, bubbles: true }));
     });
+  }
+
+  /** Reflects the checked state to the `checked` attribute. */
+  private _markChecked(): void {
+    this.setAttribute('checked', '');
+  }
+
+  /** Clears the `checked` attribute. */
+  private _markUnchecked(): void {
+    this.removeAttribute('checked');
   }
 
   attributeChangedCallback(name: string) {
@@ -104,8 +114,8 @@ export class ECheckbox extends BaseFormControl {
     return this._cb?.checked || false;
   }
   set checked(v: boolean) {
-    if (v) this.setAttribute('checked', '');
-    else this.removeAttribute('checked');
+    if (v) this._markChecked();
+    else this._markUnchecked();
   }
 
   /** Submitted value when checked (defaults to "on"). */

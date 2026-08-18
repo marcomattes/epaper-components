@@ -13,7 +13,7 @@ import { define, patchText } from '../core/dom';
  * </e-breadcrumb>
  */
 export class EBreadcrumb extends HTMLElement {
-  static observedAttributes = ['separator'];
+  static readonly observedAttributes = ['separator'];
 
   private _wired = false;
   private _nav: HTMLElement | null = null;

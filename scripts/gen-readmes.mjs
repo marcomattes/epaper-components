@@ -41,7 +41,7 @@ const screenshotFiles = existsSync(screenshotsDir)
  * Screenshot   `inputs-inputnumber--default.png` → middle `inputnumber`
  */
 function findScreenshot(basenameNoExt) {
-  const key = basenameNoExt.replace(/-/g, '');
+  const key = basenameNoExt.replaceAll(/-/g, '');
   for (const f of screenshotFiles) {
     const m = f.match(/^[a-z0-9]+-([a-z0-9]+)--/);
     if (m && m[1] === key) return f;
@@ -50,7 +50,9 @@ function findScreenshot(basenameNoExt) {
 }
 
 function escMd(s) {
-  return String(s).replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
+  return String(s)
+    .replaceAll(/\|/g, String.raw`\|`)
+    .replaceAll(/\r?\n/g, ' ');
 }
 
 function attrsTable(attrs) {
