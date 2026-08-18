@@ -90,7 +90,7 @@ export class EDatePicker extends BaseFormControl {
     runCleanups(this);
   }
 
-  private _onClick = (e: Event): void => {
+  private readonly _onClick = (e: Event): void => {
     const target = e.target as Element;
 
     /* Trigger toggle */
@@ -132,7 +132,7 @@ export class EDatePicker extends BaseFormControl {
     }
   };
 
-  private _onKeydown = (e: Event): void => {
+  private readonly _onKeydown = (e: Event): void => {
     const ke = e as KeyboardEvent;
     const target = ke.target as Element;
 
@@ -143,7 +143,7 @@ export class EDatePicker extends BaseFormControl {
     if (!cell || !this._pop || this._pop.hidden) return;
 
     const focusables = this._cells.filter((b) => !b.disabled);
-    if (focusables.indexOf(cell) < 0) return;
+    if (!focusables.includes(cell)) return;
 
     this._handleGridKeydown(ke, cell);
   };

@@ -59,7 +59,7 @@ export const WithSider: Story = {
   `,
   play: async ({ canvasElement }) => {
     const outers = canvasElement.querySelectorAll('e-layout.ink-layout--has-sider');
-    expect(outers.length).toBe(2);
+    expect(outers).toHaveLength(2);
     const sider = canvasElement.querySelector('aside.ink-layout__sider') as HTMLElement;
     expect(sider).toBeInTheDocument();
     expect(sider.style.width).toBe('200px');
@@ -103,9 +103,9 @@ export const Reconnect: Story = {
     const parent = root.parentNode as HTMLElement;
     parent.removeChild(root);
     parent.appendChild(root);
-    expect(root.querySelectorAll('header.ink-layout__header').length).toBe(1);
-    expect(root.querySelectorAll('main.ink-layout__content').length).toBe(1);
-    expect(root.querySelectorAll('footer.ink-layout__footer').length).toBe(1);
+    expect(root.querySelectorAll('header.ink-layout__header')).toHaveLength(1);
+    expect(root.querySelectorAll('main.ink-layout__content')).toHaveLength(1);
+    expect(root.querySelectorAll('footer.ink-layout__footer')).toHaveLength(1);
   },
 };
 

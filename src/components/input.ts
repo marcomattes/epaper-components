@@ -34,7 +34,7 @@ import { BaseFormControl } from '../core/base-form-control';
  * <e-input label="Name" placeholder="Ada Lovelace"></e-input>
  */
 export class EInput extends BaseFormControl {
-  static observedAttributes = [
+  static readonly observedAttributes = [
     'value',
     'error',
     'error-message',

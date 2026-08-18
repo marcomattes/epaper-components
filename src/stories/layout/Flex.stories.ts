@@ -62,7 +62,7 @@ export const Row: Story = {
     expect(cs.display).toBe('flex');
     expect(cs.flexDirection).toBe('row');
     expect(cs.gap).toBe('12px');
-    expect(flex.children.length).toBe(3);
+    expect(flex.children).toHaveLength(3);
   },
 };
 

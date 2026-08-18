@@ -78,7 +78,14 @@ const parseJson = <T>(s: string | null, fallback: T): T => {
  *   selectable></e-table>
  */
 export class ETable extends HTMLElement {
-  static observedAttributes = ['columns', 'data', 'selectable', 'selected', 'sort', 'empty-text'];
+  static readonly observedAttributes = [
+    'columns',
+    'data',
+    'selectable',
+    'selected',
+    'sort',
+    'empty-text',
+  ];
 
   private _wired = false;
   private _columns: ColumnDef[] = [];
@@ -163,7 +170,7 @@ export class ETable extends HTMLElement {
     return { key, dir };
   }
 
-  private _onClick = (e: Event): void => {
+  private readonly _onClick = (e: Event): void => {
     const sortBtn = (e.target as Element).closest<HTMLButtonElement>('[data-sort-key]');
     if (sortBtn && this.contains(sortBtn)) {
       const key = sortBtn.dataset['sortKey'] || '';
@@ -180,7 +187,7 @@ export class ETable extends HTMLElement {
     }
   };
 
-  private _onChange = (e: Event): void => {
+  private readonly _onChange = (e: Event): void => {
     const target = e.target as HTMLInputElement;
     if (!(target instanceof HTMLInputElement) || target.type !== 'checkbox') return;
     if (!this.contains(target)) return;
@@ -234,8 +241,8 @@ export class ETable extends HTMLElement {
     }
     for (let i = 0; i < this._rowEls.length; i++) {
       const sel = this._selected.has(i);
-      if (sel) this._rowEls[i].setAttribute('data-selected', '');
-      else this._rowEls[i].removeAttribute('data-selected');
+      if (sel) this._rowEls[i].dataset.selected = '';
+      else delete this._rowEls[i].dataset.selected;
       if (this._rowCbs[i]) this._rowCbs[i].checked = sel;
     }
   }
@@ -318,7 +325,7 @@ export class ETable extends HTMLElement {
     } else {
       this._rows.forEach((row, i) => {
         const tr = document.createElement('tr');
-        if (this._selected.has(i)) tr.setAttribute('data-selected', '');
+        if (this._selected.has(i)) tr.dataset.selected = '';
         if (selectable) {
           const td = document.createElement('td');
           td.className = 'ink-table__check';

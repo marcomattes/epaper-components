@@ -17,7 +17,7 @@ import { define, intAttr, numAttr } from '../core/dom';
  * </e-masonry>
  */
 export class EMasonry extends HTMLElement {
-  static observedAttributes = ['columns', 'gap'];
+  static readonly observedAttributes = ['columns', 'gap'];
 
   connectedCallback() {
     this.classList.add('ink-masonry');

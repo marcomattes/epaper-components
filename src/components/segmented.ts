@@ -15,7 +15,7 @@ import { addCleanup, define, patchAttr, runCleanups } from '../core/dom';
  * </e-segmented>
  */
 export class ESegmented extends HTMLElement {
-  static observedAttributes = ['value'];
+  static readonly observedAttributes = ['value'];
 
   private _wired = false;
   private _buttons: HTMLButtonElement[] = [];
@@ -43,13 +43,13 @@ export class ESegmented extends HTMLElement {
     if (this._wired) this._syncSelection();
   }
 
-  private _onClick = (e: Event): void => {
+  private readonly _onClick = (e: Event): void => {
     const btn = (e.target as Element).closest<HTMLButtonElement>('.ink-segmented__btn');
     if (!btn || !this.contains(btn)) return;
     this._selectButton(btn);
   };
 
-  private _onKeydown = (e: KeyboardEvent): void => {
+  private readonly _onKeydown = (e: KeyboardEvent): void => {
     const btn = (e.target as Element).closest<HTMLButtonElement>('.ink-segmented__btn');
     if (!btn || !this.contains(btn)) return;
     const index = this._buttons.indexOf(btn);

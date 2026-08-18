@@ -14,7 +14,7 @@ import { define } from '../core/dom';
  * </e-grid>
  */
 export class EGrid extends HTMLElement {
-  static observedAttributes = ['cols', 'gap'];
+  static readonly observedAttributes = ['cols', 'gap'];
 
   connectedCallback() {
     this._render();
@@ -27,8 +27,8 @@ export class EGrid extends HTMLElement {
   private _render(): void {
     const cols = this.getAttribute('cols') || '12';
     const gap = this.getAttribute('gap') || '0';
-    const cssCols = isNaN(+cols) ? cols : `repeat(${cols}, minmax(0, 1fr))`;
-    const cssGap = isNaN(+gap) ? gap : `${gap}px`;
+    const cssCols = Number.isNaN(+cols) ? cols : `repeat(${cols}, minmax(0, 1fr))`;
+    const cssGap = Number.isNaN(+gap) ? gap : `${gap}px`;
     if (this.style.display !== 'grid') this.style.display = 'grid';
     if (this.style.gridTemplateColumns !== cssCols) this.style.gridTemplateColumns = cssCols;
     if (this.style.gap !== cssGap) this.style.gap = cssGap;
@@ -44,7 +44,7 @@ define('e-grid', EGrid);
  * @attr {string} [row] - `grid-row` value.
  */
 export class EGridItem extends HTMLElement {
-  static observedAttributes = ['col', 'row'];
+  static readonly observedAttributes = ['col', 'row'];
 
   connectedCallback() {
     this._render();

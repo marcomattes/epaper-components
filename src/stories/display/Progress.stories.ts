@@ -52,9 +52,9 @@ export const Steps: Story = {
   args: { value: 3, max: 5, steps: 5, variant: 'steps', label: 'Onboarding' },
   play: async ({ canvasElement }) => {
     const segs = canvasElement.querySelectorAll('.ink-progress__seg');
-    expect(segs.length).toBe(5);
+    expect(segs).toHaveLength(5);
     const filled = canvasElement.querySelectorAll('.ink-progress__seg[data-on]');
-    expect(filled.length).toBe(3);
+    expect(filled).toHaveLength(3);
   },
 };
 

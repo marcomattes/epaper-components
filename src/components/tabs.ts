@@ -22,8 +22,8 @@ import './badge';
 export class ETabs extends HTMLElement {
   private _wired = false;
   private _active = '';
-  private _buttons = new Map<string, HTMLButtonElement>();
-  private _panels = new Map<string, HTMLElement>();
+  private readonly _buttons = new Map<string, HTMLButtonElement>();
+  private readonly _panels = new Map<string, HTMLElement>();
 
   connectedCallback() {
     if (!this._wired) {
@@ -134,12 +134,12 @@ export class ETabs extends HTMLElement {
     }
   }
 
-  private _onClick = (e: Event): void => {
+  private readonly _onClick = (e: Event): void => {
     const button = (e.target as Element).closest<HTMLButtonElement>('.ink-tabs__tab');
     if (button && this.contains(button)) this._activate(button.dataset['key'] ?? '', true);
   };
 
-  private _onKeydown = (e: KeyboardEvent): void => {
+  private readonly _onKeydown = (e: KeyboardEvent): void => {
     const button = (e.target as Element).closest<HTMLButtonElement>('.ink-tabs__tab');
     if (!button || !this.contains(button)) return;
     const buttons = [...this._buttons.values()];

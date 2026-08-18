@@ -12,7 +12,7 @@ import { define, numAttr } from '../core/dom';
  * <e-title level="2">Section heading</e-title>
  */
 export class ETitle extends HTMLElement {
-  static observedAttributes = ['level'];
+  static readonly observedAttributes = ['level'];
 
   private _wrap: HTMLElement | null = null;
   private _level = 0;

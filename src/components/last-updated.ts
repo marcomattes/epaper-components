@@ -47,7 +47,7 @@ const relativeAge = (ageSeconds: number): string => {
  * <e-last-updated datetime="2026-08-17T14:00:00Z" stale-after="600"></e-last-updated>
  */
 export class ELastUpdated extends HTMLElement {
-  static observedAttributes = [
+  static readonly observedAttributes = [
     'datetime',
     'now',
     'stale-after',

@@ -23,7 +23,7 @@ import { BaseFormControl } from '../core/base-form-control';
  * </e-select>
  */
 export class ESelect extends BaseFormControl {
-  static observedAttributes = ['value', 'placeholder', 'required', 'required-message'];
+  static readonly observedAttributes = ['value', 'placeholder', 'required', 'required-message'];
 
   private _wired = false;
   private _trigger: HTMLElement | null = null;
@@ -127,9 +127,9 @@ export class ESelect extends BaseFormControl {
     this._trigger?.focus();
   }
 
-  private _onTriggerClick = (): void => this._setOpen(!!this._menu?.hidden);
+  private readonly _onTriggerClick = (): void => this._setOpen(!!this._menu?.hidden);
 
-  private _onTriggerKeydown = (e: KeyboardEvent): void => {
+  private readonly _onTriggerKeydown = (e: KeyboardEvent): void => {
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
     e.preventDefault();
     this._setOpen(true);
@@ -137,12 +137,12 @@ export class ESelect extends BaseFormControl {
     this._focusOption(current >= 0 ? current : e.key === 'ArrowDown' ? 0 : this._optEls.length - 1);
   };
 
-  private _onMenuClick = (e: Event): void => {
+  private readonly _onMenuClick = (e: Event): void => {
     const option = (e.target as Element).closest<HTMLElement>('.ink-select__option');
     if (option) this._selectOption(option.dataset['value'] ?? '');
   };
 
-  private _onMenuKeydown = (e: KeyboardEvent): void => {
+  private readonly _onMenuKeydown = (e: KeyboardEvent): void => {
     if (this._menu?.hidden) return;
     const current = this._optEls.indexOf(document.activeElement as HTMLElement);
     if (e.key === 'ArrowDown') this._focusOption(current < 0 ? 0 : current + 1);

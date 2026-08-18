@@ -22,7 +22,7 @@ import { boolAttr, define, patchBoolAttr, patchText } from '../core/dom';
  * </e-list>
  */
 export class EList extends HTMLElement {
-  static observedAttributes = ['bordered', 'split', 'header-title'];
+  static readonly observedAttributes = ['bordered', 'split', 'header-title'];
 
   private _wired = false;
   private _root: HTMLElement | null = null;
@@ -131,7 +131,7 @@ define('e-list', EList);
  * @slot trailing - Element rendered after the text (action, badge).
  */
 export class EListItem extends HTMLElement {
-  static observedAttributes = ['title', 'description'];
+  static readonly observedAttributes = ['title', 'description'];
 
   private _wired = false;
   private _row: HTMLElement | null = null;

@@ -24,7 +24,14 @@ import { clampedNumAttr, define, esc } from '../core/dom';
  * </e-watermark>
  */
 export class EWatermark extends HTMLElement {
-  static observedAttributes = ['content', 'font-size', 'gap-x', 'gap-y', 'rotate', 'opacity'];
+  static readonly observedAttributes = [
+    'content',
+    'font-size',
+    'gap-x',
+    'gap-y',
+    'rotate',
+    'opacity',
+  ];
 
   private _wired = false;
   private _layer: HTMLElement | null = null;

@@ -40,10 +40,12 @@ const screenshotFiles = existsSync(screenshotsDir)
  * Component file `input-number.ts` → key `inputnumber`
  * Screenshot   `inputs-inputnumber--default.png` → middle `inputnumber`
  */
+const SCREENSHOT_MIDDLE_RE = /^[a-z0-9]+-([a-z0-9]+)--/;
+
 function findScreenshot(basenameNoExt) {
-  const key = basenameNoExt.replaceAll(/-/g, '');
+  const key = basenameNoExt.replaceAll('-', '');
   for (const f of screenshotFiles) {
-    const m = f.match(/^[a-z0-9]+-([a-z0-9]+)--/);
+    const m = SCREENSHOT_MIDDLE_RE.exec(f);
     if (m && m[1] === key) return f;
   }
   return null;
@@ -51,7 +53,7 @@ function findScreenshot(basenameNoExt) {
 
 function escMd(s) {
   return String(s)
-    .replaceAll(/\|/g, String.raw`\|`)
+    .replaceAll('|', String.raw`\|`)
     .replaceAll(/\r?\n/g, ' ');
 }
 

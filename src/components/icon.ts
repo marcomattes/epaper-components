@@ -13,7 +13,7 @@ import { ICONS, iconSvg } from '../core/icons';
  * <e-icon name="plus" size="24" label="Add"></e-icon>
  */
 export class EIcon extends HTMLElement {
-  static observedAttributes = ['name', 'size', 'label'];
+  static readonly observedAttributes = ['name', 'size', 'label'];
 
   connectedCallback() {
     this._render();

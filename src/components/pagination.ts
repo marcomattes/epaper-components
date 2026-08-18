@@ -20,7 +20,7 @@ interface PageCell {
  * <e-pagination current="3" total="42" sibling-count="1"></e-pagination>
  */
 export class EPagination extends HTMLElement {
-  static observedAttributes = ['current', 'total', 'sibling-count'];
+  static readonly observedAttributes = ['current', 'total', 'sibling-count'];
 
   private _wired = false;
   private _nav: HTMLElement | null = null;
@@ -45,7 +45,7 @@ export class EPagination extends HTMLElement {
     if (this._wired) this._sync();
   }
 
-  private _onClick = (e: Event): void => {
+  private readonly _onClick = (e: Event): void => {
     const btn = (e.target as Element).closest<HTMLButtonElement>('[data-page]');
     if (!btn || btn.disabled || !this.contains(btn)) return;
     const p = Number(btn.dataset['page']);

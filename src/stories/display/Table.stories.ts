@@ -43,7 +43,7 @@ export const Default: Story = {
     await checkA11y(canvasElement);
     const canvas = within(canvasElement);
     expect(canvas.getByText('Anna König')).toBeInTheDocument();
-    expect(canvasElement.querySelectorAll('tbody tr').length).toBe(4);
+    expect(canvasElement.querySelectorAll('tbody tr')).toHaveLength(4);
   },
 };
 

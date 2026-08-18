@@ -18,7 +18,7 @@ import { define, intAttr, numAttr, patchAttr, patchBoolAttr, patchText } from '.
  * <e-progress value="42" label="Upload"></e-progress>
  */
 export class EProgress extends HTMLElement {
-  static observedAttributes = ['value', 'max', 'variant', 'steps', 'label', 'hide-label'];
+  static readonly observedAttributes = ['value', 'max', 'variant', 'steps', 'label', 'hide-label'];
 
   private _wired = false;
   private _variant: 'linear' | 'steps' | null = null;
@@ -88,7 +88,7 @@ export class EProgress extends HTMLElement {
       for (let i = 0; i < stepsCount; i++) {
         const seg = document.createElement('span');
         seg.className = 'ink-progress__seg';
-        if (i < filledSteps) seg.setAttribute('data-on', '');
+        if (i < filledSteps) seg.dataset.on = '';
         grid.appendChild(seg);
         this._segs.push(seg);
       }

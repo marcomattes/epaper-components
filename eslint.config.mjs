@@ -1,22 +1,24 @@
 // EPaper · ESLint flat config.
 // Lints the runtime sources only; storybook/demo are excluded.
+import { defineConfig, globalIgnores } from 'eslint/config';
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 
-export default tseslint.config(
-  {
-    ignores: [
-      'dist/**',
-      'reports/**',
-      'storybook-static/**',
-      'src/demo/**',
-      'src/stories/**',
-      'scripts/**',
-      'node_modules/**',
-    ],
-  },
+// `defineConfig`/`globalIgnores` from eslint/config rather than
+// `tseslint.config()`: typescript-eslint deprecated its own wrapper in favour
+// of the one ESLint now ships, and the two are otherwise interchangeable.
+export default defineConfig([
+  globalIgnores([
+    'dist/**',
+    'reports/**',
+    'storybook-static/**',
+    'src/demo/**',
+    'src/stories/**',
+    'scripts/**',
+    'node_modules/**',
+  ]),
   js.configs.recommended,
-  ...tseslint.configs.recommended,
+  tseslint.configs.recommended,
   {
     files: ['src/**/*.ts'],
     languageOptions: {
@@ -36,4 +38,4 @@ export default tseslint.config(
       eqeqeq: ['error', 'smart'],
     },
   },
-);
+]);

@@ -45,11 +45,11 @@ interface RenderedItem {
  * </e-menu>
  */
 export class EMenu extends HTMLElement {
-  static observedAttributes = ['mode', 'value'];
+  static readonly observedAttributes = ['mode', 'value'];
 
   private _wired = false;
   private _items: MenuItem[] = [];
-  private _byValue = new Map<string, RenderedItem>();
+  private readonly _byValue = new Map<string, RenderedItem>();
   private _rootUl: HTMLUListElement | null = null;
 
   connectedCallback() {
@@ -74,7 +74,7 @@ export class EMenu extends HTMLElement {
     else if (name === 'mode') this._applyMode();
   }
 
-  private _onClick = (e: Event): void => {
+  private readonly _onClick = (e: Event): void => {
     const btn = (e.target as Element).closest<HTMLElement>('.ink-menu__btn');
     if (!btn || !this.contains(btn)) return;
     const v = btn.dataset['value'] ?? '';
@@ -89,7 +89,7 @@ export class EMenu extends HTMLElement {
     }
   };
 
-  private _onKeydown = (e: Event): void => {
+  private readonly _onKeydown = (e: Event): void => {
     const ke = e as KeyboardEvent;
     const btn = (ke.target as Element).closest<HTMLButtonElement>('.ink-menu__btn');
     if (!btn || !this.contains(btn)) return;

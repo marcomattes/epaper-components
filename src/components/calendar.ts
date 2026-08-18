@@ -93,7 +93,7 @@ export class ECalendar extends HTMLElement {
     }
   }
 
-  private _onClick = (e: Event): void => {
+  private readonly _onClick = (e: Event): void => {
     const target = e.target as Element;
 
     const stepBtn = target.closest<HTMLElement>('[data-step]');
@@ -123,7 +123,7 @@ export class ECalendar extends HTMLElement {
     }
   };
 
-  private _onKeydown = (e: KeyboardEvent): void => {
+  private readonly _onKeydown = (e: KeyboardEvent): void => {
     const cell = (e.target as Element).closest<HTMLButtonElement>('.ink-calendar__cell');
     if (!cell || cell.disabled || !this.contains(cell)) return;
     const day = Number(cell.dataset['day']);

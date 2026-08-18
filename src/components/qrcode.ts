@@ -497,7 +497,7 @@ function qrToSvg(qr: QrCode, scale: number, border: number): string {
 type QrData = ReturnType<typeof encodeText>;
 
 export class EQrcode extends HTMLElement {
-  static observedAttributes = ['value', 'level', 'scale', 'border'];
+  static readonly observedAttributes = ['value', 'level', 'scale', 'border'];
 
   private _wired = false;
   private _wrap: HTMLElement | null = null;

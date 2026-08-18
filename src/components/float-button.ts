@@ -13,7 +13,7 @@ import { iconSvg } from '../core/icons';
  * <e-float-button icon="plus" label="Add"></e-float-button>
  */
 export class EFloatButton extends HTMLElement {
-  static observedAttributes = ['icon', 'label', 'primary'];
+  static readonly observedAttributes = ['icon', 'label', 'primary'];
 
   private _wired = false;
   private _btn: HTMLButtonElement | null = null;
@@ -74,7 +74,7 @@ define('e-float-button', EFloatButton);
  * </e-float-button-group>
  */
 export class EFloatButtonGroup extends HTMLElement {
-  static observedAttributes = ['orientation'];
+  static readonly observedAttributes = ['orientation'];
 
   private _wired = false;
   private _group: HTMLElement | null = null;

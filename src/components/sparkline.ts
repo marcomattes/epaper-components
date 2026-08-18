@@ -33,7 +33,7 @@ const valuesFrom = (raw: string | null): number[] => {
  * <e-sparkline label="Requests" values="[12,18,15,24,28,31]"></e-sparkline>
  */
 export class ESparkline extends HTMLElement {
-  static observedAttributes = ['values', 'label', 'min', 'max', 'hide-caption'];
+  static readonly observedAttributes = ['values', 'label', 'min', 'max', 'hide-caption'];
 
   private _wired = false;
   private _root: HTMLElement | null = null;

@@ -73,7 +73,7 @@ function paintDither(canvas: HTMLCanvasElement, hex: string, size: number, cell:
  * <e-kaleido cell="3"></e-kaleido>
  */
 export class EKaleido extends HTMLElement {
-  static observedAttributes = ['cell'];
+  static readonly observedAttributes = ['cell'];
 
   connectedCallback() {
     this._render();

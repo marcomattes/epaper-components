@@ -8,7 +8,12 @@ import { resolve, sep } from 'node:path';
 const outArg = process.argv[2] ?? '_site/index.html';
 const outRoot = resolve(process.cwd());
 const out = resolve(outRoot, outArg);
-if (out !== outRoot && !out.startsWith(outRoot + sep)) {
+// Containment check on the canonicalised path: the argument is maintainer-supplied
+// in CI, but resolving it first and then requiring the repository root as a literal
+// prefix keeps a stray `../` from writing outside the checkout. Comparing against
+// `outRoot + sep` also rules out a sibling directory that merely shares the prefix
+// (`/repo-backup` vs `/repo`), and the root itself, which is a directory.
+if (!out.startsWith(outRoot + sep)) {
   console.error(`[gen-pages-index] refusing to write outside ${outRoot}: ${out}`);
   process.exit(1);
 }

@@ -15,7 +15,7 @@ import { boolAttr, captureWrap, clampedNumAttr, define } from '../core/dom';
  * </e-layout>
  */
 export class ELayout extends HTMLElement {
-  static observedAttributes = ['has-sider'];
+  static readonly observedAttributes = ['has-sider'];
 
   connectedCallback() {
     this.classList.add('ink-layout');
@@ -49,7 +49,7 @@ define('e-layout-header', ELayoutHeader);
  * @attr {string} [width='220'] - Pixel width of the sider.
  */
 export class ELayoutSider extends HTMLElement {
-  static observedAttributes = ['width'];
+  static readonly observedAttributes = ['width'];
 
   private _aside: HTMLElement | null = null;
 

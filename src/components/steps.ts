@@ -16,7 +16,7 @@ import { iconSvg } from '../core/icons';
  * </e-steps>
  */
 export class ESteps extends HTMLElement {
-  static observedAttributes = ['current', 'orientation'];
+  static readonly observedAttributes = ['current', 'orientation'];
 
   private _wired = false;
   private _items: Array<{ title: string; desc: string }> = [];
@@ -68,8 +68,8 @@ export class ESteps extends HTMLElement {
 
       const li = document.createElement('li');
       li.className = 'ink-steps__item';
-      li.setAttribute('data-done', String(done));
-      li.setAttribute('data-active', String(active));
+      li.dataset.done = String(done);
+      li.dataset.active = String(active);
 
       const bubble = document.createElement('div');
       bubble.className = 'ink-steps__bubble';

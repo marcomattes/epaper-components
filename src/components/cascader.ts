@@ -186,14 +186,14 @@ export class ECascader extends BaseFormControl {
     });
   }
 
-  private _onTriggerClick = (): void => {
+  private readonly _onTriggerClick = (): void => {
     const open = this._menu.hidden;
     this._menu.hidden = !open;
     this._trigger.setAttribute('aria-expanded', String(open));
     if (open) this._focusColumn(this._menu.children.length - 1);
   };
 
-  private _onTriggerKeydown = (e: KeyboardEvent): void => {
+  private readonly _onTriggerKeydown = (e: KeyboardEvent): void => {
     if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       if (this._menu.hidden) {
@@ -213,7 +213,7 @@ export class ECascader extends BaseFormControl {
     (sel ?? items[0])?.focus();
   }
 
-  private _onMenuKeydown = (e: KeyboardEvent): void => {
+  private readonly _onMenuKeydown = (e: KeyboardEvent): void => {
     const item = (e.target as Element).closest<HTMLElement>('.ink-cascader__item');
     if (!item) return;
     const level = Number(item.dataset['level']);
@@ -254,7 +254,7 @@ export class ECascader extends BaseFormControl {
     }
   };
 
-  private _onMenuClick = (e: Event): void => {
+  private readonly _onMenuClick = (e: Event): void => {
     const item = (e.target as Element).closest<HTMLElement>('.ink-cascader__item');
     if (!item) return;
     const level = Number(item.dataset['level']);

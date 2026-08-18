@@ -15,7 +15,7 @@ import { boolAttr, define } from '../core/dom';
  * <e-flex direction="row" gap="8" align="center"><span>A</span><span>B</span></e-flex>
  */
 export class EFlex extends HTMLElement {
-  static observedAttributes = ['direction', 'wrap', 'justify', 'align', 'gap', 'inline'];
+  static readonly observedAttributes = ['direction', 'wrap', 'justify', 'align', 'gap', 'inline'];
 
   connectedCallback() {
     this._render();
@@ -37,7 +37,7 @@ export class EFlex extends HTMLElement {
     if (this.style.flexWrap !== wrap) this.style.flexWrap = wrap;
     if (this.style.justifyContent !== justify) this.style.justifyContent = justify;
     if (this.style.alignItems !== align) this.style.alignItems = align;
-    const gapVal = isNaN(+gap) ? gap : `${gap}px`;
+    const gapVal = Number.isNaN(+gap) ? gap : `${gap}px`;
     if (this.style.gap !== gapVal) this.style.gap = gapVal;
   }
 }

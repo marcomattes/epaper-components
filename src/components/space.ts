@@ -12,7 +12,7 @@ import { boolAttr, define, numAttr } from '../core/dom';
  * <e-space size="12" wrap><e-button>A</e-button><e-button>B</e-button></e-space>
  */
 export class ESpace extends HTMLElement {
-  static observedAttributes = ['size', 'direction', 'wrap'];
+  static readonly observedAttributes = ['size', 'direction', 'wrap'];
 
   connectedCallback() {
     this._render();

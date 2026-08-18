@@ -24,7 +24,7 @@ type ChangeDirection = 'up' | 'down' | 'changed' | 'unchanged';
  * <e-change-marker label="Temperature" previous="21.8" value="22.4" suffix=" °C" precision="1"></e-change-marker>
  */
 export class EChangeMarker extends HTMLElement {
-  static observedAttributes = [
+  static readonly observedAttributes = [
     'value',
     'previous',
     'label',
@@ -99,8 +99,11 @@ export class EChangeMarker extends HTMLElement {
     const showPrevious = this.hasAttribute('show-previous') && previous != null;
     const prefix = this.getAttribute('prefix') || '';
     const suffix = this.getAttribute('suffix') || '';
+    // Hoisted out of both return templates: nesting a conditional template inside
+    // another is the shape Sonar flags, and both branches built it identically.
+    const fromPrevious = showPrevious ? ` from ${prefix}${this._format(previous!)}${suffix}` : '';
     if (direction === 'changed') {
-      return `≠ Changed${showPrevious ? ` from ${prefix}${this._format(previous!)}${suffix}` : ''}`;
+      return `≠ Changed${fromPrevious}`;
     }
     const delta = Number(value) - Number(previous);
     const formattedDelta =
@@ -109,7 +112,7 @@ export class EChangeMarker extends HTMLElement {
         : Math.abs(delta).toFixed(this._precision()!);
     const word = direction === 'up' ? 'Increased' : 'Decreased';
     const symbol = direction === 'up' ? '▲' : '▼';
-    return `${symbol} ${word} by ${formattedDelta}${suffix}${showPrevious ? ` from ${prefix}${this._format(previous!)}${suffix}` : ''}`;
+    return `${symbol} ${word} by ${formattedDelta}${suffix}${fromPrevious}`;
   }
 
   private _patch(): void {
@@ -131,11 +134,9 @@ export class EChangeMarker extends HTMLElement {
     patchAttr(this._cueEl, 'hidden', cue ? null : '');
     patchAttr(this, 'role', this.hasAttribute('announce') ? 'status' : 'group');
     patchAttr(this, 'aria-live', this.hasAttribute('announce') ? 'polite' : null);
-    patchAttr(
-      this,
-      'aria-label',
-      `${label ? `${label}: ` : ''}${value}${cue ? `; ${cue}` : '; unchanged'}`,
-    );
+    const labelPrefix = label ? `${label}: ` : '';
+    const cueSuffix = cue ? `; ${cue}` : '; unchanged';
+    patchAttr(this, 'aria-label', `${labelPrefix}${value}${cueSuffix}`);
   }
 }
 

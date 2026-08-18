@@ -61,7 +61,7 @@ export const Reconnect: Story = {
     const parent = link.parentNode as HTMLElement;
     parent.removeChild(link);
     parent.appendChild(link);
-    expect(link.querySelectorAll('a').length).toBe(1);
+    expect(link.querySelectorAll('a')).toHaveLength(1);
   },
   render: () => html`<e-link href="/x">Move</e-link>`,
 };

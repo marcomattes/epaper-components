@@ -37,7 +37,7 @@ export const Default: Story = {
     const canvas = within(canvasElement);
     expect(canvas.getByText('Annual report')).toBeInTheDocument();
     const items = canvasElement.querySelectorAll('e-list-item');
-    expect(items.length).toBe(3);
+    expect(items).toHaveLength(3);
   },
 };
 

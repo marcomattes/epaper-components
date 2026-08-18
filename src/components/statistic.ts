@@ -21,7 +21,15 @@ import { clampedNumAttr, define, patchAttr, patchText } from '../core/dom';
  * <e-statistic label="Revenue" value="12480" prefix="$" trend="up" delta="8.4%"></e-statistic>
  */
 export class EStatistic extends HTMLElement {
-  static observedAttributes = ['label', 'value', 'prefix', 'suffix', 'precision', 'trend', 'delta'];
+  static readonly observedAttributes = [
+    'label',
+    'value',
+    'prefix',
+    'suffix',
+    'precision',
+    'trend',
+    'delta',
+  ];
 
   private _wired = false;
   private _root: HTMLElement | null = null;

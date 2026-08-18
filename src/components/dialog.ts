@@ -143,7 +143,7 @@ export class EDialog extends HTMLElement {
       this._syncHeaderVisibility();
       this._syncLabel();
     } else if (name === 'size') {
-      this._dialog?.setAttribute('data-size', this._size());
+      if (this._dialog) this._dialog.dataset.size = this._size();
     } else if (name === 'no-close') {
       this._syncHeaderVisibility();
     } else if (name === 'aria-label') {
@@ -178,7 +178,7 @@ export class EDialog extends HTMLElement {
 
     const dialog = document.createElement('dialog');
     dialog.className = 'ink-dialog';
-    dialog.setAttribute('data-size', this._size());
+    dialog.dataset.size = this._size();
     dialog.innerHTML = `<header class="ink-dialog__header">
         <h2 class="ink-dialog__title" id="${esc(titleId)}">${esc(heading)}</h2>
         <button type="button" class="ink-dialog__close" aria-label="Close">${iconSvg('close', 18)}</button>
@@ -234,7 +234,7 @@ export class EDialog extends HTMLElement {
   }
 
   /** `Escape` reaches the native element as `cancel`; veto it when static. */
-  private _onCancel = (e: Event): void => {
+  private readonly _onCancel = (e: Event): void => {
     if (boolAttr(this, 'static')) {
       e.preventDefault();
       return;
@@ -242,7 +242,7 @@ export class EDialog extends HTMLElement {
     this._reason = 'escape';
   };
 
-  private _onClick = (e: MouseEvent): void => {
+  private readonly _onClick = (e: MouseEvent): void => {
     const dialog = this._dialog;
     if (!dialog) return;
     const target = e.target as Element;
@@ -275,7 +275,7 @@ export class EDialog extends HTMLElement {
    * runs after a close we initiated ourselves — by then the attribute is
    * already gone and removing it again is a no-op that fires nothing.
    */
-  private _onNativeClose = (): void => {
+  private readonly _onNativeClose = (): void => {
     this._modal = false;
     if (this._suppressNativeClose > 0) {
       this._suppressNativeClose -= 1;
