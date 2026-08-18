@@ -449,6 +449,24 @@ export function routeMarkdown(route: Route, opts: { version: string; stars: stri
 }
 
 /**
+ * `<meta name="robots">` for one page, or nothing when the default applies.
+ *
+ * Two reasons to write it, in this order:
+ *
+ *   • A PR preview is a throwaway copy of the whole site on the production
+ *     host. Without this it would compete with the real pages in search
+ *     results and outlive the branch in an index — the error page included,
+ *     which is why the preview rule is checked first.
+ *   • The error page is never a destination, but the links out of it are the
+ *     site's own pages, so it is `follow` rather than `nofollow`.
+ */
+function robotsMeta(notFound: boolean): string {
+  if (SITE_BASE !== '/') return '\n    <meta name="robots" content="noindex,nofollow" />';
+  if (notFound) return '\n    <meta name="robots" content="noindex,follow" />';
+  return '';
+}
+
+/**
  * The full <head> block for a route: title, description, canonical, Open
  * Graph, Twitter card and JSON-LD.
  */
@@ -486,18 +504,7 @@ export function headHtml(
     ...routeGraph(route, opts.storybookBase, opts.shots),
   ];
 
-  // A PR preview is a throwaway copy of the whole site on the production
-  // host. Without this it would compete with the real pages in search results
-  // and outlive the branch in an index.
-  // `follow` rather than `nofollow` on the error page: the links out of it
-  // are the site's own pages, and they are the reason it exists. In a preview
-  // they are not — there the whole copy stays out of reach, error page first.
-  const noindex =
-    SITE_BASE !== '/'
-      ? '\n    <meta name="robots" content="noindex,nofollow" />'
-      : notFound
-        ? '\n    <meta name="robots" content="noindex,follow" />'
-        : '';
+  const noindex = robotsMeta(notFound);
   const canonical = notFound ? '' : `\n    <link rel="canonical" href="${esc(url)}" />`;
   const markdownAlternate = notFound
     ? ''
