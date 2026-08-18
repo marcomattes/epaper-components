@@ -7,6 +7,19 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+
+- `BaseFormControl`: `form.reset()` now clears the surfaced-validation flag
+  before re-deriving validity from the restored value, so a control the user
+  had already blurred (and which showed `aria-invalid`) returns to its
+  untouched, first-paint state after a reset instead of keeping the stale
+  violation visible. Subclasses implement the new `resetValue()` hook instead
+  of overriding `formResetCallback()` directly.
+- Removed two stale "Known limitations (V1.0)" bullets from the 1.1.0
+  entry below: keyboard navigation in compound pickers was already listed
+  under "Added", and `<e-input>`/`<e-textarea>` do call
+  `internals.setValidity()` via `mirrorNativeValidity()`.
+
 ## [1.1.0] — 2026-08-18
 
 ### Added
@@ -361,13 +374,6 @@ These are intentional V1.0 trade-offs and slated for V1.1:
   cleanup (9 components) and security/XSS (12 components). Display-only
   components (`badge`, `card`, `divider`, …) rely on Storybook a11y
   scans (axe-core) for regression coverage.
-- **Keyboard navigation** in compound pickers — implemented in V1.0
-  (see "Added" above).
-- **No built-in validation API unification.** `<e-input>` and
-  `<e-textarea>` use the `error` attribute for visual state but do not
-  call `internals.setValidity()`. `<e-upload>` uses the validation API.
-  Consumers requiring form-level validation should add native HTML
-  attributes (`required`, `pattern`, `minlength`) alongside `error`.
 - **`<e-masonry>`** does not observe child mutations or container
   resizes; pages embedding it must trigger reflow manually after dynamic
   child changes.

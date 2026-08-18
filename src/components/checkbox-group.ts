@@ -87,7 +87,7 @@ export class ECheckboxGroup extends BaseFormControl {
     }
   }
 
-  override formResetCallback(): void {
+  protected override resetValue(): void {
     const dflt = this.getAttribute('default-value') ?? '';
     this.value = dflt;
   }

@@ -177,6 +177,28 @@ describe('form association', () => {
     expect(input.value).toBe('abc');
   });
 
+  it('form reset clears a previously-surfaced validation error', () => {
+    const form = mount(
+      `<form>
+        <e-input name="x" required default-value="ok"></e-input>
+        <e-button type="reset">Reset</e-button>
+       </form>`,
+    );
+    const host = form.querySelector('e-input') as HTMLElement;
+    const inner = host.querySelector('input')!;
+    // Empty the value and blur to surface the required violation.
+    inner.value = '';
+    inner.dispatchEvent(new Event('input', { bubbles: true }));
+    host.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
+    expect(inner.getAttribute('aria-invalid')).toBe('true');
+
+    const btn = form.querySelector('e-button')!.firstElementChild as HTMLButtonElement;
+    btn.click();
+
+    expect((host as unknown as { value: string }).value).toBe('ok');
+    expect(inner.getAttribute('aria-invalid')).not.toBe('true');
+  });
+
   it('e-button default type does not submit the form', () => {
     const form = mount(`<form><e-button>Plain</e-button></form>`);
     let submitted = 0;

@@ -101,7 +101,7 @@ export class ERadioGroup extends BaseFormControl {
     return s;
   }
 
-  override formResetCallback(): void {
+  protected override resetValue(): void {
     this.value = this.getAttribute('default-value') ?? '';
   }
 

@@ -383,7 +383,7 @@ export class ECascader extends BaseFormControl {
     return s;
   }
 
-  override formResetCallback(): void {
+  protected override resetValue(): void {
     const dflt = this.getAttribute('default-value') ?? '';
     this.setAttribute('value', dflt);
   }

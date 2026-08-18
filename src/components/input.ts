@@ -169,7 +169,7 @@ export class EInput extends BaseFormControl {
     return s;
   }
 
-  override formResetCallback(): void {
+  protected override resetValue(): void {
     const dflt = this.getAttribute('default-value') ?? '';
     this.value = dflt;
     this._syncValidity();

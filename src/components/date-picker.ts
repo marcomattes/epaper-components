@@ -452,7 +452,7 @@ export class EDatePicker extends BaseFormControl {
     this.setAttribute('value', v ?? '');
   }
 
-  override formResetCallback(): void {
+  protected override resetValue(): void {
     const dflt = this.getAttribute('default-value') ?? '';
     this.setAttribute('value', dflt);
   }

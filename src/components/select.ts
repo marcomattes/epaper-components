@@ -219,7 +219,7 @@ export class ESelect extends BaseFormControl {
     return s;
   }
 
-  override formResetCallback(): void {
+  protected override resetValue(): void {
     this.value = this.getAttribute('default-value') ?? '';
   }
 
