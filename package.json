@@ -1,6 +1,6 @@
 {
   "name": "@marcomattes/epaper-components",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "E-Paper web component library — vanilla custom elements with design tokens. Zero runtime dependencies, framework-agnostic.",
   "license": "MIT",
   "author": "Marco Mattes",
