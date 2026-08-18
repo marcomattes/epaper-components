@@ -7,6 +7,17 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- A 404 page on the website, built from the same shell as every other page and
+  listing all of them as real links. It is written to `dist-site/404.html`,
+  stays out of the sitemap, `llms.txt` and the markdown alternates, and carries
+  `noindex,follow` with no canonical and no structured data.
+- The site build now emits an `.htaccess` next to `_headers`, pointing the host
+  at `/404.html` and declaring `text/markdown` for the `.md` alternates. The
+  existing `_headers` file is the Netlify/Cloudflare Pages format and has no
+  effect on the FTP host the site is deployed to.
+
 ### Fixed
 
 - `BaseFormControl`: `form.reset()` now clears the surfaced-validation flag
