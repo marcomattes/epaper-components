@@ -9,6 +9,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Added
 
+- `<e-input>` and `<e-textarea>` forward the native `autocomplete`,
+  `inputmode`, `enterkeyhint` and `spellcheck` attributes to their inner
+  control, so autofill and virtual-keyboard behavior match a plain
+  `<input>`/`<textarea>` instead of being silently dropped.
 - A 404 page on the website, built from the same shell as every other page and
   listing all of them as real links. It is written to `dist-site/404.html`,
   stays out of the sitemap, `llms.txt` and the markdown alternates, and carries

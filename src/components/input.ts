@@ -26,6 +26,10 @@ import { BaseFormControl } from '../core/base-form-control';
  * @attr {string} [min] - Minimum value for numeric and date-like input types.
  * @attr {string} [max] - Maximum value for numeric and date-like input types.
  * @attr {string} [step] - Step interval for numeric and date-like input types.
+ * @attr {string} [autocomplete] - Forwarded to the native `autocomplete` attribute.
+ * @attr {string} [inputmode] - Forwarded to the native `inputmode` attribute (virtual keyboard layout).
+ * @attr {string} [enterkeyhint] - Forwarded to the native `enterkeyhint` attribute.
+ * @attr {string} [spellcheck] - Forwarded to the native `spellcheck` attribute.
  *
  * @fires {CustomEvent<{value: string}>} e-input - Fired on every keystroke.
  * @fires {CustomEvent<{value: string}>} e-change - Fired on commit (blur/Enter).
@@ -53,6 +57,10 @@ export class EInput extends BaseFormControl {
     'min',
     'max',
     'step',
+    'autocomplete',
+    'inputmode',
+    'enterkeyhint',
+    'spellcheck',
   ];
 
   private _wired = false;
@@ -85,7 +93,18 @@ export class EInput extends BaseFormControl {
     this._input = this.querySelector('input');
     this._label = this.querySelector('label.ink-label');
     this._hint = this.querySelector('.ink-hint');
-    for (const name of ['pattern', 'minlength', 'maxlength', 'min', 'max', 'step']) {
+    for (const name of [
+      'pattern',
+      'minlength',
+      'maxlength',
+      'min',
+      'max',
+      'step',
+      'autocomplete',
+      'inputmode',
+      'enterkeyhint',
+      'spellcheck',
+    ]) {
       this._syncNativeConstraint(name, this.getAttribute(name));
     }
     this._value = this._input!.value;
@@ -142,6 +161,9 @@ export class EInput extends BaseFormControl {
     if (['pattern', 'minlength', 'maxlength', 'min', 'max', 'step'].includes(name)) {
       this._syncNativeConstraint(name, v);
       this._syncValidity();
+    }
+    if (['autocomplete', 'inputmode', 'enterkeyhint', 'spellcheck'].includes(name)) {
+      this._syncNativeConstraint(name, v);
     }
     if (name === 'label') this._syncLabel(v ?? '');
     if (name === 'hint') this._syncHint(v ?? '');

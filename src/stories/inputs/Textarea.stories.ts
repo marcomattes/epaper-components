@@ -114,6 +114,26 @@ export const AttributeChanges: Story = {
     el.removeAttribute('disabled');
     expect(ta.disabled).toBe(false);
 
+    el.setAttribute('autocomplete', 'off');
+    expect(ta.getAttribute('autocomplete')).toBe('off');
+    el.removeAttribute('autocomplete');
+    expect(ta.hasAttribute('autocomplete')).toBe(false);
+
+    el.setAttribute('inputmode', 'text');
+    expect(ta.getAttribute('inputmode')).toBe('text');
+    el.removeAttribute('inputmode');
+    expect(ta.hasAttribute('inputmode')).toBe(false);
+
+    el.setAttribute('enterkeyhint', 'done');
+    expect(ta.getAttribute('enterkeyhint')).toBe('done');
+    el.removeAttribute('enterkeyhint');
+    expect(ta.hasAttribute('enterkeyhint')).toBe(false);
+
+    el.setAttribute('spellcheck', 'false');
+    expect(ta.getAttribute('spellcheck')).toBe('false');
+    el.removeAttribute('spellcheck');
+    expect(ta.hasAttribute('spellcheck')).toBe(false);
+
     // Keep the final rendered story accessible for Storybook's automatic
     // post-play axe audit after testing removal and reactivity above.
     el.setAttribute('aria-label', 'Notes');
