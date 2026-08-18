@@ -50,7 +50,7 @@ export class EResult extends HTMLElement {
     const status = this._status();
     const title = this.getAttribute('title') || '';
     const desc = this.getAttribute('description') || '';
-    this.innerHTML = `<section class="ink-result" data-status="${status}" role="status">
+    this.innerHTML = `<section class="ink-result" data-status="${esc(status)}" role="status">
       <div class="ink-result__icon" aria-hidden="true">${iconSvg(STATUS_ICON[status], 64)}</div>
       <h2 class="ink-result__title">${esc(title)}</h2>
       ${desc ? `<p class="ink-result__desc">${esc(desc)}</p>` : ''}

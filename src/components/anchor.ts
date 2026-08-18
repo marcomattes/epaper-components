@@ -47,8 +47,8 @@ export class EAnchor extends HTMLElement {
             .map(
               (it, i) => `
             <li><a class="ink-anchor__link" href="${esc(it.href)}"
-                   data-anchor="${i}"
-                   style="padding-left:${14 + (it.depth || 0) * 14}px">
+                   data-anchor="${esc(i)}"
+                   style="padding-left:${esc(14 + (it.depth || 0) * 14)}px">
               <span class="ink-anchor__marker" aria-hidden="true">  </span>${esc(it.title)}
             </a></li>`,
             )

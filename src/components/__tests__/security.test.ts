@@ -1,24 +1,34 @@
 // XSS surface tests: ensure that user-supplied attribute values are never
 // rendered as raw HTML inside component templates.
+//
+// Two layers:
+//   1. Hand-written cases below, kept for the components whose escaping
+//      needed an assertion more specific than "no injected node appeared"
+//      (e.g. verifying the escaped text still round-trips through
+//      `textContent`, or that a JSON-encoded label was escaped).
+//   2. An automated sweep at the bottom that discovers every component file
+//      with an `innerHTML = \`...${...}\`` template (via `import.meta.glob`
+//      raw source) and every `@attr {string}` it documents, then mounts each
+//      with an XSS payload in that attribute. New components pick this up
+//      for free — nothing here needs to be hand-maintained per component.
+/// <reference types="vite/client" />
 import { describe, it, expect, beforeAll } from 'vitest';
 
+// Side-effect import every component module so its custom element is
+// registered. Using a glob instead of a fixed list means a newly added
+// component is automatically covered by the sweep below without anyone
+// having to remember to add an import here.
+const componentModules = import.meta.glob<Record<string, unknown>>('../*.ts');
+// Raw source text of the same files, used only to statically derive which
+// components interpolate into `innerHTML` and which attributes they accept.
+const componentSources = import.meta.glob<string>('../*.ts', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
+
 beforeAll(async () => {
-  await import('../date-picker');
-  await import('../time-picker');
-  await import('../calendar');
-  await import('../cascader');
-  await import('../tree-select');
-  await import('../input');
-  await import('../select');
-  await import('../textarea');
-  await import('../input-number');
-  await import('../checkbox-group');
-  await import('../upload');
-  await import('../alert');
-  await import('../dialog');
-  await import('../popover');
-  await import('../collapse');
-  await import('../tree');
+  await Promise.all(Object.values(componentModules).map((load) => load()));
 });
 
 const mount = (html: string): HTMLElement => {
@@ -34,15 +44,20 @@ const XSS_PAYLOADS = [
   '<svg onload=alert(1)>',
 ];
 
+/** Asserts none of the standard payload markers made it into the rendered subtree. */
+const expectNoInjection = (el: HTMLElement | null): void => {
+  expect(el?.querySelector('img[onerror]') ?? null).toBeNull();
+  expect(el?.querySelector('script') ?? null).toBeNull();
+  expect(el?.querySelector('svg[onload]') ?? null).toBeNull();
+};
+
 describe('XSS prevention', () => {
   for (const payload of XSS_PAYLOADS) {
     it(`e-date-picker value does not inject HTML: ${payload.slice(0, 30)}`, () => {
       const el = mount(
         `<e-date-picker value="${payload.replace(/"/g, '&quot;')}"></e-date-picker>`,
       );
-      expect(el.querySelector('img[onerror]')).toBeNull();
-      expect(el.querySelector('script')).toBeNull();
-      expect(el.querySelector('svg[onload]')).toBeNull();
+      expectNoInjection(el);
       el.remove();
     });
 
@@ -50,9 +65,7 @@ describe('XSS prevention', () => {
       const el = mount(
         `<e-date-picker placeholder="${payload.replace(/"/g, '&quot;')}"></e-date-picker>`,
       );
-      expect(el.querySelector('img[onerror]')).toBeNull();
-      expect(el.querySelector('script')).toBeNull();
-      expect(el.querySelector('svg[onload]')).toBeNull();
+      expectNoInjection(el);
       el.remove();
     });
   }
@@ -128,25 +141,19 @@ describe('XSS prevention', () => {
   for (const payload of XSS_PAYLOADS) {
     it(`e-alert heading does not inject HTML: ${payload.slice(0, 30)}`, () => {
       const el = mount(`<e-alert heading="${payload.replace(/"/g, '&quot;')}"></e-alert>`);
-      expect(el.querySelector('img[onerror]')).toBeNull();
-      expect(el.querySelector('script')).toBeNull();
-      expect(el.querySelector('svg[onload]')).toBeNull();
+      expectNoInjection(el);
       expect(el.querySelector('.ink-alert__heading')!.textContent).toBe(payload);
     });
 
     it(`e-dialog heading does not inject HTML: ${payload.slice(0, 30)}`, () => {
       const el = mount(`<e-dialog heading="${payload.replace(/"/g, '&quot;')}"></e-dialog>`);
-      expect(el.querySelector('img[onerror]')).toBeNull();
-      expect(el.querySelector('script')).toBeNull();
-      expect(el.querySelector('svg[onload]')).toBeNull();
+      expectNoInjection(el);
       expect(el.querySelector('.ink-dialog__title')!.textContent).toBe(payload);
     });
 
     it(`e-popover heading does not inject HTML: ${payload.slice(0, 30)}`, () => {
       const el = mount(`<e-popover heading="${payload.replace(/"/g, '&quot;')}"></e-popover>`);
-      expect(el.querySelector('img[onerror]')).toBeNull();
-      expect(el.querySelector('script')).toBeNull();
-      expect(el.querySelector('svg[onload]')).toBeNull();
+      expectNoInjection(el);
       expect(el.querySelector('.ink-popover__heading')!.textContent).toBe(payload);
     });
 
@@ -155,9 +162,7 @@ describe('XSS prevention', () => {
       const el = mount(
         `<e-popconfirm message="${escaped}" confirm-label="${escaped}" cancel-label="${escaped}"></e-popconfirm>`,
       );
-      expect(el.querySelector('img[onerror]')).toBeNull();
-      expect(el.querySelector('script')).toBeNull();
-      expect(el.querySelector('svg[onload]')).toBeNull();
+      expectNoInjection(el);
       expect(el.querySelector('.ink-popconfirm__message')!.textContent).toBe(payload);
       expect(el.querySelector('.ink-popconfirm__confirm')!.textContent).toBe(payload);
     });
@@ -166,19 +171,70 @@ describe('XSS prevention', () => {
       const el = mount(
         `<e-collapse><e-collapse-panel key="a" heading="${payload.replace(/"/g, '&quot;')}">b</e-collapse-panel></e-collapse>`,
       );
-      expect(el.querySelector('img[onerror]')).toBeNull();
-      expect(el.querySelector('script')).toBeNull();
-      expect(el.querySelector('svg[onload]')).toBeNull();
+      expectNoInjection(el);
       expect(el.querySelector('.ink-collapse__heading')!.textContent).toBe(payload);
     });
 
     it(`e-tree labels do not inject HTML: ${payload.slice(0, 30)}`, () => {
       const data = JSON.stringify([{ value: 'a', label: payload }]).replace(/"/g, '&quot;');
       const el = mount(`<e-tree data="${data}"></e-tree>`);
-      expect(el.querySelector('img[onerror]')).toBeNull();
-      expect(el.querySelector('script')).toBeNull();
-      expect(el.querySelector('svg[onload]')).toBeNull();
+      expectNoInjection(el);
       expect(el.querySelector('.ink-tree__label')!.textContent).toBe(payload);
     });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Automated sweep: every component that interpolates into `innerHTML` gets
+// every `@attr {string}` it documents fuzzed with each payload above. This
+// doesn't replace the curated cases (which assert exact escaped text lands
+// in a specific node); it's a net under them so a *new* component that adds
+// an `innerHTML` template with a raw `${attr}` doesn't ship untested. The
+// ESLint rule `local/no-unescaped-innerhtml` catches the same class of bug
+// at lint time — this is the runtime backstop.
+// ---------------------------------------------------------------------------
+
+interface SweepTarget {
+  tag: string;
+  attrs: string[];
+}
+
+function discoverSweepTargets(): SweepTarget[] {
+  const targets: SweepTarget[] = [];
+  for (const source of Object.values(componentSources)) {
+    // Matches `something.innerHTML = \`...${` — a template literal
+    // assignment with at least one interpolation. Static templates with no
+    // `${}` (nothing to escape) and non-template assignments (e.g.
+    // `el.innerHTML = iconSvg(...)`) don't match and are skipped.
+    if (!/\.innerHTML\s*=\s*`[^`]*\$\{/.test(source)) continue;
+
+    const tagMatches = [...source.matchAll(/define\(\s*'([\w-]+)'/g)];
+    if (tagMatches.length === 0) continue;
+    // A file's `innerHTML` template belongs to its primary export — the
+    // first `define()` call. Secondary tags in the same file (e.g. the
+    // `<e-option>` in select.ts) are plain data carriers with no template
+    // of their own.
+    const tag = tagMatches[0]![1]!;
+
+    const attrs = [...source.matchAll(/@attr\s+\{string\}\s+\[?([\w-]+)/g)].map((m) => m[1]!);
+    if (attrs.length === 0) continue;
+
+    targets.push({ tag, attrs: [...new Set(attrs)] });
+  }
+  return targets;
+}
+
+describe('XSS prevention — automated attribute sweep', () => {
+  for (const { tag, attrs } of discoverSweepTargets()) {
+    for (const attr of attrs) {
+      for (const payload of XSS_PAYLOADS) {
+        it(`${tag}[${attr}] does not inject HTML: ${payload.slice(0, 30)}`, () => {
+          const escaped = payload.replace(/"/g, '&quot;');
+          const el = mount(`<${tag} ${attr}="${escaped}"></${tag}>`);
+          expectNoInjection(el);
+          el?.remove();
+        });
+      }
+    }
   }
 });

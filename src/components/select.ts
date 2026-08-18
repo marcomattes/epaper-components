@@ -55,7 +55,7 @@ export class ESelect extends BaseFormControl {
         ${this._opts
           .map(
             (o) => `<li class="ink-select__option" role="option"
-          data-value="${esc(o.value)}" aria-selected="${o.value === value}">
+          data-value="${esc(o.value)}" aria-selected="${esc(o.value === value)}">
           <span style="flex:1">${esc(o.label)}</span>
           ${o.value === value ? iconSvg('check', 16) : ''}
         </li>`,

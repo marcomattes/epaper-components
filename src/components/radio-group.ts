@@ -42,7 +42,7 @@ export class ERadioGroup extends BaseFormControl {
         .map(
           (r) => `
         <label class="ink-radio">
-          <input type="radio" name="${name}" value="${esc(r.value)}" ${r.value === value ? 'checked' : ''}/>
+          <input type="radio" name="${esc(name)}" value="${esc(r.value)}" ${r.value === value ? 'checked' : ''}/>
           <span class="ink-radio__dot"></span>
           ${esc(r.label)}
         </label>`,
