@@ -33,7 +33,7 @@ import {
   USE_SNIPPET,
   type ComponentEntry,
 } from './data';
-import { PACKAGE_NAME, REPO_URL, ROUTES, withBase, type Route } from './routes';
+import { isNotFound, PACKAGE_NAME, REPO_URL, ROUTES, withBase, type Route } from './routes';
 import { shotAlt, shotKey, shotUrl, type ShotIndex } from './shots';
 import { ARTICLES, articlePath, articlesOfKind, readingMinutes, type Article } from './articles';
 import { blocksHtml, inlineHtml, tableOfContents } from './blocks';
@@ -600,6 +600,41 @@ function faqId(text: string): string {
 }
 
 /* --------------------------------------------------------------------- *
+ * Error page
+ * --------------------------------------------------------------------- */
+
+/**
+ * 404.
+ *
+ * A reader arrives here having followed something that does not exist, so the
+ * page spends its space on what does: every page of the site, as real links.
+ * No search box and no redirect — the site is small enough to simply list.
+ */
+function notFoundMain(route: Route): string {
+  const links = ROUTES.map(
+    (r) => `
+            <a class="ink-link" href="${esc(withBase(r.path))}">${esc(r.nav)}</a>`,
+  ).join('');
+
+  return `${pageHead(route)}
+        <p class="site-lede">
+          The address you followed is not a page on this site. It was either mistyped, or it came
+          from somewhere that guessed at a URL — no page here has ever linked to it.
+        </p>
+
+        <h2 class="ink-title ink-title--3">Every page</h2>
+        <nav class="site-linkrow" aria-label="Pages">${links}
+        </nav>
+
+        <p class="site-lede">
+          The guides and recipes live under
+          <a class="ink-link" href="${esc(withBase('/guides/'))}">/guides/</a>, the component API
+          reference is in Storybook, and the source is on
+          <a class="ink-link" href="${esc(REPO_URL)}" rel="noopener">GitHub</a>.
+        </p>`;
+}
+
+/* --------------------------------------------------------------------- *
  * Chrome that differs per route
  * --------------------------------------------------------------------- */
 
@@ -633,6 +668,16 @@ export function navHtml(route: Route, storybookBase: string): string {
  */
 export function pagenavHtml(route: Route): string {
   if (route.article) return articlePagenavHtml(route.article);
+
+  // The error page belongs to no sequence. It still offers the way back, so
+  // PgUp does something sensible rather than nothing.
+  if (isNotFound(route)) {
+    return `
+          <nav class="site-pagenav" aria-label="Page">
+            <a class="site-pagenav__prev" rel="prev" href="${esc(withBase('/'))}">← Cover</a>
+            <span class="site-pagenav__folio">${esc(route.folio)}</span>
+          </nav>`;
+  }
 
   const i = ROUTES.findIndex((r) => r.path === route.path);
   const prev = i > 0 ? ROUTES[i - 1] : undefined;
@@ -701,6 +746,14 @@ export function mainHtml(route: Route, opts: ContentOptions): string {
         route,
         route.article,
       )}
+      </section>`;
+  }
+
+  // Matched on the route, not on `dir`: the error page is written to
+  // 404.html rather than into a directory, so it has no `dir` of its own.
+  if (isNotFound(route)) {
+    return `
+      <section class="site-section" aria-label="${esc(route.nav)}">${notFoundMain(route)}
       </section>`;
   }
 
