@@ -9,6 +9,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Added
 
+- `<e-select>` supports listbox type-ahead: pressing a printable character
+  while the trigger or an option is focused jumps to the next option whose
+  label starts with that letter, cycling through matches on repeat presses
+  — matching plain native `<select>` behavior.
 - `<e-input>` and `<e-textarea>` forward the native `autocomplete`,
   `inputmode`, `enterkeyhint` and `spellcheck` attributes to their inner
   control, so autofill and virtual-keyboard behavior match a plain
