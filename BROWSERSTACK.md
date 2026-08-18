@@ -31,9 +31,17 @@ The GitHub Actions matrix runs the entire suite on:
 
 - Chrome latest on Windows 11;
 - Edge latest on Windows 11;
-- Playwright Firefox on Windows 11;
-- Playwright WebKit on macOS Tahoe;
-- Playwright WebKit with an iPhone 15 context.
+- Playwright WebKit on macOS Tahoe.
+
+Two further platforms are defined and runnable locally, but are held out of the
+CI matrix for reasons recorded next to `matrix.platform` in
+`.github/workflows/browserstack.yml`:
+
+- Playwright Firefox on Windows 11 — held out over undiagnosed Gecko rendering
+  failures;
+- Playwright WebKit with an iPhone 15 context (`mobile-webkit`) — held out over
+  BrowserStack parallel-session contention, which starves it of a session
+  before any story runs. `webkit` covers the same engine.
 
 ## Where the matrix is defined
 
