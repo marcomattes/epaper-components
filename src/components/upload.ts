@@ -108,7 +108,7 @@ export class EUpload extends BaseFormControl<File[]> {
     }
   }
 
-  override formResetCallback(): void {
+  protected override resetValue(): void {
     this._value = [];
     if (this._input) this._input.value = '';
     this._rebuildList();

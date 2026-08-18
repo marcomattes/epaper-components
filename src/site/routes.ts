@@ -158,6 +158,38 @@ export const ARTICLE_ROUTES: Route[] = ARTICLES.map((article) => ({
 /** Every URL the site publishes. Build, sitemap, alternates and llms.txt use this. */
 export const ALL_ROUTES: Route[] = [...ROUTES, ...ARTICLE_ROUTES];
 
+/* --------------------------------------------------------------------- *
+ * Error page
+ * --------------------------------------------------------------------- */
+
+/** Where the error page is written, and what the host is pointed at. */
+export const NOT_FOUND_PATH = '/404.html';
+
+/**
+ * The error page.
+ *
+ * Deliberately outside {@link ROUTES} and {@link ALL_ROUTES}: nobody
+ * navigates here, this is what the host returns for a URL the build never
+ * wrote. Keeping it out of both lists is what keeps it out of the header
+ * nav, the sitemap, llms.txt, the markdown alternates and the prev/next
+ * sequence — an indexable 404 is worse than none at all.
+ */
+export const NOT_FOUND_ROUTE: Route = {
+  path: NOT_FOUND_PATH,
+  dir: '',
+  nav: 'Not found',
+  title: 'Page not found',
+  description:
+    'This address does not exist on epaper-components.dev. Every page the site does publish is linked from here.',
+  heading: 'Nothing at this address.',
+  folio: '404',
+};
+
+/** True for the error page, which the head, body and pager each treat apart. */
+export function isNotFound(route: Route): boolean {
+  return route.path === NOT_FOUND_PATH;
+}
+
 /**
  * Path prefix the site is served under, with a leading and trailing slash.
  *

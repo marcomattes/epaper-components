@@ -452,11 +452,6 @@ export class EDatePicker extends BaseFormControl {
     this.setAttribute('value', v ?? '');
   }
 
-  override formResetCallback(): void {
-    const dflt = this.getAttribute('default-value') ?? '';
-    this.setAttribute('value', dflt);
-  }
-
   private _applyValue(value: string): void {
     const parsed = parseYMD(value);
     const normalized = parsed ? value : '';

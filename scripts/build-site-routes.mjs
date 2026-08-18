@@ -1,6 +1,6 @@
-// Writes every page but the home page, plus robots.txt, sitemap.xml and
-// llms.txt. The page list comes from the manifest, so guides and recipes
-// need no special handling here.
+// Writes every page but the home page, plus 404.html, robots.txt, sitemap.xml,
+// llms.txt and the .htaccess the host reads. The page list comes from the
+// manifest, so guides and recipes need no special handling here.
 //
 // Runs after scripts/inline-site-css.mjs so every page inherits the same
 // inlined CSS and JS as the home page — one document, no extra requests.
@@ -39,6 +39,14 @@ for (const route of manifest.routes) {
   await mkdir(dir, { recursive: true });
   await writeFile(join(dir, 'index.html'), html, 'utf8');
   written.push(`${route.dir}/index.html`);
+}
+
+// The error page shares the shell with every other page, but is written as a
+// file: `ErrorDocument` points at /404.html, and a directory would not answer.
+if (manifest.notFound) {
+  const html = applyRouteBlocks(shell, manifest.notFound.blocks);
+  await writeFile(join(distDir, manifest.notFound.file), html, 'utf8');
+  written.push(manifest.notFound.file);
 }
 
 for (const [name, contents] of Object.entries(manifest.files)) {

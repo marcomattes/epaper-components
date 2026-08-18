@@ -101,10 +101,6 @@ export class ERadioGroup extends BaseFormControl {
     return s;
   }
 
-  override formResetCallback(): void {
-    this.value = this.getAttribute('default-value') ?? '';
-  }
-
   private _syncValidity(): void {
     const group = this.querySelector<HTMLElement>('[role="radiogroup"]') ?? undefined;
     group?.setAttribute('aria-required', String(this.hasAttribute('required')));

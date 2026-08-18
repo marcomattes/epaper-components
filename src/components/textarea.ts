@@ -18,6 +18,10 @@ import { BaseFormControl } from '../core/base-form-control';
  * @attr {string} [required-message] - Overrides the native message reported when `required` is not satisfied.
  * @attr {number} [minlength] - Minimum text length.
  * @attr {number} [maxlength] - Maximum text length.
+ * @attr {string} [autocomplete] - Forwarded to the native `autocomplete` attribute.
+ * @attr {string} [inputmode] - Forwarded to the native `inputmode` attribute (virtual keyboard layout).
+ * @attr {string} [enterkeyhint] - Forwarded to the native `enterkeyhint` attribute.
+ * @attr {string} [spellcheck] - Forwarded to the native `spellcheck` attribute.
  *
  * @fires {CustomEvent<{value: string}>} e-input - Fired on every keystroke.
  * @fires {CustomEvent<{value: string}>} e-change - Fired on commit (blur / Enter).
@@ -38,6 +42,10 @@ export class ETextarea extends BaseFormControl {
     'required-message',
     'minlength',
     'maxlength',
+    'autocomplete',
+    'inputmode',
+    'enterkeyhint',
+    'spellcheck',
   ];
 
   private _wired = false;
@@ -58,7 +66,14 @@ export class ETextarea extends BaseFormControl {
       ${ariaLabel ? `aria-label="${esc(ariaLabel)}"` : ''}
       ${error ? 'aria-invalid="true"' : ''} ${disabled ? 'disabled' : ''} ${readonly ? 'readonly' : ''} ${required ? 'required' : ''}>${esc(value)}</textarea>`;
     this._ta = this.querySelector('textarea');
-    for (const name of ['minlength', 'maxlength']) {
+    for (const name of [
+      'minlength',
+      'maxlength',
+      'autocomplete',
+      'inputmode',
+      'enterkeyhint',
+      'spellcheck',
+    ]) {
       this._syncNativeConstraint(name, this.getAttribute(name));
     }
     this._value = value;
@@ -104,6 +119,9 @@ export class ETextarea extends BaseFormControl {
       this._syncNativeConstraint(name, v);
       this._syncValidity();
     }
+    if (['autocomplete', 'inputmode', 'enterkeyhint', 'spellcheck'].includes(name)) {
+      this._syncNativeConstraint(name, v);
+    }
   }
 
   override get value(): string {
@@ -121,12 +139,6 @@ export class ETextarea extends BaseFormControl {
   }
   protected parse(s: string): string {
     return s;
-  }
-
-  override formResetCallback(): void {
-    const dflt = this.getAttribute('default-value') ?? '';
-    this.value = dflt;
-    this._syncValidity();
   }
 
   private _syncValidity(): void {
