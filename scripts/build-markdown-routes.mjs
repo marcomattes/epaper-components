@@ -1,5 +1,5 @@
-import { writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
 
 /**
  * Write per-route markdown alternates from the build manifest.
@@ -17,8 +17,15 @@ export async function buildMarkdownRoutes(distDir, routes) {
     )
     .filter((target) => target !== undefined);
 
+  // Article alternates are nested (`guides/partial-refresh.md`). The HTML
+  // pass happens to create those directories first, but relying on that would
+  // make this function break the moment it is called on its own.
   await Promise.all(
-    targets.map((target) => writeFile(join(distDir, target.file), target.markdown, 'utf8')),
+    targets.map(async (target) => {
+      const out = join(distDir, target.file);
+      await mkdir(dirname(out), { recursive: true });
+      await writeFile(out, target.markdown, 'utf8');
+    }),
   );
   return targets.map((target) => target.file);
 }

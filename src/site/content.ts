@@ -35,6 +35,9 @@ import {
 } from './data';
 import { PACKAGE_NAME, REPO_URL, ROUTES, withBase, type Route } from './routes';
 import { shotAlt, shotKey, shotUrl, type ShotIndex } from './shots';
+import { ARTICLES, articlePath, articlesOfKind, readingMinutes, type Article } from './articles';
+import { blocksHtml, inlineHtml, tableOfContents } from './blocks';
+import { FAQ } from './faq';
 
 export interface ContentOptions {
   /** Deployed Storybook base URL — resolved by the build, not by data.ts. */
@@ -398,6 +401,205 @@ function communityMain(route: Route, opts: ContentOptions): string {
 }
 
 /* --------------------------------------------------------------------- *
+ * Page 7 — Guides & recipes index
+ * --------------------------------------------------------------------- */
+
+/** Long month name. Written out rather than left to toLocaleDateString(),
+ *  which would follow the build machine's locale and change the HTML. */
+const MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+/** `2026-08-12` -> `12 August 2026`. Falls back to the raw string. */
+export function formatDate(iso: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!m) return iso;
+  const month = MONTHS[Number(m[2]) - 1];
+  return month ? `${Number(m[3])} ${month} ${m[1]}` : iso;
+}
+
+/** One card on the index. The description is the article's own meta description. */
+function articleCard(article: Article): string {
+  return `
+          <article class="site-artcard">
+            <a class="site-artcard__link" href="${esc(withBase(articlePath(article)))}">
+              <h3 class="site-artcard__title">${esc(article.heading)}</h3>
+            </a>
+            <p class="site-artcard__desc">${esc(article.description)}</p>
+            <p class="site-artcard__meta">
+              <span>${esc(String(readingMinutes(article)))} min read</span>
+              <span aria-hidden="true">·</span>
+              <span>Updated ${esc(formatDate(article.updated))}</span>
+            </p>
+          </article>`;
+}
+
+function guidesMain(route: Route): string {
+  const guides = articlesOfKind('guide').map(articleCard).join('');
+  const recipes = articlesOfKind('recipe').map(articleCard).join('');
+
+  return `${pageHead(route)}
+        <p class="site-lede">
+          Two kinds of writing. The guides explain how the medium works — waveforms, refresh
+          behaviour, the platform APIs the library is built on — and are useful whether or not you
+          ever install EPaper. The recipes are complete builds for the places an e-paper panel
+          actually ends up: a wall dashboard, a shelf label, a room sign, a weather display.
+        </p>
+
+        <h2 class="ink-title ink-title--3" id="guides">Guides</h2>
+        <div class="site-artgrid">${guides}
+        </div>
+
+        <h2 class="ink-title ink-title--3" id="recipes">Recipes</h2>
+        <div class="site-artgrid">${recipes}
+        </div>`;
+}
+
+/* --------------------------------------------------------------------- *
+ * Article pages
+ * --------------------------------------------------------------------- */
+
+/**
+ * A single guide or recipe.
+ *
+ * The whole body is plain markup generated from the article's blocks — no
+ * custom elements at all. A crawler that runs no JavaScript sees the complete
+ * text, which is the entire point of these pages.
+ */
+function articleMain(route: Route, article: Article): string {
+  const toc = tableOfContents(article.blocks);
+  const tocHtml =
+    toc.length < 3
+      ? ''
+      : `
+        <nav class="site-toc" aria-label="On this page">
+          <h2 class="site-toc__title">On this page</h2>
+          <ol class="site-toc__list">${toc
+            .map(
+              (h) => `
+            <li><a href="#${esc(h.id)}">${esc(h.text)}</a></li>`,
+            )
+            .join('')}
+          </ol>
+        </nav>`;
+
+  // Sibling links inside the section. The footer prev/next walks the whole
+  // article sequence; this is the "more like this" row.
+  const siblings = ARTICLES.filter((a) => a.kind === article.kind && a.slug !== article.slug)
+    .slice(0, 3)
+    .map(
+      (a) => `
+            <a class="ink-link" href="${esc(withBase(articlePath(a)))}">${esc(a.nav)}</a>`,
+    )
+    .join('');
+
+  return `
+      <article class="site-article">
+        <header class="site-secthead">
+          <h1 class="ink-title ink-title--2">${esc(article.heading)}</h1>
+          <span class="site-secthead__num">${esc(route.folio)}</span>
+        </header>
+
+        <p class="site-article__meta">
+          <a class="ink-link" href="${esc(withBase('/guides/'))}">Guides</a>
+          <span aria-hidden="true">·</span>
+          <span>${esc(String(readingMinutes(article)))} min read</span>
+          <span aria-hidden="true">·</span>
+          <!-- Machine-readable so the date in the structured data and the date
+               on the page cannot disagree. -->
+          <time datetime="${esc(article.updated)}">Updated ${esc(
+            formatDate(article.updated),
+          )}</time>
+        </p>
+
+        <p class="site-lede site-article__lede">${esc(article.lede)}</p>
+${tocHtml}
+        <div class="site-prose">
+        ${blocksHtml(article.blocks)}
+        </div>
+
+        <footer class="site-article__foot">
+          <nav class="site-linkrow" aria-label="More ${esc(
+            article.kind === 'recipe' ? 'recipes' : 'guides',
+          )}">${siblings}
+          </nav>
+          <p class="site-article__cta">
+            EPaper is MIT licensed and on
+            <a class="ink-link" href="${esc(REPO_URL)}" rel="noopener">GitHub</a>.
+            <a class="ink-link" href="${esc(withBase('/install/'))}">Install it</a>
+            or browse
+            <a class="ink-link" href="${esc(withBase('/components/'))}">all ${esc(
+              String(COMPONENTS.length),
+            )} components</a>.
+          </p>
+        </footer>
+      </article>`;
+}
+
+/* --------------------------------------------------------------------- *
+ * Page 8 — FAQ
+ * --------------------------------------------------------------------- */
+
+/**
+ * Questions as real headings with the answer as the next paragraph.
+ *
+ * Deliberately not <details>/<summary> or <e-collapse>: an answer hidden
+ * behind a disclosure is still in the DOM, but a generative engine weighs
+ * visible text more heavily, and on e-paper every expand is a panel refresh
+ * for text that would have fitted anyway.
+ */
+function faqMain(route: Route): string {
+  const groups = FAQ.map((group) => {
+    const items = group.items
+      .map(
+        (item) => `
+            <div class="site-faq__item">
+              <h3 class="site-faq__q" id="${esc(faqId(item.q))}">${esc(item.q)}</h3>
+              ${item.a.map((p) => `<p class="site-faq__a">${inlineHtml(p)}</p>`).join('\n              ')}
+              ${item.extra ? blocksHtml(item.extra) : ''}
+            </div>`,
+      )
+      .join('');
+
+    return `
+          <section class="site-faq__group">
+            <h2 class="ink-title ink-title--3" id="${esc(faqId(group.title))}">${esc(
+              group.title,
+            )}</h2>${items}
+          </section>`;
+  }).join('');
+
+  return `${pageHead(route)}
+        <p class="site-lede">
+          The questions that come up most often, answered directly. If yours is not here, the
+          <a class="ink-link" href="${esc(
+            REPO_URL,
+          )}/discussions" rel="noopener">discussions board</a> is the right place to ask.
+        </p>
+        ${groups}`;
+}
+
+/** Fragment id for a question, so an answer can be linked to directly. */
+function faqId(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+}
+
+/* --------------------------------------------------------------------- *
  * Chrome that differs per route
  * --------------------------------------------------------------------- */
 
@@ -420,8 +622,18 @@ export function navHtml(route: Route, storybookBase: string): string {
         </nav>`;
 }
 
-/** Footer previous/next links — the crawlable path through the six pages. */
+/**
+ * Footer previous/next links — the crawlable path through the site.
+ *
+ * Two sequences, picked by which one the route belongs to. Core pages walk
+ * the numbered spine; articles walk the article list and hand back to the
+ * section index at its start. Mixing them would drop a reader out of a guide
+ * into the colophon, and would give crawlers a link graph that does not match
+ * the site's structure.
+ */
 export function pagenavHtml(route: Route): string {
+  if (route.article) return articlePagenavHtml(route.article);
+
   const i = ROUTES.findIndex((r) => r.path === route.path);
   const prev = i > 0 ? ROUTES[i - 1] : undefined;
   const next = i >= 0 && i < ROUTES.length - 1 ? ROUTES[i + 1] : undefined;
@@ -447,12 +659,51 @@ export function pagenavHtml(route: Route): string {
           </nav>`;
 }
 
+/** Prev/next within the article sequence, anchored to the section index. */
+function articlePagenavHtml(article: Article): string {
+  const i = ARTICLES.findIndex((a) => a.slug === article.slug);
+  const prev = i > 0 ? ARTICLES[i - 1] : undefined;
+  const next = i >= 0 && i < ARTICLES.length - 1 ? ARTICLES[i + 1] : undefined;
+
+  const prevLink = prev
+    ? `<a class="site-pagenav__prev" rel="prev" href="${esc(
+        withBase(articlePath(prev)),
+      )}">← ${esc(prev.nav)}</a>`
+    : `<a class="site-pagenav__prev" rel="prev" href="${esc(withBase('/guides/'))}">← Guides</a>`;
+
+  return `
+          <nav class="site-pagenav" aria-label="Page">
+            ${prevLink}
+            <span class="site-pagenav__folio">${esc(String(i + 1))} / ${esc(
+              String(ARTICLES.length),
+            )}</span>
+            ${
+              next
+                ? `<a class="site-pagenav__next" rel="next" href="${esc(
+                    withBase(articlePath(next)),
+                  )}">${esc(next.nav)} →</a>`
+                : ''
+            }
+          </nav>`;
+}
+
 /* --------------------------------------------------------------------- *
  * Entry point
  * --------------------------------------------------------------------- */
 
 /** Inner markup of <main> for one route, section wrapper included. */
 export function mainHtml(route: Route, opts: ContentOptions): string {
+  // Articles are matched on the route object, not on `dir`: their directory
+  // is `guides/<slug>`, which no switch over a fixed list could enumerate.
+  if (route.article) {
+    return `
+      <section class="site-section site-section--prose" aria-label="${esc(route.nav)}">${articleMain(
+        route,
+        route.article,
+      )}
+      </section>`;
+  }
+
   let body: string;
   switch (route.dir) {
     case '':
@@ -472,6 +723,12 @@ export function mainHtml(route: Route, opts: ContentOptions): string {
       break;
     case 'community':
       body = communityMain(route, opts);
+      break;
+    case 'guides':
+      body = guidesMain(route);
+      break;
+    case 'faq':
+      body = faqMain(route);
       break;
     default:
       body = pageHead(route);

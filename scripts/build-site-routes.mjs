@@ -1,4 +1,6 @@
-// Writes the five sub-pages, plus robots.txt, sitemap.xml and llms.txt.
+// Writes every page but the home page, plus robots.txt, sitemap.xml and
+// llms.txt. The page list comes from the manifest, so guides and recipes
+// need no special handling here.
 //
 // Runs after scripts/inline-site-css.mjs so every page inherits the same
 // inlined CSS and JS as the home page — one document, no extra requests.
