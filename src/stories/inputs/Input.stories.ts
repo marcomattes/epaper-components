@@ -175,6 +175,21 @@ export const AttributeChanges: Story = {
     el.removeAttribute('autocomplete');
     expect(input.hasAttribute('autocomplete')).toBe(false);
 
+    el.setAttribute('inputmode', 'numeric');
+    expect(input.getAttribute('inputmode')).toBe('numeric');
+    el.removeAttribute('inputmode');
+    expect(input.hasAttribute('inputmode')).toBe(false);
+
+    el.setAttribute('enterkeyhint', 'search');
+    expect(input.getAttribute('enterkeyhint')).toBe('search');
+    el.removeAttribute('enterkeyhint');
+    expect(input.hasAttribute('enterkeyhint')).toBe(false);
+
+    el.setAttribute('spellcheck', 'false');
+    expect(input.getAttribute('spellcheck')).toBe('false');
+    el.removeAttribute('spellcheck');
+    expect(input.hasAttribute('spellcheck')).toBe(false);
+
     el.value = 'three';
     expect(input.value).toBe('three');
 
