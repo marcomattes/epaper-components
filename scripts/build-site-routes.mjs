@@ -9,6 +9,7 @@
 import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { applyRouteBlocks } from './site-template.mjs';
+import { buildMarkdownRoutes } from './build-markdown-routes.mjs';
 
 const distDir = resolve(process.cwd(), 'dist-site');
 const manifestPath = join(distDir, '_site-routes.json');
@@ -42,6 +43,9 @@ for (const [name, contents] of Object.entries(manifest.files)) {
   await writeFile(join(distDir, name), contents, 'utf8');
   written.push(name);
 }
+
+const markdown = await buildMarkdownRoutes(distDir, manifest.routes);
+written.push(...markdown);
 
 await unlink(manifestPath).catch(() => {});
 

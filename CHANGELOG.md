@@ -82,6 +82,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   (`SoftwareSourceCode`, `WebSite`/`WebPage`, `BreadcrumbList`, an `ItemList`
   of the components and design principles, and a `HowTo` for installation).
   AI crawlers are explicitly allowed in `robots.txt`.
+- LLM/agent discovery signals now ship as first-class site artifacts: every
+  page advertises a Markdown alternate (`<link rel="alternate"
+  type="text/markdown">`), static `.md` route companions are generated
+  (`/index.md`, `/features.md`, `/components.md`, `/showcase.md`,
+  `/install.md`, `/community.md`), `/llms-full.txt` provides a one-fetch
+  complete docs dump, `robots.txt` includes
+  `Content-Signal: search=yes, ai-input=yes, ai-train=yes`, and `_headers`
+  includes HTTP `Link` alternates for HTML↔Markdown responses on hosts that
+  support static header manifests.
 - A favicon, an apple-touch icon and a 1200×630 Open Graph card
   (`src/site/public/`).
 - Per-pull-request preview deployments

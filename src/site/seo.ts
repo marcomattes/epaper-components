@@ -20,7 +20,15 @@ import {
   withBase,
   type Route,
 } from './routes';
-import { COMPONENTS, FEATURES } from './data';
+import {
+  COMPONENTS,
+  FEATURES,
+  IMPORT_SNIPPET,
+  INSTALL_SNIPPETS,
+  ROADMAP,
+  ROADMAP_INTRO,
+  USE_SNIPPET,
+} from './data';
 import { shotAlt, shotKey, shotUrl, type ShotIndex } from './shots';
 
 const AUTHOR = { '@type': 'Person', name: 'Marco Mattes', url: 'https://mattes.dev' } as const;
@@ -174,6 +182,101 @@ function routeGraph(
   }
 }
 
+/** Markdown companion route for one HTML path (e.g. /install/ -> /install.md). */
+export function markdownRoutePath(path: string): string {
+  if (path === '/') return '/index.md';
+  const slug = path.replace(/^\/+|\/+$/g, '');
+  return `/${slug}.md`;
+}
+
+/** Markdown payload for one route, used by static .md alternates and llms-full.txt. */
+export function routeMarkdown(route: Route, opts: { version: string; stars: string }): string {
+  const canonical = absoluteUrl(route.path);
+  const lines = [`# ${route.title}`, '', route.description, '', `Canonical: ${canonical}`, ''];
+
+  switch (route.dir) {
+    case '':
+      lines.push(
+        '## Summary',
+        '',
+        `EPaper is a vanilla custom-element library tuned for e-paper displays. It ships ${COMPONENTS.length} components, no Shadow DOM, no animations and no \`:hover\`-only UI states.`,
+        '',
+        '## Install',
+        '',
+        '```bash',
+        INSTALL_SNIPPETS.npm,
+        '```',
+        '',
+        '```js',
+        IMPORT_SNIPPET,
+        '```',
+      );
+      break;
+    case 'features':
+      lines.push('## Feature summary', '', ...FEATURES.flatMap((f) => [`- **${f.title}**: ${f.body}`]));
+      break;
+    case 'components':
+      lines.push(
+        `## Components (${COMPONENTS.length})`,
+        '',
+        ...COMPONENTS.flatMap((c) => [`- \`<${c.tag}>\` — ${c.name} (${c.category})`]),
+      );
+      break;
+    case 'showcase':
+      lines.push(
+        '## Live showcase',
+        '',
+        '- Form-associated custom-element form with validation and FormData output.',
+        '- Sortable/selectable data table.',
+        '- Calendar month view with event markers.',
+      );
+      break;
+    case 'install':
+      lines.push(
+        '## Install commands',
+        '',
+        '```bash',
+        INSTALL_SNIPPETS.npm,
+        INSTALL_SNIPPETS.pnpm,
+        INSTALL_SNIPPETS.yarn,
+        '```',
+        '',
+        '## Import',
+        '',
+        '```js',
+        IMPORT_SNIPPET,
+        '```',
+        '',
+        '## Use',
+        '',
+        '```html',
+        USE_SNIPPET,
+        '```',
+      );
+      break;
+    case 'community':
+      lines.push(
+        '## Project facts',
+        '',
+        `- Version: ${opts.version}`,
+        `- Components: ${COMPONENTS.length}`,
+        `- Repository: ${REPO_URL} (${opts.stars} stars)`,
+        '- License: MIT',
+        '',
+        '## Roadmap',
+        '',
+        ROADMAP_INTRO,
+        '',
+        ...ROADMAP.flatMap((r) => [`- **${r.time} — ${r.title}**: ${r.body}`]),
+      );
+      break;
+    default:
+      break;
+  }
+
+  return `${lines.join('\n')}\n`;
+}
+
 /**
  * The full <head> block for a route: title, description, canonical, Open
  * Graph, Twitter card and JSON-LD.
@@ -183,6 +286,7 @@ export function headHtml(
   opts: { version: string; storybookBase: string; shots: ShotIndex },
 ): string {
   const url = absoluteUrl(route.path);
+  const markdownUrl = absoluteUrl(markdownRoutePath(route.path));
   const graph: Record<string, unknown>[] = [
     {
       '@type': 'WebSite',
@@ -216,6 +320,7 @@ export function headHtml(
   return `<title>${esc(route.title)}</title>
     <meta name="description" content="${esc(route.description)}" />
     <link rel="canonical" href="${esc(url)}" />${noindex}
+    <link rel="alternate" type="text/markdown" href="${esc(markdownUrl)}" />
     <meta name="author" content="Marco Mattes" />
     <link rel="author" href="https://mattes.dev" />
     <link rel="icon" href="${esc(withBase('/favicon.svg'))}" type="image/svg+xml" />
@@ -287,6 +392,8 @@ Disallow: /preview/
 
 ${aiAgents.map((a) => `User-agent: ${a}\nAllow: /\nDisallow: /preview/`).join('\n\n')}
 
+Content-Signal: search=yes, ai-input=yes, ai-train=yes
+
 Sitemap: ${SITE_ORIGIN}/sitemap.xml
 `;
 }
@@ -357,4 +464,40 @@ ${routeLines}
 
 ${componentLines}
 `;
+}
+
+/** Full one-fetch markdown dump across all routes for LLM and agent tooling. */
+export function llmsFullTxt(opts: { version: string; stars: string }): string {
+  const pages = ROUTES.map((route) => routeMarkdown(route, opts)).join('\n\n---\n\n');
+  return `# ${SITE_NAME} — Full documentation
+
+Canonical site: ${SITE_ORIGIN}
+Repository: ${REPO_URL}
+
+This file concatenates the complete EPaper documentation so AI agents can fetch it in one request.
+
+${pages}`;
+}
+
+/** Netlify/Cloudflare-style static header rules for markdown alternates. */
+export function markdownAlternateHeaders(): string {
+  const safePath = (path: string): string => {
+    if (/[\r\n]/.test(path)) {
+      throw new Error(`Invalid header path: ${path}`);
+    }
+    return path;
+  };
+  const pairs = ROUTES.map((route) => ({
+    html: safePath(withBase(route.path)),
+    markdown: safePath(withBase(markdownRoutePath(route.path))),
+  }));
+
+  const htmlHeaders = pairs
+    .map((pair) => `${pair.html}\n  Link: <${pair.markdown}>; rel="alternate"; type="text/markdown"`)
+    .join('\n\n');
+  const markdownHeaders = pairs
+    .map((pair) => `${pair.markdown}\n  Link: <${pair.html}>; rel="alternate"; type="text/html"`)
+    .join('\n\n');
+
+  return `${htmlHeaders}\n\n${markdownHeaders}\n`;
 }
