@@ -14,7 +14,16 @@ import { formatStars, resolveStars } from './scripts/github-stars.mjs';
 import { applyRouteBlocks } from './scripts/site-template.mjs';
 import { copyShots, readShots, SHOTS_SRC } from './scripts/site-shots.mjs';
 import { mainHtml, navHtml, pagenavHtml, type ContentOptions } from './src/site/content';
-import { headHtml, llmsTxt, robotsTxt, sitemapXml } from './src/site/seo';
+import {
+  headHtml,
+  llmsFullTxt,
+  llmsTxt,
+  markdownAlternateHeaders,
+  markdownRoutePath,
+  robotsTxt,
+  routeMarkdown,
+  sitemapXml,
+} from './src/site/seo';
 import { routeByPath, ROUTES, type Route } from './src/site/routes';
 
 const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf8')) as {
@@ -109,11 +118,19 @@ function sitePagesPlugin(opts: ContentOptions): Plugin {
 
       const lastmod = new Date().toISOString().slice(0, 10);
       const manifest = {
-        routes: ROUTES.map((r) => ({ path: r.path, dir: r.dir, blocks: blocksFor(r, opts) })),
+        routes: ROUTES.map((r) => ({
+          path: r.path,
+          dir: r.dir,
+          blocks: blocksFor(r, opts),
+          markdownPath: markdownRoutePath(r.path),
+          markdown: routeMarkdown(r, { version: opts.version, stars: opts.stars }),
+        })),
         files: {
           'robots.txt': robotsTxt(),
           'sitemap.xml': sitemapXml(lastmod),
           'llms.txt': llmsTxt({ version: opts.version, stars: opts.stars }),
+          'llms-full.txt': llmsFullTxt({ version: opts.version, stars: opts.stars }),
+          _headers: markdownAlternateHeaders(),
         },
       };
       writeFileSync(join(outDir, '_site-routes.json'), JSON.stringify(manifest), 'utf8');
