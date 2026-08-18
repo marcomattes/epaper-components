@@ -7,6 +7,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- `<e-select>` supports listbox type-ahead: pressing a printable character
+  while the trigger or an option is focused jumps to the next option whose
+  label starts with that letter, cycling through matches on repeat presses
+  — matching plain native `<select>` behavior.
+
 ## [1.1.0] — 2026-08-18
 
 ### Added

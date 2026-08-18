@@ -8,6 +8,11 @@ import { BaseFormControl } from '../core/base-form-control';
  *
  * Form-associated: participates in `<form>` submission and FormData.
  *
+ * Supports listbox type-ahead: pressing a printable character while the
+ * trigger or an option is focused jumps to the next option whose label
+ * starts with that letter, cycling on repeat presses — matching a plain
+ * native `<select>`.
+ *
  * @attr {string} [value] - Currently selected option value.
  * @attr {string} [placeholder='Select…'] - Trigger placeholder when no value is set.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
@@ -120,6 +125,22 @@ export class ESelect extends BaseFormControl {
     target.focus();
   }
 
+  /**
+   * Listbox type-ahead: returns the index of the next option (wrapping past
+   * `fromIndex`) whose label starts with `char`, or -1. Each keystroke is an
+   * independent single-character search, so repeatedly pressing the same key
+   * cycles through every option sharing that first letter.
+   */
+  private _typeaheadIndex(char: string, fromIndex: number): number {
+    const query = char.toLowerCase();
+    const count = this._opts.length;
+    for (let step = 1; step <= count; step++) {
+      const idx = (fromIndex + step) % count;
+      if (this._opts[idx]?.label.toLowerCase().startsWith(query)) return idx;
+    }
+    return -1;
+  }
+
   private _selectOption(value: string): void {
     this.setAttribute('value', value);
     this._setOpen(false);
@@ -130,11 +151,23 @@ export class ESelect extends BaseFormControl {
   private readonly _onTriggerClick = (): void => this._setOpen(!!this._menu?.hidden);
 
   private readonly _onTriggerKeydown = (e: KeyboardEvent): void => {
-    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
-    e.preventDefault();
-    this._setOpen(true);
-    const current = this._optEls.findIndex((o) => o.getAttribute('aria-selected') === 'true');
-    this._focusOption(current >= 0 ? current : e.key === 'ArrowDown' ? 0 : this._optEls.length - 1);
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      this._setOpen(true);
+      const current = this._optEls.findIndex((o) => o.getAttribute('aria-selected') === 'true');
+      this._focusOption(
+        current >= 0 ? current : e.key === 'ArrowDown' ? 0 : this._optEls.length - 1,
+      );
+      return;
+    }
+    if (e.key.length === 1 && e.key !== ' ' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      const current = this._opts.findIndex((o) => o.value === this._value);
+      const idx = this._typeaheadIndex(e.key, current);
+      if (idx >= 0) {
+        e.preventDefault();
+        this._selectOption(this._opts[idx]!.value);
+      }
+    }
   };
 
   private readonly _onMenuClick = (e: Event): void => {
@@ -155,6 +188,10 @@ export class ESelect extends BaseFormControl {
       if (focused?.classList.contains('ink-select__option')) {
         this._selectOption(focused.dataset['value'] ?? '');
       }
+    } else if (e.key.length === 1 && e.key !== ' ' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      const idx = this._typeaheadIndex(e.key, current);
+      if (idx < 0) return;
+      this._focusOption(idx);
     } else return;
     e.preventDefault();
   };
