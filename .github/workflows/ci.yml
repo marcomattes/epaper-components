@@ -204,12 +204,14 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          # Blocks until SonarQube Cloud has finished analysing and returns the
-          # quality gate, so a failing gate fails this job rather than passing
-          # CI and showing up as a red badge on the pull request half a minute
-          # later. Everything else comes from sonar-project.properties.
-          args: >
-            -Dsonar.qualitygate.wait=true
+          # Everything comes from sonar-project.properties.
+          # sonar.qualitygate.wait is intentionally omitted: Project Analysis
+          # Tokens (the recommended token type for CI) have "Execute Analysis"
+          # permission but not "Browse", so polling the quality-gate status
+          # endpoint returns "Not authorized". Quality Gate results are still
+          # visible on the SonarQube Cloud dashboard and posted as PR status
+          # checks by the SonarQube Cloud GitHub App.
+          args: ""
 
   browserstack:
     name: BrowserStack
