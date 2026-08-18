@@ -1,9 +1,18 @@
-// The six pages of the site, as real URLs.
+// Every page of the site, as real URLs.
 //
-// This table is the single source of truth for routing, navigation, the
-// per-page <head>, the sitemap and llms.txt. It is imported by the browser
-// bundle *and* by vite.site.config.ts in Node, so it must stay free of
-// browser-only APIs.
+// Two sequences live here. ROUTES is the numbered spine — the pages in the
+// header nav, each with a folio, walked by the prev/next links and the pager
+// keys. ARTICLE_ROUTES is the long-form section under /guides/, derived from
+// the article content itself so adding a guide is one entry in guides.ts and
+// nothing here.
+//
+// ALL_ROUTES is the union, and it is what the build, the sitemap, the
+// markdown alternates and llms.txt iterate: those care about "every URL that
+// exists", not about which sequence a page belongs to.
+//
+// This module is imported by the browser bundle *and* by vite.site.config.ts
+// in Node, so it must stay free of browser-only APIs.
+import { ARTICLES, articleDir, articlePath, assertUniqueSlugs, type Article } from './articles';
 
 /** Canonical origin. No trailing slash. */
 export const SITE_ORIGIN = 'https://epaper-components.dev';
@@ -29,6 +38,12 @@ export interface Route {
   heading: string;
   /** Page number printed in the section header, matching the paper metaphor. */
   folio: string;
+  /**
+   * Set when the route renders a long-form article rather than a core page.
+   * Its presence is what switches the page header, the structured data and
+   * the prev/next sequence over to the article treatment.
+   */
+  article?: Article;
 }
 
 export const SITE_NAME = 'EPaper Components';
@@ -93,7 +108,55 @@ export const ROUTES: Route[] = [
     heading: 'Community & colophon.',
     folio: '06',
   },
+  {
+    path: '/guides/',
+    dir: 'guides',
+    nav: 'Guides',
+    title: 'Guides & recipes — Building interfaces for e-paper displays',
+    description:
+      'In-depth guides on e-paper partial refresh and waveforms, web components without Shadow DOM, form-associated custom elements, and e-ink interface design — plus complete recipes for dashboards, shelf labels, room displays and weather stations.',
+    heading: 'Guides & recipes.',
+    folio: '07',
+  },
+  {
+    path: '/faq/',
+    dir: 'faq',
+    nav: 'FAQ',
+    title: 'FAQ — Frequently asked questions about EPaper',
+    description:
+      'Answers on framework support, browser requirements, bundle size, theming, accessibility, form participation, ghosting and licensing for the EPaper web component library.',
+    heading: 'Frequently asked questions.',
+    folio: '08',
+  },
 ];
+
+/* --------------------------------------------------------------------- *
+ * Long-form section
+ * --------------------------------------------------------------------- */
+
+// A duplicate slug would collide in dist-site and silently drop a page.
+assertUniqueSlugs();
+
+/**
+ * One route per article, derived from the content.
+ *
+ * These deliberately stay out of {@link ROUTES}: they are not in the header
+ * nav and not part of the numbered spine. In place of a folio they carry
+ * their editorial category, which is what the article header prints.
+ */
+export const ARTICLE_ROUTES: Route[] = ARTICLES.map((article) => ({
+  path: articlePath(article),
+  dir: articleDir(article),
+  nav: article.nav,
+  title: article.title,
+  description: article.description,
+  heading: article.heading,
+  folio: article.kind === 'recipe' ? 'RECIPE' : 'GUIDE',
+  article,
+}));
+
+/** Every URL the site publishes. Build, sitemap, alternates and llms.txt use this. */
+export const ALL_ROUTES: Route[] = [...ROUTES, ...ARTICLE_ROUTES];
 
 /**
  * Path prefix the site is served under, with a leading and trailing slash.
@@ -146,7 +209,7 @@ export function routeByPath(path: string): Route | undefined {
     SITE_BASE !== '/' && withSlash.startsWith(SITE_BASE)
       ? `/${withSlash.slice(SITE_BASE.length)}`
       : withSlash;
-  return ROUTES.find((r) => r.path === unprefixed);
+  return ALL_ROUTES.find((r) => r.path === unprefixed);
 }
 
 /** Absolute URL for a route, for canonical tags and structured data. */

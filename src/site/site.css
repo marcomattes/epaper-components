@@ -596,6 +596,324 @@ e-site-pager {
   }
 }
 
+/* ---------- Long-form pages (guides, recipes, FAQ) ---------- */
+
+/*
+ * Prose pages are the one place on this site with a real reading column.
+ * Everything else is a spread that fills the width; an article is read
+ * top to bottom, so it gets a measure instead.
+ *
+ * Snap alignment is switched off here: proximity snapping is fine for six
+ * viewport-sized pages, but on a 2,000-word article it fights the reader.
+ */
+.site-section--prose {
+  scroll-snap-align: none;
+  min-height: 0;
+  /* The whole page is the reading column on an article, so the measure is
+     set once here instead of on each block. That keeps the section rule, the
+     heading rules and the text all flush to the same edge — a paragraph
+     ending well short of the rule above it reads as a layout accident. */
+  max-width: 800px;
+}
+
+/* Inside a prose section the section width already is the measure. */
+.site-section--prose .site-article__lede,
+.site-section--prose .site-article__cta,
+.site-section--prose .site-prose__p,
+.site-section--prose .site-prose__list,
+.site-section--prose .site-note,
+.site-section--prose .site-quote,
+.site-section--prose .site-toc {
+  max-width: none;
+}
+
+.site-article {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-5);
+  min-width: 0;
+}
+
+.site-article__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--ink-space-3);
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-small);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.site-article__lede {
+  font-size: 21px;
+  line-height: 1.45;
+  border-left: var(--ink-border-strong);
+  padding-left: var(--ink-space-4);
+}
+
+/* ---------- Table of contents ---------- */
+.site-toc {
+  border: var(--ink-border);
+  padding: var(--ink-space-4) var(--ink-space-5);
+  max-width: 68ch;
+}
+.site-toc__title {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin: 0 0 var(--ink-space-3);
+}
+.site-toc__list {
+  margin: 0;
+  padding-left: 1.4em;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-2);
+  font-size: var(--ink-text-body);
+}
+.site-toc__list a {
+  color: var(--ink-fg);
+}
+
+/* ---------- Prose body ---------- */
+.site-prose {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-4);
+  min-width: 0;
+}
+
+.site-prose__p {
+  font-family: var(--ink-serif);
+  font-size: var(--ink-text-prose);
+  line-height: 1.6;
+  max-width: 68ch;
+  margin: 0;
+}
+
+/* Headings carry their own top space so a section reads as a break rather
+   than as one more paragraph. :first-child guards the case where an article
+   opens on a heading. */
+.site-prose__h2 {
+  margin: var(--ink-space-5) 0 0;
+  padding-bottom: var(--ink-space-2);
+  border-bottom: var(--ink-border);
+}
+.site-prose__h3 {
+  margin: var(--ink-space-4) 0 0;
+}
+.site-prose > :first-child {
+  margin-top: 0;
+}
+
+.site-prose__list {
+  font-family: var(--ink-serif);
+  font-size: var(--ink-text-prose);
+  line-height: 1.6;
+  max-width: 68ch;
+  margin: 0;
+  padding-left: 1.5em;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-2);
+}
+
+.site-prose__p code,
+.site-prose__list code,
+.site-faq__a code,
+.site-note__body code {
+  font-family: var(--ink-mono);
+  font-size: 0.85em;
+  /* An inline code span inside serif prose needs a boundary to read as one;
+     a border rather than a fill keeps it 1-bit. */
+  border: 1px solid var(--ink-fg);
+  padding: 0 3px;
+  /* Package names and import paths wrap mid-span. Without this the border is
+     drawn once around the whole box and leaves the second line unboxed. */
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  /* These are single unbreakable tokens; left alone they set the page width. */
+  overflow-wrap: anywhere;
+}
+
+.site-prose__code {
+  max-width: 100%;
+  white-space: pre;
+  overflow-x: auto;
+}
+.site-prose__code code {
+  font: inherit;
+  border: 0;
+  padding: 0;
+}
+
+/* ---------- Note and quote ---------- */
+.site-note {
+  border: var(--ink-border);
+  border-left: var(--ink-border-strong);
+  padding: var(--ink-space-4);
+  max-width: 68ch;
+}
+.site-note__label {
+  display: block;
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: var(--ink-space-2);
+}
+.site-note__body {
+  font-family: var(--ink-serif);
+  font-size: var(--ink-text-body);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.site-quote {
+  font-family: var(--ink-serif);
+  font-size: var(--ink-text-prose);
+  line-height: 1.55;
+  border-left: var(--ink-border-strong);
+  padding-left: var(--ink-space-4);
+  margin: 0;
+  max-width: 68ch;
+}
+
+/* ---------- Prose tables ---------- */
+.site-prose__tablewrap {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.site-prose__table {
+  min-width: 460px;
+  border-collapse: collapse;
+  width: 100%;
+}
+.site-prose__table th,
+.site-prose__table td {
+  border: var(--ink-border);
+  padding: var(--ink-space-2) var(--ink-space-3);
+  text-align: left;
+  vertical-align: top;
+  font-size: var(--ink-text-body);
+}
+.site-prose__table thead th {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-small);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ---------- Article footer ---------- */
+.site-article__foot {
+  border-top: var(--ink-border-strong);
+  padding-top: var(--ink-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-3);
+}
+.site-article__cta {
+  font-family: var(--ink-serif);
+  font-size: var(--ink-text-body);
+  margin: 0;
+  max-width: 68ch;
+}
+
+/* ---------- Guides index ---------- */
+.site-artgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: var(--ink-space-4);
+}
+
+.site-artcard {
+  border: var(--ink-border);
+  padding: var(--ink-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-2);
+  min-width: 0;
+}
+.site-artcard__link {
+  text-decoration: none;
+  color: var(--ink-fg);
+}
+.site-artcard__title {
+  font-family: var(--ink-serif);
+  font-size: 22px;
+  line-height: 1.2;
+  margin: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.site-artcard__desc {
+  font-family: var(--ink-serif);
+  font-size: var(--ink-text-body);
+  line-height: 1.5;
+  margin: 0;
+  flex: 1;
+}
+.site-artcard__meta {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-caption);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ink-space-2);
+}
+
+/* ---------- FAQ ---------- */
+.site-faq__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-4);
+  margin-top: var(--ink-space-5);
+}
+.site-faq__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-2);
+  border-left: var(--ink-border);
+  padding-left: var(--ink-space-4);
+  max-width: 72ch;
+}
+.site-faq__q {
+  font-family: var(--ink-sans);
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0;
+}
+.site-faq__a {
+  font-family: var(--ink-serif);
+  font-size: var(--ink-text-body);
+  line-height: 1.55;
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .site-article__lede {
+    font-size: 18px;
+  }
+  .site-prose__p,
+  .site-prose__list {
+    font-size: var(--ink-text-body);
+  }
+  .site-artcard__title {
+    font-size: 19px;
+  }
+  .site-faq__q {
+    font-size: 17px;
+  }
+}
+
 /* ---------- Overflow guards (all widths) ---------- */
 
 /* Controls that lay their children out in a single row: let them scroll

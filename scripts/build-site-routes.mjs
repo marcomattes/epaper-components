@@ -1,4 +1,6 @@
-// Writes the five sub-pages, plus robots.txt, sitemap.xml and llms.txt.
+// Writes every page but the home page, plus robots.txt, sitemap.xml and
+// llms.txt. The page list comes from the manifest, so guides and recipes
+// need no special handling here.
 //
 // Runs after scripts/inline-site-css.mjs so every page inherits the same
 // inlined CSS and JS as the home page — one document, no extra requests.
@@ -9,6 +11,7 @@
 import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { applyRouteBlocks } from './site-template.mjs';
+import { buildMarkdownRoutes } from './build-markdown-routes.mjs';
 
 const distDir = resolve(process.cwd(), 'dist-site');
 const manifestPath = join(distDir, '_site-routes.json');
@@ -42,6 +45,9 @@ for (const [name, contents] of Object.entries(manifest.files)) {
   await writeFile(join(distDir, name), contents, 'utf8');
   written.push(name);
 }
+
+const markdown = await buildMarkdownRoutes(distDir, manifest.routes);
+written.push(...markdown);
 
 await unlink(manifestPath).catch(() => {});
 
