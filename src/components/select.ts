@@ -141,6 +141,11 @@ export class ESelect extends BaseFormControl {
     return -1;
   }
 
+  /** Whether `e` is a plain printable character with no modifier — the type-ahead trigger key. */
+  private _isTypeaheadKey(e: KeyboardEvent): boolean {
+    return e.key.length === 1 && e.key !== ' ' && !e.ctrlKey && !e.altKey && !e.metaKey;
+  }
+
   private _selectOption(value: string): void {
     this.setAttribute('value', value);
     this._setOpen(false);
@@ -154,13 +159,12 @@ export class ESelect extends BaseFormControl {
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
       this._setOpen(true);
-      const current = this._optEls.findIndex((o) => o.getAttribute('aria-selected') === 'true');
-      this._focusOption(
-        current >= 0 ? current : e.key === 'ArrowDown' ? 0 : this._optEls.length - 1,
-      );
+      let target = this._optEls.findIndex((o) => o.getAttribute('aria-selected') === 'true');
+      if (target < 0) target = e.key === 'ArrowDown' ? 0 : this._optEls.length - 1;
+      this._focusOption(target);
       return;
     }
-    if (e.key.length === 1 && e.key !== ' ' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+    if (this._isTypeaheadKey(e)) {
       const current = this._opts.findIndex((o) => o.value === this._value);
       const idx = this._typeaheadIndex(e.key, current);
       if (idx >= 0) {
@@ -175,25 +179,48 @@ export class ESelect extends BaseFormControl {
     if (option) this._selectOption(option.dataset['value'] ?? '');
   };
 
+  /** Target index for a navigation key, relative to `current` (-1 if unfocused). */
+  private _navigationIndex(key: string, current: number): number | null {
+    switch (key) {
+      case 'ArrowDown':
+        return current < 0 ? 0 : current + 1;
+      case 'ArrowUp':
+        return current < 0 ? this._optEls.length - 1 : current - 1;
+      case 'Home':
+        return 0;
+      case 'End':
+        return this._optEls.length - 1;
+      default:
+        return null;
+    }
+  }
+
   private readonly _onMenuKeydown = (e: KeyboardEvent): void => {
     if (this._menu?.hidden) return;
     const current = this._optEls.indexOf(document.activeElement as HTMLElement);
-    if (e.key === 'ArrowDown') this._focusOption(current < 0 ? 0 : current + 1);
-    else if (e.key === 'ArrowUp')
-      this._focusOption(current < 0 ? this._optEls.length - 1 : current - 1);
-    else if (e.key === 'Home') this._focusOption(0);
-    else if (e.key === 'End') this._focusOption(this._optEls.length - 1);
-    else if (e.key === 'Enter' || e.key === ' ') {
+
+    const navIndex = this._navigationIndex(e.key, current);
+    if (navIndex != null) {
+      this._focusOption(navIndex);
+      e.preventDefault();
+      return;
+    }
+
+    if (e.key === 'Enter' || e.key === ' ') {
       const focused = document.activeElement as HTMLElement | null;
       if (focused?.classList.contains('ink-select__option')) {
         this._selectOption(focused.dataset['value'] ?? '');
       }
-    } else if (e.key.length === 1 && e.key !== ' ' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      e.preventDefault();
+      return;
+    }
+
+    if (this._isTypeaheadKey(e)) {
       const idx = this._typeaheadIndex(e.key, current);
       if (idx < 0) return;
       this._focusOption(idx);
-    } else return;
-    e.preventDefault();
+      e.preventDefault();
+    }
   };
 
   disconnectedCallback() {
