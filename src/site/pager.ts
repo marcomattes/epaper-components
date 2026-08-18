@@ -1,9 +1,11 @@
 // Local site-glue Custom Element. Not part of the npm package.
 //
-// The six pages are six documents now, so this no longer scrolls between
+// Every page is its own document, so this no longer scrolls between
 // sections — it turns pages. It owns exactly one thing: the global key
 // bindings that walk the sequence, resolved against the prev/next links the
-// build already put in the footer.
+// build already put in the footer. Which sequence that is — the numbered
+// spine or the articles under /guides/ — is decided by the build, so this
+// works on an article without knowing articles exist.
 import { define, onGlobal, runCleanups } from '../core/dom';
 
 /**

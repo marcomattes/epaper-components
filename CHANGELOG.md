@@ -9,6 +9,21 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Added
 
+- A long-form section on the website: eight new pages under `/guides/` — four
+  guides (e-paper partial refresh and waveforms, web components without Shadow
+  DOM, form-associated custom elements with `ElementInternals`, and e-ink
+  interface design) and four recipes (status dashboard, electronic shelf label,
+  meeting room display, weather station) — plus a `/faq/` page carrying 25
+  questions as `FAQPage` structured data. Roughly 11,700 words, all present as
+  real text in the served HTML.
+- Article bodies are authored as typed blocks (`src/site/blocks.ts`) and
+  rendered to HTML and markdown from that single source, so each page's `.md`
+  alternate and its entry in `llms-full.txt` cannot drift from the HTML.
+- Per-article `TechArticle` structured data with publication and modification
+  dates, `og:type=article` metadata, three-level breadcrumbs, and sitemap
+  entries whose `lastmod` reflects the article's own update date rather than
+  the build date. `llms.txt` now indexes the guides, the recipes and the FAQ,
+  and links the markdown alternate for each.
 - Six e-paper data-display components: `<e-meter>` for discrete bounded
   measurements, `<e-sparkline>` for monochrome mini-charts,
   `<e-status-board>` for keyed KPI matrices, `<e-change-marker>` for persistent

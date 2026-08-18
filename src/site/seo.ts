@@ -11,6 +11,7 @@
 import { esc } from '../core/dom';
 import {
   absoluteUrl,
+  ALL_ROUTES,
   PACKAGE_NAME,
   REPO_URL,
   ROUTES,
@@ -20,6 +21,9 @@ import {
   withBase,
   type Route,
 } from './routes';
+import { ARTICLES, articlePath, articlesOfKind, readingMinutes, type Article } from './articles';
+import { blocksMarkdown } from './blocks';
+import { FAQ, faqItems } from './faq';
 import {
   COMPONENTS,
   FEATURES,
@@ -76,6 +80,10 @@ function softwareGraph(version: string): Record<string, unknown> {
 /** Breadcrumbs give engines the site's shape without crawling every link. */
 function breadcrumb(route: Route): Record<string, unknown> {
   const items = [{ name: 'Home', item: SITE_ORIGIN + '/' }];
+  // An article sits one level deeper, under the section index. Saying so is
+  // what lets a result render "epaper-components.dev › Guides › …" instead of
+  // flattening every page onto the domain root.
+  if (route.article) items.push({ name: 'Guides', item: absoluteUrl('/guides/') });
   if (route.dir) items.push({ name: route.nav, item: absoluteUrl(route.path) });
   return {
     '@type': 'BreadcrumbList',
@@ -112,13 +120,122 @@ function shotImage(
   };
 }
 
+/**
+ * Strip the inline markdown subset back to prose.
+ *
+ * Structured data carries plain text, not markup: an `acceptedAnswer` reading
+ * "extend \`HTMLElement\`" is what gets read aloud by an assistant that quotes
+ * it. The visible page keeps the formatting; only the schema copy is flattened.
+ */
+function plainText(text: string): string {
+  return text
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)\s]+\)/g, '$1');
+}
+
+/** Rough word count of an article body, for `wordCount` in the schema. */
+function articleWordCount(article: Article): number {
+  const md = blocksMarkdown(article.blocks);
+  return `${article.lede} ${md}`.trim().split(/\s+/).length;
+}
+
+/**
+ * `TechArticle` for one guide or recipe.
+ *
+ * This is the schema type search engines and assistants associate with
+ * developer documentation, and it is what carries the two dates. Publication
+ * and modification dates are the strongest signal available that a technical
+ * page is maintained — worth more here than any keyword field.
+ */
+function articleGraph(route: Route, article: Article): Record<string, unknown> {
+  const url = absoluteUrl(route.path);
+  return {
+    '@type': 'TechArticle',
+    '@id': `${url}#article`,
+    headline: article.title,
+    name: article.heading,
+    description: article.description,
+    abstract: plainText(article.lede),
+    articleSection: article.kind === 'recipe' ? 'Recipes' : 'Guides',
+    datePublished: article.published,
+    dateModified: article.updated,
+    wordCount: articleWordCount(article),
+    timeRequired: `PT${readingMinutes(article)}M`,
+    keywords: article.topics.join(', '),
+    author: AUTHOR,
+    publisher: AUTHOR,
+    inLanguage: 'en',
+    license: 'https://spdx.org/licenses/MIT.html',
+    isPartOf: { '@id': `${SITE_ORIGIN}/#website` },
+    mainEntityOfPage: { '@id': `${url}#page` },
+    about: { '@id': `${SITE_ORIGIN}/#software` },
+  };
+}
+
+/**
+ * `FAQPage` for the FAQ route.
+ *
+ * Every question and answer here is also visible text on the page. That is
+ * not merely good practice — structured data that does not match the rendered
+ * page is a guideline violation, and the whole value of the markup is that an
+ * engine can trust it without rendering.
+ */
+function faqGraph(): Record<string, unknown> {
+  return {
+    '@type': 'FAQPage',
+    '@id': `${absoluteUrl('/faq/')}#faq`,
+    mainEntity: faqItems().map((item) => ({
+      '@type': 'Question',
+      name: plainText(item.q),
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.a.map((p) => plainText(p)).join(' '),
+      },
+    })),
+  };
+}
+
+/** `ItemList` of every article, for the section index. */
+function guidesGraph(): Record<string, unknown>[] {
+  return [
+    {
+      '@type': 'CollectionPage',
+      '@id': `${absoluteUrl('/guides/')}#collection`,
+      name: 'EPaper guides and recipes',
+      description:
+        'Long-form guides on e-paper rendering and web component internals, plus complete recipes for real e-ink builds.',
+      inLanguage: 'en',
+    },
+    {
+      '@type': 'ItemList',
+      name: 'Guides and recipes',
+      numberOfItems: ARTICLES.length,
+      itemListElement: ARTICLES.map((article, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: article.title,
+        description: article.description,
+        url: absoluteUrl(articlePath(article)),
+      })),
+    },
+  ];
+}
+
 /** Route-specific structured data — the part an answer engine can cite. */
 function routeGraph(
   route: Route,
   storybookBase: string,
   shots: ShotIndex,
 ): Record<string, unknown>[] {
+  if (route.article) return [articleGraph(route, route.article)];
+
   switch (route.dir) {
+    case 'guides':
+      return guidesGraph();
+    case 'faq':
+      return [faqGraph()];
     case 'features':
       return [
         {
@@ -192,6 +309,30 @@ export function markdownRoutePath(path: string): string {
 /** Markdown payload for one route, used by static .md alternates and llms-full.txt. */
 export function routeMarkdown(route: Route, opts: { version: string; stars: string }): string {
   const canonical = absoluteUrl(route.path);
+
+  // Articles carry their whole body. This is the copy an answer engine reads
+  // when it follows the markdown alternate instead of rendering the page, so
+  // a summary here would mean the engine sees less than a browser does.
+  if (route.article) {
+    const article = route.article;
+    return [
+      `# ${article.title}`,
+      '',
+      article.description,
+      '',
+      `Canonical: ${canonical}`,
+      `Published: ${article.published} · Updated: ${article.updated} · ${readingMinutes(
+        article,
+      )} min read`,
+      `Topics: ${article.topics.join(', ')}`,
+      '',
+      article.lede,
+      '',
+      blocksMarkdown(article.blocks),
+      '',
+    ].join('\n');
+  }
+
   const lines = [`# ${route.title}`, '', route.description, '', `Canonical: ${canonical}`, ''];
 
   switch (route.dir) {
@@ -258,6 +399,30 @@ export function routeMarkdown(route: Route, opts: { version: string; stars: stri
         '```',
       );
       break;
+    case 'guides':
+      lines.push(
+        '## Guides',
+        '',
+        ...articlesOfKind('guide').flatMap((a) => [
+          `- [${a.heading}](${absoluteUrl(articlePath(a))}): ${a.description}`,
+        ]),
+        '',
+        '## Recipes',
+        '',
+        ...articlesOfKind('recipe').flatMap((a) => [
+          `- [${a.heading}](${absoluteUrl(articlePath(a))}): ${a.description}`,
+        ]),
+      );
+      break;
+    case 'faq':
+      lines.push(
+        ...FAQ.flatMap((group) => [
+          `## ${group.title}`,
+          '',
+          ...group.items.flatMap((item) => [`### ${item.q}`, '', ...item.a, '']),
+        ]),
+      );
+      break;
     case 'community':
       lines.push(
         '## Project facts',
@@ -321,6 +486,22 @@ export function headHtml(
   const noindex =
     SITE_BASE === '/' ? '' : '\n    <meta name="robots" content="noindex,nofollow" />';
 
+  // Articles are `og:type=article`, which unlocks the published/modified
+  // timestamps and the section/tag fields. The core pages stay `website`.
+  const article = route.article;
+  const ogType = article ? 'article' : 'website';
+  const articleMeta = article
+    ? `
+    <meta property="article:published_time" content="${esc(article.published)}" />
+    <meta property="article:modified_time" content="${esc(article.updated)}" />
+    <meta property="article:author" content="Marco Mattes" />
+    <meta property="article:section" content="${esc(
+      article.kind === 'recipe' ? 'Recipes' : 'Guides',
+    )}" />${article.topics
+      .map((t) => `\n    <meta property="article:tag" content="${esc(t)}" />`)
+      .join('')}`
+    : '';
+
   return `<title>${esc(route.title)}</title>
     <meta name="description" content="${esc(route.description)}" />
     <link rel="canonical" href="${esc(url)}" />${noindex}
@@ -330,7 +511,7 @@ export function headHtml(
     <link rel="icon" href="${esc(withBase('/favicon.svg'))}" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="${esc(withBase('/apple-touch-icon.png'))}" />
 
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content="${ogType}" />
     <meta property="og:site_name" content="${esc(SITE_NAME)}" />
     <meta property="og:title" content="${esc(route.title)}" />
     <meta property="og:description" content="${esc(route.description)}" />
@@ -339,7 +520,7 @@ export function headHtml(
     <meta property="og:image" content="${esc(OG_IMAGE)}" />
     <meta property="og:image:width" content="${OG_IMAGE_W}" />
     <meta property="og:image:height" content="${OG_IMAGE_H}" />
-    <meta property="og:image:alt" content="EPaper — web components for e-paper displays" />
+    <meta property="og:image:alt" content="EPaper — web components for e-paper displays" />${articleMeta}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${esc(route.title)}" />
     <meta name="twitter:description" content="${esc(route.description)}" />
@@ -348,16 +529,26 @@ export function headHtml(
     ${jsonLd({ '@context': 'https://schema.org', '@graph': graph })}`;
 }
 
-/** sitemap.xml over every route. */
+/**
+ * sitemap.xml over every route.
+ *
+ * Articles report their own `updated` date rather than the build date. A
+ * sitemap that claims every page changed today on every deploy trains a
+ * crawler to ignore the field; a date that only moves when the text moves is
+ * the one worth sending.
+ */
 export function sitemapXml(lastmod: string): string {
-  const urls = ROUTES.map(
-    (r) => `  <url>
+  const urls = ALL_ROUTES.map((r) => {
+    const changed = r.article ? r.article.updated : lastmod;
+    const freq = r.article ? 'monthly' : 'weekly';
+    const priority = r.dir === '' ? '1.0' : r.article ? '0.7' : '0.8';
+    return `  <url>
     <loc>${absoluteUrl(r.path)}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>${r.dir === '' ? '1.0' : '0.8'}</priority>
-  </url>`,
-  ).join('\n');
+    <lastmod>${changed}</lastmod>
+    <changefreq>${freq}</changefreq>
+    <priority>${priority}</priority>
+  </url>`;
+  }).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls}
@@ -415,6 +606,19 @@ export function llmsTxt(opts: { version: string; stars: string }): string {
     '\n',
   );
 
+  // Articles are listed with their markdown alternate rather than the HTML
+  // page: an agent following this file wants the text, and the .md URL hands
+  // it over without a render step.
+  const articleLines = (kind: 'guide' | 'recipe'): string =>
+    articlesOfKind(kind)
+      .map(
+        (a) =>
+          `- [${a.title}](${absoluteUrl(articlePath(a))}) — ${a.description}\n  Markdown: ${absoluteUrl(
+            markdownRoutePath(articlePath(a)),
+          )}`,
+      )
+      .join('\n');
+
   return `# ${SITE_NAME}
 
 > A vanilla custom-element library for e-paper displays. ${COMPONENTS.length} framework-agnostic
@@ -464,15 +668,41 @@ ships only what it uses.
 
 ${routeLines}
 
+## Guides
+
+Long-form explanations of the medium and the platform APIs the library is built on.
+Useful whether or not you install EPaper.
+
+${articleLines('guide')}
+
+## Recipes
+
+Complete builds for real e-paper deployments.
+
+${articleLines('recipe')}
+
+## FAQ
+
+${faqItems()
+  .map((item) => `- **${item.q}** ${item.a[0] ?? ''}`)
+  .join('\n')}
+
+Full answers: ${absoluteUrl('/faq/')} (markdown: ${absoluteUrl('/faq.md')})
+
 ## Components
 
 ${componentLines}
+
+## Full text
+
+Every page above, concatenated as one markdown document:
+${SITE_ORIGIN}/llms-full.txt
 `;
 }
 
 /** Full one-fetch markdown dump across all routes for LLM and agent tooling. */
 export function llmsFullTxt(opts: { version: string; stars: string }): string {
-  const pages = ROUTES.map((route) => routeMarkdown(route, opts)).join('\n\n---\n\n');
+  const pages = ALL_ROUTES.map((route) => routeMarkdown(route, opts)).join('\n\n---\n\n');
   return `# ${SITE_NAME} — Full documentation
 
 Canonical site: ${SITE_ORIGIN}
@@ -491,7 +721,7 @@ export function markdownAlternateHeaders(): string {
     }
     return path;
   };
-  const pairs = ROUTES.map((route) => ({
+  const pairs = ALL_ROUTES.map((route) => ({
     html: safePath(withBase(route.path)),
     markdown: safePath(withBase(markdownRoutePath(route.path))),
   }));

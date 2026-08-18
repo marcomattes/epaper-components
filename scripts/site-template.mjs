@@ -2,7 +2,7 @@
 //
 // Shared by two callers so the substitution rule exists once:
 //   • vite.site.config.ts — dev server and the home page of a build.
-//   • scripts/build-site-routes.mjs — the five sub-pages, applied to the
+//   • scripts/build-site-routes.mjs — every other page, applied to the
 //     already-inlined dist-site/index.html.
 //
 // The slots are HTML comments, which survive Vite's build untouched, and the

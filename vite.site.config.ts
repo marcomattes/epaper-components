@@ -3,8 +3,9 @@
 // untouched. The site is *not* part of the npm package — this config only
 // produces the static bundle served at https://epaper-components.dev.
 //
-// The site is six real URLs, each shipped as a complete HTML document. Vite
-// builds the home page; the shell it produces is then re-filled per route by
+// Every route is a real URL shipped as a complete HTML document: the eight
+// core pages plus one per guide and recipe under /guides/. Vite builds the
+// home page; the shell it produces is then re-filled per route by
 // scripts/build-site-routes.mjs. Page markup comes from src/site/content.ts
 // and the <head> from src/site/seo.ts, both of which run here in Node.
 import { defineConfig, type Plugin } from 'vite';
@@ -24,7 +25,7 @@ import {
   routeMarkdown,
   sitemapXml,
 } from './src/site/seo';
-import { routeByPath, ROUTES, type Route } from './src/site/routes';
+import { ALL_ROUTES, routeByPath, ROUTES, type Route } from './src/site/routes';
 
 const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf8')) as {
   version: string;
@@ -56,7 +57,7 @@ function blocksFor(route: Route, opts: ContentOptions): RouteBlocks {
  * Renders each route into the shell.
  *
  * In dev this also serves the sub-paths, so `npm run dev:site` browses the
- * same six URLs as production instead of only the cover.
+ * same URLs as production instead of only the cover.
  */
 function sitePagesPlugin(opts: ContentOptions): Plugin {
   return {
@@ -109,8 +110,8 @@ function sitePagesPlugin(opts: ContentOptions): Plugin {
       },
     },
 
-    // The five sub-pages are written after the CSS/JS inlining step, so hand
-    // their content over instead of writing HTML here.
+    // Every page but the home page is written after the CSS/JS inlining
+    // step, so hand their content over instead of writing HTML here.
     async closeBundle() {
       const outDir = resolve(__dirname, 'dist-site');
       const copied = await copyShots(opts.shots, outDir);
@@ -118,7 +119,9 @@ function sitePagesPlugin(opts: ContentOptions): Plugin {
 
       const lastmod = new Date().toISOString().slice(0, 10);
       const manifest = {
-        routes: ROUTES.map((r) => ({
+        // ALL_ROUTES, not ROUTES: the guides and recipes are real pages that
+        // need their own directory, markdown alternate and sitemap entry.
+        routes: ALL_ROUTES.map((r) => ({
           path: r.path,
           dir: r.dir,
           blocks: blocksFor(r, opts),
