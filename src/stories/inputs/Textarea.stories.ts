@@ -114,6 +114,11 @@ export const AttributeChanges: Story = {
     el.removeAttribute('disabled');
     expect(ta.disabled).toBe(false);
 
+    el.setAttribute('spellcheck', 'false');
+    expect(ta.getAttribute('spellcheck')).toBe('false');
+    el.removeAttribute('spellcheck');
+    expect(ta.hasAttribute('spellcheck')).toBe(false);
+
     // Keep the final rendered story accessible for Storybook's automatic
     // post-play axe audit after testing removal and reactivity above.
     el.setAttribute('aria-label', 'Notes');

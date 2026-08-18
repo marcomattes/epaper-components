@@ -7,6 +7,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- `<e-input>` and `<e-textarea>` forward the native `autocomplete`,
+  `inputmode`, `enterkeyhint` and `spellcheck` attributes to their inner
+  control, so autofill and virtual-keyboard behavior match a plain
+  `<input>`/`<textarea>` instead of being silently dropped.
+
 ## [1.1.0] — 2026-08-18
 
 ### Added
