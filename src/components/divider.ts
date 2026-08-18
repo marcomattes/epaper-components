@@ -12,7 +12,7 @@ import { define, esc, patchAttr, patchText } from '../core/dom';
  * <e-divider variant="dashed" label="OR"></e-divider>
  */
 export class EDivider extends HTMLElement {
-  static observedAttributes = ['variant', 'orientation', 'label'];
+  static readonly observedAttributes = ['variant', 'orientation', 'label'];
 
   private _wired = false;
   private _inner: Element | null = null;

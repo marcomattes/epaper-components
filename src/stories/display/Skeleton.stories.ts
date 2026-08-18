@@ -46,7 +46,7 @@ export const TextLines: Story = {
   args: { shape: 'text', lines: 4 },
   play: async ({ canvasElement }) => {
     const lines = canvasElement.querySelectorAll('.ink-skeleton__line');
-    expect(lines.length).toBe(4);
+    expect(lines).toHaveLength(4);
   },
 };
 

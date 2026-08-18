@@ -23,7 +23,7 @@ import { BaseFormControl } from '../core/base-form-control';
  * </e-radio-group>
  */
 export class ERadioGroup extends BaseFormControl {
-  static observedAttributes = ['value', 'layout', 'required', 'required-message'];
+  static readonly observedAttributes = ['value', 'layout', 'required', 'required-message'];
 
   private _wired = false;
 

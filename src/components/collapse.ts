@@ -183,12 +183,12 @@ export class ECollapse extends HTMLElement {
   }
 
   /** A `<summary>` has no disabled state of its own — cancel the default. */
-  private _onClick = (e: MouseEvent): void => {
+  private readonly _onClick = (e: MouseEvent): void => {
     const summary = (e.target as Element).closest<HTMLElement>('.ink-collapse__summary');
     if (summary?.getAttribute('aria-disabled') === 'true') e.preventDefault();
   };
 
-  private _onToggle = (e: Event): void => {
+  private readonly _onToggle = (e: Event): void => {
     const details = e.target as HTMLDetailsElement;
     if (this._suppressed.delete(details)) return;
 

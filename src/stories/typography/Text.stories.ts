@@ -82,7 +82,7 @@ export const Reconnect: Story = {
     expect(wrapped).toBeTruthy();
     parent.removeChild(t);
     parent.appendChild(t);
-    expect(t.querySelectorAll('p').length).toBe(1);
+    expect(t.querySelectorAll('p')).toHaveLength(1);
   },
   render: () => html`<e-text kind="prose" as="p">hello</e-text>`,
 };

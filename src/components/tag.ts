@@ -18,7 +18,7 @@ import { addCleanup, boolAttr, captureWrap, define, patchBoolAttr, runCleanups }
  * <e-tag closable>Draft</e-tag>
  */
 export class ETag extends HTMLElement {
-  static observedAttributes = ['closable', 'disabled'];
+  static readonly observedAttributes = ['closable', 'disabled'];
 
   private _wrap: HTMLElement | null = null;
   private _btn: HTMLButtonElement | null = null;
@@ -69,7 +69,7 @@ export class ETag extends HTMLElement {
 
   private _buttonBound = false;
 
-  private _onClick = (e: Event): void => {
+  private readonly _onClick = (e: Event): void => {
     if (boolAttr(this, 'disabled')) {
       e.stopImmediatePropagation();
       return;

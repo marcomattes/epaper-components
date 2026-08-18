@@ -21,7 +21,7 @@ import { BaseFormControl } from '../core/base-form-control';
  * <e-toggle checked label="Enable notifications"></e-toggle>
  */
 export class EToggle extends BaseFormControl {
-  static observedAttributes = [
+  static readonly observedAttributes = [
     'checked',
     'label',
     'disabled',

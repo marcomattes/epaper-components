@@ -59,7 +59,7 @@ export class ECheckboxGroup extends BaseFormControl {
     runCleanups(this);
   }
 
-  private _onChange = (): void => {
+  private readonly _onChange = (): void => {
     const v = [...this.querySelectorAll<HTMLInputElement>('input:checked')].map((i) => i.value);
     this._value = v.join(',');
     this.setAttribute('value', this._value);

@@ -43,7 +43,7 @@ export const Vertical: Story = {
     const ul = canvasElement.querySelector('ul.ink-menu') as HTMLElement;
     expect(ul.classList.contains('ink-menu--horizontal')).toBe(false);
     const topButtons = canvasElement.querySelectorAll('ul.ink-menu > li > .ink-menu__btn');
-    expect(topButtons.length).toBe(4);
+    expect(topButtons).toHaveLength(4);
     const active = canvasElement.querySelector(
       '.ink-menu__btn[aria-current="page"]',
     ) as HTMLElement;
@@ -94,7 +94,7 @@ export const WithBadge: Story = {
   play: async ({ canvasElement }) => {
     await checkA11y(canvasElement);
     const buttons = canvasElement.querySelectorAll('.ink-menu__btn');
-    expect(buttons.length).toBe(4);
+    expect(buttons).toHaveLength(4);
     expect(canvasElement.textContent).toContain('12');
     expect(canvasElement.textContent).toContain('Inbox');
   },

@@ -50,7 +50,7 @@ export const InRange: Story = {
     await checkA11y(canvasElement);
     const meter = canvasElement.querySelector('e-meter')!;
     expect(meter.getAttribute('role')).toBe('meter');
-    expect(meter.querySelectorAll('.ink-meter__segment[data-on]').length).toBe(7);
+    expect(meter.querySelectorAll('.ink-meter__segment[data-on]')).toHaveLength(7);
   },
 };
 

@@ -23,10 +23,10 @@ import { TreeView, parseTreeAttr } from '../core/tree';
  * <e-tree-select data='[{"value":"a","label":"A","children":[{"value":"a1","label":"A1"}]}]' default-expanded="a"></e-tree-select>
  */
 export class ETreeSelect extends BaseFormControl {
-  static observedAttributes = ['value', 'data', 'options', 'required', 'required-message'];
+  static readonly observedAttributes = ['value', 'data', 'options', 'required', 'required-message'];
 
   private _built = false;
-  private _view = new TreeView(this, {
+  private readonly _view = new TreeView(this, {
     onActivate: (value) => this._selectValue(value),
   });
 
@@ -78,11 +78,11 @@ export class ETreeSelect extends BaseFormControl {
     }
   }
 
-  private _onClick = (e: Event): void => {
+  private readonly _onClick = (e: Event): void => {
     this._view.handleClick(e);
   };
 
-  private _onKeydown = (e: Event): void => {
+  private readonly _onKeydown = (e: Event): void => {
     this._view.handleKeydown(e as KeyboardEvent);
   };
 

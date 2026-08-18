@@ -77,7 +77,7 @@ export class EAvatar extends HTMLElement {
     }
   }
 
-  private _onImageError = (): void => {
+  private readonly _onImageError = (): void => {
     this._failedSrc = this.getAttribute('src');
     this._render();
   };

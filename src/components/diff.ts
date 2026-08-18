@@ -19,7 +19,7 @@ import { define, patchAttr, patchText } from '../core/dom';
  * <e-diff label="Firmware" before="1.8.4" after="1.9.0"></e-diff>
  */
 export class EDiff extends HTMLElement {
-  static observedAttributes = [
+  static readonly observedAttributes = [
     'before',
     'after',
     'label',

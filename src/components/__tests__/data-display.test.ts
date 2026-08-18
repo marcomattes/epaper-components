@@ -711,15 +711,15 @@ describe('e-meter', () => {
     expect(el.getAttribute('role')).toBe('meter');
     expect(el.getAttribute('aria-valuenow')).toBe('72');
     expect(el.getAttribute('aria-valuetext')).toBe('72%');
-    expect(el.querySelectorAll('.ink-meter__segment').length).toBe(10);
-    expect(el.querySelectorAll('.ink-meter__segment[data-on]').length).toBe(7);
+    expect(el.querySelectorAll('.ink-meter__segment')).toHaveLength(10);
+    expect(el.querySelectorAll('.ink-meter__segment[data-on]')).toHaveLength(7);
   });
 
   it('clamps the visual and semantic value to the configured range', () => {
     const el = mount(`<e-meter min="10" max="20" value="50" segments="5"></e-meter>`);
     expect(el.getAttribute('aria-valuenow')).toBe('20');
     expect(el.getAttribute('aria-label')).toBe('Meter');
-    expect(el.querySelectorAll('.ink-meter__segment[data-on]').length).toBe(5);
+    expect(el.querySelectorAll('.ink-meter__segment[data-on]')).toHaveLength(5);
   });
 
   it('updates value and threshold band without replacing segments', () => {
@@ -777,7 +777,7 @@ describe('e-status-board', () => {
   it('renders keyed KPI cells with visible status words', () => {
     const el = mount(`<e-status-board data='${DATA}' columns="2"></e-status-board>`);
     expect(el.getAttribute('role')).toBe('region');
-    expect(el.querySelectorAll('[role="listitem"]').length).toBe(2);
+    expect(el.querySelectorAll('[role="listitem"]')).toHaveLength(2);
     expect(el.querySelector('[data-key="queue"] .ink-status-board__cue')!.textContent).toContain(
       'Warning',
     );

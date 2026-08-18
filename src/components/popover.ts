@@ -161,7 +161,7 @@ class Popup {
  * </e-popover>
  */
 export class EPopover extends HTMLElement {
-  static observedAttributes = ['align', 'placement', 'heading', 'open'];
+  static readonly observedAttributes = ['align', 'placement', 'heading', 'open'];
 
   private _wired = false;
   private _popup: Popup | null = null;
@@ -283,7 +283,7 @@ define('e-popover', EPopover);
  * </e-popconfirm>
  */
 export class EPopconfirm extends HTMLElement {
-  static observedAttributes = [
+  static readonly observedAttributes = [
     'message',
     'confirm-label',
     'cancel-label',
@@ -385,7 +385,7 @@ export class EPopconfirm extends HTMLElement {
     panel.classList.toggle('ink-popconfirm__panel--top', this.getAttribute('placement') === 'top');
   }
 
-  private _onPanelClick = (e: Event): void => {
+  private readonly _onPanelClick = (e: Event): void => {
     const action = (e.target as Element).closest<HTMLElement>('[data-action]');
     if (!action) return;
     this._resolve(action.dataset['action'] === 'confirm');

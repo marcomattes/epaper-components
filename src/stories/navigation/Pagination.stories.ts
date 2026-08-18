@@ -73,7 +73,7 @@ export const ManyPages: Story = {
   play: async ({ canvasElement }) => {
     await checkA11y(canvasElement);
     const gaps = canvasElement.querySelectorAll('.ink-pagination__gap');
-    expect(gaps.length).toBe(2);
+    expect(gaps).toHaveLength(2);
     const pager = canvasElement.querySelector('e-pagination') as HTMLElement;
     let captured: number | null = null;
     pager.addEventListener(
@@ -103,7 +103,7 @@ export const WideSiblings: Story = {
 export const SmallTotal: Story = {
   args: { current: 2, total: 4, siblingCount: 1 },
   play: async ({ canvasElement }) => {
-    expect(canvasElement.querySelectorAll('.ink-pagination__gap').length).toBe(0);
+    expect(canvasElement.querySelectorAll('.ink-pagination__gap')).toHaveLength(0);
     for (const p of [1, 2, 3, 4]) {
       expect(canvasElement.querySelector(`button[data-page="${p}"]`)).toBeInTheDocument();
     }

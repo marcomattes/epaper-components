@@ -101,6 +101,21 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Changed
 
+- Cleared the open SonarQube Cloud findings on `main`. `observedAttributes`,
+  `formAssociated` and the bound event-handler fields are now declared
+  `readonly`, `<e-form-item>`'s renderer and `<e-empty>`'s attribute callback
+  are split into one sync method per slot to come back under the
+  cognitive-complexity budget, and the `data-*` writes that had a `dataset`
+  equivalent use it. None of this changes rendered output or the public
+  attribute, event and slot contract.
+- `scripts/inline-site-css.mjs` normalises `VITE_SITE_BASE` by splitting on
+  `/` instead of trimming with `/\/+$/`, which backtracked super-linearly on a
+  run of slashes. A base with interior double slashes now collapses to a single
+  separator rather than producing a broken `/a//b/` prefix.
+- `eslint.config.mjs` builds its config with `defineConfig`/`globalIgnores`
+  from `eslint/config`; typescript-eslint deprecated the `tseslint.config()`
+  wrapper it used before.
+
 - All thirteen `BaseFormControl` subclasses now participate in native
   constraint validation. Composite controls implement a shared `required`
   contract through `ElementInternals`; text and number controls mirror their

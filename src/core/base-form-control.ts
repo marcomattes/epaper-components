@@ -6,7 +6,7 @@
 // `formStateRestoreCallback` to turn a string back into `T`).
 
 export abstract class BaseFormControl<T = string> extends HTMLElement {
-  static formAssociated = true;
+  static readonly formAssociated = true;
 
   protected internals: ElementInternals;
   protected _value: T = '' as unknown as T;

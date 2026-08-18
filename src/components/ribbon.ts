@@ -12,7 +12,7 @@ import { captureWrap, define, patchText } from '../core/dom';
  * <e-ribbon text="NEW"><e-card title="Hello"></e-card></e-ribbon>
  */
 export class ERibbon extends HTMLElement {
-  static observedAttributes = ['text'];
+  static readonly observedAttributes = ['text'];
 
   private _wrap: HTMLElement | null = null;
   private _tag: HTMLElement | null = null;

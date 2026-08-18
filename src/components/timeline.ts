@@ -19,7 +19,7 @@ import { define } from '../core/dom';
  * </e-timeline>
  */
 export class ETimeline extends HTMLElement {
-  static observedAttributes = ['time-position'];
+  static readonly observedAttributes = ['time-position'];
 
   private _wired = false;
   private _list: HTMLElement | null = null;

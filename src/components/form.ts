@@ -15,7 +15,7 @@ import { boolAttr, define, patchText, randId } from '../core/dom';
  * </e-form>
  */
 export class EForm extends HTMLElement {
-  static observedAttributes = ['layout'];
+  static readonly observedAttributes = ['layout'];
 
   private _form: HTMLFormElement | null = null;
 
@@ -55,7 +55,7 @@ define('e-form', EForm);
  * @attr {string} [required-label='REQ'] - Text shown inside the required pill.
  */
 export class EFormItem extends HTMLElement {
-  static observedAttributes = ['label', 'hint', 'error', 'required', 'required-label'];
+  static readonly observedAttributes = ['label', 'hint', 'error', 'required', 'required-label'];
 
   private _root: HTMLElement | null = null;
   private _control: HTMLElement | null = null;
@@ -69,7 +69,7 @@ export class EFormItem extends HTMLElement {
   connectedCallback() {
     if (!this._root) {
       const controlWrap = document.createElement('div');
-      controlWrap.setAttribute('data-control', '');
+      controlWrap.dataset.control = '';
       while (this.firstChild) controlWrap.appendChild(this.firstChild);
       const root = document.createElement('div');
       root.className = 'ink-form-item';
@@ -87,69 +87,86 @@ export class EFormItem extends HTMLElement {
 
   private _render(): void {
     const root = this._root!;
-    const control = this._control!;
     const label = this.getAttribute('label');
     const hint = this.getAttribute('hint');
     const error = this.getAttribute('error');
     const required = boolAttr(this, 'required');
-    const requiredLabel = this.getAttribute('required-label') || 'REQ';
 
-    if (label) {
-      if (!this._labelEl) {
-        this._labelEl = document.createElement('label');
-        this._labelEl.className = 'ink-form-item__label';
-        this._labelEl.appendChild(document.createTextNode(label));
-        root.insertBefore(this._labelEl, control);
-      } else {
-        const txt = this._labelEl.firstChild;
-        if (txt?.nodeType === Node.TEXT_NODE) patchText(txt, label);
-      }
-      if (required) {
-        if (!this._requiredPill) {
-          const pill = document.createElement('span');
-          pill.className = 'ink-form-item__required';
-          pill.setAttribute('aria-label', 'required');
-          pill.textContent = requiredLabel;
-          this._labelEl.appendChild(pill);
-          this._requiredPill = pill;
-        } else {
-          patchText(this._requiredPill, requiredLabel);
-        }
-      } else if (this._requiredPill) {
-        this._requiredPill.remove();
-        this._requiredPill = null;
-      }
-    } else if (this._labelEl) {
-      this._labelEl.remove();
+    // One sync method per slot. Inlining all four kept `_render` above the
+    // cognitive-complexity budget while each block is independently simple.
+    this._syncLabel(root, label, required);
+    this._syncHint(root, hint, error);
+    this._syncError(root, error);
+    this._syncControlSemantics(label, required, error);
+  }
+
+  /** Create, update or drop the label element (and its required pill). */
+  private _syncLabel(root: HTMLElement, label: string | null, required: boolean): void {
+    if (!label) {
+      this._labelEl?.remove();
       this._labelEl = null;
       this._requiredPill = null;
+      return;
     }
+    if (this._labelEl) {
+      const txt = this._labelEl.firstChild;
+      if (txt?.nodeType === Node.TEXT_NODE) patchText(txt, label);
+    } else {
+      this._labelEl = document.createElement('label');
+      this._labelEl.className = 'ink-form-item__label';
+      this._labelEl.appendChild(document.createTextNode(label));
+      root.insertBefore(this._labelEl, this._control!);
+    }
+    this._syncRequiredPill(required);
+  }
 
-    if (hint && !error) {
-      if (!this._hintEl) {
-        this._hintEl = document.createElement('div');
-        this._hintEl.className = 'ink-hint';
-        root.appendChild(this._hintEl);
-      }
-      this._hintEl.textContent = hint;
-    } else if (this._hintEl) {
-      this._hintEl.remove();
+  /** Keep the "REQ" pill inside an existing label in step with `required`. */
+  private _syncRequiredPill(required: boolean): void {
+    if (!required) {
+      this._requiredPill?.remove();
+      this._requiredPill = null;
+      return;
+    }
+    const requiredLabel = this.getAttribute('required-label') || 'REQ';
+    if (this._requiredPill) {
+      patchText(this._requiredPill, requiredLabel);
+      return;
+    }
+    const pill = document.createElement('span');
+    pill.className = 'ink-form-item__required';
+    pill.setAttribute('aria-label', 'required');
+    pill.textContent = requiredLabel;
+    this._labelEl!.appendChild(pill);
+    this._requiredPill = pill;
+  }
+
+  /** The hint is suppressed while an error is showing. */
+  private _syncHint(root: HTMLElement, hint: string | null, error: string | null): void {
+    if (!hint || error) {
+      this._hintEl?.remove();
       this._hintEl = null;
+      return;
     }
+    if (!this._hintEl) {
+      this._hintEl = document.createElement('div');
+      this._hintEl.className = 'ink-hint';
+      root.appendChild(this._hintEl);
+    }
+    this._hintEl.textContent = hint;
+  }
 
-    if (error) {
-      if (!this._errorEl) {
-        this._errorEl = document.createElement('div');
-        this._errorEl.className = 'ink-error';
-        root.appendChild(this._errorEl);
-      }
-      this._errorEl.textContent = `! ${error}`;
-    } else if (this._errorEl) {
-      this._errorEl.remove();
+  private _syncError(root: HTMLElement, error: string | null): void {
+    if (!error) {
+      this._errorEl?.remove();
       this._errorEl = null;
+      return;
     }
-
-    this._syncControlSemantics(label, required, error);
+    if (!this._errorEl) {
+      this._errorEl = document.createElement('div');
+      this._errorEl.className = 'ink-error';
+      root.appendChild(this._errorEl);
+    }
+    this._errorEl.textContent = `! ${error}`;
   }
 
   private _syncControlSemantics(

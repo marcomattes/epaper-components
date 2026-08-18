@@ -27,7 +27,7 @@ import { boolAttr, define, patchAttr, patchText } from '../core/dom';
  * <e-image src="/cover.jpg" alt="Cover" fallback="/cover.svg" caption="Issue #42"></e-image>
  */
 export class EImage extends HTMLElement {
-  static observedAttributes = [
+  static readonly observedAttributes = [
     'src',
     'alt',
     'fallback',
@@ -86,7 +86,7 @@ export class EImage extends HTMLElement {
     }
   }
 
-  private _onLoad = (): void => {
+  private readonly _onLoad = (): void => {
     if (!this._img) return;
     patchAttr(this._img, 'data-state', 'loaded');
     this._removePlaceholder();
@@ -100,7 +100,7 @@ export class EImage extends HTMLElement {
     );
   };
 
-  private _onError = (): void => {
+  private readonly _onError = (): void => {
     if (!this._img) return;
     const fallback = this.getAttribute('fallback');
     if (fallback && !this._triedFallback) {

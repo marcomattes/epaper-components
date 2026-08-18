@@ -26,7 +26,7 @@ import { BaseFormControl } from '../core/base-form-control';
  * <e-textarea placeholder="Notes…"></e-textarea>
  */
 export class ETextarea extends BaseFormControl {
-  static observedAttributes = [
+  static readonly observedAttributes = [
     'value',
     'error',
     'error-message',

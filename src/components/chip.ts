@@ -53,7 +53,7 @@ export class EChip extends HTMLElement {
     patchBoolAttr(btn, 'disabled', disabled);
   }
 
-  private _onClick = (e: Event): void => {
+  private readonly _onClick = (e: Event): void => {
     if (boolAttr(this, 'disabled')) {
       e.stopImmediatePropagation();
       return;

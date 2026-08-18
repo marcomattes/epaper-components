@@ -24,7 +24,7 @@ import { BaseFormControl } from '../core/base-form-control';
  * <e-input-number value="3" min="0" max="10" step="1"></e-input-number>
  */
 export class EInputNumber extends BaseFormControl<string> {
-  static observedAttributes = [
+  static readonly observedAttributes = [
     'value',
     'min',
     'max',
@@ -157,7 +157,7 @@ export class EInputNumber extends BaseFormControl<string> {
     );
   }
 
-  private _stopHold = (): void => {
+  private readonly _stopHold = (): void => {
     if (this._holdDelay != null) {
       clearTimeout(this._holdDelay);
       this._holdDelay = null;
@@ -180,12 +180,12 @@ export class EInputNumber extends BaseFormControl<string> {
     else this._input.removeAttribute(name);
   }
 
-  private _onClick = (e: Event): void => {
+  private readonly _onClick = (e: Event): void => {
     const button = (e.target as Element).closest<HTMLElement>('[data-step]');
     if (button) this._step(Number(button.dataset['step']));
   };
 
-  private _onMouseDown = (e: MouseEvent): void => {
+  private readonly _onMouseDown = (e: MouseEvent): void => {
     const button = (e.target as Element).closest<HTMLElement>('[data-step]');
     if (!button) return;
     const direction = Number(button.dataset['step']);
@@ -195,7 +195,7 @@ export class EInputNumber extends BaseFormControl<string> {
     }, 400);
   };
 
-  private _onInputChange = (): void => {
+  private readonly _onInputChange = (): void => {
     if (!this._input) return;
     const value = this._input.value;
     this._value = value;
@@ -210,7 +210,7 @@ export class EInputNumber extends BaseFormControl<string> {
     );
   };
 
-  private _onInput = (): void => {
+  private readonly _onInput = (): void => {
     if (!this._input) return;
     this._value = this._input.value;
     this.internals.setFormValue(this._value);

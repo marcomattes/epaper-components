@@ -83,7 +83,7 @@ export const Reconnect: Story = {
     const parent = ribbon.parentNode as HTMLElement;
     parent.removeChild(ribbon);
     parent.appendChild(ribbon);
-    expect(ribbon.querySelectorAll('.ink-ribbon').length).toBe(1);
+    expect(ribbon.querySelectorAll('.ink-ribbon')).toHaveLength(1);
   },
   render: () => html`<e-ribbon text="X"><span>X</span></e-ribbon>`,
 };

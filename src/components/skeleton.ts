@@ -17,7 +17,7 @@ import { define, intAttr, patchAttr } from '../core/dom';
  * <e-skeleton shape="text" lines="3"></e-skeleton>
  */
 export class ESkeleton extends HTMLElement {
-  static observedAttributes = ['shape', 'lines', 'width', 'height'];
+  static readonly observedAttributes = ['shape', 'lines', 'width', 'height'];
 
   private _wired = false;
   private _wrap: HTMLElement | null = null;

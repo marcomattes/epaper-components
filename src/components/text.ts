@@ -13,7 +13,7 @@ import { captureWrap, define, patchClassModifier } from '../core/dom';
  * <e-text kind="label" as="span">SECTION</e-text>
  */
 export class EText extends HTMLElement {
-  static observedAttributes = ['kind', 'as'];
+  static readonly observedAttributes = ['kind', 'as'];
 
   private _wrap: HTMLElement | null = null;
   private _tag = '';

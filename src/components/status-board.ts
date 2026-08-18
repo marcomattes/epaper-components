@@ -79,13 +79,13 @@ const STATUS_META: Record<StatusBoardStatus, { symbol: string; label: string }> 
  * <e-status-board data='[{"key":"queue","label":"Queue","value":12,"status":"warning"}]'></e-status-board>
  */
 export class EStatusBoard extends HTMLElement {
-  static observedAttributes = ['data', 'label', 'columns', 'empty-text', 'hide-label'];
+  static readonly observedAttributes = ['data', 'label', 'columns', 'empty-text', 'hide-label'];
 
   private _wired = false;
   private _heading: HTMLElement | null = null;
   private _grid: HTMLElement | null = null;
   private _empty: HTMLElement | null = null;
-  private _cells = new Map<string, StatusCell>();
+  private readonly _cells = new Map<string, StatusCell>();
 
   connectedCallback() {
     if (this._wired) return;

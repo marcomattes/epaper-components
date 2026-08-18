@@ -92,13 +92,13 @@ export const Interactions: Story = {
     const items = [...menu.querySelectorAll<HTMLButtonElement>('.ink-dropdown__item')];
     const firstEnabled = items.find((it) => !it.disabled)!;
     await userEvent.click(firstEnabled);
-    expect(events.length).toBe(1);
+    expect(events).toHaveLength(1);
     expect(menu.hidden).toBe(true);
 
     await userEvent.click(triggerWrap);
     const disabled = menu.querySelector<HTMLButtonElement>('.ink-dropdown__item[disabled]')!;
     await userEvent.click(disabled);
-    expect(events.length).toBe(1);
+    expect(events).toHaveLength(1);
 
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     expect(menu.hidden).toBe(true);

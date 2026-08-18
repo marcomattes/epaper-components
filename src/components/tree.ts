@@ -38,7 +38,7 @@ type CheckState = 'true' | 'false' | 'mixed';
  * <e-tree checkable data='[{"value":"src","label":"src","children":[{"value":"a","label":"app.ts"}]}]' default-expanded="src"></e-tree>
  */
 export class ETree extends HTMLElement {
-  static observedAttributes = ['data', 'value', 'checked'];
+  static readonly observedAttributes = ['data', 'value', 'checked'];
 
   private _built = false;
   private _view: TreeView | null = null;
@@ -207,13 +207,13 @@ export class ETree extends HTMLElement {
     this.dispatchEvent(new CustomEvent('e-select', { detail: { value }, bubbles: true }));
   }
 
-  private _onClick = (e: Event): void => {
+  private readonly _onClick = (e: Event): void => {
     this._view?.handleClick(e);
     // Expanding materialises new rows; paint their check marks in the same turn.
     this._syncAllCheckMarks();
   };
 
-  private _onKeydown = (e: Event): void => {
+  private readonly _onKeydown = (e: Event): void => {
     this._view?.handleKeydown(e as KeyboardEvent);
     this._syncAllCheckMarks();
   };

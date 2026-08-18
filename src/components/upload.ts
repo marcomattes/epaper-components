@@ -25,7 +25,7 @@ import { BaseFormControl } from '../core/base-form-control';
  * <e-upload accept=".pdf,.png" multiple name="docs"></e-upload>
  */
 export class EUpload extends BaseFormControl<File[]> {
-  static observedAttributes = [
+  static readonly observedAttributes = [
     'accept',
     'multiple',
     'max-size',
@@ -271,36 +271,36 @@ export class EUpload extends BaseFormControl<File[]> {
     );
   }
 
-  private _onDropClick = (e: Event): void => {
+  private readonly _onDropClick = (e: Event): void => {
     if (e.target !== this._input) this._input?.click();
   };
 
-  private _onDropKeydown = (e: KeyboardEvent): void => {
+  private readonly _onDropKeydown = (e: KeyboardEvent): void => {
     if (e.key !== 'Enter' && e.key !== ' ') return;
     e.preventDefault();
     this._input?.click();
   };
 
-  private _onDragOver = (e: DragEvent): void => {
+  private readonly _onDragOver = (e: DragEvent): void => {
     e.preventDefault();
     if (this._drop?.dataset['drag'] !== 'true' && this._drop) this._drop.dataset['drag'] = 'true';
   };
 
-  private _onDragLeave = (): void => {
+  private readonly _onDragLeave = (): void => {
     if (this._drop) this._drop.dataset['drag'] = 'false';
   };
 
-  private _onDrop = (e: DragEvent): void => {
+  private readonly _onDrop = (e: DragEvent): void => {
     e.preventDefault();
     if (this._drop) this._drop.dataset['drag'] = 'false';
     if (e.dataTransfer?.files) this._handleFiles(e.dataTransfer.files);
   };
 
-  private _onInputChange = (): void => {
+  private readonly _onInputChange = (): void => {
     if (this._input?.files) this._handleFiles(this._input.files);
   };
 
-  private _onListClick = (e: Event): void => {
+  private readonly _onListClick = (e: Event): void => {
     const remove = (e.target as Element).closest<HTMLElement>('[data-remove]');
     if (!remove || !this._list?.contains(remove)) return;
     const index = Number(remove.dataset['remove']);

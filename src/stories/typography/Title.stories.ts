@@ -91,7 +91,7 @@ export const ClampLevel: Story = {
     // level=99 clamps to 6, level=0 clamps to 1
     expect(canvasElement.querySelector('e-title[level="99"] h6')).toBeTruthy();
     expect(canvasElement.querySelector('e-title[level="0"] h1')).toBeTruthy();
-    expect(headings.length).toBe(2);
+    expect(headings).toHaveLength(2);
   },
   render: () => html`
     <div>
@@ -107,7 +107,7 @@ export const Reconnect: Story = {
     const parent = t.parentNode as HTMLElement;
     parent.removeChild(t);
     parent.appendChild(t);
-    expect(t.querySelectorAll('h2').length).toBe(1);
+    expect(t.querySelectorAll('h2')).toHaveLength(1);
   },
   render: () => html`<e-title level="2">Move me</e-title>`,
 };

@@ -88,7 +88,7 @@ export class EBackTop extends HTMLElement {
     }
   }
 
-  private _onClick = (): void => {
+  private readonly _onClick = (): void => {
     const y = this._scrollY();
     if (this._scrollTarget === window) window.scrollTo({ top: 0 });
     else (this._scrollTarget as HTMLElement).scrollTop = 0;
@@ -106,7 +106,7 @@ export class EBackTop extends HTMLElement {
     return t === window ? window.scrollY : (t as HTMLElement).scrollTop;
   }
 
-  private _update = (): void => {
+  private readonly _update = (): void => {
     if (!this._btn) return;
     const threshold = Math.max(0, numAttr(this, 'visibility-height', 400));
     const visible = this._scrollY() >= threshold;

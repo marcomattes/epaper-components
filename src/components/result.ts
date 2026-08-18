@@ -33,7 +33,7 @@ const isStatus = (s: string | null): s is Status =>
  * </e-result>
  */
 export class EResult extends HTMLElement {
-  static observedAttributes = ['status', 'title', 'description'];
+  static readonly observedAttributes = ['status', 'title', 'description'];
 
   private _wired = false;
   private _root: HTMLElement | null = null;
@@ -68,7 +68,7 @@ export class EResult extends HTMLElement {
     if (!this._wired || !this._root) return;
     if (name === 'status') {
       const status = this._status();
-      this._root.setAttribute('data-status', status);
+      this._root.dataset.status = status;
       if (this._iconWrap) this._iconWrap.innerHTML = iconSvg(STATUS_ICON[status], 64);
     } else if (name === 'title' && this._titleEl) {
       patchText(this._titleEl, this.getAttribute('title') || '');

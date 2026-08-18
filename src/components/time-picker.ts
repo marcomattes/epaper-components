@@ -20,7 +20,7 @@ import { BaseFormControl } from '../core/base-form-control';
  * <e-time-picker value="09:30"></e-time-picker>
  */
 export class ETimePicker extends BaseFormControl {
-  static observedAttributes = ['value', 'required', 'required-message'];
+  static readonly observedAttributes = ['value', 'required', 'required-message'];
 
   private _wired = false;
   private _hCell: HTMLElement | null = null;
@@ -153,12 +153,12 @@ export class ETimePicker extends BaseFormControl {
     this.dispatchEvent(new CustomEvent('e-change', { detail: { value }, bubbles: true }));
   }
 
-  private _onClick = (e: Event): void => {
+  private readonly _onClick = (e: Event): void => {
     const button = (e.target as Element).closest<HTMLElement>('[data-axis]');
     if (button) this._step(button.dataset['axis'] as 'h' | 'm', Number(button.dataset['dir']));
   };
 
-  private _onKeydown = (e: KeyboardEvent): void => {
+  private readonly _onKeydown = (e: KeyboardEvent): void => {
     const cell = (e.target as Element).closest<HTMLElement>('[data-cell]');
     if (!cell) return;
     const axis = cell.dataset['cell'] as 'h' | 'm';

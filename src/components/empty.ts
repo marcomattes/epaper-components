@@ -19,7 +19,7 @@ import { iconSvg } from '../core/icons';
  * </e-empty>
  */
 export class EEmpty extends HTMLElement {
-  static observedAttributes = ['icon', 'title', 'description'];
+  static readonly observedAttributes = ['icon', 'title', 'description'];
 
   private _wired = false;
   private _root: HTMLElement | null = null;
@@ -57,22 +57,30 @@ export class EEmpty extends HTMLElement {
     } else if (name === 'title' && this._titleEl) {
       patchText(this._titleEl, this.getAttribute('title') || 'No data');
     } else if (name === 'description') {
-      const desc = this.getAttribute('description') || '';
-      if (desc && !this._descEl) {
-        const el = document.createElement('div');
-        el.className = 'ink-empty__desc';
-        el.textContent = desc;
-        if (this._actionWrap) this._root.insertBefore(el, this._actionWrap);
-        else this._root.appendChild(el);
-        this._descEl = el;
-      } else if (desc && this._descEl) {
-        patchText(this._descEl, desc);
-      } else if (!desc && this._descEl) {
-        this._descEl.remove();
-        this._descEl = null;
-      }
-      patchAttr(this._root, 'data-has-desc', desc ? '' : null);
+      this._syncDescription(this.getAttribute('description') || '');
     }
+  }
+
+  /**
+   * Create, update or drop the description element to match `desc`. Split out of
+   * `attributeChangedCallback` so neither carries the branching of both.
+   */
+  private _syncDescription(desc: string): void {
+    if (!this._root) return;
+    if (!desc) {
+      this._descEl?.remove();
+      this._descEl = null;
+    } else if (this._descEl) {
+      patchText(this._descEl, desc);
+    } else {
+      const el = document.createElement('div');
+      el.className = 'ink-empty__desc';
+      el.textContent = desc;
+      if (this._actionWrap) this._root.insertBefore(el, this._actionWrap);
+      else this._root.appendChild(el);
+      this._descEl = el;
+    }
+    patchAttr(this._root, 'data-has-desc', desc ? '' : null);
   }
 }
 

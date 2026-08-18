@@ -23,7 +23,7 @@ type MeterBand = 'low' | 'normal' | 'high';
  * <e-meter label="Battery" value="72" low="20" high="90" unit="%"></e-meter>
  */
 export class EMeter extends HTMLElement {
-  static observedAttributes = [
+  static readonly observedAttributes = [
     'value',
     'min',
     'max',
@@ -39,7 +39,7 @@ export class EMeter extends HTMLElement {
   private _root: HTMLElement | null = null;
   private _labelEl: HTMLElement | null = null;
   private _scale: HTMLElement | null = null;
-  private _segments: HTMLElement[] = [];
+  private readonly _segments: HTMLElement[] = [];
   private _valueEl: HTMLElement | null = null;
   private _bandEl: HTMLElement | null = null;
 

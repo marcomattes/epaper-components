@@ -12,7 +12,7 @@ import { captureWrap, define, patchAttr } from '../core/dom';
  * <e-link href="/about">About</e-link>
  */
 export class ELink extends HTMLElement {
-  static observedAttributes = ['href'];
+  static readonly observedAttributes = ['href'];
 
   private _a: HTMLAnchorElement | null = null;
 

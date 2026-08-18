@@ -73,7 +73,7 @@ export class EAnchor extends HTMLElement {
     runCleanups(this);
   }
 
-  private _requestUpdate = (): void => {
+  private readonly _requestUpdate = (): void => {
     if (this._scrollFrame != null) return;
     this._scrollFrame = requestAnimationFrame(() => {
       this._scrollFrame = null;
@@ -81,7 +81,7 @@ export class EAnchor extends HTMLElement {
     });
   };
 
-  private _updateActive = (): void => {
+  private readonly _updateActive = (): void => {
     const links = [...this.querySelectorAll<HTMLAnchorElement>('.ink-anchor__link')];
     const offsetTop = Math.max(0, numAttr(this, 'offset-top', 80));
     let active = this._items[0]?.href;

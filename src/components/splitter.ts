@@ -19,7 +19,7 @@ import { addCleanup, clampedNumAttr, define, onGlobal, patchAttr, runCleanups } 
  * </e-splitter>
  */
 export class ESplitter extends HTMLElement {
-  static observedAttributes = ['orientation', 'initial', 'min', 'max'];
+  static readonly observedAttributes = ['orientation', 'initial', 'min', 'max'];
 
   private _wired = false;
   private _pa: HTMLElement | null = null;
@@ -126,13 +126,13 @@ export class ESplitter extends HTMLElement {
     this._setPct(this._pct);
   }
 
-  private _onDown = (e: MouseEvent): void => {
+  private readonly _onDown = (e: MouseEvent): void => {
     if (e.button !== 0) return;
     this._dragging = true;
     e.preventDefault();
   };
 
-  private _onMove = (e: MouseEvent): void => {
+  private readonly _onMove = (e: MouseEvent): void => {
     if (!this._dragging || !this._wrap) return;
     const rect = this._wrap.getBoundingClientRect();
     if ((this._isH && rect.width === 0) || (!this._isH && rect.height === 0)) return;
@@ -148,11 +148,11 @@ export class ESplitter extends HTMLElement {
     });
   };
 
-  private _onUp = (): void => {
+  private readonly _onUp = (): void => {
     this._dragging = false;
   };
 
-  private _onKeydown = (e: KeyboardEvent): void => {
+  private readonly _onKeydown = (e: KeyboardEvent): void => {
     const decrement = this._isH ? e.key === 'ArrowLeft' : e.key === 'ArrowUp';
     const increment = this._isH ? e.key === 'ArrowRight' : e.key === 'ArrowDown';
     if (!decrement && !increment) return;

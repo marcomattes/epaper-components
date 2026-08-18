@@ -27,7 +27,7 @@ type DropdownItemDef =
  * </e-dropdown>
  */
 export class EDropdown extends HTMLElement {
-  static observedAttributes = ['align'];
+  static readonly observedAttributes = ['align'];
 
   private _wired = false;
   private _menu: HTMLElement | null = null;
@@ -165,9 +165,9 @@ export class EDropdown extends HTMLElement {
     items[((index % items.length) + items.length) % items.length]?.focus();
   }
 
-  private _onTriggerClick = (): void => this._setOpen(!!this._menu?.hidden);
+  private readonly _onTriggerClick = (): void => this._setOpen(!!this._menu?.hidden);
 
-  private _onTriggerKeydown = (e: KeyboardEvent): void => {
+  private readonly _onTriggerKeydown = (e: KeyboardEvent): void => {
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
     e.preventDefault();
     this._setOpen(true);
@@ -175,7 +175,7 @@ export class EDropdown extends HTMLElement {
     this._focusItem(e.key === 'ArrowDown' ? 0 : items.length - 1);
   };
 
-  private _onMenuClick = (e: Event): void => {
+  private readonly _onMenuClick = (e: Event): void => {
     const item = (e.target as Element).closest<HTMLButtonElement>('.ink-dropdown__item');
     if (!item || item.disabled || !this._menu?.contains(item)) return;
     const menuItems = [...this._menu.querySelectorAll('.ink-dropdown__item')];
@@ -189,7 +189,7 @@ export class EDropdown extends HTMLElement {
     this._triggerControl()?.focus();
   };
 
-  private _onMenuKeydown = (e: KeyboardEvent): void => {
+  private readonly _onMenuKeydown = (e: KeyboardEvent): void => {
     if (this._menu?.hidden) return;
     const items = this._enabledItems();
     const current = items.indexOf(document.activeElement as HTMLButtonElement);

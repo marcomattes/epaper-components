@@ -143,7 +143,7 @@ export class EAlert extends HTMLElement {
     this._headingEl.hidden = heading === '';
   }
 
-  private _onClose = (): void => {
+  private readonly _onClose = (): void => {
     const value = this.getAttribute('heading') || (this._bodyEl?.textContent ?? '').trim();
     this.hidden = true;
     this.dispatchEvent(new CustomEvent('e-close', { detail: { value }, bubbles: true }));
