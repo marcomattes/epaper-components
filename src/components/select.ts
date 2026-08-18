@@ -219,10 +219,6 @@ export class ESelect extends BaseFormControl {
     return s;
   }
 
-  protected override resetValue(): void {
-    this.value = this.getAttribute('default-value') ?? '';
-  }
-
   private _syncValidity(): void {
     this._trigger?.setAttribute('aria-required', String(this.hasAttribute('required')));
     this.applyRequiredValidity(

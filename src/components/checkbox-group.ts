@@ -87,11 +87,6 @@ export class ECheckboxGroup extends BaseFormControl {
     }
   }
 
-  protected override resetValue(): void {
-    const dflt = this.getAttribute('default-value') ?? '';
-    this.value = dflt;
-  }
-
   private _build(): void {
     const value = (this.getAttribute('value') || '').split(',').filter(Boolean);
     const layout = this.getAttribute('layout') === 'horizontal' ? 'row' : 'column';

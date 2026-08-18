@@ -120,11 +120,6 @@ export class EInputNumber extends BaseFormControl<string> {
     return s;
   }
 
-  protected override resetValue(): void {
-    const dflt = this.getAttribute('default-value') ?? '';
-    this.value = dflt;
-  }
-
   private _initialiseInput(): void {
     if (!this._input) return;
     const min = this.getAttribute('min');

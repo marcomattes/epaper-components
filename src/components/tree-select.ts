@@ -108,11 +108,6 @@ export class ETreeSelect extends BaseFormControl {
     return s;
   }
 
-  protected override resetValue(): void {
-    const dflt = this.getAttribute('default-value') ?? '';
-    this.setAttribute('value', dflt);
-  }
-
   private _syncValidity(): void {
     const tree = this.querySelector<HTMLElement>('[role="tree"]') ?? undefined;
     tree?.setAttribute('aria-required', String(this.hasAttribute('required')));
