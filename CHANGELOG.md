@@ -375,6 +375,7 @@ These are intentional V1.0 trade-offs and slated for V1.1:
   the public API for demo purposes; it is not a general-purpose layout
   primitive.
 
-[unreleased]: https://github.com/marcomattes/epaper-components/compare/v1.0.1...HEAD
+[unreleased]: https://github.com/marcomattes/epaper-components/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/marcomattes/epaper-components/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/marcomattes/epaper-components/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/marcomattes/epaper-components/releases/tag/v1.0.0
