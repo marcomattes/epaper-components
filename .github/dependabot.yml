@@ -1,0 +1,63 @@
+version: 2
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Berlin"
+
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 3
+
+    groups:
+      storybook:
+        patterns:
+          - "storybook"
+          - "@storybook/*"
+
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+
+      eslint:
+        patterns:
+          - "eslint"
+          - "@eslint/*"
+          - "typescript-eslint"
+
+      size-limit:
+        patterns:
+          - "size-limit"
+          - "@size-limit/*"
+
+      postcss:
+        patterns:
+          - "postcss"
+          - "postcss-cli"
+          - "cssnano"
+
+      custom-elements:
+        patterns:
+          - "@custom-elements-manifest/*"
+          - "custom-element-jet-brains-integration"
+          - "custom-element-vs-code-integration"
+
+      remaining-dev-dependencies:
+        dependency-type: "development"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+
+    schedule:
+      interval: "weekly"
+
+    cooldown:
+      default-days: 7
