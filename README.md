@@ -341,10 +341,10 @@ Two distributions of the same three layers ship in the package:
 | `@marcomattes/epaper-components/base.min.css`                  | `dist/styles/base.min.css`                 | Standalone minified reset.               |
 | `@marcomattes/epaper-components/components.min.css`            | `dist/styles/components.min.css`           | Standalone minified component CSS.       |
 
-The minified files are produced by [`cssnano`](https://cssnano.github.io/cssnano/)
+The minified files are produced by [Lightning CSS](https://lightningcss.dev/)
 (see [scripts/build-css.mjs](scripts/build-css.mjs)) during `npm run build`, and
 each one ships with a sibling `*.min.css.map`. Importing the unminified sources
-keeps them readable and allows them to pass through a consumer's own PostCSS
+keeps them readable and allows them to pass through a consumer's own CSS
 pipeline.
 
 Sizes as of the current 1.0.1 build:
@@ -734,7 +734,7 @@ npm run validate:sample-app:types  # this README's TypeScript snippets, strict-c
    barrel `dist/index.js` and shared chunks under `dist/chunks/`, each with a
    source map.
 2. **`node scripts/build-css.mjs`** copies the base layers and optional themes
-   from `src/styles/` to `dist/styles/`, runs them through `cssnano`, writes
+   from `src/styles/` to `dist/styles/`, runs them through Lightning CSS, writes
    `*.min.css` plus `*.min.css.map`, and concatenates the three base layers into
    `dist/styles/epaper.min.css`.
 3. **`tsc -p tsconfig.build.json`** emits the `.d.ts` files into `dist/`.

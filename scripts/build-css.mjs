@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
-import postcss from 'postcss';
-import cssnano from 'cssnano';
+import { basename, dirname, join, resolve } from 'node:path';
+import { transform } from 'lightningcss';
 
 const distStylesDir = resolve('dist/styles');
 const srcStylesDir = resolve('src/styles');
@@ -12,16 +11,19 @@ const coreCssFiles = ['tokens.css', 'base.css', 'components.css'];
 const themeCssFiles = ['themes/mono-high-contrast.css', 'themes/kaleido.css'];
 const cssFiles = [...coreCssFiles, ...themeCssFiles];
 
+function minify(filename, code) {
+  const result = transform({
+    filename,
+    code: Buffer.from(code),
+    minify: true,
+    sourceMap: true,
+  });
+  return { css: result.code.toString(), map: result.map ? result.map.toString() : null };
+}
+
 async function buildCSS() {
   // Create dist/styles directory
   mkdirSync(distStylesDir, { recursive: true });
-
-  // Load PostCSS config
-  const postcssPlugins = [
-    cssnano({
-      preset: ['default', { discardComments: { removeAll: true }, normalizeUnicode: false }],
-    }),
-  ];
 
   console.log('Building CSS files...\n');
 
@@ -40,15 +42,14 @@ async function buildCSS() {
     console.log(`✓ Copied  ${file} → dist/styles/${file}`);
 
     // Minify with source map
-    const result = await postcss(postcssPlugins).process(source, {
-      from: srcPath,
-      to: minPath,
-      map: { inline: false },
-    });
+    const { css, map } = minify(basename(minPath), source);
 
-    writeFileSync(minPath, result.css);
-    if (result.map) {
-      writeFileSync(`${minPath}.map`, result.map.toString());
+    writeFileSync(
+      minPath,
+      map ? `${css}\n/*# sourceMappingURL=${basename(minPath)}.map */\n` : css,
+    );
+    if (map) {
+      writeFileSync(`${minPath}.map`, map);
       console.log(`✓ Minified ${file} → dist/styles/${file.replace('.css', '.min.css')}`);
       console.log(`  + source map: dist/styles/${file.replace('.css', '.min.css.map')}`);
     } else {
@@ -68,15 +69,14 @@ async function buildCSS() {
 
   const bundlePath = join(distStylesDir, 'epaper.min.css');
 
-  const result = await postcss(postcssPlugins).process(allCSS, {
-    from: undefined,
-    to: bundlePath,
-    map: { inline: false },
-  });
+  const { css, map } = minify(basename(bundlePath), allCSS);
 
-  writeFileSync(bundlePath, result.css);
-  if (result.map) {
-    writeFileSync(`${bundlePath}.map`, result.map.toString());
+  writeFileSync(
+    bundlePath,
+    map ? `${css}\n/*# sourceMappingURL=${basename(bundlePath)}.map */\n` : css,
+  );
+  if (map) {
+    writeFileSync(`${bundlePath}.map`, map);
     console.log(`✓ Created combined bundle: dist/styles/epaper.min.css`);
     console.log(`  + source map: dist/styles/epaper.min.css.map`);
   } else {
