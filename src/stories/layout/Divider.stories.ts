@@ -19,9 +19,9 @@ const meta: Meta = {
   },
   render: (args) => html`
     <div
-      style="padding:16px;${args.orientation === 'vertical'
-        ? 'display:flex;height:60px;align-items:stretch'
-        : ''}"
+      style="padding:16px;${
+        args.orientation === 'vertical' ? 'display:flex;height:60px;align-items:stretch' : ''
+      }"
     >
       <e-divider
         variant=${args.variant}

@@ -152,9 +152,9 @@ export const Typography: Story = {
 const swatch = (name: string, hex: string, role?: string) => html`
   <div class="tk-card">
     <div
-      style="background:${hex};height:80px;${hex === '#fff'
-        ? 'border-bottom:var(--ink-border)'
-        : ''}"
+      style="background:${hex};height:80px;${
+        hex === '#fff' ? 'border-bottom:var(--ink-border)' : ''
+      }"
     ></div>
     <div class="tk-card__meta">
       <div>${name}</div>
