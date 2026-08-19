@@ -468,7 +468,7 @@
     "@vitest/coverage-v8": "4.1.5",
     "@vitest/ui": "4.1.5",
     "browserstack-node-sdk": "^1.66.1",
-    "cssnano": "^7.1.7",
+    "cssnano": "^8.0.3",
     "custom-element-jet-brains-integration": "1.7.0",
     "custom-element-vs-code-integration": "1.5.0",
     "eslint": "10.2.1",
