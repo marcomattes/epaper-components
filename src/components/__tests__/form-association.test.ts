@@ -560,6 +560,28 @@ describe('form association', () => {
     expect(control.checkValidity()).toBe(true);
   });
 
+  it('e-input-number treats empty min/max attributes as unbounded, not zero', () => {
+    // Regression: Storybook (and any templating that always renders min/max
+    // attributes) sets min="" and max="" when no bound is configured.
+    // Number('') is 0, which used to be mistaken for a real bound of 0.
+    const form = mount(
+      '<form><e-input-number name="v" value="5" min="" max="" step="1"></e-input-number></form>',
+    );
+    const control = form.firstElementChild as HTMLElement;
+    const input = control.querySelector('input')!;
+    expect(input.hasAttribute('min')).toBe(false);
+    expect(input.hasAttribute('max')).toBe(false);
+
+    const inc = control.querySelector<HTMLButtonElement>('[data-step="1"]')!;
+    inc.click();
+    expect(input.value).toBe('6');
+
+    const dec = control.querySelector<HTMLButtonElement>('[data-step="-1"]')!;
+    dec.click();
+    dec.click();
+    expect(input.value).toBe('4');
+  });
+
   it('e-input-number updates host validity while the user edits', () => {
     const form = mount(
       '<form><e-input-number name="v" value="1" required></e-input-number></form>',
