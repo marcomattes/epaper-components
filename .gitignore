@@ -27,4 +27,9 @@ Thumbs.db
 
 # Internal working notes — not part of the published source
 Review.md
-.claude/
+
+# Local Claude Code state (settings, session data) — project skills under
+# .claude/skills/ are checked in and shared with the team, everything else
+# in .claude/ is per-machine and stays ignored.
+.claude/*
+!.claude/skills/

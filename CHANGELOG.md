@@ -7,6 +7,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+
+- `CLAUDE.md` renamed to `AGENTS.md`, following the cross-tool
+  [AGENTS.md](https://agents.md) convention so other coding agents pick it
+  up by default. A one-line `CLAUDE.md` stub (`@AGENTS.md` import) remains
+  at the repo root because Claude Code only auto-loads files literally
+  named `CLAUDE.md`.
+
 ### Added
 
 - `<e-select>` supports listbox type-ahead: pressing a printable character

@@ -1,5 +1,5 @@
 /* EPaper site chrome — page-only layout, never the library. */
-/* Hard rules from CLAUDE.md still apply: no transitions, no animations, no :hover. */
+/* Hard rules from AGENTS.md still apply: no transitions, no animations, no :hover. */
 
 /*
  * Both bars are out of flow (sticky header, fixed footbar) but every page
