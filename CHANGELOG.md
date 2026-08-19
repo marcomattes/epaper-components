@@ -14,6 +14,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   up by default. A one-line `CLAUDE.md` stub (`@AGENTS.md` import) remains
   at the repo root because Claude Code only auto-loads files literally
   named `CLAUDE.md`.
+- Repo review/scaffolding checklists moved out of Claude-specific tooling
+  into a new, LLM-agnostic `.agents/` folder (`.agents/pr-review.md`,
+  `.agents/new-component.md`). Claude Code keeps thin pointer skills in
+  `.claude/skills/` for its own skill-triggering mechanism, and a new
+  `.github/copilot-instructions.md` points GitHub Copilot at the same
+  files, so both tools (and any other coding agent) read one shared
+  source of truth instead of duplicated, tool-specific copies.
 
 ### Added
 

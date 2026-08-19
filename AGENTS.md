@@ -120,22 +120,33 @@ Then:
 4. Add an entry to one of the cross-cutting test suites if applicable
 5. Add a sub-path entry in `package.json` `exports` (alphabetically)
 
-Or invoke the `epaper-new-component` project skill (`.claude/skills/`),
-which walks all five steps for you and links back here for detail.
+Or read `.agents/new-component.md`, which walks all five steps for you in
+detail and links back here for the rules behind them.
 
-## Project skills
+## Shared checklists (`.agents/`)
 
-Two project-scoped skills in `.claude/skills/` encode the checklists in
-this file so an agent doesn't have to re-derive them each session:
+Task-specific checklists that go deeper than this file live in `.agents/`
+as plain, tool-agnostic markdown — no Claude-specific syntax, so any coding
+agent working in this repo can read them, not just Claude Code:
 
-- `epaper-new-component` — scaffolds a component with every wiring step
-  above done, not just the `.ts` file.
-- `epaper-pr-review` — reviews a diff or GitHub PR against the hard rules
-  below plus the wiring checklist, and can post the review to GitHub
-  directly.
+- `.agents/new-component.md` — every wiring step a new component needs
+  beyond the `.ts` file (barrel export, story, CSS, tests, `package.json`
+  exports).
+- `.agents/pr-review.md` — the hard rules below plus the wiring checklist,
+  as a review checklist for a diff or GitHub PR.
 
-Update both when a rule in this file changes — a skill that drifts from
-`AGENTS.md` is worse than no skill.
+Each tool has its own thin pointer into `.agents/` rather than a copy of
+the content:
+
+- Claude Code: `.claude/skills/epaper-new-component/` and
+  `.claude/skills/epaper-pr-review/` (needed so Claude's skill-triggering
+  mechanism can find them; each stub just points at the matching
+  `.agents/*.md` file).
+- GitHub Copilot: `.github/copilot-instructions.md` points at the same
+  files.
+
+When a rule changes, edit `.agents/*.md` (and this file, if the rule itself
+lives here too) — the tool-specific stubs should rarely need touching.
 
 ## Event detail conventions
 

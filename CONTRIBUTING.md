@@ -178,6 +178,10 @@ is the case for pull requests from forks.
   follow (hard rules, file conventions). Day-to-day docs go in OVERVIEW.md.
   `CLAUDE.md` is a one-line stub that imports it for Claude Code; leave it
   alone.
+- `.agents/*.md` — task-specific checklists (PR review, adding a component)
+  that go deeper than `AGENTS.md`. Update these when the underlying rule
+  changes; `.claude/skills/` and `.github/copilot-instructions.md` are thin
+  pointers into these files and rarely need touching themselves.
 
 ## Releasing
 
