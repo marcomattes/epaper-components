@@ -138,7 +138,7 @@ jobs:
           "
 
       - name: Comment the preview URL
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           PREVIEW_URL: https://epaper-components.dev/${{ env.PREVIEW_PATH }}/
         with:
@@ -235,7 +235,7 @@ jobs:
           " || echo "Nothing to remove at ${target}"
 
       - name: Note the teardown on the pull request
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const marker = '<!-- pr-preview -->';
