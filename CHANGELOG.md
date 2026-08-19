@@ -65,6 +65,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Fixed
 
+- `<e-input-number>`: an empty `min` or `max` attribute (e.g. `min=""`, as
+  rendered by templating that always emits the attribute) was coerced by
+  `Number('')` to `0` and treated as a real bound, silently clamping the
+  value to `0` and blocking the increment/decrement buttons. Empty strings
+  are now treated the same as an absent attribute (unbounded).
 - `BaseFormControl`: `form.reset()` now clears the surfaced-validation flag
   before re-deriving validity from the restored value, so a control the user
   had already blurred (and which showed `aria-invalid`) returns to its

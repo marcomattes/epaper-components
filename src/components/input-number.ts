@@ -170,7 +170,7 @@ export class EInputNumber extends BaseFormControl<string> {
 
   private _setFiniteInputAttr(name: 'min' | 'max', value: string | null): void {
     if (!this._input) return;
-    const parsed = value == null ? NaN : Number(value);
+    const parsed = value == null || value === '' ? NaN : Number(value);
     if (Number.isFinite(parsed)) this._input.setAttribute(name, String(parsed));
     else this._input.removeAttribute(name);
   }
