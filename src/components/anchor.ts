@@ -39,6 +39,11 @@ export class EAnchor extends HTMLElement {
         title: it.getAttribute('title') || '',
         depth: numAttr(it, 'depth', 0),
       }));
+      // `i` and the `depth`-derived offset below are both numbers (a loop
+      // index and numAttr()-sourced arithmetic) — they can never carry the
+      // characters esc() escapes, so wrapping them would only cost bundle
+      // bytes against the size-limit budget for no security benefit.
+      /* eslint-disable local/no-unescaped-innerhtml */
       this.innerHTML = `
       <nav class="ink-anchor" aria-label="In-page navigation">
         <div class="ink-anchor__title">ON THIS PAGE</div>
@@ -47,14 +52,15 @@ export class EAnchor extends HTMLElement {
             .map(
               (it, i) => `
             <li><a class="ink-anchor__link" href="${esc(it.href)}"
-                   data-anchor="${esc(i)}"
-                   style="padding-left:${esc(14 + (it.depth || 0) * 14)}px">
+                   data-anchor="${i}"
+                   style="padding-left:${14 + (it.depth || 0) * 14}px">
               <span class="ink-anchor__marker" aria-hidden="true">  </span>${esc(it.title)}
             </a></li>`,
             )
             .join('')}
         </ul>
       </nav>`;
+      /* eslint-enable local/no-unescaped-innerhtml */
       this._scrollHandler = this._updateActive;
     }
     this._updateActive();

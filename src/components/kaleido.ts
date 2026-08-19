@@ -84,6 +84,11 @@ export class EKaleido extends HTMLElement {
 
   private _render(): void {
     const cell = numAttr(this, 'cell', 3);
+    // `c.hex`/`c.name` come from KALEIDO_COLORS, a hardcoded module-level
+    // const array — never user-controlled — so they can't carry the
+    // characters esc() escapes, and wrapping them would only cost bundle
+    // bytes against the size-limit budget.
+    /* eslint-disable local/no-unescaped-innerhtml */
     this.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
                                   gap:0;border:var(--ink-border);border-right:none;border-bottom:none">
       ${KALEIDO_COLORS.map(
@@ -91,12 +96,12 @@ export class EKaleido extends HTMLElement {
         <div style="border-right:var(--ink-border);border-bottom:var(--ink-border);
                     background:var(--ink-bg);font-family:var(--ink-sans);color:var(--ink-fg)">
           <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:var(--ink-border)">
-            <div style="background:${esc(c.hex)};height:88px;border-right:var(--ink-border);
+            <div style="background:${c.hex};height:88px;border-right:var(--ink-border);
                         display:flex;align-items:flex-end;padding:6px 8px;
                         color:${DARK_TEXT_LABELS.has(c.name) ? '#000' : '#FFF'};
                         font-size:10px;font-weight:700;letter-spacing:0.18em">IDEAL</div>
             <div style="position:relative">
-              <canvas data-color="${esc(c.hex)}" style="display:block;image-rendering:pixelated"></canvas>
+              <canvas data-color="${c.hex}" style="display:block;image-rendering:pixelated"></canvas>
               <span style="position:absolute;left:8px;bottom:6px;
                 font-size:10px;font-weight:700;letter-spacing:0.18em;
                 background:#FFF;color:#000;padding:1px 4px;border:1px solid #000">KALEIDO</span>
@@ -104,11 +109,12 @@ export class EKaleido extends HTMLElement {
           </div>
           <div style="padding:10px 12px;display:flex;align-items:baseline;justify-content:space-between">
             <span style="font-size:15px;font-weight:700">${esc(c.name)}</span>
-            <span style="font-size:11px;font-family:var(--ink-mono);letter-spacing:0.04em">${esc(c.hex)}</span>
+            <span style="font-size:11px;font-family:var(--ink-mono);letter-spacing:0.04em">${c.hex}</span>
           </div>
         </div>`,
       ).join('')}
     </div>`;
+    /* eslint-enable local/no-unescaped-innerhtml */
     this.querySelectorAll('canvas').forEach((cv) => {
       paintDither(
         cv as HTMLCanvasElement,
