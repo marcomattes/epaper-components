@@ -154,3 +154,33 @@ export const KeyboardNavigation: Story = {
     expect(document.activeElement).toBe(trigger);
   },
 };
+
+export const TypeAhead: Story = {
+  args: { value: '', placeholder: 'Pick…' },
+  play: async ({ canvasElement }) => {
+    await waitFor(() => {
+      expect(canvasElement.querySelector('.ink-select__trigger')).toBeTruthy();
+    });
+    const sel = canvasElement.querySelector('e-select') as HTMLElement;
+    const trigger = sel.querySelector<HTMLElement>('.ink-select__trigger')!;
+    const menu = sel.querySelector<HTMLElement>('.ink-select__menu')!;
+    const opt = (v: string) => menu.querySelector<HTMLElement>(`[data-value="${v}"]`)!;
+
+    // Typing on the closed trigger selects directly, like a native <select>.
+    trigger.focus();
+    await userEvent.keyboard('d');
+    expect(sel.getAttribute('value')).toBe('date');
+    expect(menu.hidden).toBe(true);
+
+    // Typing while the listbox is open moves focus without selecting.
+    await userEvent.keyboard('{ArrowDown}');
+    expect(menu.hidden).toBe(false);
+    await userEvent.keyboard('e');
+    expect(document.activeElement).toBe(opt('elderberry'));
+    expect(sel.getAttribute('value')).toBe('date');
+
+    // Enter commits the type-ahead-focused option.
+    await userEvent.keyboard('{Enter}');
+    expect(sel.getAttribute('value')).toBe('elderberry');
+  },
+};

@@ -111,6 +111,38 @@ export const Password: Story = {
   },
 };
 
+export const NativeHints: Story = {
+  args: { label: 'Email', placeholder: 'you@example.com', type: 'email' },
+  render: (args) => html`
+    <e-input
+      label=${args.label || ''}
+      placeholder=${args.placeholder || ''}
+      type=${args.type || 'text'}
+      autocomplete="email"
+      inputmode="email"
+      enterkeyhint="go"
+      spellcheck="false"
+    ></e-input>
+  `,
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Native `autocomplete`, `inputmode`, `enterkeyhint` and `spellcheck` are forwarded to the inner `<input>` so autofill and virtual keyboards behave the same as a plain form field.',
+      },
+    },
+  },
+  play: async ({ canvasElement }) => {
+    await checkA11y(canvasElement);
+    const canvas = within(canvasElement);
+    const input = canvas.getByLabelText('Email') as HTMLInputElement;
+    expect(input.getAttribute('autocomplete')).toBe('email');
+    expect(input.getAttribute('inputmode')).toBe('email');
+    expect(input.getAttribute('enterkeyhint')).toBe('go');
+    expect(input.getAttribute('spellcheck')).toBe('false');
+  },
+};
+
 export const AttributeChanges: Story = {
   args: { label: 'Notes', value: 'one' },
   play: async ({ canvasElement }) => {
@@ -137,6 +169,26 @@ export const AttributeChanges: Story = {
     expect(input.getAttribute('aria-label')).toBe('Custom');
     el.removeAttribute('aria-label');
     expect(input.hasAttribute('aria-label')).toBe(false);
+
+    el.setAttribute('autocomplete', 'name');
+    expect(input.getAttribute('autocomplete')).toBe('name');
+    el.removeAttribute('autocomplete');
+    expect(input.hasAttribute('autocomplete')).toBe(false);
+
+    el.setAttribute('inputmode', 'numeric');
+    expect(input.getAttribute('inputmode')).toBe('numeric');
+    el.removeAttribute('inputmode');
+    expect(input.hasAttribute('inputmode')).toBe(false);
+
+    el.setAttribute('enterkeyhint', 'search');
+    expect(input.getAttribute('enterkeyhint')).toBe('search');
+    el.removeAttribute('enterkeyhint');
+    expect(input.hasAttribute('enterkeyhint')).toBe(false);
+
+    el.setAttribute('spellcheck', 'false');
+    expect(input.getAttribute('spellcheck')).toBe('false');
+    el.removeAttribute('spellcheck');
+    expect(input.hasAttribute('spellcheck')).toBe(false);
 
     el.value = 'three';
     expect(input.value).toBe('three');

@@ -10,7 +10,7 @@ import { BaseFormControl } from '../core/base-form-control';
  * of `<input type="number">`). Step buttons support press-and-hold to repeat.
  *
  * @attr {string} [value] - Current numeric value as a string.
- * @attr {string} [default-value] - Initial value used by `formResetCallback`.
+ * @attr {string} [default-value] - Initial value used when the form is reset.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
  * @attr {string} [min] - Lower bound (inclusive).
  * @attr {string} [max] - Upper bound (inclusive).
@@ -118,11 +118,6 @@ export class EInputNumber extends BaseFormControl<string> {
   }
   protected parse(s: string): string {
     return s;
-  }
-
-  override formResetCallback(): void {
-    const dflt = this.getAttribute('default-value') ?? '';
-    this.value = dflt;
   }
 
   private _initialiseInput(): void {
