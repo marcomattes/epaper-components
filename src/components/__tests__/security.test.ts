@@ -202,24 +202,35 @@ interface SweepTarget {
 function discoverSweepTargets(): SweepTarget[] {
   const targets: SweepTarget[] = [];
   for (const source of Object.values(componentSources)) {
-    // Matches `something.innerHTML = \`...${` — a template literal
-    // assignment with at least one interpolation. Static templates with no
-    // `${}` (nothing to escape) and non-template assignments (e.g.
-    // `el.innerHTML = iconSvg(...)`) don't match and are skipped.
-    if (!/\.innerHTML\s*=\s*`[^`]*\$\{/.test(source)) continue;
+    // A file may define more than one custom element — e.g. popover.ts
+    // defines both `<e-popover>` and `<e-popconfirm>`, each with its own
+    // JSDoc and its own `innerHTML` template. Split the source at each
+    // `define()` call: everything from the end of the previous `define()`
+    // (or the start of the file) up to and including a given `define()`
+    // call belongs to *that* call's component, since a component's JSDoc
+    // and class body always precede its own `define()`. This keeps a later
+    // component's template from being missed (attributed only to the
+    // file's first tag) and keeps an earlier component's attrs from
+    // leaking into a later one.
+    const defineMatches = [...source.matchAll(/define\(\s*'([\w-]+)'\s*,\s*\w+\s*\)/g)];
+    let prevEnd = 0;
+    for (const match of defineMatches) {
+      const end = match.index! + match[0].length;
+      const segment = source.slice(prevEnd, end);
+      prevEnd = end;
 
-    const tagMatches = [...source.matchAll(/define\(\s*'([\w-]+)'/g)];
-    if (tagMatches.length === 0) continue;
-    // A file's `innerHTML` template belongs to its primary export — the
-    // first `define()` call. Secondary tags in the same file (e.g. the
-    // `<e-option>` in select.ts) are plain data carriers with no template
-    // of their own.
-    const tag = tagMatches[0]![1]!;
+      // Matches `something.innerHTML = \`...${` — a template literal
+      // assignment with at least one interpolation. Static templates with
+      // no `${}` (nothing to escape) and non-template assignments (e.g.
+      // `el.innerHTML = iconSvg(...)`) don't match and are skipped.
+      if (!/\.innerHTML\s*=\s*`[^`]*\$\{/.test(segment)) continue;
 
-    const attrs = [...source.matchAll(/@attr\s+\{string\}\s+\[?([\w-]+)/g)].map((m) => m[1]!);
-    if (attrs.length === 0) continue;
+      const tag = match[1]!;
+      const attrs = [...segment.matchAll(/@attr\s+\{string\}\s+\[?([\w-]+)/g)].map((m) => m[1]!);
+      if (attrs.length === 0) continue;
 
-    targets.push({ tag, attrs: [...new Set(attrs)] });
+      targets.push({ tag, attrs: [...new Set(attrs)] });
+    }
   }
   return targets;
 }
