@@ -17,6 +17,28 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `inputmode`, `enterkeyhint` and `spellcheck` attributes to their inner
   control, so autofill and virtual-keyboard behavior match a plain
   `<input>`/`<textarea>` instead of being silently dropped.
+- An ESLint rule (`local/no-unescaped-innerhtml`, scoped to `src/components/**/*.ts`)
+  that flags an `innerHTML` template-literal assignment whose interpolations
+  aren't escaped via `esc()`/`iconSvg()`, a ternary of safe branches, an
+  `items.map(...).join('')` built from a safe per-item template,
+  or the `html` tagged-template helper. CLAUDE.md's hard rule #1 ("use `esc()`
+  for every interpolated string") was previously enforced by convention only —
+  this makes it a lint failure instead. The survey behind the rule turned up
+  six interpolations across `anchor.ts`, `kaleido.ts`, `radio-group.ts`,
+  `result.ts` and `select.ts` that weren't wrapped in `esc()`; none are
+  exploitable (a loop index, `numAttr()`-derived arithmetic, a boolean
+  comparison, a closed status-enum union, an internally generated `randId()`
+  id, and a hardcoded color-array lookup — none can carry the characters
+  `esc()` escapes), so each site keeps its bare interpolation with an inline
+  `eslint-disable`/`-enable` and a comment explaining why, rather than paying
+  bundle bytes against the `size-limit` budget for no security benefit.
+- `security.test.ts` now discovers its component list automatically via
+  `import.meta.glob`, instead of a hand-maintained `beforeAll` import list: it
+  registers every component in `src/components/*.ts`, then statically derives
+  which files interpolate into `innerHTML` and which `@attr {string}` values
+  they document, and runs the existing XSS payload sweep against each one. A
+  new component with an unescaped `innerHTML` interpolation can no longer ship
+  without XSS coverage.
 - A 404 page on the website, built from the same shell as every other page and
   listing all of them as real links. It is written to `dist-site/404.html`,
   stays out of the sitemap, `llms.txt` and the markdown alternates, and carries

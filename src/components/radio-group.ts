@@ -37,6 +37,11 @@ export class ERadioGroup extends BaseFormControl {
       value: r.getAttribute('value') ?? '',
       label: r.getAttribute('label') || r.textContent || '',
     }));
+    // `name` is randId('e-rg') — an internally generated id, never a
+    // free-form string — so it can't carry the characters esc() escapes,
+    // and wrapping it would only cost bundle bytes against the size-limit
+    // budget.
+    /* eslint-disable local/no-unescaped-innerhtml */
     this.innerHTML = `<div class="ink-radio-group${layout === 'vertical' ? ' ink-radio-group--vertical' : ''}" role="radiogroup">
       ${radios
         .map(
@@ -49,6 +54,7 @@ export class ERadioGroup extends BaseFormControl {
         )
         .join('')}
     </div>`;
+    /* eslint-enable local/no-unescaped-innerhtml */
     this._value = value;
     this.internals.setFormValue(value);
     this._syncValidity();

@@ -50,6 +50,11 @@ export class EResult extends HTMLElement {
     const status = this._status();
     const title = this.getAttribute('title') || '';
     const desc = this.getAttribute('description') || '';
+    // `status` is narrowed to the closed `Status` union by `_status()`'s
+    // `isStatus()` guard — never a free-form string — so it can't carry the
+    // characters esc() escapes, and wrapping it would only cost bundle
+    // bytes against the size-limit budget.
+    // eslint-disable-next-line local/no-unescaped-innerhtml
     this.innerHTML = `<section class="ink-result" data-status="${status}" role="status">
       <div class="ink-result__icon" aria-hidden="true">${iconSvg(STATUS_ICON[status], 64)}</div>
       <h2 class="ink-result__title">${esc(title)}</h2>

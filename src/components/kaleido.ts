@@ -84,6 +84,11 @@ export class EKaleido extends HTMLElement {
 
   private _render(): void {
     const cell = numAttr(this, 'cell', 3);
+    // `c.hex`/`c.name` come from KALEIDO_COLORS, a hardcoded module-level
+    // const array — never user-controlled — so they can't carry the
+    // characters esc() escapes, and wrapping them would only cost bundle
+    // bytes against the size-limit budget.
+    /* eslint-disable local/no-unescaped-innerhtml */
     this.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
                                   gap:0;border:var(--ink-border);border-right:none;border-bottom:none">
       ${KALEIDO_COLORS.map(
@@ -109,6 +114,7 @@ export class EKaleido extends HTMLElement {
         </div>`,
       ).join('')}
     </div>`;
+    /* eslint-enable local/no-unescaped-innerhtml */
     this.querySelectorAll('canvas').forEach((cv) => {
       paintDither(
         cv as HTMLCanvasElement,

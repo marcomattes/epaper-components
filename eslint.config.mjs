@@ -3,6 +3,7 @@
 import { defineConfig, globalIgnores } from 'eslint/config';
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
+import noUnescapedInnerHtml from './scripts/eslint-rules/no-unescaped-innerhtml.mjs';
 
 // `defineConfig`/`globalIgnores` from eslint/config rather than
 // `tseslint.config()`: typescript-eslint deprecated its own wrapper in favour
@@ -36,6 +37,19 @@ export default defineConfig([
       ],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       eqeqeq: ['error', 'smart'],
+    },
+  },
+  {
+    // Mechanical enforcement of the esc() contract (CLAUDE.md hard rule #1).
+    // Scoped to components rather than all of src/ — core/dom.ts is where
+    // `esc`/`html` themselves live, and stories/demo don't render untrusted
+    // input.
+    files: ['src/components/**/*.ts'],
+    plugins: {
+      local: { rules: { 'no-unescaped-innerhtml': noUnescapedInnerHtml } },
+    },
+    rules: {
+      'local/no-unescaped-innerhtml': 'error',
     },
   },
 ]);

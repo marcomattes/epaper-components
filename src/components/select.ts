@@ -51,6 +51,10 @@ export class ESelect extends BaseFormControl {
         label: o.getAttribute('label') || o.textContent || '',
       }));
       const current = this._opts.find((o) => o.value === value);
+      // `o.value === value` is a boolean (stringifies to "true"/"false") —
+      // it can never carry the characters esc() escapes, so wrapping it
+      // would only cost bundle bytes against the size-limit budget.
+      /* eslint-disable local/no-unescaped-innerhtml */
       this.innerHTML = `<div class="ink-select">
       <button type="button" class="ink-select__trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="${esc(menuId)}">
         <span data-current>${esc(current ? current.label : this._placeholder)}</span>
@@ -68,6 +72,7 @@ export class ESelect extends BaseFormControl {
           .join('')}
       </ul>
     </div>`;
+      /* eslint-enable local/no-unescaped-innerhtml */
 
       this._trigger = this.querySelector('.ink-select__trigger');
       this._menu = this.querySelector('.ink-select__menu');
