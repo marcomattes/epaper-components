@@ -471,7 +471,7 @@
     "cssnano": "^7.1.7",
     "custom-element-jet-brains-integration": "1.7.0",
     "custom-element-vs-code-integration": "1.5.0",
-    "eslint": "10.2.1",
+    "eslint": "10.8.1",
     "lit": "3.3.2",
     "playwright": "1.59.1",
     "postcss": "^8.5.12",
@@ -480,7 +480,7 @@
     "size-limit": "12.1.0",
     "storybook": "10.3.5",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.59.0",
+    "typescript-eslint": "8.67.0",
     "vite": "8.0.10",
     "vitest": "4.1.5",
     "vitest-sonar-reporter": "3.0.0"
