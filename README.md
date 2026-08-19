@@ -698,7 +698,7 @@ sample-app/    # Runtime + compiled checks that this README stays accurate; not 
 | [`THEMING.md`](./THEMING.md)           | Users                | CSS custom-property registry and override patterns.                                                                       |
 | [`CONTRIBUTING.md`](./CONTRIBUTING.md) | Contributors         | Component-author conventions, release process and PR checklist.                                                           |
 | [`CHANGELOG.md`](./CHANGELOG.md)       | Everyone             | Version history, migrations, and known limitations.                                                                       |
-| [`CLAUDE.md`](./CLAUDE.md)             | AI agents            | Working guide for Claude Code and similar tools.                                                                          |
+| [`AGENTS.md`](./AGENTS.md)             | AI agents            | Working guide for Claude Code and similar tools.                                                                          |
 
 ## Development
 

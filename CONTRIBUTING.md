@@ -174,8 +174,14 @@ is the case for pull requests from forks.
 - `CHANGELOG.md` — every user-visible change. Add an entry in the same PR
   under the appropriate `[Unreleased]` section. Follow
   [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-- `CLAUDE.md` — only update if you change patterns that AI agents should
+- `AGENTS.md` — only update if you change patterns that AI agents should
   follow (hard rules, file conventions). Day-to-day docs go in OVERVIEW.md.
+  `CLAUDE.md` is a one-line stub that imports it for Claude Code; leave it
+  alone.
+- `.agents/*.md` — task-specific checklists (PR review, adding a component)
+  that go deeper than `AGENTS.md`. Update these when the underlying rule
+  changes; `.claude/skills/` and `.github/copilot-instructions.md` are thin
+  pointers into these files and rarely need touching themselves.
 
 ## Releasing
 

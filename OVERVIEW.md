@@ -345,4 +345,4 @@ No configuration needed — Svelte detects custom elements automatically.
 | Known V1.0 limitations?                          | § 7 here, also `CHANGELOG.md`                          |
 | Browser support?                                 | § 8 here                                               |
 | React / Vue / Angular setup?                     | § 9 here, full snippets in `README.md`                 |
-| Working with Claude Code in this repo?           | `CLAUDE.md`                                            |
+| Working with Claude Code in this repo?           | `AGENTS.md`                                            |
