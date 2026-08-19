@@ -15,6 +15,7 @@ import { BaseFormControl } from '../core/base-form-control';
  * @attr {string} [min] - Lower bound (inclusive).
  * @attr {string} [max] - Upper bound (inclusive).
  * @attr {string} [step='1'] - Step size for the buttons and native input.
+ * @attr {boolean} [disabled] - Disables typing and both step buttons.
  * @attr {boolean} [required] - Requires a numeric value.
  * @attr {string} [required-message] - Overrides the native message reported for an empty required value.
  *
@@ -30,6 +31,7 @@ export class EInputNumber extends BaseFormControl<string> {
     'max',
     'step',
     'aria-label',
+    'disabled',
     'required',
     'required-message',
   ];
@@ -100,6 +102,7 @@ export class EInputNumber extends BaseFormControl<string> {
       this._syncValidity();
     }
     if (name === 'aria-label') patchAttr(this._input, 'aria-label', v);
+    if (name === 'disabled') this._syncDisabled();
     if (name === 'required' || name === 'required-message') {
       this._input.required = this.hasAttribute('required');
       this._syncValidity();
@@ -130,16 +133,26 @@ export class EInputNumber extends BaseFormControl<string> {
     this._setFiniteInputAttr('min', min);
     this._setFiniteInputAttr('max', max);
     this._input.required = this.hasAttribute('required');
+    this._syncDisabled();
     this._value = this._input.value;
     this.internals.setFormValue(this._value);
     this._syncValidity();
   }
 
   private _step(direction: number): void {
-    if (!this._input) return;
-    if (direction > 0) this._input.stepUp(direction);
-    else this._input.stepDown(Math.abs(direction));
+    if (!this._input || this._isDisabled()) return;
+    const previous = this._input.value;
+    try {
+      if (direction > 0) this._input.stepUp(direction);
+      else this._input.stepDown(Math.abs(direction));
+    } catch (error) {
+      // Transient authoring states such as min > max must not turn a button
+      // click into an uncaught DOMException. Preserve the last valid value.
+      if (error instanceof DOMException && error.name === 'InvalidStateError') return;
+      throw error;
+    }
     const next = this._input.value;
+    if (next === previous) return;
     this._value = next;
     this.internals.setFormValue(next);
     this._syncValidity();
@@ -182,7 +195,7 @@ export class EInputNumber extends BaseFormControl<string> {
 
   private readonly _onMouseDown = (e: MouseEvent): void => {
     const button = (e.target as Element).closest<HTMLElement>('[data-step]');
-    if (!button) return;
+    if (!button || this._isDisabled()) return;
     const direction = Number(button.dataset['step']);
     this._stopHold();
     this._holdDelay = setTimeout(() => {
@@ -191,7 +204,7 @@ export class EInputNumber extends BaseFormControl<string> {
   };
 
   private readonly _onInputChange = (): void => {
-    if (!this._input) return;
+    if (!this._input || this._isDisabled()) return;
     const value = this._input.value;
     this._value = value;
     this.internals.setFormValue(value);
@@ -206,7 +219,7 @@ export class EInputNumber extends BaseFormControl<string> {
   };
 
   private readonly _onInput = (): void => {
-    if (!this._input) return;
+    if (!this._input || this._isDisabled()) return;
     this._value = this._input.value;
     this.internals.setFormValue(this._value);
     this._syncValidity();
@@ -223,6 +236,23 @@ export class EInputNumber extends BaseFormControl<string> {
       }
     }
     this.mirrorNativeValidity(this._input);
+  }
+
+  protected override formDisabledChanged(): void {
+    this._syncDisabled();
+  }
+
+  private _isDisabled(): boolean {
+    return this.hasAttribute('disabled') || this._formDisabled;
+  }
+
+  private _syncDisabled(): void {
+    const disabled = this._isDisabled();
+    if (this._input) this._input.disabled = disabled;
+    for (const button of this.querySelectorAll<HTMLButtonElement>('[data-step]')) {
+      button.disabled = disabled;
+    }
+    if (disabled) this._stopHold();
   }
 }
 

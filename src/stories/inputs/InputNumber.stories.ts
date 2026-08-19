@@ -18,6 +18,7 @@ const meta: Meta = {
     min: { control: 'number' },
     max: { control: 'number' },
     step: { control: 'number' },
+    disabled: { control: 'boolean' },
     ariaLabel: { control: 'text', description: 'Accessible label for the numeric input' },
   },
   render: (args) => html`
@@ -26,6 +27,7 @@ const meta: Meta = {
       min=${args.min ?? ''}
       max=${args.max ?? ''}
       step=${args.step ?? 1}
+      ?disabled=${args.disabled}
       aria-label=${args.ariaLabel || 'Number'}
     ></e-input-number>
   `,
@@ -103,4 +105,34 @@ export const Unbounded: Story = {
   render: () => html`
     <e-input-number value="0" step="2" aria-label="Unbounded number"></e-input-number>
   `,
+};
+
+export const PlusButtonRegression: Story = {
+  args: { value: 1, min: 0, max: 3, step: 1, ariaLabel: 'Quantity' },
+  play: async ({ canvasElement }) => {
+    const element = canvasElement.querySelector('e-input-number')!;
+    const input = element.querySelector<HTMLInputElement>('input')!;
+    const plusIcon = element.querySelector('[data-step="1"] svg')!;
+    await userEvent.click(plusIcon);
+    expect(input.value).toBe('2');
+    expect(element.getAttribute('value')).toBe('2');
+    await userEvent.click(plusIcon);
+    expect(input.value).toBe('3');
+    await userEvent.click(plusIcon);
+    expect(input.value).toBe('3');
+  },
+};
+
+export const Disabled: Story = {
+  args: { value: 2, step: 1, disabled: true, ariaLabel: 'Disabled quantity' },
+  play: async ({ canvasElement }) => {
+    const element = canvasElement.querySelector('e-input-number')!;
+    const input = element.querySelector<HTMLInputElement>('input')!;
+    const buttons = element.querySelectorAll<HTMLButtonElement>('[data-step]');
+    expect(input).toBeDisabled();
+    expect(buttons[0]).toBeDisabled();
+    expect(buttons[1]).toBeDisabled();
+    await userEvent.click(buttons[1]);
+    expect(input.value).toBe('2');
+  },
 };
