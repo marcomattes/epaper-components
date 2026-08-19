@@ -158,7 +158,7 @@ jobs:
       # Analysis runs outside the Playwright container and never re-runs the
       # suite; it only needs the reports the tests job already produced.
       - name: Download test and coverage reports
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: reports
           path: reports/
