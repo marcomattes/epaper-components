@@ -146,7 +146,7 @@ jobs:
 
       - name: Upload BrowserStack results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: browserstack-${{ matrix.platform }}
           path: reports/browserstack/${{ matrix.platform }}/
