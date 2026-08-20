@@ -5,14 +5,14 @@
 // registers the custom elements, measures the chrome and wires the two
 // interactive pages. A visitor with JavaScript disabled still gets every
 // page, all their text and working navigation.
-import '../styles/tokens.css';
-import '../styles/base.css';
-import '../styles/components.css';
+import '../../../packages/epaper-components/src/styles/tokens.css';
+import '../../../packages/epaper-components/src/styles/base.css';
+import '../../../packages/epaper-components/src/styles/components.css';
 import './site.css';
 // Imported as a value, not just for its side effect: the bundler would
 // otherwise elide the module and leave <e-site-pager> unregistered.
 import { ESitePager } from './pager';
-import { esc } from '../core/dom';
+import { esc } from '../../../packages/epaper-components/src/core/dom';
 import { type ComponentCategory } from './data';
 
 const $ = <T extends HTMLElement = HTMLElement>(sel: string): T | null =>
@@ -141,7 +141,7 @@ function boot(): void {
   if (!needsElements) return;
 
   const hydrate = (): void => {
-    void import('../index').then(() => {
+    void import('../../../packages/epaper-components/src/index').then(() => {
       if (route === '/components/') wireComponentFilter();
       if (route === '/showcase/') wireShowcase();
     });

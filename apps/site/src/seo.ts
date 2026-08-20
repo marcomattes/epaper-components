@@ -8,7 +8,7 @@
 //     mostly do not execute JavaScript and lean heavily on JSON-LD and plain
 //     prose. Everything asserted here is also present as readable text on the
 //     page; structured data restates it, it never replaces it.
-import { esc } from '../core/dom';
+import { esc } from '../../../packages/epaper-components/src/core/dom';
 import {
   absoluteUrl,
   ALL_ROUTES,

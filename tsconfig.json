@@ -19,5 +19,9 @@
     "resolveJsonModule": true,
     "noEmit": true
   },
-  "include": ["src/**/*.ts"]
+  "include": [
+    "packages/epaper-components/src/**/*.ts",
+    "apps/site/src/**/*.ts",
+    "apps/storybook/.storybook/**/*.ts"
+  ]
 }

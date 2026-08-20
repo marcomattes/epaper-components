@@ -1,7 +1,7 @@
 // Static data for the EPaper marketing site.
 // Lives outside the npm package — keep it dependency-free.
 
-import type { CalendarEvent } from '../index';
+import type { CalendarEvent } from '../../../packages/epaper-components/src/index';
 
 export type ComponentCategory =
   | 'primitives'

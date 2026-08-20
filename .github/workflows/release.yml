@@ -67,7 +67,7 @@ jobs:
       # seconds rather than after the full browser test suite.
       - name: Check tag matches package.json
         run: |
-          PKG="$(node -p "require('./package.json').version")"
+          PKG="$(node -p "require('./packages/epaper-components/package.json').version")"
           if [ "$GITHUB_REF_NAME" != "v$PKG" ]; then
             echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $PKG"
             exit 1
@@ -77,7 +77,7 @@ jobs:
       - name: Resolve channel
         id: channel
         run: |
-          PKG="$(node -p "require('./package.json').version")"
+          PKG="$(node -p "require('./packages/epaper-components/package.json').version")"
           echo "version=$PKG" >> "$GITHUB_OUTPUT"
           case "$PKG" in
             # A prerelease tag must never take over `latest` for real users.
@@ -151,14 +151,14 @@ jobs:
         run: npm run build
 
       - name: Publish
-        run: npm publish --registry https://registry.npmjs.org/ --provenance --access public --tag "${{ needs.guard.outputs.npm-tag }}"
+        run: npm publish --workspace packages/epaper-components --registry https://registry.npmjs.org/ --provenance --access public --tag "${{ needs.guard.outputs.npm-tag }}"
 
       - name: Pack tarball
-        run: npm pack --pack-destination .
+        run: npm pack --workspace packages/epaper-components --pack-destination .
 
       - name: Release notes
         run: |
-          if ! node scripts/changelog-section.mjs "${{ needs.guard.outputs.version }}" > RELEASE_NOTES.md; then
+          if ! node packages/epaper-components/scripts/changelog-section.mjs "${{ needs.guard.outputs.version }}" > RELEASE_NOTES.md; then
             printf 'See [CHANGELOG.md](CHANGELOG.md).\n' > RELEASE_NOTES.md
           fi
 
@@ -230,7 +230,7 @@ jobs:
 
       - name: Run smoke test
         run: |
-          cp scripts/smoke-test.mjs "$RUNNER_TEMP/smoke/"
+          cp packages/epaper-components/scripts/smoke-test.mjs "$RUNNER_TEMP/smoke/"
           cd "$RUNNER_TEMP/smoke"
           node smoke-test.mjs
 
@@ -292,7 +292,7 @@ jobs:
         run: npm run build
 
       - name: Publish
-        run: npm publish --provenance --access public --tag "${{ needs.guard.outputs.npm-tag }}"
+        run: npm publish --workspace packages/epaper-components --provenance --access public --tag "${{ needs.guard.outputs.npm-tag }}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -341,7 +341,7 @@ jobs:
           CHANGED="$(git diff --name-only HEAD~1 HEAD)"
           echo "$CHANGED"
 
-          if [ -z "$CHANGED" ] || echo "$CHANGED" | grep -vE '^(src/site/|vite\.site\.config\.ts$|scripts/(build-site-routes|inline-site-css|site-template|site-shots|github-stars)\.mjs$)' | grep -q .; then
+          if [ -z "$CHANGED" ] || echo "$CHANGED" | grep -vE '^apps/site/' | grep -q .; then
             echo "website_only=false" >> "$GITHUB_OUTPUT"
           else
             echo "website_only=true" >> "$GITHUB_OUTPUT"
@@ -393,16 +393,17 @@ jobs:
 
       - name: Compute dev version
         id: version
-        run: echo "version=$(node scripts/dev-version.mjs "${{ github.run_number }}")" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "version=$(node packages/epaper-components/scripts/dev-version.mjs "${{ github.run_number }}")" >> "$GITHUB_OUTPUT"
 
       - name: Stamp version
-        run: npm version "${{ steps.version.outputs.version }}" --no-git-tag-version
+        run: npm version "${{ steps.version.outputs.version }}" --no-git-tag-version --workspace packages/epaper-components
 
       - name: Build
         run: npm run build
 
       - name: Publish
-        run: npm publish --registry https://registry.npmjs.org/ --provenance --access public --tag dev
+        run: npm publish --workspace packages/epaper-components --registry https://registry.npmjs.org/ --provenance --access public --tag dev
 
       - name: Summary
         run: |

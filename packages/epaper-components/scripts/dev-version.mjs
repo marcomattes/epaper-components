@@ -1,9 +1,13 @@
 import { readFileSync } from 'node:fs';
 import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 
 // Prints the version a `dev` channel publish should carry, e.g. `1.0.1-dev.42`.
 // Used by .github/workflows/release.yml, which stamps it into package.json
 // before publishing under the `dev` dist-tag.
+//
+// Resolved relative to this file rather than process.cwd() — release.yml
+// invokes this script directly from the repo root, not via `npm run -w`.
 
 const build = process.argv[2];
 if (!build || !/^\d+$/.test(build)) {
@@ -11,7 +15,8 @@ if (!build || !/^\d+$/.test(build)) {
   process.exit(1);
 }
 
-const { version } = JSON.parse(readFileSync('package.json', 'utf8'));
+const pkgPath = fileURLToPath(new URL('../package.json', import.meta.url));
+const { version } = JSON.parse(readFileSync(pkgPath, 'utf8'));
 const match = /^(\d+)\.(\d+)\.(\d+)(?:-([^+]+))?(?:\+.+)?$/.exec(version);
 if (!match) {
   console.error(`package.json version is not valid semver: ${version}`);

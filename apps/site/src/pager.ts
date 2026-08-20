@@ -6,7 +6,7 @@
 // build already put in the footer. Which sequence that is — the numbered
 // spine or the articles under /guides/ — is decided by the build, so this
 // works on an article without knowing articles exist.
-import { define, onGlobal, runCleanups } from '../core/dom';
+import { define, onGlobal, runCleanups } from '../../../packages/epaper-components/src/core/dom';
 
 /**
  * @summary Site-wide pager controller. Maps PgUp/PgDn/Home/End onto the

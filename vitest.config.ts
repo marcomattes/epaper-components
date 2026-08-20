@@ -15,7 +15,7 @@ export default defineConfig({
       {
         test: {
           name: 'unit',
-          include: ['src/**/*.{test,spec}.ts'],
+          include: ['packages/epaper-components/src/**/*.{test,spec}.ts'],
           browser: {
             enabled: true,
             headless: true,
@@ -46,7 +46,7 @@ export default defineConfig({
         },
       },
       {
-        plugins: [storybookTest({ configDir: '.storybook' })],
+        plugins: [storybookTest({ configDir: 'apps/storybook/.storybook' })],
         test: {
           name: 'storybook',
           browser: {
@@ -80,11 +80,17 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'text-summary', 'html', 'lcov', 'json-summary', 'json'],
       reportsDirectory: 'reports/coverage',
-      include: ['src/components/**/*.ts', 'src/core/**/*.ts'],
+      include: [
+        'packages/epaper-components/src/components/**/*.ts',
+        'packages/epaper-components/src/core/**/*.ts',
+      ],
       // `core/types.ts` is type-only and compiles to an empty module, so V8
       // scores it 0% and drags the ratio down over code that cannot exist at
       // runtime. It is excluded on the Sonar side for the same reason.
-      exclude: ['src/components/**/*.stories.ts', 'src/core/types.ts'],
+      exclude: [
+        'packages/epaper-components/src/components/**/*.stories.ts',
+        'packages/epaper-components/src/core/types.ts',
+      ],
       // V8 collects per-project and merges before writing, so reports/coverage
       // /lcov.info already carries the combined `unit` + `storybook` result.
       // Keep this in sync with `sonar.coverage.exclusions`: any source file

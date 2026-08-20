@@ -19,16 +19,30 @@ npm run build        # Build dist/, CEM, web-types, vscode-data
 
 ## Project layout
 
+This is an npm-workspaces monorepo. The component library lives in
+`packages/epaper-components` — that is the only package published to npm.
+Everything else is a private, unpublished workspace that consumes it.
+
 ```
-src/
-  core/        # Cross-cutting helpers (dom, icons, base-form-control, types).
-  components/  # One web component per file. Each ends with `define(...)`.
-  styles/      # tokens.css, base.css, components.css. Public CSS surface.
-  stories/     # Storybook documentation. Not shipped.
-  demo/        # Demo HTML wiring. Not shipped.
-scripts/
-  gen-tag-map.mjs    # Emits dist/elements.d.ts (HTMLElementTagNameMap).
+packages/epaper-components/   the library
+  src/
+    core/        # Cross-cutting helpers (dom, icons, base-form-control, types).
+    components/  # One web component per file. Each ends with `define(...)`.
+    styles/      # tokens.css, base.css, components.css. Public CSS surface.
+    stories/     # Storybook documentation. Not shipped.
+    demo/        # Demo HTML wiring. Not shipped.
+  scripts/
+    gen-tag-map.mjs    # Emits dist/elements.d.ts (HTMLElementTagNameMap).
+apps/site/                     the docs/marketing site (epaper-components.dev)
+apps/storybook/                 the Storybook runner (config only — stories live
+                                 in packages/epaper-components/src/stories)
+apps/sample-app/                validates README claims against a real build
 ```
+
+Root-level `npm run <script>` commands (`dev`, `build`, `test`, `lint`,
+`type-check`, `storybook`, …) delegate to the right workspace, so day-to-day
+commands are unchanged regardless of which package the underlying work lives
+in.
 
 ## Component conventions
 

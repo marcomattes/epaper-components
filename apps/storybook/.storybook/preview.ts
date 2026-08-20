@@ -3,12 +3,12 @@ import { MINIMAL_VIEWPORTS } from 'storybook/viewport';
 import { html } from 'lit';
 
 // The three CSS layers, in cascade order (tokens → base → components).
-import '../src/styles/tokens.css';
-import '../src/styles/base.css';
-import '../src/styles/components.css';
+import '../../../packages/epaper-components/src/styles/tokens.css';
+import '../../../packages/epaper-components/src/styles/base.css';
+import '../../../packages/epaper-components/src/styles/components.css';
 
 // Side-effect import: registers every `e-*` custom element once for all stories.
-import '../src/index';
+import '../../../packages/epaper-components/src/index';
 
 const einkViewports = {
   kindle6: {

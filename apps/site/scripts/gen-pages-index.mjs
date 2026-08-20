@@ -4,9 +4,11 @@
 
 import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { resolve, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const outArg = process.argv[2] ?? '_site/index.html';
-const outRoot = resolve(process.cwd());
+const outRoot = resolve(__dirname, '../../..');
 const out = resolve(outRoot, outArg);
 // Containment check on the canonicalised path: the argument is maintainer-supplied
 // in CI, but resolving it first and then requiring the repository root as a literal
@@ -19,13 +21,15 @@ if (!out.startsWith(outRoot + sep)) {
 }
 const base = (process.env.BASE_URL ?? '/').replace(/\/?$/, '/');
 
-const pkg = JSON.parse(readFileSync(resolve('package.json'), 'utf8'));
+const pkg = JSON.parse(
+  readFileSync(resolve(outRoot, 'packages/epaper-components/package.json'), 'utf8'),
+);
 const version = pkg.version;
 const name = pkg.name;
 const description = pkg.description;
 
 let coveragePct = null;
-const summaryPath = resolve('reports/coverage/coverage-summary.json');
+const summaryPath = resolve(outRoot, 'reports/coverage/coverage-summary.json');
 if (existsSync(summaryPath)) {
   try {
     const s = JSON.parse(readFileSync(summaryPath, 'utf8'));

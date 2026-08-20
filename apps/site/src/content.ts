@@ -17,8 +17,8 @@
 // structure. Interactive components (tabs, form, table, calendar, segmented,
 // input) are still authored as custom elements — there the behaviour is the
 // point, and their text is slotted content that crawlers can read anyway.
-import { esc } from '../core/dom';
-import { iconSvg } from '../core/icons';
+import { esc } from '../../../packages/epaper-components/src/core/dom';
+import { iconSvg } from '../../../packages/epaper-components/src/core/icons';
 import {
   CALENDAR_EVENTS,
   COMPONENTS,

@@ -20,10 +20,16 @@
 // so that renaming a story does not change a public URL.
 import { copyFile, mkdir, readdir, readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { inflateSync } from 'node:zlib';
 
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+
 /** Directory holding the committed visual-regression baselines. */
-export const SHOTS_SRC = resolve(process.cwd(), 'src/components/__tests__/__screenshots__');
+export const SHOTS_SRC = resolve(
+  __dirname,
+  '../../../packages/epaper-components/src/components/__tests__/__screenshots__',
+);
 
 /** Site-absolute directory the previews are published under. No trailing slash. */
 export const SHOTS_URL_BASE = '/shots';

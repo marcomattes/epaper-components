@@ -1,7 +1,13 @@
 import type { StorybookConfig } from '@storybook/web-components-vite';
 
+// Stories live in packages/epaper-components/src/stories — co-located with
+// the components they document, per this repo's convention — not inside
+// this app. This config only owns the Storybook runner.
 const config: StorybookConfig = {
-  stories: ['../src/stories/**/*.stories.ts', '../src/stories/**/*.mdx'],
+  stories: [
+    '../../../packages/epaper-components/src/stories/**/*.stories.ts',
+    '../../../packages/epaper-components/src/stories/**/*.mdx',
+  ],
   framework: '@storybook/web-components-vite',
   addons: ['@storybook/addon-a11y', '@storybook/addon-docs', '@storybook/addon-vitest'],
   // No `docs.autodocs` — it was removed in Storybook 8; stories opt in with

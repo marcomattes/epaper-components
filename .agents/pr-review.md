@@ -23,7 +23,7 @@ in this repo, not just one specific tool.
 
 ## Hard-rule checklist (from `AGENTS.md`)
 
-Walk every changed `.ts` file in `src/components/` against these. Cite
+Walk every changed `.ts` file in `packages/epaper-components/src/components/` against these. Cite
 `file:line` for anything that fails.
 
 1. **XSS via `esc()`** — every interpolated value written into `innerHTML`
@@ -34,7 +34,7 @@ Walk every changed `.ts` file in `src/components/` against these. Cite
 2. **No `attachShadow`** — grep the diff for `attachShadow`. Any hit is an
    automatic fail; this library is light-DOM only.
 3. **No animation** — reject any `transition`, `animation`, `@keyframes`,
-   or CSS transition shorthand added to `src/styles/*.css` or inline
+   or CSS transition shorthand added to `packages/epaper-components/src/styles/*.css` or inline
    styles. `base.css` resets these globally; a new rule that reintroduces
    them breaks the e-paper guarantee even if it "looks smoother".
 4. **No `:hover`** — reject new `:hover` selectors in CSS. The correct
@@ -44,7 +44,7 @@ Walk every changed `.ts` file in `src/components/` against these. Cite
    component must extend it and implement `serialize(v: T)` and
    `parse(s: string)`, not hand-roll `ElementInternals` wiring. Check that
    value resets go through the `resetValue()` hook rather than overriding
-   `formResetCallback()` directly (see `src/core/base-form-control.ts`).
+   `formResetCallback()` directly (see `packages/epaper-components/src/core/base-form-control.ts`).
 6. **Global listeners use `onGlobal`/cleanup** — any `document.addEventListener`
    or `window.addEventListener` outside `core/dom.ts` itself is a leak risk.
    It must go through `onGlobal(this, target, type, fn)`, and
@@ -74,24 +74,24 @@ Walk every changed `.ts` file in `src/components/` against these. Cite
 
 ## Wiring checklist for a new/renamed component
 
-If the diff adds a component (`src/components/<name>.ts`), confirm all of
+If the diff adds a component (`packages/epaper-components/src/components/<name>.ts`), confirm all of
 the following are present in the same PR — a component that only has the
 `.ts` file is incomplete, not just under-documented:
 
-- [ ] Exported from `src/index.ts`
-- [ ] Storybook story in `src/stories/<group>/<Name>.stories.ts`
-- [ ] Styles added to `src/styles/components.css` in the matching section
-- [ ] Covered by one of the existing suites in `src/components/__tests__/`
+- [ ] Exported from `packages/epaper-components/src/index.ts`
+- [ ] Storybook story in `packages/epaper-components/src/stories/<group>/<Name>.stories.ts`
+- [ ] Styles added to `packages/epaper-components/src/styles/components.css` in the matching section
+- [ ] Covered by one of the existing suites in `packages/epaper-components/src/components/__tests__/`
       (don't create a new suite file — extend an existing one)
-- [ ] Sub-path entry added to `package.json` `exports`, alphabetically
+- [ ] Sub-path entry added to `packages/epaper-components/package.json` `exports`, alphabetically
 
 See `.agents/new-component.md` for the full scaffolding walkthrough.
 
 ## Files that should not change without the author explicitly calling it out
 
-`package.json` `version`/`exports`, anything under `dist/`,
+`packages/epaper-components/package.json` `version`/`exports`, anything under `packages/epaper-components/dist/`,
 `.github/workflows/release.yml`, and
-`custom-elements-manifest.config.mjs`. A diff touching any of these
+`packages/epaper-components/custom-elements-manifest.config.mjs`. A diff touching any of these
 deserves a direct question to the author, not a silent pass — see
 `AGENTS.md` § "Files NOT to touch without asking" for why each one is
 sensitive.

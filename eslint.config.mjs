@@ -3,25 +3,27 @@
 import { defineConfig, globalIgnores } from 'eslint/config';
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import noUnescapedInnerHtml from './scripts/eslint-rules/no-unescaped-innerhtml.mjs';
+import noUnescapedInnerHtml from './packages/epaper-components/scripts/eslint-rules/no-unescaped-innerhtml.mjs';
 
 // `defineConfig`/`globalIgnores` from eslint/config rather than
 // `tseslint.config()`: typescript-eslint deprecated its own wrapper in favour
 // of the one ESLint now ships, and the two are otherwise interchangeable.
 export default defineConfig([
   globalIgnores([
-    'dist/**',
+    'packages/epaper-components/dist/**',
+    'dist-site/**',
     'reports/**',
     'storybook-static/**',
-    'src/demo/**',
-    'src/stories/**',
-    'scripts/**',
+    'packages/epaper-components/src/demo/**',
+    'packages/epaper-components/src/stories/**',
+    'packages/*/scripts/**',
+    'apps/*/scripts/**',
     'node_modules/**',
   ]),
   js.configs.recommended,
   tseslint.configs.recommended,
   {
-    files: ['src/**/*.ts'],
+    files: ['packages/epaper-components/src/**/*.ts', 'apps/site/src/**/*.ts'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
@@ -44,7 +46,7 @@ export default defineConfig([
     // Scoped to components rather than all of src/ — core/dom.ts is where
     // `esc`/`html` themselves live, and stories/demo don't render untrusted
     // input.
-    files: ['src/components/**/*.ts'],
+    files: ['packages/epaper-components/src/components/**/*.ts'],
     plugins: {
       local: { rules: { 'no-unescaped-innerhtml': noUnescapedInnerHtml } },
     },

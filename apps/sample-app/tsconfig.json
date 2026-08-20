@@ -19,8 +19,10 @@
     "resolveJsonModule": true,
     "noEmit": true,
     "paths": {
-      "@marcomattes/epaper-components": ["../dist/index.d.ts"],
-      "@marcomattes/epaper-components/*": ["../dist/components/*.d.ts"]
+      "@marcomattes/epaper-components": ["../../packages/epaper-components/dist/index.d.ts"],
+      "@marcomattes/epaper-components/*": [
+        "../../packages/epaper-components/dist/components/*.d.ts"
+      ]
     }
   },
   "include": ["*.ts"]

@@ -1,0 +1,8 @@
+# Copied in by `npm run prepack` (scripts/copy-root-docs.mjs) from the repo
+# root right before packing/publishing — not a second source of truth.
+/README.md
+/OVERVIEW.md
+/THEMING.md
+/CONTRIBUTING.md
+/CHANGELOG.md
+/LICENSE

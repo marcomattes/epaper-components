@@ -10,10 +10,12 @@
 // cannot import) and leaves it in dist-site/_site-routes.json for this step.
 import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { applyRouteBlocks } from './site-template.mjs';
 import { buildMarkdownRoutes } from './build-markdown-routes.mjs';
 
-const distDir = resolve(process.cwd(), 'dist-site');
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+const distDir = resolve(__dirname, '../../../dist-site');
 const manifestPath = join(distDir, '_site-routes.json');
 const shellPath = join(distDir, 'index.html');
 

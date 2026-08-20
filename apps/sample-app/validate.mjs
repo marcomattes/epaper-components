@@ -6,7 +6,7 @@
 // below exercise the built package the way a consumer actually would,
 // rather than the TypeScript sources.
 //
-// Usage: node sample-app/validate.mjs
+// Usage: node apps/sample-app/validate.mjs
 
 import http from 'node:http';
 import fs from 'node:fs';
@@ -14,7 +14,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const root = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '../../packages/epaper-components',
+);
 const distDir = path.join(root, 'dist');
 
 if (!fs.existsSync(distDir)) {
@@ -84,6 +87,11 @@ const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
 // then only ever uses the incoming URL as a lookup key into this map — it
 // never concatenates request data into a filesystem path, so there is no
 // path-traversal sink to sanitize in the first place.
+//
+// The library's dist/ and this script's own fixtures/ are no longer
+// filesystem siblings (they live in different workspace packages), so each
+// is walked separately and mapped under the URL prefix the fixture HTML
+// files' own relative imports (`../../dist/...`) already expect.
 function collectFiles(dir, out) {
   for (const name of fs.readdirSync(dir)) {
     const abs = path.join(dir, name);
@@ -92,13 +100,21 @@ function collectFiles(dir, out) {
   }
 }
 
-const servableFiles = [];
-for (const dir of [distDir, path.join(root, 'sample-app', 'fixtures')]) {
-  if (fs.existsSync(dir)) collectFiles(dir, servableFiles);
+const fixturesDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'fixtures');
+
+const fileManifest = new Map();
+for (const [urlPrefix, dir] of [
+  ['/dist', distDir],
+  ['/sample-app/fixtures', fixturesDir],
+]) {
+  if (!fs.existsSync(dir)) continue;
+  const files = [];
+  collectFiles(dir, files);
+  for (const abs of files) {
+    const urlPath = `${urlPrefix}/${path.relative(dir, abs).split(path.sep).join('/')}`;
+    fileManifest.set(urlPath, abs);
+  }
 }
-const fileManifest = new Map(
-  servableFiles.map((abs) => ['/' + path.relative(root, abs).split(path.sep).join('/'), abs]),
-);
 
 const server = http.createServer((req, res) => {
   const urlPath = decodeURIComponent(req.url.split('?')[0]);

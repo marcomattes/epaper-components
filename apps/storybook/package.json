@@ -1,0 +1,18 @@
+{
+  "name": "epaper-storybook",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Storybook runner for @marcomattes/epaper-components.",
+  "type": "module",
+  "dependencies": {
+    "@marcomattes/epaper-components": "*"
+  },
+  "scripts": {
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build -o ../../storybook-static",
+    "browserstack:serve": "node scripts/serve-static.mjs ../../storybook-static 6006",
+    "browserstack:serve-browserstack": "browserstack-node-sdk node scripts/serve-static.mjs ../../storybook-static 6006",
+    "test:browserstack": "node scripts/browserstack-test.mjs",
+    "test:browserstack-browserstack": "browserstack-node-sdk node scripts/browserstack-test.mjs"
+  }
+}

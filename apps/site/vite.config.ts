@@ -1,20 +1,20 @@
-// Standalone Vite config for the marketing site under src/site/.
-// Kept separate from vite.config.ts so the library build (lib mode) stays
-// untouched. The site is *not* part of the npm package — this config only
-// produces the static bundle served at https://epaper-components.dev.
+// Vite config for the marketing site (apps/site), a separate workspace from
+// the library build (packages/epaper-components/vite.config.ts). The site is
+// *not* part of the npm package — this config only produces the static
+// bundle served at https://epaper-components.dev.
 //
 // Every route is a real URL shipped as a complete HTML document: the eight
 // core pages plus one per guide and recipe under /guides/. Vite builds the
 // home page; the shell it produces is then re-filled per route by
-// scripts/build-site-routes.mjs. Page markup comes from src/site/content.ts
-// and the <head> from src/site/seo.ts, both of which run here in Node.
+// scripts/build-site-routes.mjs. Page markup comes from src/content.ts
+// and the <head> from src/seo.ts, both of which run here in Node.
 import { defineConfig, type Plugin } from 'vite';
 import { createReadStream, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { formatStars, resolveStars } from './scripts/github-stars.mjs';
 import { applyRouteBlocks } from './scripts/site-template.mjs';
 import { copyShots, readShots, SHOTS_SRC } from './scripts/site-shots.mjs';
-import { mainHtml, navHtml, pagenavHtml, type ContentOptions } from './src/site/content';
+import { mainHtml, navHtml, pagenavHtml, type ContentOptions } from './src/content';
 import {
   headHtml,
   htaccessConfig,
@@ -25,7 +25,7 @@ import {
   robotsTxt,
   routeMarkdown,
   sitemapXml,
-} from './src/site/seo';
+} from './src/seo';
 import {
   ALL_ROUTES,
   NOT_FOUND_PATH,
@@ -33,9 +33,11 @@ import {
   routeByPath,
   ROUTES,
   type Route,
-} from './src/site/routes';
+} from './src/routes';
 
-const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf8')) as {
+const pkg = JSON.parse(
+  readFileSync(resolve(__dirname, '../../packages/epaper-components/package.json'), 'utf8'),
+) as {
   version: string;
 };
 
@@ -98,7 +100,7 @@ function sitePagesPlugin(opts: ContentOptions): Plugin {
         if (!route || !route.dir) return next();
         void (async () => {
           try {
-            const shell = readFileSync(resolve(__dirname, 'src/site/index.html'), 'utf8');
+            const shell = readFileSync(resolve(__dirname, 'src/index.html'), 'utf8');
             const html = await server.transformIndexHtml(route.path, shell, req.originalUrl);
             res.setHeader('Content-Type', 'text/html');
             res.end(html);
@@ -121,7 +123,7 @@ function sitePagesPlugin(opts: ContentOptions): Plugin {
     // Every page but the home page is written after the CSS/JS inlining
     // step, so hand their content over instead of writing HTML here.
     async closeBundle() {
-      const outDir = resolve(__dirname, 'dist-site');
+      const outDir = resolve(__dirname, '../../dist-site');
       const copied = await copyShots(opts.shots, outDir);
       console.log(`[site] component previews: copied ${copied} PNG(s) to dist-site/shots/`);
 
@@ -201,7 +203,7 @@ export default defineConfig(async () => {
   };
 
   return {
-    root: resolve(__dirname, 'src/site'),
+    root: resolve(__dirname, 'src'),
     // Root-absolute: the sub-pages live one directory deep and share the
     // home page's asset URLs, so a relative base would break them.
     base: process.env['VITE_SITE_BASE'] || '/',
@@ -211,12 +213,12 @@ export default defineConfig(async () => {
       open: true,
     },
     build: {
-      outDir: resolve(__dirname, 'dist-site'),
+      outDir: resolve(__dirname, '../../dist-site'),
       emptyOutDir: true,
       sourcemap: true,
       target: 'es2022',
       rollupOptions: {
-        input: resolve(__dirname, 'src/site/index.html'),
+        input: resolve(__dirname, 'src/index.html'),
       },
     },
   };

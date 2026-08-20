@@ -1,7 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { chromium, devices } from 'playwright';
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+const repoRoot = resolve(__dirname, '../../..');
 
 // `resolution` is the remote machine's screen size and is validated per OS by
 // BrowserStack: 1440x900 is on the Windows list but not the macOS one, so a
@@ -91,7 +95,7 @@ if (!dryRun) {
 
 const localBaseUrl = process.env.BROWSERSTACK_INDEX_URL ?? 'http://127.0.0.1:6006';
 const remoteBaseUrl = process.env.BROWSERSTACK_BASE_URL ?? 'http://localhost:6006';
-const outputDirectory = resolve('reports', 'browserstack', platformKey);
+const outputDirectory = resolve(repoRoot, 'reports', 'browserstack', platformKey);
 const screenshotDirectory = join(outputDirectory, 'screenshots');
 const storyTimeout = Number(process.env.BROWSERSTACK_STORY_TIMEOUT ?? 30_000);
 const retries = Number(process.env.BROWSERSTACK_STORY_RETRIES ?? 1);
@@ -150,7 +154,7 @@ const CONSUMED_BY_PARENT = new Set([
 ]);
 
 async function discoverRegisteredTags() {
-  const componentDirectory = resolve('src', 'components');
+  const componentDirectory = resolve(repoRoot, 'packages/epaper-components/src', 'components');
   const files = (await readdir(componentDirectory)).filter((file) => file.endsWith('.ts'));
   const tags = new Set();
 
@@ -177,7 +181,8 @@ async function discoverStories() {
 }
 
 function playwrightVersion() {
-  return JSON.parse(readFileSync(resolve('node_modules/playwright/package.json'), 'utf8')).version;
+  return JSON.parse(readFileSync(resolve(repoRoot, 'node_modules/playwright/package.json'), 'utf8'))
+    .version;
 }
 
 function capabilities(version) {

@@ -1,0 +1,15 @@
+{
+  "name": "epaper-sample-app",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Validates README.md's runtime and TypeScript claims against the built @marcomattes/epaper-components package. Not shipped.",
+  "type": "module",
+  "dependencies": {
+    "@marcomattes/epaper-components": "*"
+  },
+  "scripts": {
+    "validate": "node validate.mjs",
+    "validate-browserstack": "browserstack-node-sdk node validate.mjs",
+    "types-check": "tsc -p tsconfig.json"
+  }
+}

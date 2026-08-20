@@ -5,6 +5,10 @@ import process from 'node:process';
 // `## [x.y.z]` heading and the next `## ` heading. Used as the GitHub Release
 // notes by .github/workflows/release.yml. Exits 1 when the version has no
 // section yet so the workflow can fall back to generated notes.
+//
+// CHANGELOG.md lives at the repo root (not inside this package) so it stays
+// next to the root README for GitHub/SEO purposes; this is invoked with
+// CWD = repo root by release.yml, so a bare relative read finds it.
 
 const version = process.argv[2];
 if (!version) {

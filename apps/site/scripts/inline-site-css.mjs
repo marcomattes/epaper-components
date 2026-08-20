@@ -4,8 +4,10 @@
 // is a net win for FCP/LCP.
 import { readFile, writeFile, readdir, unlink } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const distDir = resolve(process.cwd(), 'dist-site');
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+const distDir = resolve(__dirname, '../../../dist-site');
 const htmlPath = join(distDir, 'index.html');
 const assetsDir = join(distDir, 'assets');
 

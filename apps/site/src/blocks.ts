@@ -16,7 +16,7 @@
 // and [links](…). It is passed through verbatim on the markdown side, and
 // expanded into markup on the HTML side *after* escaping, so an article can
 // never inject tags.
-import { esc } from '../core/dom';
+import { esc } from '../../../packages/epaper-components/src/core/dom';
 
 /** One node of an article body. */
 export type Block =

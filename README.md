@@ -80,7 +80,7 @@ primitives that survive 1-bit rendering:
 | Error    | 3px border + `--ink-hatch-error` fill                        |
 
 The hatch patterns are defined once in
-[src/styles/tokens.css](src/styles/tokens.css) and reused across every control,
+[src/styles/tokens.css](packages/epaper-components/src/styles/tokens.css) and reused across every control,
 so a disabled control reads as disabled at any refresh depth:
 
 ```css
@@ -101,7 +101,7 @@ partial refresh.
 
 Components therefore render once in `connectedCallback`, guarded by a `_wired`
 flag against double initialisation, and afterwards mutate through four typed
-patch helpers in [src/core/dom.ts](src/core/dom.ts). Each helper compares the
+patch helpers in [src/core/dom.ts](packages/epaper-components/src/core/dom.ts). Each helper compares the
 incoming value against the current one and returns early when they match:
 
 ```ts
@@ -143,7 +143,7 @@ expects:
 ### Form-associated controls
 
 Thirteen interactive components extend `BaseFormControl`
-([src/core/base-form-control.ts](src/core/base-form-control.ts)), which sets
+([src/core/base-form-control.ts](packages/epaper-components/src/core/base-form-control.ts)), which sets
 `static formAssociated = true` and wires `ElementInternals` so that the control
 participates in `FormData`, `form.reset()` and constraint validation without
 additional JavaScript:
@@ -172,7 +172,7 @@ refresh. The token layer sets minimum weights accordingly:
 --ink-focus-width: 3px; /* focus ring */
 ```
 
-The 41 icons in [src/core/icons.ts](src/core/icons.ts) are rendered as stroked
+The 41 icons in [src/core/icons.ts](packages/epaper-components/src/core/icons.ts) are rendered as stroked
 paths with `stroke-width="2" fill="none" stroke-linecap="square" stroke-linejoin="miter"`.
 Filled shapes are avoided below 32px because they dither visibly on Kaleido
 panels, and square caps avoid the rounded endpoint artifacts that remain
@@ -208,7 +208,7 @@ both would be resolved through dithering:
 --kaleido-blue: #1e4fb8;
 ```
 
-`<e-kaleido>` ([src/components/kaleido.ts](src/components/kaleido.ts)) is a
+`<e-kaleido>` ([src/components/kaleido.ts](packages/epaper-components/src/components/kaleido.ts)) is a
 diagnostic component that renders those colors alongside a Bayer-8 dithered
 preview, so a swatch can be evaluated against its likely hardware rendering
 before it ships.
@@ -342,7 +342,7 @@ Two distributions of the same three layers ship in the package:
 | `@marcomattes/epaper-components/components.min.css`            | `dist/styles/components.min.css`           | Standalone minified component CSS.       |
 
 The minified files are produced by [Lightning CSS](https://lightningcss.dev/)
-(see [scripts/build-css.mjs](scripts/build-css.mjs)) during `npm run build`, and
+(see [scripts/build-css.mjs](packages/epaper-components/scripts/build-css.mjs)) during `npm run build`, and
 each one ships with a sibling `*.min.css.map`. Importing the unminified sources
 keeps them readable and allows them to pass through a consumer's own CSS
 pipeline.
