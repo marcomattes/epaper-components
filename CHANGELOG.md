@@ -9,6 +9,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Changed
 
+- CI no longer runs the BrowserStack cross-browser matrix or triggers an
+  automatic `dev`-channel npm publish for pushes and pull requests that only
+  touch the marketing site (`src/site/`, `vite.site.config.ts`, its build
+  scripts) — that code never ships in the npm package and isn't exercised by
+  the component test matrix, so it only needed the local quality/test/build
+  gate and its own FTP deploy, both of which still run unchanged.
 - Playwright bumped from 1.59.1 to 1.62.1 (`package.json`, `package-lock.json`),
   with the dev container and every CI job that pins the matching
   `mcr.microsoft.com/playwright` image (`ci.yml`, `visual-baselines.yml`)

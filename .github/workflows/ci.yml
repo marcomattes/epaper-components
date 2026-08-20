@@ -221,9 +221,69 @@ jobs:
           args: >
             -Dsonar.qualitygate.wait=true
 
+  # No `needs`, so this runs in parallel with quality/tests/build/sonar
+  # instead of adding latency in front of them. Left unconditional at the job
+  # level (only its steps are conditional) so it always reports `success` —
+  # a skipped *job* would cascade into skipping browserstack/preview/deploy
+  # below too, which is not what a website-only change should do to preview
+  # and deploy.
+  changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      website_only: ${{ steps.filter.outputs.website_only }}
+    steps:
+      - name: Checkout
+        if: github.event_name != 'workflow_call'
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # The marketing site (src/site/, its Vite config and its build scripts)
+      # ships to epaper-components.dev, never to npm, and none of it is
+      # exercised by the BrowserStack component matrix — so a push or pull
+      # request touching only those paths can skip both safely. Skipped
+      # entirely for the tag-release path (workflow_call from release.yml):
+      # a release always gets the full gate, whatever the tag touches.
+      - name: Determine changed paths
+        id: filter
+        if: github.event_name != 'workflow_call'
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            HEAD="${{ github.event.pull_request.head.sha }}"
+          else
+            BASE="${{ github.event.before }}"
+            HEAD="${{ github.event.after }}"
+          fi
+
+          # A force-push or a newly created branch has no prior commit to
+          # diff against (`before` is the all-zero SHA) — fall back to
+          # running every gate rather than guessing what changed.
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+            echo "website_only=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          CHANGED="$(git diff --name-only "$BASE" "$HEAD")"
+          echo "$CHANGED"
+
+          if [ -z "$CHANGED" ] || echo "$CHANGED" | grep -vE '^(src/site/|vite\.site\.config\.ts$|scripts/(build-site-routes|inline-site-css|site-template|site-shots|github-stars)\.mjs$)' | grep -q .; then
+            echo "website_only=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "website_only=true" >> "$GITHUB_OUTPUT"
+          fi
+
   browserstack:
     name: BrowserStack
-    needs: sonar
+    needs: [sonar, changes]
+    # Website-only changes (see the `changes` job above) never touch
+    # component code, so there is nothing for the BrowserStack matrix to catch.
+    if: needs.changes.outputs.website_only != 'true'
     permissions:
       contents: read
     uses: ./.github/workflows/browserstack.yml
@@ -237,7 +297,14 @@ jobs:
   preview:
     name: PR preview
     needs: browserstack
+    # `always()` plus the explicit result check: a website-only skip of
+    # `browserstack` above is a *skip*, not a failure, and must not cascade
+    # into skipping the preview deploy — only a real browserstack failure
+    # should block it.
     if: >-
+      always() &&
+      needs.browserstack.result != 'failure' &&
+      needs.browserstack.result != 'cancelled' &&
       github.event_name == 'pull_request' &&
       github.event.action != 'closed' &&
       github.event.pull_request.head.repo.full_name == github.repository
@@ -250,7 +317,13 @@ jobs:
   deploy:
     name: Deploy site and Storybook
     needs: browserstack
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Same reasoning as `preview` above: don't let a website-only browserstack
+    # skip block the site deploy that website change was meant to publish.
+    if: >-
+      always() &&
+      needs.browserstack.result != 'failure' &&
+      needs.browserstack.result != 'cancelled' &&
+      github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       contents: read
     uses: ./.github/workflows/deploy.yml

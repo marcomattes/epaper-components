@@ -69,10 +69,12 @@ Create these repository Actions secrets:
 
 `.github/workflows/ci.yml` calls `.github/workflows/browserstack.yml` after the
 local quality, test, and build stages for every pull request and every push to
-`main`. Fork pull requests do not receive repository secrets, so the workflow
-reports a notice and skips the remote matrix for those runs. It never uses
-`pull_request_target` and therefore never exposes BrowserStack credentials to
-untrusted fork code.
+`main` — except when the change only touches the marketing site (`src/site/`,
+`vite.site.config.ts`, its build scripts; see the `changes` job in `ci.yml`),
+which the component matrix can't exercise anyway and so is skipped. Fork pull
+requests do not receive repository secrets, so the workflow reports a notice
+and skips the remote matrix for those runs. It never uses `pull_request_target`
+and therefore never exposes BrowserStack credentials to untrusted fork code.
 
 Each matrix job builds a static Storybook, starts an isolated BrowserStack Local
 tunnel, runs all stories in one remote session, and retries that complete remote
