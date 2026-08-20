@@ -45,7 +45,7 @@ const OG_IMAGE_H = 630;
 
 /** JSON-LD needs to survive inside <script>; only "</" is dangerous there. */
 function jsonLd(data: unknown): string {
-  const json = JSON.stringify(data, null, 2).replace(/<\//g, '<\\/');
+  const json = JSON.stringify(data, null, 2).replaceAll('</', String.raw`<\/`);
   return `<script type="application/ld+json">\n${json}\n</script>`;
 }
 
@@ -132,10 +132,10 @@ function shotImage(
  */
 function plainText(text: string): string {
   return text
-    .replace(/`([^`]+)`/g, '$1')
-    .replace(/\*\*([^*]+)\*\*/g, '$1')
-    .replace(/\*([^*]+)\*/g, '$1')
-    .replace(/\[([^\]]+)\]\([^)\s]+\)/g, '$1');
+    .replace(/`([^`]{1,300})`/g, '$1')
+    .replace(/\*\*([^*]{1,300})\*\*/g, '$1')
+    .replace(/\*([^*]{1,300})\*/g, '$1')
+    .replace(/\[([^\]]{1,300})\]\([^)\s]{1,2000}\)/g, '$1');
 }
 
 /** Rough word count of an article body, for `wordCount` in the schema. */
@@ -258,14 +258,19 @@ function routeGraph(
           '@type': 'ItemList',
           name: `EPaper components (${COMPONENTS.length})`,
           numberOfItems: COMPONENTS.length,
-          itemListElement: COMPONENTS.map((c, i) => ({
-            '@type': 'ListItem',
-            position: i + 1,
-            name: c.name,
-            description: `<${c.tag}> — ${c.category} component, importable as ${PACKAGE_NAME}/${c.tag.replace(/^e-/, '')}`,
-            url: `${storybookBase}/?path=/docs/${`${c.category}-${c.name}`.toLowerCase().replace(/[^a-z0-9-]+/g, '-')}--docs`,
-            image: shotImage(c, shots),
-          })),
+          itemListElement: COMPONENTS.map((c, i) => {
+            const storybookSlug = `${c.category}-${c.name}`
+              .toLowerCase()
+              .replace(/[^a-z0-9-]+/g, '-');
+            return {
+              '@type': 'ListItem',
+              position: i + 1,
+              name: c.name,
+              description: `<${c.tag}> — ${c.category} component, importable as ${PACKAGE_NAME}/${c.tag.replace(/^e-/, '')}`,
+              url: `${storybookBase}/?path=/docs/${storybookSlug}--docs`,
+              image: shotImage(c, shots),
+            };
+          }),
         },
       ];
     case 'install':
@@ -305,7 +310,7 @@ function routeGraph(
 /** Markdown companion route for one HTML path (e.g. /install/ -> /install.md). */
 export function markdownRoutePath(path: string): string {
   if (path === '/') return '/index.md';
-  const slug = path.replace(/^\/+|\/+$/g, '');
+  const slug = path.replace(/^\/+/, '').replace(/\/+$/, '');
   return `/${slug}.md`;
 }
 
@@ -515,14 +520,13 @@ export function headHtml(
   // timestamps and the section/tag fields. The core pages stay `website`.
   const article = route.article;
   const ogType = article ? 'article' : 'website';
+  const articleSection = article?.kind === 'recipe' ? 'Recipes' : 'Guides';
   const articleMeta = article
     ? `
     <meta property="article:published_time" content="${esc(article.published)}" />
     <meta property="article:modified_time" content="${esc(article.updated)}" />
     <meta property="article:author" content="Marco Mattes" />
-    <meta property="article:section" content="${esc(
-      article.kind === 'recipe' ? 'Recipes' : 'Guides',
-    )}" />${article.topics
+    <meta property="article:section" content="${esc(articleSection)}" />${article.topics
       .map((t) => `\n    <meta property="article:tag" content="${esc(t)}" />`)
       .join('')}`
     : '';
@@ -560,11 +564,16 @@ export function headHtml(
  * crawler to ignore the field; a date that only moves when the text moves is
  * the one worth sending.
  */
+function routePriority(r: Route): string {
+  if (r.dir === '') return '1.0';
+  return r.article ? '0.7' : '0.8';
+}
+
 export function sitemapXml(lastmod: string): string {
   const urls = ALL_ROUTES.map((r) => {
     const changed = r.article ? r.article.updated : lastmod;
     const freq = r.article ? 'monthly' : 'weekly';
-    const priority = r.dir === '' ? '1.0' : r.article ? '0.7' : '0.8';
+    const priority = routePriority(r);
     return `  <url>
     <loc>${absoluteUrl(r.path)}</loc>
     <lastmod>${changed}</lastmod>

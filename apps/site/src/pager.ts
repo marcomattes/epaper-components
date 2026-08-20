@@ -49,7 +49,7 @@ export class ESitePager extends HTMLElement {
     return true;
   }
 
-  private _onKey = (e: KeyboardEvent): void => {
+  private readonly _onKey = (e: KeyboardEvent): void => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     // Ignore keys while typing in form fields.
     const t = e.target as Element | null;

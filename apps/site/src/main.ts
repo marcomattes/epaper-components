@@ -10,8 +10,10 @@ import '../../../packages/epaper-components/src/styles/base.css';
 import '../../../packages/epaper-components/src/styles/components.css';
 import './site.css';
 // Imported as a value, not just for its side effect: the bundler would
-// otherwise elide the module and leave <e-site-pager> unregistered.
-import { ESitePager } from './pager';
+// otherwise elide the module and leave <e-site-pager> unregistered. The
+// underscore prefix marks it deliberately unused so the reference alone
+// (not a `void` expression) is what keeps the import alive.
+import { ESitePager as _ESitePager } from './pager';
 import { esc } from '../../../packages/epaper-components/src/core/dom';
 import { type ComponentCategory } from './data';
 
@@ -60,9 +62,6 @@ function wireChrome(): void {
   // start out beyond its right edge.
   const current = $<HTMLAnchorElement>('#site-nav a[aria-current="page"]');
   current?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-
-  // Registers the key bindings. The element is inert until it upgrades.
-  void ESitePager;
 }
 
 /* --------------------------------------------------------------------- *
@@ -119,7 +118,8 @@ function wireShowcase(): void {
   tabs.addEventListener('e-submit', (e) => {
     const form = (e as CustomEvent<{ form: HTMLFormElement }>).detail.form;
     if (!result) return;
-    const name = String(new FormData(form).get('name') || '(unnamed)');
+    const rawName = new FormData(form).get('name');
+    const name = typeof rawName === 'string' && rawName ? rawName : '(unnamed)';
     result.innerHTML = `<e-result status="success"
         title="Thanks, ${esc(name)}"
         description="Your form was captured locally."></e-result>`;

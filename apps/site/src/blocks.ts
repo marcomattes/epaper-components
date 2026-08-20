@@ -59,8 +59,8 @@ function formatRun(run: string): string {
       // The href was escaped along with everything else, so an `&` in a query
       // string is `&amp;` by now. It is unescaped for the safety check and
       // then re-escaped as an attribute value.
-      .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_m, label: string, href: string) => {
-        const url = assertSafeHref(href.replace(/&amp;/g, '&'));
+      .replace(/\[([^\]]{1,300})\]\(([^)\s]{1,2000})\)/g, (_m, label: string, href: string) => {
+        const url = assertSafeHref(href.replaceAll('&amp;', '&'));
         const rel = /^https?:\/\//i.test(url) ? ' rel="noopener"' : '';
         return `<a class="ink-link" href="${esc(url)}"${rel}>${label}</a>`;
       })
@@ -80,40 +80,48 @@ function formatRun(run: string): string {
  * Alternation order matters: `**` must be offered before `*`, or every bold
  * marker would be consumed as two empty italics.
  */
-export function inlineHtml(text: string): string {
-  let out = '';
-  let bold = false;
-  let italic = false;
+interface InlineState {
+  bold: boolean;
+  italic: boolean;
+}
 
-  for (const token of text.split(/(`[^`]+`|\*\*|\*)/g)) {
-    if (token === '') continue;
-
-    if (token === '**') {
-      out += bold ? '</strong>' : '<strong>';
-      bold = !bold;
-    } else if (token === '*') {
-      out += italic ? '</em>' : '<em>';
-      italic = !italic;
-    } else if (token.length > 1 && token.startsWith('`') && token.endsWith('`')) {
-      out += `<code>${esc(token.slice(1, -1))}</code>`;
-    } else {
-      out += formatRun(token);
-    }
+/** Render a single token from the emphasis token stream, mutating the running toggle state. */
+function renderInlineToken(token: string, state: InlineState): string {
+  if (token === '**') {
+    state.bold = !state.bold;
+    return state.bold ? '<strong>' : '</strong>';
   }
+  if (token === '*') {
+    state.italic = !state.italic;
+    return state.italic ? '<em>' : '</em>';
+  }
+  if (token.length > 1 && token.startsWith('`') && token.endsWith('`')) {
+    return `<code>${esc(token.slice(1, -1))}</code>`;
+  }
+  return formatRun(token);
+}
+
+export function inlineHtml(text: string): string {
+  const state: InlineState = { bold: false, italic: false };
+  const out = text
+    .split(/(`[^`]+`|\*\*|\*)/g)
+    .filter((token) => token !== '')
+    .map((token) => renderInlineToken(token, state))
+    .join('');
 
   // An unclosed marker would emit unbalanced tags into the page. Like a bad
   // link target, that is an authoring mistake worth failing the build for
   // rather than shipping — the markdown projection would still look correct,
   // so it is exactly the kind of defect nobody notices by reading.
-  if (bold || italic) {
-    throw new Error(`blocks: unbalanced ${bold ? '**' : '*'} in ${JSON.stringify(text)}`);
+  if (state.bold || state.italic) {
+    throw new Error(`blocks: unbalanced ${state.bold ? '**' : '*'} in ${JSON.stringify(text)}`);
   }
   return out;
 }
 
 /** The inline subset is already markdown — only the safety check applies. */
 function inlineMarkdown(text: string): string {
-  for (const match of text.matchAll(/\[[^\]]+\]\(([^)\s]+)\)/g)) {
+  for (const match of text.matchAll(/\[[^\]]{1,300}\]\(([^)\s]{1,2000})\)/g)) {
     assertSafeHref(match[1] ?? '');
   }
   return text;
@@ -133,9 +141,10 @@ function inlineMarkdown(text: string): string {
 export function headingId(text: string): string {
   return text
     .toLowerCase()
-    .replace(/`/g, '')
+    .replaceAll('`', '')
     .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .replace(/^-+/, '')
+    .replace(/-+$/, '');
 }
 
 /** The `h2` headings of a body, in order — the article's table of contents. */
