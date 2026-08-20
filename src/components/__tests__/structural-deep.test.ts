@@ -579,44 +579,49 @@ describe('e-icon', () => {
     expect(unknown.style.display).toBe('');
   });
 
-  it('QUIRK: the inline display/lineHeight styles are never cleared once set', () => {
+  it('clears the inline display/lineHeight styles when the name stops resolving', () => {
     const el = mount('<e-icon name="plus"></e-icon>');
     expect(el.style.display).toBe('inline-flex');
     el.setAttribute('name', 'nope');
     expect(el.innerHTML).toBe('');
+    expect(el.style.display).toBe('');
+    expect(el.style.lineHeight).toBe('');
+    el.setAttribute('name', 'plus');
     expect(el.style.display).toBe('inline-flex');
     expect(el.style.lineHeight).toBe('0');
   });
 
-  it('QUIRK: `name in ICONS` walks the prototype chain, so "toString" renders a garbage svg', () => {
+  it('renders nothing for an inherited Object.prototype name such as "toString"', () => {
     const el = mount('<e-icon name="toString"></e-icon>');
-    const path = el.querySelector('path');
-    expect(path).not.toBeNull();
-    expect(path!.getAttribute('d')).toContain('native code');
-    expect(el.style.display).toBe('inline-flex');
+    expect(el.innerHTML).toBe('');
+    expect(el.querySelector('svg')).toBeNull();
+    expect(el.style.display).toBe('');
   });
 
-  it('QUIRK: the same prototype hole lets "constructor" and "hasOwnProperty" through', () => {
-    for (const name of ['constructor', 'hasOwnProperty', 'valueOf']) {
+  it('rejects every other inherited prototype name too', () => {
+    for (const name of ['constructor', 'hasOwnProperty', 'valueOf', '__proto__']) {
       const el = mount(`<e-icon name="${name}"></e-icon>`);
-      expect(el.querySelector('svg')).not.toBeNull();
-      expect(el.querySelector('path')!.getAttribute('d')).toContain('native code');
+      expect(el.innerHTML).toBe('');
+      expect(el.querySelector('svg')).toBeNull();
     }
   });
 
-  it('QUIRK: size uses numAttr, so a fraction survives instead of falling back', () => {
+  it('keeps a fractional size instead of falling back', () => {
     const el = mount('<e-icon name="plus" size="12.5"></e-icon>');
     expect(el.querySelector('svg')!.getAttribute('width')).toBe('12.5');
     expect(el.querySelector('svg')!.getAttribute('height')).toBe('12.5');
   });
 
-  it('falls back to size 20 for a non-numeric or empty size and emits a negative one verbatim', () => {
+  it('falls back to size 20 for a non-numeric or empty size and clamps below 1', () => {
     const el = mount('<e-icon name="plus" size="abc"></e-icon>');
     expect(el.querySelector('svg')!.getAttribute('width')).toBe('20');
     el.setAttribute('size', '');
     expect(el.querySelector('svg')!.getAttribute('width')).toBe('20');
     el.setAttribute('size', '-5');
-    expect(el.querySelector('svg')!.getAttribute('width')).toBe('-5');
+    expect(el.querySelector('svg')!.getAttribute('width')).toBe('1');
+    expect(el.querySelector('svg')!.getAttribute('height')).toBe('1');
+    el.setAttribute('size', '0');
+    expect(el.querySelector('svg')!.getAttribute('width')).toBe('1');
     el.setAttribute('size', '32');
     expect(el.querySelector('svg')!.getAttribute('width')).toBe('32');
     el.removeAttribute('size');
@@ -1014,15 +1019,16 @@ describe('e-form-item', () => {
     expect(el.querySelector('.ink-form-item__required')).toBeNull();
   });
 
-  it('QUIRK: no required pill can exist without a label (early return in _syncLabel)', () => {
+  it('anchors the pill to the label: no label, no pill — but the control still gets required', () => {
     const el = mount('<e-form-item required><e-input></e-input></e-form-item>');
     expect(el.querySelector('.ink-form-item__required')).toBeNull();
     expect(el.querySelector('.ink-form-item__label')).toBeNull();
-    // Losing the label also loses the pill.
+    expect(el.querySelector('e-input')!.hasAttribute('required')).toBe(true);
     el.setAttribute('label', 'Name');
     expect(el.querySelector('.ink-form-item__required')).not.toBeNull();
     el.removeAttribute('label');
     expect(el.querySelector('.ink-form-item__required')).toBeNull();
+    expect(el.querySelector('e-input')!.hasAttribute('required')).toBe(true);
   });
 
   it('renders the hint below the control', () => {
@@ -1086,7 +1092,7 @@ describe('e-form-item', () => {
     expect(control.hasAttribute('aria-label')).toBe(false);
   });
 
-  it('QUIRK: an author-supplied aria-label is never overwritten', () => {
+  it('leaves an author-supplied aria-label alone', () => {
     const el = mount(
       '<e-form-item label="Name"><e-input aria-label="Author choice"></e-input></e-form-item>',
     );
@@ -1106,7 +1112,7 @@ describe('e-form-item', () => {
     expect(control.hasAttribute('required')).toBe(false);
   });
 
-  it('QUIRK: an author-supplied required is never claimed and so never removed', () => {
+  it('leaves an author-supplied required alone, so it survives the form-item dropping its own', () => {
     const el = mount(
       '<e-form-item label="Name" required><e-input required></e-input></e-form-item>',
     );
@@ -1135,13 +1141,45 @@ describe('e-form-item', () => {
     expect(control.getAttribute('error-message')).toBe('Bad');
   });
 
-  it('QUIRK: an author-set error on an e-input is stripped when the form-item has none', () => {
+  it('leaves an author-set error on an e-input alone when the form-item has none', () => {
     const el = mount(
       '<e-form-item label="Name"><e-input error error-message="mine"></e-input></e-form-item>',
     );
     const control = el.querySelector('e-input')!;
-    expect(control.hasAttribute('error')).toBe(false);
-    expect(control.hasAttribute('error-message')).toBe(false);
+    expect(control.hasAttribute('error')).toBe(true);
+    expect(control.getAttribute('error-message')).toBe('mine');
+    // The form-item never claimed it, so its own error churn leaves it intact.
+    el.setAttribute('error', 'Nope');
+    expect(control.getAttribute('error-message')).toBe('mine');
+    el.removeAttribute('error');
+    expect(control.getAttribute('error-message')).toBe('mine');
+  });
+
+  it('resets attribute ownership when the resolved control is swapped out', () => {
+    const el = mount(
+      '<e-form-item label="Name" required error="Bad"><e-input></e-input></e-form-item>',
+    );
+    const first = el.querySelector('e-input')!;
+    expect(first.getAttribute('aria-label')).toBe('Name');
+    expect(first.getAttribute('error-message')).toBe('Bad');
+
+    const wrap = el.querySelector('[data-control]')!;
+    const second = document.createElement('e-input');
+    second.setAttribute('aria-label', 'Author choice');
+    second.setAttribute('required', '');
+    second.setAttribute('error', '');
+    second.setAttribute('error-message', 'mine');
+    first.remove();
+    wrap.appendChild(second);
+
+    // The new control is unowned, so nothing this component wrote on the old
+    // one carries over onto the author's attributes.
+    el.removeAttribute('error');
+    el.removeAttribute('required');
+    el.removeAttribute('label');
+    expect(second.getAttribute('aria-label')).toBe('Author choice');
+    expect(second.hasAttribute('required')).toBe(true);
+    expect(second.getAttribute('error-message')).toBe('mine');
   });
 
   it('never puts error attributes on a non-input control', () => {
@@ -1331,9 +1369,6 @@ describe('e-layout-sider', () => {
 
 /* ===================================================================== *
  * e-kaleido
- *
- * NEVER set cell="0": Math.ceil(88 / 0) === Infinity, and paintDither has no
- * guard, so the nested loops never terminate and the browser hangs.
  * ===================================================================== */
 
 describe('e-kaleido', () => {
@@ -1389,14 +1424,22 @@ describe('e-kaleido', () => {
     expect(pixel(byHex('#1E4FB8'))).toEqual([30, 79, 184, 255]);
   });
 
-  it('a negative cell makes the dither loops no-ops, leaving chromatic swatches white', () => {
-    const el = mount('<e-kaleido cell="-1"></e-kaleido>');
-    const red = el.querySelector<HTMLCanvasElement>('canvas[data-color="#D11A1A"]')!;
-    expect(pixel(red)).toEqual([255, 255, 255, 255]);
+  it('clamps cell into 1..88, so zero and negative values still dither', () => {
+    const red = (el: HTMLElement): HTMLCanvasElement =>
+      el.querySelector<HTMLCanvasElement>('canvas[data-color="#D11A1A"]')!;
+    // cell="0" would make Math.ceil(88 / cell) Infinity without the clamp.
+    const zero = mount('<e-kaleido cell="0"></e-kaleido>');
+    expect(pixel(red(zero))).toEqual([209, 26, 26, 255]);
+    const negative = mount('<e-kaleido cell="-1"></e-kaleido>');
+    expect(pixel(red(negative))).toEqual([209, 26, 26, 255]);
     // The two early-return colors are unaffected by cell.
-    expect(pixel(el.querySelector<HTMLCanvasElement>('canvas[data-color="#000000"]')!)).toEqual([
-      0, 0, 0, 255,
-    ]);
+    expect(
+      pixel(negative.querySelector<HTMLCanvasElement>('canvas[data-color="#000000"]')!),
+    ).toEqual([0, 0, 0, 255]);
+    // Above the swatch edge the clamp leaves a single cell covering the canvas.
+    const huge = mount('<e-kaleido cell="500"></e-kaleido>');
+    expect(pixel(red(huge))).toEqual([209, 26, 26, 255]);
+    expect(pixel(red(huge), 87, 87)).toEqual([209, 26, 26, 255]);
   });
 
   it('re-renders destructively when cell changes after mount', () => {
@@ -1482,11 +1525,13 @@ describe('e-watermark', () => {
     expect(layer(el).style.backgroundImage).toBe('');
   });
 
-  it('QUIRK: clearing the content leaves a stale backgroundSize behind', () => {
+  it('clears the backgroundSize alongside the image when the content goes away', () => {
     const el = mount('<e-watermark content="DRAFT" gap-x="300" gap-y="200"></e-watermark>');
     expect(layer(el).style.backgroundSize).toBe('300px 200px');
     el.setAttribute('content', '');
     expect(layer(el).style.backgroundImage).toBe('');
+    expect(layer(el).style.backgroundSize).toBe('');
+    el.setAttribute('content', 'DRAFT');
     expect(layer(el).style.backgroundSize).toBe('300px 200px');
   });
 
@@ -1995,9 +2040,17 @@ describe('e-description-list', () => {
     el.setAttribute('layout', 'VERTICAL');
     expect(dl.className).toBe('ink-desc-list ink-desc-list--horizontal');
     el.setAttribute('bordered', 'false');
-    // `bordered` is read with hasAttribute, not boolAttr — "false" still counts.
+    expect(dl.className).toBe('ink-desc-list ink-desc-list--horizontal');
+    el.setAttribute('bordered', 'yes');
     expect(dl.className).toBe('ink-desc-list ink-desc-list--horizontal ink-desc-list--bordered');
     expect(el.querySelector('dl')).toBe(dl);
+  });
+
+  it('treats bordered="false" as off at mount time too', () => {
+    const el = mount(
+      '<e-description-list bordered="false"><e-desc-item term="a">1</e-desc-item></e-description-list>',
+    );
+    expect(el.querySelector('dl')!.className).toBe('ink-desc-list ink-desc-list--horizontal');
   });
 
   it('defaults a missing term to an empty dt', () => {

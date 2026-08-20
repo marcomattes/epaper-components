@@ -753,17 +753,16 @@ describe('e-tabs', () => {
     expect(buttons[1]!.querySelector('e-badge')!.hasAttribute('inverted')).toBe(true);
   });
 
-  it('leaves nothing selected when default-value names no tab', () => {
-    const el = mount(markup('default-value="zzz"'));
-    // The `|| tabs[0].key` fallback only covers an absent default-value, so a
-    // key that matches nothing selects nothing: no panel is shown and no tab
-    // keeps a tab stop until something is clicked.
-    expect(tabButtons(el).every((b) => b.getAttribute('aria-selected') === 'false')).toBe(true);
-    expect(tabButtons(el).every((b) => b.tabIndex === -1)).toBe(true);
-    expect(panelFor(el, 'a').hidden).toBe(true);
-    // Clicking recovers, which is the only way back into the strip.
-    tabButtons(el)[0]!.click();
-    expect(panelFor(el, 'a').hidden).toBe(false);
+  it('falls back to the first tab when default-value names no tab', () => {
+    for (const attrs of ['default-value="zzz"', 'default-value=""']) {
+      const el = mount(markup(attrs));
+      const buttons = tabButtons(el);
+      expect(buttons[0]!.getAttribute('aria-selected')).toBe('true');
+      expect(buttons.filter((b) => b.tabIndex === 0)).toHaveLength(1);
+      expect(buttons[0]!.tabIndex).toBe(0);
+      expect(panelFor(el, 'a').hidden).toBe(false);
+      expect(panelFor(el, 'b').hidden).toBe(true);
+    }
   });
 
   it('switches on click and reports the new key through e-change', () => {
@@ -1138,22 +1137,28 @@ describe('e-float-button', () => {
     expect(btn.getAttribute('aria-label')).toBe('trash');
   });
 
-  it('does nothing when the icon attribute changes to the value already rendered', () => {
+  it('re-resolves the label without re-rendering an unchanged glyph', () => {
     const el = mount(`<e-float-button icon="plus" label="Add"></e-float-button>`);
     const btn = buttonOf(el);
-    const before = btn.innerHTML;
-    // Removing `icon` re-resolves to the same 'plus' default, so the whole
-    // branch short-circuits and even the label is left untouched.
+    const glyph = btn.firstElementChild;
+    // Removing `icon` re-resolves to the same 'plus' default: the glyph node
+    // keeps its identity while the label still tracks the current attributes.
     el.removeAttribute('icon');
-    expect(btn.innerHTML).toBe(before);
+    expect(btn.firstElementChild).toBe(glyph);
     expect(btn.getAttribute('aria-label')).toBe('Add');
+    el.removeAttribute('label');
+    expect(btn.firstElementChild).toBe(glyph);
+    expect(btn.getAttribute('aria-label')).toBe('plus');
   });
 
-  it('keeps an aria-label after the label attribute is removed', () => {
+  it('falls back to the icon name when the label attribute is removed', () => {
     const el = mount(`<e-float-button icon="trash" label="Delete"></e-float-button>`);
     const btn = buttonOf(el);
     el.setAttribute('label', 'Remove');
     expect(btn.getAttribute('aria-label')).toBe('Remove');
+    el.setAttribute('label', '');
+    expect(btn.getAttribute('aria-label')).toBe('trash');
+    el.setAttribute('label', 'Remove');
     el.removeAttribute('label');
     expect(btn.getAttribute('aria-label')).toBe('trash');
   });

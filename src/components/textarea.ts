@@ -12,7 +12,7 @@ import { BaseFormControl } from '../core/base-form-control';
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
  * @attr {boolean} [error] - Marks the textarea as invalid. Sets `aria-invalid="true"` and a custom `ElementInternals` validity error so `form.checkValidity()` returns `false`.
  * @attr {string} [error-message] - Message reported to `ElementInternals.setValidity` when `error` is set. Defaults to "Invalid value.".
- * @attr {boolean} [disabled] - Disables interaction.
+ * @attr {boolean} [disabled] - Disables interaction. Presence alone disables, per the HTML spec for form-associated elements — `disabled="false"` still disables.
  * @attr {boolean} [readonly] - Renders as a non-editable read-only textarea. Still submitted with the form.
  * @attr {boolean} [required] - Requires a non-empty value for form validation.
  * @attr {string} [required-message] - Overrides the native message reported when `required` is not satisfied.
@@ -58,7 +58,10 @@ export class ETextarea extends BaseFormControl {
     const placeholder = this.getAttribute('placeholder') || '';
     const ariaLabel = this.getAttribute('aria-label') || '';
     const error = boolAttr(this, 'error');
-    const disabled = boolAttr(this, 'disabled');
+    // The HTML spec, not the library's `x="false"` convention, governs
+    // `disabled` on a form-associated element: presence alone disables, and
+    // that is what the browser reports through `formDisabledCallback`.
+    const disabled = this.hasAttribute('disabled');
     const readonly = boolAttr(this, 'readonly');
     const required = boolAttr(this, 'required');
     this.innerHTML = `<textarea class="ink-control" placeholder="${esc(placeholder)}"
@@ -108,7 +111,9 @@ export class ETextarea extends BaseFormControl {
       else this._ta.removeAttribute('aria-label');
     }
     if (name === 'error' || name === 'error-message') this._syncValidity();
-    if (name === 'disabled') this._ta.disabled = boolAttr(this, 'disabled') || this._formDisabled;
+    // Presence alone disables — the HTML spec governs `disabled` here.
+    if (name === 'disabled')
+      this._ta.disabled = this.hasAttribute('disabled') || this._formDisabled;
     if (name === 'readonly') this._ta.readOnly = boolAttr(this, 'readonly');
     if (name === 'placeholder') this._ta.placeholder = v ?? '';
     if (name === 'required' || name === 'required-message') {
@@ -150,8 +155,10 @@ export class ETextarea extends BaseFormControl {
     if (!customMessage && this._ta.validity.valueMissing) {
       const message = this.getAttribute('required-message');
       if (message) {
+        // Only the message differs from the native one; when the violation is
+        // shown stays with the base class's deferred-validation gate.
         this.internals.setValidity({ valueMissing: true }, message, this._ta);
-        this._ta.setAttribute('aria-invalid', 'true');
+        this._markInvalid(this._ta);
         return;
       }
     }
@@ -165,7 +172,8 @@ export class ETextarea extends BaseFormControl {
   }
 
   protected override formDisabledChanged(): void {
-    if (this._ta) this._ta.disabled = boolAttr(this, 'disabled') || this._formDisabled;
+    // Presence alone disables — the HTML spec governs `disabled` here.
+    if (this._ta) this._ta.disabled = this.hasAttribute('disabled') || this._formDisabled;
   }
 }
 

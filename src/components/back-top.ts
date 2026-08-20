@@ -1,4 +1,13 @@
-import { addCleanup, define, esc, numAttr, onGlobal, patchAttr, runCleanups } from '../core/dom';
+import {
+  addCleanup,
+  define,
+  esc,
+  numAttr,
+  onGlobal,
+  patchAttr,
+  removeCleanup,
+  runCleanups,
+} from '../core/dom';
 import { iconSvg } from '../core/icons';
 
 /**
@@ -58,6 +67,7 @@ export class EBackTop extends HTMLElement {
 
   disconnectedCallback() {
     runCleanups(this);
+    this._removeScrollListener = null;
   }
 
   private _resolveTarget(): void {
@@ -74,7 +84,13 @@ export class EBackTop extends HTMLElement {
   }
 
   private _bindScrollTarget(): void {
-    this._removeScrollListener?.();
+    // Detach the previous listener and drop its cleanup entry, so re-pointing
+    // `target` replaces the registration instead of stacking a new one.
+    if (this._removeScrollListener) {
+      this._removeScrollListener();
+      removeCleanup(this, this._removeScrollListener);
+      this._removeScrollListener = null;
+    }
     const target = this._scrollTarget;
     if (target === window) {
       this._removeScrollListener = onGlobal(this, window, 'scroll', this._update, {

@@ -91,6 +91,108 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   entry below: keyboard navigation in compound pickers was already listed
   under "Added", and `<e-input>`/`<e-textarea>` do call
   `internals.setValidity()` via `mirrorNativeValidity()`.
+- `<e-tabs>`: a `default-value` naming a tab that doesn't exist left the
+  whole strip inert — every button `aria-selected="false"` *and*
+  `tabIndex="-1"`, every panel hidden, so no panel was visible and the
+  component had no tab stop at all. The fallback only fired for an absent or
+  empty attribute; an unmatched key now falls back to the first tab as the
+  documented contract always promised. Resolving the active tab by index also
+  guarantees exactly one tab stop when two `<e-tab>` children share a `key`.
+- `iconSvg()` / `<e-icon>`: the unknown-name guard tested `name in ICONS` and
+  `ICONS[name]`, both of which reach `Object.prototype`. `name="toString"`
+  (also `constructor`, `valueOf`, `hasOwnProperty`) passed the check and
+  interpolated a function's source into `<path d="…">`. Both call sites now
+  use a shared `hasIcon()` built on `Object.hasOwn()`. `<e-icon>` also clears
+  its inline `display`/`line-height` when the name stops resolving, and
+  clamps `size` to a minimum of 1 so a negative value can't emit an invalid
+  `width`/`height`.
+- `<e-kaleido>`: `cell="0"` made `Math.ceil(88 / cell)` evaluate to
+  `Infinity`, and the dither loops never terminated — a hard browser hang.
+  `cell` is now clamped to 1–88.
+- `<e-select>`: an `<e-option>` with no `value` attribute fell back to `''`,
+  which matched the select's own unset value, so it silently auto-selected —
+  the trigger showed its label instead of the placeholder while `value` was
+  still `''`. Presence of the `value` attribute is now tracked separately
+  from its text, so an unset select shows its placeholder and `value=""`
+  still selects an empty-valued option deliberately. `placeholder=""` also
+  restores the `Select…` default after mount, matching first render.
+- `<e-upload>`: `value` and the `e-change` detail handed out the live
+  internal array, so a caller mutating it desynchronised the rendered list
+  from the submitted `FormData` — both now return a copy. Single-file mode
+  validated the whole incoming batch before slicing, rejecting a two-file
+  assignment that would only ever keep one. Removing `multiple` truncated the
+  held files without emitting `e-change`, leaving listeners with a stale list.
+- `<e-text>`: changing `as` rebuilt the wrapper with a bare `createElement`
+  and never re-applied `ink-text`, dropping all typography styling (with
+  `kind="body"` the wrapper ended up with no class at all). An invalid tag
+  name (`as="1x"`) also threw `InvalidCharacterError` out of
+  `attributeChangedCallback`; it now keeps the current wrapper.
+- `<e-title>`: `level` was read with `numAttr`, so `level="2.5"` survived
+  clamping and reached `createElement('h2.5')` — a legal XML name, yielding
+  an `HTMLUnknownElement` with no heading role and no matching CSS. Read with
+  `intAttr` now, so non-integers fall back to level 1.
+- `<e-divider>`: the `aria-label` for a labelled divider was passed through
+  `esc()` before `setAttribute()`. Attribute APIs don't parse HTML, so the
+  entities leaked into the accessible name (`label="A & B"` announced
+  `A &amp; B`). The visible text was always correct.
+- `<e-empty>`: `data-has-desc` was written only by the patch path, never by
+  the initial render, so a mount-time `description` rendered without the
+  marker until the attribute was next mutated and CSS keyed on it mis-styled
+  on first paint.
+- `<e-form-item>`: an author-set `error`/`error-message` on a nested
+  `<e-input>`/`<e-textarea>` was unconditionally stripped on any render where
+  the form-item itself had no `error`. Error propagation now tracks ownership
+  like `aria-label` and `required` do, clearing only what it set, and all
+  three ownership flags reset when the resolved control changes identity.
+- `<e-watermark>`: clearing `content` cleared `background-image` and returned
+  early, leaving a stale `background-size` from the previous `gap-x`/`gap-y`.
+- `<e-description-list>`: `bordered` was read with `hasAttribute()` instead of
+  `boolAttr()`, so `bordered="false"` still applied the bordered modifier —
+  the only boolean attribute in the library that ignored the convention.
+- `<e-back-top>`: re-pointing `target` detached the old scroll listener but
+  never pruned its entry from the element's cleanup registry, so the array
+  grew on every rebind. A new `removeCleanup()` helper in `core/dom.ts` drops
+  a single registered cleanup without running it.
+- `<e-float-button>`: the `aria-label` refresh was reachable only when the
+  glyph itself changed, because `icon` and `label` shared a mutually
+  exclusive `if`/`else if` chain gated on `icon !== _icon`. The accessible
+  name is now re-resolved on either attribute changing, while the SVG is
+  still only re-rendered for a genuine glyph change.
+- `BaseFormControl.applyRequiredValidity()` tested `hasAttribute('required')`
+  while its callers set `_cb.required = boolAttr(this, 'required')` on the
+  line above, so `required="false"` left the native control unconstrained but
+  still reported `valueMissing` through `ElementInternals`. It now uses
+  `boolAttr()`, as do the `aria-required` mirrors in `<e-checkbox-group>` and
+  `<e-radio-group>`, so the whole library agrees that `x="false"` means false.
+- `<e-input>` / `<e-textarea>`: the `required-message` path wrote
+  `aria-invalid="true"` straight onto the inner control instead of routing
+  through the base class, so `<e-input required required-message="…">`
+  announced an error on first paint and lost its focus ring — exactly what
+  the deferred-validation gate exists to prevent. `required-message` now
+  changes only *what* is reported, not *when* it surfaces.
+- `<e-checkbox>` / `<e-toggle>`: `formStateRestoreCallback(null)` computed
+  `state === 'checked'`, which is `false` for `null`, so a BFCache restore
+  with no stored state cleared a checked control instead of leaving it alone.
+- `disabled` on `<e-input>`, `<e-textarea>`, `<e-checkbox>` and `<e-toggle>`
+  was read with `boolAttr()`, but the HTML spec disables a form-associated
+  custom element whenever the attribute is *present*, so the browser called
+  `formDisabledCallback(true)` and re-disabled a control the component had
+  just enabled. `disabled="false"` ended up disabled anyway, via two code
+  paths that disagreed. All read sites now use `hasAttribute('disabled')` —
+  deliberately the one place that departs from the boolean-attribute
+  convention, and commented as such at each site.
+- `parseTreeAttr()`: `?? '[]'` doesn't fall back on an empty string, so
+  `<e-tree data="">` reached `JSON.parse('')` and fired `e-error` for what is
+  the ordinary "no data yet" state of a framework binding. Absent, empty and
+  whitespace-only now all yield an empty tree with no error; genuinely
+  malformed JSON still reports one.
+- `TreeView.toggleExpand()` recorded values with no matching node, leaking
+  them into `expandedValues()` and into anything a host persists from it, and
+  fired `onToggle` claiming a non-existent node had expanded.
+- `TreeView.patchSelection()` returned early when `selectionAttr` was `null`,
+  so for `<e-tree>`'s checkable and non-selectable modes the roving tab stop
+  never followed a programmatic selection change. Only the marker write is
+  skipped now; `_selected`, `_focus` and `normalizeTabStop()` always run.
 
 ## [1.1.0] — 2026-08-18
 

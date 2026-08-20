@@ -9,7 +9,7 @@ import './badge';
  * All panels are built once at connect time and toggled with `hidden` on
  * tab switch — nested Custom Elements (form controls etc.) keep their state.
  *
- * @attr {string} [default-value] - Key of the tab active on first render. Defaults to the first tab.
+ * @attr {string} [default-value] - Key of the tab active on first render. Defaults to the first tab when absent, empty or matching no tab.
  *
  * @fires {CustomEvent<{value: string}>} e-change - Fired when the user activates a different tab. `value` is the activated tab's `key`.
  *
@@ -36,7 +36,11 @@ export class ETabs extends HTMLElement {
         count: tab.getAttribute('count'),
         content: [...tab.childNodes],
       }));
-      this._active = dflt || tabs[0]?.key || '';
+      // A `default-value` that matches no tab falls back to the first tab, so
+      // exactly one tab is always selected and reachable by keyboard.
+      const requested = dflt ? tabs.findIndex((t) => t.key === dflt) : -1;
+      const activeIndex = requested === -1 ? 0 : requested;
+      this._active = tabs[activeIndex]?.key ?? '';
 
       // Build all tab buttons and panels once. Panels are persistent — never rebuilt.
       const strip = document.createElement('div');
@@ -46,7 +50,8 @@ export class ETabs extends HTMLElement {
       this._buttons.clear();
       this._panels.clear();
 
-      for (const t of tabs) {
+      for (const [index, t] of tabs.entries()) {
+        const isActive = index === activeIndex;
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'ink-tabs__tab';
@@ -54,9 +59,9 @@ export class ETabs extends HTMLElement {
         const tabId = randId('ink-tab');
         const panelId = randId('ink-tabpanel');
         btn.id = tabId;
-        btn.setAttribute('aria-selected', String(t.key === this._active));
+        btn.setAttribute('aria-selected', String(isActive));
         btn.setAttribute('aria-controls', panelId);
-        btn.tabIndex = t.key === this._active ? 0 : -1;
+        btn.tabIndex = isActive ? 0 : -1;
         btn.dataset['key'] = t.key;
 
         if (t.icon) {
@@ -71,7 +76,7 @@ export class ETabs extends HTMLElement {
         if (t.count != null) {
           const badge = document.createElement('e-badge');
           badge.textContent = t.count;
-          if (t.key === this._active) badge.setAttribute('inverted', '');
+          if (isActive) badge.setAttribute('inverted', '');
           btn.appendChild(badge);
         }
 
@@ -85,7 +90,7 @@ export class ETabs extends HTMLElement {
         panel.setAttribute('aria-labelledby', tabId);
         panel.tabIndex = 0;
         panel.dataset['panel'] = t.key;
-        panel.hidden = t.key !== this._active;
+        panel.hidden = !isActive;
         panel.append(...t.content);
         this._panels.set(t.key, panel);
       }

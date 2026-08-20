@@ -1,4 +1,4 @@
-import { addCleanup, define, runCleanups } from '../core/dom';
+import { addCleanup, boolAttr, define, runCleanups } from '../core/dom';
 import { BaseFormControl } from '../core/base-form-control';
 
 /**
@@ -164,7 +164,7 @@ export class ECheckboxGroup extends BaseFormControl {
   }
 
   private _syncValidity(values: string[]): void {
-    this._container?.setAttribute('aria-required', String(this.hasAttribute('required')));
+    this._container?.setAttribute('aria-required', String(boolAttr(this, 'required')));
     this.applyRequiredValidity(
       values.length > 0,
       this._container ?? undefined,

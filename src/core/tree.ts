@@ -17,7 +17,7 @@ import type { TreeNode } from './types';
 
 /** Outcome of reading JSON tree data off an attribute. */
 export interface TreeParseResult {
-  /** Parsed nodes, or `[]` when the attribute was absent or invalid. */
+  /** Parsed nodes, or `[]` when the attribute was absent, empty or invalid. */
   data: TreeNode[];
   /** The attribute the value was read from, for error reporting. */
   source: string;
@@ -29,11 +29,15 @@ export interface TreeParseResult {
  * Read and validate JSON tree data from the first attribute in `names` that is
  * present. Falls back to an empty tree rather than throwing, so a malformed
  * attribute degrades to an empty view instead of breaking the page.
+ *
+ * An absent, empty or whitespace-only attribute is the "no data yet" state and
+ * reports `error: null` — binding an empty string from a framework is not a
+ * page error. Only non-blank content that fails to parse is reported.
  */
 export function parseTreeAttr(el: Element, names: readonly string[]): TreeParseResult {
   const found = names.find((name) => el.getAttribute(name) != null);
   const source = found ?? names[0] ?? 'data';
-  const raw = (found != null ? el.getAttribute(found) : null) ?? '[]';
+  const raw = (found != null ? el.getAttribute(found) : null)?.trim() || '[]';
   try {
     const parsed: unknown = JSON.parse(raw);
     if (!isTreeData(parsed)) throw new TypeError('Expected an array of tree nodes.');
@@ -273,17 +277,18 @@ export class TreeView {
 
   /**
    * Move the selection marker from `oldValue` to `newValue`, keeping the
-   * roving tabindex on the selected row. No-op when `selectionAttr` is null.
+   * roving tabindex on the selected row. When `selectionAttr` is null only the
+   * marker write is skipped: the recorded selection and the tab stop still
+   * follow `newValue`.
    */
   patchSelection(oldValue: string, newValue: string): void {
     const { selectionAttr = 'aria-selected' } = this.config;
     this._selected = newValue;
-    if (!selectionAttr) return;
     const oldRow = oldValue ? this._rows.get(oldValue) : undefined;
-    if (oldRow) patchAttr(oldRow, selectionAttr, 'false');
+    if (oldRow && selectionAttr) patchAttr(oldRow, selectionAttr, 'false');
     const newRow = newValue ? this._rows.get(newValue) : undefined;
     if (newRow) {
-      patchAttr(newRow, selectionAttr, 'true');
+      if (selectionAttr) patchAttr(newRow, selectionAttr, 'true');
       // Selecting a row moves the tab stop to it, so returning to the tree
       // lands on the current selection.
       this._focus = newValue;
@@ -291,8 +296,13 @@ export class TreeView {
     this.normalizeTabStop();
   }
 
-  /** Expand or collapse a node, materialising its children on first open. */
+  /**
+   * Expand or collapse a node, materialising its children on first open.
+   * Ignores a value that matches no node in the current data, so the expansion
+   * set only ever holds values a host can meaningfully persist.
+   */
   toggleExpand(value: string): void {
+    if (!this._nodes.has(value)) return;
     const wasOpen = this._expanded.has(value);
     const open = !wasOpen;
     if (wasOpen) this._expanded.delete(value);

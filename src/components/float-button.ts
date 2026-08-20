@@ -6,7 +6,7 @@ import { iconSvg } from '../core/icons';
  * @since v1.0.1
  *
  * @attr {string} [icon='plus'] - Icon name rendered inside the button.
- * @attr {string} [label] - Accessible label. Falls back to the icon name.
+ * @attr {string} [label] - Accessible label. Falls back to the icon name whenever it is absent or empty, so the button always has a name.
  * @attr {boolean} [primary=true] - Primary visual treatment. Set `primary="false"` for the secondary variant.
  *
  * @example
@@ -27,21 +27,25 @@ export class EFloatButton extends HTMLElement {
 
   attributeChangedCallback(name: string) {
     if (!this._wired) return;
-    const icon = this.getAttribute('icon') || 'plus';
-    const label = this.getAttribute('label');
-    const primary = !this.hasAttribute('primary') ? true : this.getAttribute('primary') !== 'false';
     const btn = this._btn!;
 
+    if (name === 'primary') {
+      const primary = !this.hasAttribute('primary')
+        ? true
+        : this.getAttribute('primary') !== 'false';
+      btn.classList.toggle('ink-fab--secondary', !primary);
+      return;
+    }
+
+    const icon = this.getAttribute('icon') || 'plus';
     if (name === 'icon' && icon !== this._icon) {
       this._icon = icon;
       // Icon SVG swap is unavoidable; update only the button's content, not the host.
       btn.innerHTML = iconSvg(icon, 24);
-      patchAttr(btn, 'aria-label', label || icon);
-    } else if (name === 'label') {
-      patchAttr(btn, 'aria-label', label || icon);
-    } else if (name === 'primary') {
-      btn.classList.toggle('ink-fab--secondary', !primary);
     }
+    // Both `icon` and `label` feed the accessible name, so it is re-resolved
+    // whenever either changes — including when the glyph itself is unchanged.
+    patchAttr(btn, 'aria-label', this.getAttribute('label') || icon);
   }
 
   private _build(): void {

@@ -13,8 +13,11 @@ import { BaseFormControl } from '../core/base-form-control';
  * starts with that letter, cycling on repeat presses — matching a plain
  * native `<select>`.
  *
- * @attr {string} [value] - Currently selected option value.
- * @attr {string} [placeholder='Select…'] - Trigger placeholder when no value is set.
+ * @attr {string} [value] - Currently selected option value. While the attribute is absent the
+ *   select is unset: the trigger shows the placeholder and no option is marked selected, even
+ *   when an option carries `value=""`. Writing `value=""` selects that option deliberately.
+ * @attr {string} [placeholder='Select…'] - Trigger label while nothing is selected. An absent
+ *   *or empty* attribute falls back to `Select…`.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
  * @attr {boolean} [required] - Requires a selected option.
  * @attr {string} [required-message] - Message reported when no required option is selected.
@@ -39,21 +42,26 @@ export class ESelect extends BaseFormControl {
   private _optEls: HTMLElement[] = [];
   private _selectedEl: HTMLElement | null = null;
   private _placeholder = 'Select…';
+  /** Whether the host carries a `value` attribute at all. */
+  private _hasValue = false;
 
   connectedCallback() {
     if (!this._wired) {
       this._wired = true;
       this._placeholder = this.getAttribute('placeholder') || 'Select…';
-      const value = this.getAttribute('value') ?? '';
+      const attr = this.getAttribute('value');
+      this._hasValue = attr !== null;
+      this._value = attr ?? '';
       const menuId = randId('ink-select-listbox');
       this._opts = [...this.querySelectorAll('e-option')].map((o) => ({
         value: o.getAttribute('value') ?? '',
         label: o.getAttribute('label') || o.textContent || '',
       }));
-      const current = this._opts.find((o) => o.value === value);
-      // `o.value === value` is a boolean (stringifies to "true"/"false") —
-      // it can never carry the characters esc() escapes, so wrapping it
-      // would only cost bundle bytes against the size-limit budget.
+      const selIdx = this._matchIndex();
+      const current = selIdx >= 0 ? this._opts[selIdx] : undefined;
+      // `i === selIdx` is a boolean (stringifies to "true"/"false") — it can
+      // never carry the characters esc() escapes, so wrapping it would only
+      // cost bundle bytes against the size-limit budget.
       /* eslint-disable local/no-unescaped-innerhtml */
       this.innerHTML = `<div class="ink-select">
       <button type="button" class="ink-select__trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="${esc(menuId)}">
@@ -63,10 +71,10 @@ export class ESelect extends BaseFormControl {
       <ul id="${esc(menuId)}" class="ink-select__menu" role="listbox" hidden>
         ${this._opts
           .map(
-            (o) => `<li class="ink-select__option" role="option"
-          data-value="${esc(o.value)}" aria-selected="${o.value === value}">
+            (o, i) => `<li class="ink-select__option" role="option"
+          data-value="${esc(o.value)}" aria-selected="${i === selIdx}">
           <span style="flex:1">${esc(o.label)}</span>
-          ${o.value === value ? iconSvg('check', 16) : ''}
+          ${i === selIdx ? iconSvg('check', 16) : ''}
         </li>`,
           )
           .join('')}
@@ -79,11 +87,9 @@ export class ESelect extends BaseFormControl {
       this._triggerLabel = this._trigger!.querySelector<HTMLElement>('[data-current]');
       this._chevPath = this._trigger!.querySelector<SVGPathElement>('svg path');
       this._optEls = [...this._menu!.querySelectorAll<HTMLElement>('.ink-select__option')];
-      this._value = value;
-      this.internals.setFormValue(value);
+      this.internals.setFormValue(this._value);
 
       // Cache the initially-selected option element.
-      const selIdx = this._opts.findIndex((o) => o.value === value);
       this._selectedEl = selIdx >= 0 ? (this._optEls[selIdx] ?? null) : null;
 
       for (const opt of this._optEls) {
@@ -111,6 +117,15 @@ export class ESelect extends BaseFormControl {
         this._trigger!.focus();
       }
     });
+  }
+
+  /**
+   * Index of the option carrying the current value, or -1 when nothing
+   * matches. A select with no `value` attribute is unset and matches no
+   * option at all — including one that deliberately carries `value=""`.
+   */
+  private _matchIndex(): number {
+    return this._hasValue ? this._opts.findIndex((o) => o.value === this._value) : -1;
   }
 
   private _setOpen(open: boolean): void {
@@ -170,8 +185,7 @@ export class ESelect extends BaseFormControl {
       return;
     }
     if (this._isTypeaheadKey(e)) {
-      const current = this._opts.findIndex((o) => o.value === this._value);
-      const idx = this._typeaheadIndex(e.key, current);
+      const idx = this._typeaheadIndex(e.key, this._matchIndex());
       if (idx >= 0) {
         e.preventDefault();
         this._selectOption(this._opts[idx]!.value);
@@ -235,8 +249,8 @@ export class ESelect extends BaseFormControl {
   attributeChangedCallback(name: string, _old: string | null, v: string | null) {
     if (!this._menu || !this._trigger) return;
     if (name === 'placeholder') {
-      this._placeholder = v ?? 'Select…';
-      if (!this._opts.find((o) => o.value === this._value) && this._triggerLabel) {
+      this._placeholder = v || 'Select…';
+      if (this._matchIndex() < 0 && this._triggerLabel) {
         patchText(this._triggerLabel, this._placeholder);
       }
       return;
@@ -246,8 +260,10 @@ export class ESelect extends BaseFormControl {
       return;
     }
     if (name !== 'value') return;
+    const hasValue = v !== null;
     const newValue = v ?? '';
-    if (newValue === this._value) return;
+    if (hasValue === this._hasValue && newValue === this._value) return;
+    this._hasValue = hasValue;
     this._value = newValue;
     this.internals.setFormValue(newValue);
 
@@ -258,7 +274,7 @@ export class ESelect extends BaseFormControl {
       this._selectedEl.querySelector('svg')?.remove();
     }
     // Select new — only touch the new element.
-    const newIdx = this._opts.findIndex((o) => o.value === newValue);
+    const newIdx = this._matchIndex();
     const newEl = newIdx >= 0 ? (this._optEls[newIdx] ?? null) : null;
     if (newEl) {
       newEl.setAttribute('aria-selected', 'true');
@@ -268,7 +284,7 @@ export class ESelect extends BaseFormControl {
     this._selectedEl = newEl;
 
     if (this._triggerLabel) {
-      const opt = this._opts.find((o) => o.value === newValue);
+      const opt = newIdx >= 0 ? this._opts[newIdx] : undefined;
       patchText(this._triggerLabel, opt ? opt.label : this._placeholder);
     }
     this._syncValidity();
@@ -302,7 +318,9 @@ define('e-select', ESelect);
 /**
  * @summary Single option entry inside an `<e-select>`.
  *
- * @attr {string} value - Option value emitted by the parent's `e-change` event.
+ * @attr {string} value - Option value emitted by the parent's `e-change` event. An option
+ *   without the attribute carries `''` and is only ever selected once the parent's own
+ *   `value` attribute is written — an unset parent selects nothing.
  * @attr {string} [label] - Visible label. Falls back to text content.
  *
  * @example

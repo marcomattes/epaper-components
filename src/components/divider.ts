@@ -1,4 +1,4 @@
-import { define, esc, patchAttr, patchText } from '../core/dom';
+import { define, patchAttr, patchText } from '../core/dom';
 
 /**
  * @summary Visual separator with optional label and orientation.
@@ -49,7 +49,7 @@ export class EDivider extends HTMLElement {
       const el = document.createElement('div');
       el.className = 'ink-divider--labeled';
       el.setAttribute('role', 'separator');
-      el.setAttribute('aria-label', esc(label));
+      el.setAttribute('aria-label', label);
       el.textContent = label;
       this._inner = el;
     } else {
@@ -76,7 +76,7 @@ export class EDivider extends HTMLElement {
       el.classList.toggle('ink-divider--dashed', dashed);
     } else {
       patchText(el, label);
-      patchAttr(el, 'aria-label', esc(label));
+      patchAttr(el, 'aria-label', label);
     }
   }
 }

@@ -1,4 +1,4 @@
-import { define, intAttr } from '../core/dom';
+import { boolAttr, define, intAttr } from '../core/dom';
 
 /**
  * @summary Key/value list rendered as a semantic `<dl>` grid.
@@ -11,7 +11,7 @@ import { define, intAttr } from '../core/dom';
  *
  * @attr {1|2|3|4} [columns=1] - Number of pairs per row.
  * @attr {'horizontal'|'vertical'} [layout='horizontal'] - Term placement relative to the detail.
- * @attr {boolean} [bordered] - Adds a 2px border and divider lines between pairs.
+ * @attr {boolean} [bordered] - Adds a 2px border and divider lines between pairs. `bordered="false"` counts as off.
  *
  * @slot - Default slot for `<e-desc-item>` children.
  *
@@ -36,7 +36,7 @@ export class EDescriptionList extends HTMLElement {
     }));
     const cols = Math.min(4, Math.max(1, intAttr(this, 'columns', 1)));
     const layout = this.getAttribute('layout') === 'vertical' ? 'vertical' : 'horizontal';
-    const bordered = this.hasAttribute('bordered');
+    const bordered = boolAttr(this, 'bordered');
     const dl = document.createElement('dl');
     dl.className = `ink-desc-list ink-desc-list--${layout}${bordered ? ' ink-desc-list--bordered' : ''}`;
     dl.style.gridTemplateColumns = `repeat(${cols},minmax(0,1fr))`;
@@ -60,7 +60,7 @@ export class EDescriptionList extends HTMLElement {
     if (!this._dl) return;
     const cols = Math.min(4, Math.max(1, intAttr(this, 'columns', 1)));
     const layout = this.getAttribute('layout') === 'vertical' ? 'vertical' : 'horizontal';
-    const bordered = this.hasAttribute('bordered');
+    const bordered = boolAttr(this, 'bordered');
     this._dl.className =
       `ink-desc-list ink-desc-list--${layout}` + (bordered ? ' ink-desc-list--bordered' : '');
     this._dl.style.gridTemplateColumns = `repeat(${cols},minmax(0,1fr))`;

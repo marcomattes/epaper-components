@@ -162,13 +162,21 @@ describe('parseTreeAttr', () => {
     expect(res).toEqual({ data: [], source: 'data', error: null });
   });
 
-  it('reports an empty attribute value as a parse error, not as no data', () => {
-    // `raw` uses `??`, so a present-but-empty attribute is *not* replaced by
-    // the '[]' default and reaches JSON.parse('') — hosts surface this as an
-    // `e-error`. Pinned so the behaviour is a decision, not an accident.
+  it('treats an empty attribute value as no data, not as a parse error', () => {
+    // Binding an empty string from a framework is the "no data yet" state, so
+    // it must degrade exactly like an absent attribute.
     const res = parseTreeAttr(attrEl({ data: '' }), ['data']);
+    expect(res).toEqual({ data: [], source: 'data', error: null });
+  });
+
+  it('treats a whitespace-only attribute value as no data', () => {
+    const res = parseTreeAttr(attrEl({ data: '   \n ' }), ['data']);
+    expect(res).toEqual({ data: [], source: 'data', error: null });
+  });
+
+  it('still reports genuinely malformed JSON around surrounding whitespace', () => {
+    const res = parseTreeAttr(attrEl({ data: '  [{value:  ' }), ['data']);
     expect(res.data).toEqual([]);
-    expect(res.source).toBe('data');
     expect(res.error).toBeInstanceOf(SyntaxError);
   });
 });
@@ -456,10 +464,12 @@ describe('TreeView.toggleExpand', () => {
     expect(rowOf(host, 'straw').style.paddingLeft).toBe('50px');
   });
 
-  it('tolerates a value that has no row, group or toggle', () => {
-    const { view } = mount();
+  it('ignores a value that matches no node', () => {
+    const calls: Array<[string, boolean]> = [];
+    const { view } = mount({ config: { onToggle: (v, open) => calls.push([v, open]) } });
     expect(() => view.toggleExpand('nope')).not.toThrow();
-    expect(view.expandedValues()).toEqual(['nope']);
+    expect(view.expandedValues()).toEqual([]);
+    expect(calls).toEqual([]);
   });
 });
 
@@ -553,13 +563,15 @@ describe('TreeView.patchSelection', () => {
     expect(host.querySelectorAll('[aria-selected="true"]').length).toBe(0);
   });
 
-  it('records the value but writes nothing when selectionAttr is null', () => {
+  it('skips only the marker write when selectionAttr is null', () => {
     const { host, view } = mount({ config: { selectionAttr: null }, expanded: ['fruit'] });
-    const before = tabStops(host);
+    expect(tabStops(host)).toEqual(['fruit']);
     view.patchSelection('fruit', 'apple');
     expect(view.selected).toBe('apple');
+    // No marker attribute is written...
     expect(host.querySelectorAll('[aria-selected]').length).toBe(0);
-    expect(tabStops(host)).toEqual(before);
+    // ...but the roving tab stop still follows the selection.
+    expect(tabStops(host)).toEqual(['apple']);
   });
 });
 

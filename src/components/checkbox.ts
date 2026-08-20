@@ -9,7 +9,7 @@ import { BaseFormControl } from '../core/base-form-control';
  * matching native `<input type="checkbox">` behaviour.
  *
  * @attr {boolean} [checked] - Whether the box is checked. Reflected to the attribute on user input.
- * @attr {boolean} [disabled] - Disables interaction.
+ * @attr {boolean} [disabled] - Disables interaction. Presence alone disables, per the HTML spec for form-associated elements — `disabled="false"` still disables.
  * @attr {string} [label] - Inline text label rendered next to the box.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
  * @attr {string} [value='on'] - Submitted value when checked.
@@ -49,7 +49,10 @@ export class ECheckbox extends BaseFormControl {
     this._wired = true;
     const id = this.id ? `${this.id}-control` : randId('e-c');
     const checked = boolAttr(this, 'checked');
-    const disabled = boolAttr(this, 'disabled');
+    // The HTML spec, not the library's `x="false"` convention, governs
+    // `disabled` on a form-associated element: presence alone disables, and
+    // that is what the browser reports through `formDisabledCallback`.
+    const disabled = this.hasAttribute('disabled');
     const label = this.getAttribute('label') || '';
     this.innerHTML = `
       <label class="ink-checkbox" for="${esc(id)}">
@@ -90,7 +93,9 @@ export class ECheckbox extends BaseFormControl {
       this._cb.checked = boolAttr(this, 'checked');
       this._syncFormValue();
     }
-    if (name === 'disabled') this._cb.disabled = boolAttr(this, 'disabled') || this._formDisabled;
+    // Presence alone disables — the HTML spec governs `disabled` here.
+    if (name === 'disabled')
+      this._cb.disabled = this.hasAttribute('disabled') || this._formDisabled;
     if (name === 'value') this._syncFormValue();
     if (name === 'required' || name === 'required-message') this._syncFormValue();
     if (name === 'label') {
@@ -139,12 +144,16 @@ export class ECheckbox extends BaseFormControl {
     this.checked = dflt;
   }
 
+  /** Restore the checked state from the back-forward cache. */
   override formStateRestoreCallback(state: string | File | FormData | null): void {
+    // No stored state means nothing to restore; the live state stands.
+    if (state == null) return;
     this.checked = state === 'checked' || state === this.value;
   }
 
   protected override formDisabledChanged(): void {
-    if (this._cb) this._cb.disabled = boolAttr(this, 'disabled') || this._formDisabled;
+    // Presence alone disables — the HTML spec governs `disabled` here.
+    if (this._cb) this._cb.disabled = this.hasAttribute('disabled') || this._formDisabled;
   }
 }
 

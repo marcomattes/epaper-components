@@ -1,4 +1,4 @@
-import { define, numAttr } from '../core/dom';
+import { define, intAttr } from '../core/dom';
 
 /**
  * @summary Heading element rendered as `<h1>`…`<h6>` based on `level`.
@@ -6,7 +6,8 @@ import { define, numAttr } from '../core/dom';
  *
  * Children are used as the heading text.
  *
- * @attr {1|2|3|4|5|6} [level=1] - Heading level. Out-of-range values are clamped to `1`…`6`.
+ * @attr {1|2|3|4|5|6} [level=1] - Heading level. Out-of-range values are clamped to `1`…`6`;
+ *   fractional and non-numeric values fall back to `1`.
  *
  * @example
  * <e-title level="2">Section heading</e-title>
@@ -42,7 +43,7 @@ export class ETitle extends HTMLElement {
   }
 
   private _readLevel(): number {
-    return Math.min(Math.max(numAttr(this, 'level', 1), 1), 6);
+    return Math.min(Math.max(intAttr(this, 'level', 1), 1), 6);
   }
 }
 

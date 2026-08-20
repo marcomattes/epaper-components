@@ -5,7 +5,8 @@ import { iconSvg } from '../core/icons';
  * @summary Empty-state placeholder with optional icon, title, description and action.
  * @since v1.0.1
  *
- * Used when a list, table, or section has no content to display.
+ * Used when a list, table, or section has no content to display. The rendered root
+ * carries `data-has-desc` whenever a description is present.
  *
  * @attr {string} [icon='doc'] - Icon name from the EPaper icon set.
  * @attr {string} [title='No data'] - Short headline.
@@ -36,7 +37,7 @@ export class EEmpty extends HTMLElement {
     const icon = this.getAttribute('icon') || 'doc';
     const title = this.getAttribute('title') || 'No data';
     const desc = this.getAttribute('description') || '';
-    this.innerHTML = `<div class="ink-empty" role="status">
+    this.innerHTML = `<div class="ink-empty" role="status"${desc ? ' data-has-desc=""' : ''}>
       <div class="ink-empty__icon" aria-hidden="true">${iconSvg(icon, 48)}</div>
       <div class="ink-empty__title">${esc(title)}</div>
       ${desc ? `<div class="ink-empty__desc">${esc(desc)}</div>` : ''}

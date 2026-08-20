@@ -109,6 +109,14 @@ describe('e-input · rendering from attributes', () => {
     expect(input.getAttribute('aria-label')).toBe('Code');
   });
 
+  it('disables from markup on attribute presence alone', () => {
+    // The browser disables a form-associated element whose `disabled`
+    // attribute is present, whatever the value, so the rendered inner control
+    // has to agree from the first paint.
+    const el = mount<EInput>(`<e-input disabled="false"></e-input>`);
+    expect(el.querySelector('input')!.disabled).toBe(true);
+  });
+
   it('renders the disabled state and stays barred from constraint validation', () => {
     const el = mount<EInput>(`<e-input disabled required></e-input>`);
     expect(el.querySelector('input')!.disabled).toBe(true);
@@ -225,6 +233,11 @@ describe('e-input · attribute mutation after mount', () => {
     expect(input.readOnly).toBe(false);
 
     el.setAttribute('disabled', '');
+    expect(input.disabled).toBe(true);
+    // `disabled` follows the HTML spec for form-associated elements, not the
+    // library's `x="false"` convention: presence alone disables, matching what
+    // the browser already told the element through `formDisabledCallback`.
+    el.setAttribute('disabled', 'false');
     expect(input.disabled).toBe(true);
     el.removeAttribute('disabled');
     expect(input.disabled).toBe(false);
@@ -363,6 +376,8 @@ describe('e-input · validity', () => {
   it('uses required-message and clears it when required is dropped', () => {
     const el = mount<EInput>(`<e-input required required-message="We need this"></e-input>`);
     const input = el.querySelector('input')!;
+    // required-message changes what is reported, never when it is surfaced.
+    expect(input.hasAttribute('aria-invalid')).toBe(false);
     expect(el.checkValidity()).toBe(false);
     expect(el.validationMessage).toBe('We need this');
     expect(input.getAttribute('aria-invalid')).toBe('true');
@@ -609,13 +624,23 @@ describe('e-toggle · attribute mutation after mount', () => {
     expect(toggleTextSpan(el)).toBeNull();
   });
 
-  it('mirrors disabled', () => {
+  it('mirrors disabled on attribute presence alone', () => {
     const el = mount<EToggle>(`<e-toggle></e-toggle>`);
     const cb = el.querySelector('input')!;
     el.setAttribute('disabled', '');
     expect(cb.disabled).toBe(true);
+    // `disabled` follows the HTML spec for form-associated elements, not the
+    // library's `x="false"` convention: presence alone disables, matching what
+    // the browser already told the element through `formDisabledCallback`.
+    el.setAttribute('disabled', 'false');
+    expect(cb.disabled).toBe(true);
     el.removeAttribute('disabled');
     expect(cb.disabled).toBe(false);
+  });
+
+  it('disables from markup on attribute presence alone', () => {
+    const el = mount<EToggle>(`<e-toggle disabled="false"></e-toggle>`);
+    expect(el.querySelector('input')!.disabled).toBe(true);
   });
 });
 
@@ -731,8 +756,9 @@ describe('e-toggle · properties, events and form participation', () => {
     expect(el.checked).toBe(false);
     el.formStateRestoreCallback('yes');
     expect(el.checked).toBe(true);
+    // No stored state is nothing to restore, not an instruction to switch off.
     el.formStateRestoreCallback(null);
-    expect(el.checked).toBe(false);
+    expect(el.checked).toBe(true);
   });
 
   it('follows a disabled fieldset and formDisabledCallback', async () => {
@@ -819,8 +845,18 @@ describe('e-checkbox · attribute mutation after mount', () => {
 
     el.setAttribute('disabled', '');
     expect(cb.disabled).toBe(true);
+    // `disabled` follows the HTML spec for form-associated elements, not the
+    // library's `x="false"` convention: presence alone disables, matching what
+    // the browser already told the element through `formDisabledCallback`.
+    el.setAttribute('disabled', 'false');
+    expect(cb.disabled).toBe(true);
     el.removeAttribute('disabled');
     expect(cb.disabled).toBe(false);
+  });
+
+  it('disables from markup on attribute presence alone', () => {
+    const el = mount<ECheckbox>(`<e-checkbox disabled="false"></e-checkbox>`);
+    expect(el.querySelector('input')!.disabled).toBe(true);
   });
 
   it('adds, updates and removes the inline label span', () => {
@@ -941,8 +977,9 @@ describe('e-checkbox · properties, events and form participation', () => {
     expect(el.checked).toBe(false);
     el.formStateRestoreCallback('yes');
     expect(el.checked).toBe(true);
+    // No stored state is nothing to restore, not an instruction to uncheck.
     el.formStateRestoreCallback(null);
-    expect(el.checked).toBe(false);
+    expect(el.checked).toBe(true);
   });
 
   it('follows a disabled fieldset and formDisabledCallback', async () => {
@@ -1208,6 +1245,11 @@ describe('e-textarea · rendering from attributes', () => {
     expect(el.value).toBe('line one');
   });
 
+  it('disables from markup on attribute presence alone', () => {
+    const el = mount<ETextarea>(`<e-textarea disabled="false"></e-textarea>`);
+    expect(el.querySelector('textarea')!.disabled).toBe(true);
+  });
+
   it('renders the disabled state and stays barred from constraint validation', () => {
     const el = mount<ETextarea>(`<e-textarea disabled required></e-textarea>`);
     expect(el.querySelector('textarea')!.disabled).toBe(true);
@@ -1293,6 +1335,11 @@ describe('e-textarea · attribute mutation after mount', () => {
 
     el.setAttribute('disabled', '');
     expect(ta.disabled).toBe(true);
+    // `disabled` follows the HTML spec for form-associated elements, not the
+    // library's `x="false"` convention: presence alone disables, matching what
+    // the browser already told the element through `formDisabledCallback`.
+    el.setAttribute('disabled', 'false');
+    expect(ta.disabled).toBe(true);
     el.removeAttribute('disabled');
     expect(ta.disabled).toBe(false);
   });
@@ -1373,10 +1420,12 @@ describe('e-textarea · value, events, validity and form participation', () => {
   });
 
   it('honours required-message and drops it with required', () => {
-    const el = mount<ETextarea>(`<e-textarea></e-textarea>`);
+    const el = mount<ETextarea>(
+      `<e-textarea required required-message="Write something"></e-textarea>`,
+    );
     const ta = el.querySelector('textarea')!;
-    el.setAttribute('required', '');
-    el.setAttribute('required-message', 'Write something');
+    // required-message changes what is reported, never when it is surfaced.
+    expect(ta.hasAttribute('aria-invalid')).toBe(false);
     expect(ta.required).toBe(true);
     expect(el.checkValidity()).toBe(false);
     expect(el.validationMessage).toBe('Write something');

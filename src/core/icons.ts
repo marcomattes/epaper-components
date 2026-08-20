@@ -58,9 +58,16 @@ const escAttr = (s: string): string =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 
+/**
+ * True when `name` is an own key of the icon registry. Uses `Object.hasOwn`
+ * so inherited `Object.prototype` members (`toString`, `constructor`,
+ * `valueOf`, `hasOwnProperty`, …) are not mistaken for icon names.
+ */
+export const hasIcon = (name: string): name is IconName => Object.hasOwn(ICONS, name);
+
 export function iconSvg(name: string, size: number = 20, label?: string | null): string {
-  const d = (ICONS as Record<string, string>)[name];
-  if (!d) return '';
+  if (!hasIcon(name)) return '';
+  const d = ICONS[name];
   const role = label ? 'img' : 'presentation';
   const a11y = label ? `aria-label="${escAttr(label)}"` : 'aria-hidden="true"';
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" role="${role}" ${a11y}><path d="${d}" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="square" stroke-linejoin="miter"/></svg>`;

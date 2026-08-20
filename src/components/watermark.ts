@@ -9,7 +9,7 @@ import { clampedNumAttr, define, esc } from '../core/dom';
  * a single SVG `<text>` element repeated via CSS `background-image`, which
  * means it scales sharply on Kaleido panels without dithering.
  *
- * @attr {string} content - Text to render on the watermark layer.
+ * @attr {string} content - Text to render on the watermark layer. Empty or absent leaves the layer blank.
  * @attr {number} [font-size=16] - SVG font size in pixels.
  * @attr {number} [gap-x=120] - Horizontal tile size.
  * @attr {number} [gap-y=80] - Vertical tile size.
@@ -65,6 +65,7 @@ export class EWatermark extends HTMLElement {
     const op = clampedNumAttr(this, 'opacity', 0.18, 0, 1);
     if (!text) {
       this._layer.style.backgroundImage = '';
+      this._layer.style.backgroundSize = '';
       return;
     }
     const svg =

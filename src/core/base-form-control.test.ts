@@ -3,7 +3,8 @@
 // shipped component reaches: the FormData/File restore hooks and their
 // default throws, every `ValidityState` flag being forwarded, and the
 // deferred-validation contract that keeps `aria-invalid` off an untouched
-// `required` control.
+// `required` control, plus the `required="false"` reading shared by every
+// composite control.
 //
 // `useDefineForClassFields: false` is on, so subclasses declare instance
 // state without an initializer and assign it in the constructor after
@@ -603,6 +604,20 @@ describe('applyRequiredValidity', () => {
     const { el } = inForm(make<RequiredControl>('x-bfc-required'), 'r');
     expect(el.sync()).toBe(true);
     expect(el.validity.valid).toBe(true);
+  });
+
+  it('reads required with the library boolean convention, so "false" is false', () => {
+    const { el } = inForm(make<RequiredControl>('x-bfc-required'), 'r');
+    el.setAttribute('required', 'false');
+    expect(el.sync()).toBe(true);
+    expect(el.validity.valueMissing).toBe(false);
+    expect(el.validity.valid).toBe(true);
+    expect(el.anchor.hasAttribute('aria-invalid')).toBe(false);
+
+    // Any other value, including the empty string, is required.
+    el.setAttribute('required', 'required');
+    expect(el.sync()).toBe(false);
+    expect(el.validity.valueMissing).toBe(true);
   });
 
   it('honours the required-message attribute override', () => {

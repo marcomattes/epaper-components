@@ -12,14 +12,14 @@ import { BaseFormControl } from '../core/base-form-control';
  * submitted directly.
  *
  * @attr {string} [accept] - Comma-separated MIME types or extensions forwarded to the underlying file input.
- * @attr {boolean} [multiple] - Accept more than one file. When absent, picking a new file replaces the prior one.
+ * @attr {boolean} [multiple] - Accept more than one file. When absent, picking a new file replaces the prior one; removing the attribute while several files are held keeps the first and fires `e-change`.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
  * @attr {string} [max-size] - Maximum size per file in bytes. Files exceeding the limit are rejected and the control is marked invalid.
  * @attr {string} [max-files] - Maximum number of files allowed in multi-file mode.
  * @attr {boolean} [required] - Requires at least one selected file.
  * @attr {string} [required-message] - Message reported when no required file is selected.
  *
- * @fires {CustomEvent<{files: File[]}>} e-change - Fired whenever the selected file list changes (add or remove).
+ * @fires {CustomEvent<{files: File[]}>} e-change - Fired whenever the selected file list changes (add, remove, or truncation by `multiple`). `detail.files` is a snapshot, not the live list.
  *
  * @example
  * <e-upload accept=".pdf,.png" multiple name="docs"></e-upload>
@@ -97,10 +97,13 @@ export class EUpload extends BaseFormControl<File[]> {
       if (boolAttr(this, 'multiple')) this._input.setAttribute('multiple', '');
       else {
         this._input.removeAttribute('multiple');
+        // Dropping to single-file mode discards the surplus files, which is a
+        // value change like any other and is announced as one.
         if (this._value.length > 1) {
           this._value = this._value.slice(0, 1);
           this._rebuildList();
           this._syncFormValue();
+          this._emitChange();
         }
       }
     } else {
@@ -116,13 +119,16 @@ export class EUpload extends BaseFormControl<File[]> {
     this._validate(this._value);
   }
 
+  /** A copy of the held files: mutating it never reaches the rendered list. */
   override get value(): File[] {
-    return this._value;
+    return [...this._value];
   }
   override set value(v: File[]) {
-    const next = Array.isArray(v) ? [...v] : [];
+    const incoming = Array.isArray(v) ? [...v] : [];
+    // Single-file mode keeps at most one file, so only that one is validated.
+    const next = boolAttr(this, 'multiple') ? incoming : incoming.slice(0, 1);
     if (!this._validate(next)) return;
-    this._value = boolAttr(this, 'multiple') ? next : next.slice(0, 1);
+    this._value = next;
     this._rebuildList();
     this._syncFormValue();
   }
@@ -265,9 +271,10 @@ export class EUpload extends BaseFormControl<File[]> {
     this.internals.setFormValue(this.serialize(this._value));
   }
 
+  /** Emits `e-change` with a snapshot of the held files. */
   private _emitChange(): void {
     this.dispatchEvent(
-      new CustomEvent('e-change', { detail: { files: this._value }, bubbles: true }),
+      new CustomEvent('e-change', { detail: { files: [...this._value] }, bubbles: true }),
     );
   }
 

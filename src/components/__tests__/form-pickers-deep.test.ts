@@ -173,7 +173,7 @@ describe('e-upload · attribute mutation after mount', () => {
     expect(el.querySelector('.ink-upload__hint')!.textContent).toBe('ANY FILE TYPE');
   });
 
-  it('adding multiple sets the input flag, removing it truncates the list to one file', () => {
+  it('adding multiple sets the input flag, removing it truncates the list and emits', () => {
     const el = mount<EUpload>(`<e-upload name="f"></e-upload>`);
     el.setAttribute('multiple', '');
     expect(fileInput(el).multiple).toBe(true);
@@ -181,17 +181,22 @@ describe('e-upload · attribute mutation after mount', () => {
     dropOn(el, fileOf('a.txt', 1), fileOf('b.txt', 1));
     expect(fileNames(el)).toEqual(['a.txt', 'b.txt']);
 
+    const detail = listen<{ files: File[] }>(el, 'e-change');
     el.removeAttribute('multiple');
     expect(fileInput(el).multiple).toBe(false);
     expect(el.value.map((f) => f.name)).toEqual(['a.txt']);
     expect(fileNames(el)).toEqual(['a.txt']);
+    // The dropped file is gone from the submitted value, so listeners hear it.
+    expect(detail.map((d) => d.files.map((f) => f.name))).toEqual([['a.txt']]);
   });
 
-  it('removing multiple with a single file leaves the list untouched', () => {
+  it('removing multiple with a single file leaves the list untouched and stays silent', () => {
     const el = mount<EUpload>(`<e-upload multiple></e-upload>`);
     dropOn(el, fileOf('only.txt', 1));
+    const detail = listen<{ files: File[] }>(el, 'e-change');
     el.removeAttribute('multiple');
     expect(fileNames(el)).toEqual(['only.txt']);
+    expect(detail).toEqual([]);
   });
 
   it('ignores attribute changes made before the element is wired', () => {
@@ -469,6 +474,26 @@ describe('e-upload · programmatic value', () => {
     expect(el.value.map((f) => f.name)).toEqual(['ok.bin']);
     expect(el.checkValidity()).toBe(false);
   });
+
+  it('validates only the file it keeps in single-file mode', () => {
+    const el = mount<EUpload>(`<e-upload max-files="1" name="f"></e-upload>`);
+    el.value = [fileOf('a.txt', 1), fileOf('b.txt', 1)];
+    expect(el.value.map((f) => f.name)).toEqual(['a.txt']);
+    expect(fileNames(el)).toEqual(['a.txt']);
+    expect(el.checkValidity()).toBe(true);
+  });
+
+  it('hands out a copy, so mutating it cannot desynchronise the rendered list', () => {
+    const el = mount<EUpload>(`<e-upload multiple name="f"></e-upload>`);
+    const detail = listen<{ files: File[] }>(el, 'e-change');
+    selectFiles(el, fileOf('a.txt', 1), fileOf('b.txt', 1));
+
+    el.value.length = 0;
+    detail[0]!.files.push(fileOf('ghost.txt', 1));
+
+    expect(el.value.map((f) => f.name)).toEqual(['a.txt', 'b.txt']);
+    expect(fileNames(el)).toEqual(['a.txt', 'b.txt']);
+  });
 });
 
 describe('e-upload · form participation', () => {
@@ -651,11 +676,32 @@ describe('e-select · initial render', () => {
     expect(selLabel(el)).toBe('Cherries');
   });
 
-  it('treats an option with no value as the empty-string option', () => {
-    // Documents real behaviour: an <e-option> without `value` carries '' and
-    // therefore matches an <e-select> that has no `value` of its own.
+  it('stays on the placeholder when an option has no value and the select is unset', () => {
     const el = mount<ESelect>(`<e-select><e-option label="Any"></e-option></e-select>`);
     expect(selOptions(el)[0]!.getAttribute('data-value')).toBe('');
+    expect(selOptions(el)[0]!.getAttribute('aria-selected')).toBe('false');
+    expect(selOptions(el)[0]!.querySelector('svg')).toBeNull();
+    expect(selOptions(el)[0]!.tabIndex).toBe(-1);
+    expect(selLabel(el)).toBe('Select…');
+    expect(el.value).toBe('');
+  });
+
+  it('selects an empty-valued option when value="" is set deliberately', () => {
+    const el = mount<ESelect>(
+      `<e-select value=""><e-option value="" label="Any"></e-option></e-select>`,
+    );
+    expect(selOptions(el)[0]!.getAttribute('aria-selected')).toBe('true');
+    expect(selLabel(el)).toBe('Any');
+    expect(el.value).toBe('');
+  });
+
+  it('commits an empty-valued option that the user picks', () => {
+    const el = mount<ESelect>(`<e-select><e-option label="Any"></e-option></e-select>`);
+    const detail = listen<{ value: string }>(el, 'e-change');
+
+    selOptions(el)[0]!.click();
+    expect(detail).toEqual([{ value: '' }]);
+    expect(el.getAttribute('value')).toBe('');
     expect(selOptions(el)[0]!.getAttribute('aria-selected')).toBe('true');
     expect(selLabel(el)).toBe('Any');
   });
@@ -880,6 +926,12 @@ describe('e-select · attribute mutation after mount', () => {
     el.removeAttribute('placeholder');
     expect(selLabel(el)).toBe('Select…');
 
+    // An empty attribute means "no placeholder of my own" both at mount and
+    // afterwards, so it restores the default rather than blanking the label.
+    el.setAttribute('placeholder', 'Choose…');
+    el.setAttribute('placeholder', '');
+    expect(selLabel(el)).toBe('Select…');
+
     el.value = 'a';
     el.setAttribute('placeholder', 'Ignored while selected');
     expect(selLabel(el)).toBe('Apples');
@@ -904,6 +956,22 @@ describe('e-select · attribute mutation after mount', () => {
     expect(el.value).toBe('nope');
 
     el.removeAttribute('value');
+    expect(el.value).toBe('');
+  });
+
+  it('tracks the presence of the value attribute, not just its text', () => {
+    const el = mount<ESelect>(
+      `<e-select><e-option value="" label="Any"></e-option><e-option value="a" label="Apples"></e-option></e-select>`,
+    );
+    expect(selLabel(el)).toBe('Select…');
+
+    el.setAttribute('value', '');
+    expect(selOptions(el)[0]!.getAttribute('aria-selected')).toBe('true');
+    expect(selLabel(el)).toBe('Any');
+
+    el.removeAttribute('value');
+    expect(selOptions(el)[0]!.getAttribute('aria-selected')).toBe('false');
+    expect(selLabel(el)).toBe('Select…');
     expect(el.value).toBe('');
   });
 

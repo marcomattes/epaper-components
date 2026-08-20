@@ -5,6 +5,8 @@
 // and `parse(s: string)` (used by `formResetCallback` and
 // `formStateRestoreCallback` to turn a string back into `T`).
 
+import { boolAttr } from './dom';
+
 export abstract class BaseFormControl<T = string> extends HTMLElement {
   static readonly formAssociated = true;
 
@@ -59,8 +61,12 @@ export abstract class BaseFormControl<T = string> extends HTMLElement {
   /**
    * Record a constraint violation on `anchor`, showing it only once validation
    * has been surfaced. Held state lets a later blur or submit paint it.
+   *
+   * Subclasses that call `internals.setValidity()` themselves — to substitute
+   * their own message for a native one — record the violation through here, so
+   * the message they choose never changes *when* it is surfaced.
    */
-  private _markInvalid(anchor: HTMLElement | null | undefined): void {
+  protected _markInvalid(anchor: HTMLElement | null | undefined): void {
     this._pendingAnchor = anchor ?? null;
     if (!anchor) return;
     if (this._validationSurfaced) this._paintInvalid(anchor);
@@ -157,13 +163,17 @@ export abstract class BaseFormControl<T = string> extends HTMLElement {
     return false;
   }
 
-  /** Apply the shared `required` contract for non-native composite controls. */
+  /**
+   * Apply the shared `required` contract for non-native composite controls.
+   * `required` follows the library's boolean-attribute convention, so
+   * `required="false"` leaves the control unconstrained.
+   */
   protected applyRequiredValidity(
     hasValue: boolean,
     anchor?: HTMLElement,
     defaultMessage = 'Please fill out this field.',
   ): boolean {
-    const missing = this.hasAttribute('required') && !hasValue;
+    const missing = boolAttr(this, 'required') && !hasValue;
     if (missing) {
       const message = this.getAttribute('required-message') || defaultMessage;
       this.internals.setValidity({ valueMissing: true }, message, anchor);

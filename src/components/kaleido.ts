@@ -1,4 +1,4 @@
-import { define, esc, numAttr } from '../core/dom';
+import { clampedNumAttr, define, esc } from '../core/dom';
 
 const KALEIDO_COLORS = [
   { name: 'Ink', hex: '#000000' },
@@ -22,6 +22,9 @@ const BAYER_8 = [
   [15, 47, 7, 39, 13, 45, 5, 37],
   [63, 31, 55, 23, 61, 29, 53, 21],
 ] as const;
+
+/** Edge length in CSS pixels of a single dither preview canvas. */
+const SWATCH_PX = 88;
 
 function hexToRgb(h: string): [number, number, number] {
   const n = parseInt(h.replace('#', ''), 16);
@@ -67,7 +70,7 @@ function paintDither(canvas: HTMLCanvasElement, hex: string, size: number, cell:
  * @summary Color palette swatches with Bayer-dithered preview canvases.
  * @since v1.0.1
  *
- * @attr {number} [cell=3] - Pixel size of a single dither cell. Smaller values produce a finer pattern.
+ * @attr {number} [cell=3] - Pixel size of a single dither cell, clamped to 1..88 (the swatch is 88px). Smaller values produce a finer pattern.
  *
  * @example
  * <e-kaleido cell="3"></e-kaleido>
@@ -83,7 +86,7 @@ export class EKaleido extends HTMLElement {
   }
 
   private _render(): void {
-    const cell = numAttr(this, 'cell', 3);
+    const cell = clampedNumAttr(this, 'cell', 3, 1, SWATCH_PX);
     // `c.hex`/`c.name` come from KALEIDO_COLORS, a hardcoded module-level
     // const array — never user-controlled — so they can't carry the
     // characters esc() escapes, and wrapping them would only cost bundle
@@ -119,7 +122,7 @@ export class EKaleido extends HTMLElement {
       paintDither(
         cv as HTMLCanvasElement,
         (cv as HTMLElement).dataset['color'] ?? '#000000',
-        88,
+        SWATCH_PX,
         cell,
       );
     });

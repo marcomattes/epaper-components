@@ -68,6 +68,18 @@ export function addCleanup(host: object, fn: () => void): void {
   arr.push(fn);
 }
 
+/**
+ * Drop a single previously registered cleanup without running it. Used by
+ * components that re-register a listener while mounted (e.g. re-pointing a
+ * scroll target) so the registry does not grow with every rebind.
+ */
+export function removeCleanup(host: object, fn: () => void): void {
+  const arr = CLEANUPS.get(host);
+  if (!arr) return;
+  const i = arr.indexOf(fn);
+  if (i !== -1) arr.splice(i, 1);
+}
+
 export function runCleanups(host: object): void {
   const arr = CLEANUPS.get(host);
   if (!arr) return;

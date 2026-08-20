@@ -1,4 +1,4 @@
-import { define, esc, randId } from '../core/dom';
+import { boolAttr, define, esc, randId } from '../core/dom';
 import { BaseFormControl } from '../core/base-form-control';
 
 /**
@@ -109,7 +109,7 @@ export class ERadioGroup extends BaseFormControl {
 
   private _syncValidity(): void {
     const group = this.querySelector<HTMLElement>('[role="radiogroup"]') ?? undefined;
-    group?.setAttribute('aria-required', String(this.hasAttribute('required')));
+    group?.setAttribute('aria-required', String(boolAttr(this, 'required')));
     this.applyRequiredValidity(!!this.value, group, 'Please select an option.');
   }
 }

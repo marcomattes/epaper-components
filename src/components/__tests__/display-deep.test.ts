@@ -666,10 +666,11 @@ describe('e-empty', () => {
     const root = el.querySelector<HTMLElement>('.ink-empty')!;
     const descEl = root.querySelector<HTMLElement>('.ink-empty__desc')!;
     expect(descEl.textContent).toBe('Nothing here');
-    // data-has-desc is only written by the patch path, never by the initial render
-    expect(root.hasAttribute('data-has-desc')).toBe(false);
+    // the initial render and the patch path agree on data-has-desc
+    expect(root.getAttribute('data-has-desc')).toBe('');
     el.setAttribute('description', '');
     expect(root.querySelector('.ink-empty__desc')).toBeNull();
+    expect(root.hasAttribute('data-has-desc')).toBe(false);
   });
 
   it('escapes attribute-supplied markup in title and description', () => {
@@ -1213,12 +1214,11 @@ describe('e-divider', () => {
     const div = el.firstElementChild as HTMLElement;
     expect(div.textContent).toBe('<b>x</b>');
     expect(div.querySelector('b')).toBeNull();
-    // NOTE: esc() is applied to a DOM-API attribute value here, so the escaped
-    // entity text — not the raw label — ends up as the accessible name.
-    expect(div.getAttribute('aria-label')).toBe('&lt;b&gt;x&lt;/b&gt;');
+    // setAttribute takes the raw label: the accessible name matches the visible text
+    expect(div.getAttribute('aria-label')).toBe('<b>x</b>');
     el.setAttribute('label', 'A & B');
     expect(div.textContent).toBe('A & B');
-    expect(div.getAttribute('aria-label')).toBe('A &amp; B');
+    expect(div.getAttribute('aria-label')).toBe('A & B');
   });
 
   it('ignores attribute changes before connection and does not rebuild on re-connection', () => {
@@ -1284,9 +1284,8 @@ describe('e-text', () => {
     expect(second).not.toBe(first);
     expect(el.children.length).toBe(1);
     expect(second.querySelector('#tk')).toBe(child);
-    // BUG: the rebuilt wrapper never re-adds the `ink-text` base class, so only
-    // the kind modifier survives an `as` change.
-    expect(second.className).toBe('ink-text--label');
+    // the rebuilt wrapper carries the same classes as a freshly mounted one
+    expect(second.className).toBe('ink-text ink-text--label');
 
     // same value → no rebuild
     el.setAttribute('as', 'div');
@@ -1295,7 +1294,38 @@ describe('e-text', () => {
     el.removeAttribute('as');
     const third = el.firstElementChild as HTMLElement;
     expect(third.tagName).toBe('SPAN');
+    expect(third.className).toBe('ink-text ink-text--label');
     expect(third.querySelector('#tk')).toBe(child);
+  });
+
+  it('keeps the current wrapper when as is not a valid element name', () => {
+    const el = mount(`<e-text as="p" kind="mono"><b id="tv">Keep</b></e-text>`);
+    const wrap = el.firstElementChild as HTMLElement;
+    const child = el.querySelector('#tv')!;
+
+    el.setAttribute('as', '1x');
+    expect(el.firstElementChild).toBe(wrap);
+    expect(wrap.tagName).toBe('P');
+    expect(wrap.className).toBe('ink-text ink-text--mono');
+
+    el.setAttribute('as', 'a b');
+    expect(el.firstElementChild).toBe(wrap);
+    expect(el.children.length).toBe(1);
+
+    // a valid value afterwards still rebuilds
+    el.setAttribute('as', 'div');
+    const next = el.firstElementChild as HTMLElement;
+    expect(next.tagName).toBe('DIV');
+    expect(next.className).toBe('ink-text ink-text--mono');
+    expect(next.querySelector('#tv')).toBe(child);
+  });
+
+  it('falls back to a span when as is not a valid element name at mount', () => {
+    const el = mount(`<e-text as="1x">Hello</e-text>`);
+    const wrap = el.firstElementChild as HTMLElement;
+    expect(wrap.tagName).toBe('SPAN');
+    expect(wrap.className).toBe('ink-text');
+    expect(wrap.textContent).toBe('Hello');
   });
 
   it('renders escaped markup children as text', () => {
@@ -1403,13 +1433,19 @@ describe('e-title', () => {
     expect(h.textContent).toBe('');
   });
 
-  it('a fractional level produces a non-heading element', () => {
-    // BUG: `level` is read with numAttr(), not intAttr(), so a fraction is
-    // clamped but never rounded and reaches document.createElement() verbatim.
+  it('falls back to level 1 for a fractional level', () => {
     const el = mount(`<e-title level="3.5">H</e-title>`);
     const h = el.firstElementChild as HTMLElement;
-    expect(h.tagName).toBe('H3.5');
-    expect(h.className).toBe('ink-title ink-title--3.5');
+    expect(h.tagName).toBe('H1');
+    expect(h.className).toBe('ink-title ink-title--1');
+
+    // and after mount too
+    el.setAttribute('level', '2');
+    expect((el.firstElementChild as HTMLElement).tagName).toBe('H2');
+    el.setAttribute('level', '2.5');
+    const back = el.firstElementChild as HTMLElement;
+    expect(back.tagName).toBe('H1');
+    expect(back.className).toBe('ink-title ink-title--1');
   });
 
   it('ignores attribute changes before connection and does not re-wrap on re-connection', () => {

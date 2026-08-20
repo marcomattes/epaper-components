@@ -50,9 +50,9 @@ define('e-form', EForm);
  *
  * @attr {string} [label] - Field label rendered above the control.
  * @attr {string} [hint] - Helper text rendered below the control. Hidden when `error` is set.
- * @attr {string} [error] - Error message rendered below the control.
- * @attr {boolean} [required] - Marks the field as required and renders the required pill.
- * @attr {string} [required-label='REQ'] - Text shown inside the required pill.
+ * @attr {string} [error] - Error message rendered below the control. Mirrored onto an `e-input`/`e-textarea` as `error` + `error-message`, unless the control already carries an author-set `error`.
+ * @attr {boolean} [required] - Marks the field as required: sets `required` on the inner control and renders the required pill. The pill lives inside the label, so with no `label` the semantics still reach the control but no pill is rendered.
+ * @attr {string} [required-label='REQ'] - Text shown inside the required pill. Only visible while `label` is set.
  */
 export class EFormItem extends HTMLElement {
   static readonly observedAttributes = ['label', 'hint', 'error', 'required', 'required-label'];
@@ -63,8 +63,10 @@ export class EFormItem extends HTMLElement {
   private _requiredPill: HTMLElement | null = null;
   private _hintEl: HTMLElement | null = null;
   private _errorEl: HTMLElement | null = null;
+  private _resolvedControl: HTMLElement | null = null;
   private _requiredApplied = false;
   private _labelApplied = false;
+  private _errorApplied = false;
 
   connectedCallback() {
     if (!this._root) {
@@ -120,7 +122,13 @@ export class EFormItem extends HTMLElement {
     this._syncRequiredPill(required);
   }
 
-  /** Keep the "REQ" pill inside an existing label in step with `required`. */
+  /**
+   * Keep the "REQ" pill inside an existing label in step with `required`.
+   * The pill is a flex child of `.ink-form-item__label`; with no label there
+   * is nothing to anchor it to, and a bare `<label for>` holding only the pill
+   * would hand the control the accessible name "required". The `required`
+   * semantics reach the control through `_syncControlSemantics` regardless.
+   */
   private _syncRequiredPill(required: boolean): void {
     if (!required) {
       this._requiredPill?.remove();
@@ -174,9 +182,18 @@ export class EFormItem extends HTMLElement {
     required: boolean,
     error: string | null,
   ): void {
-    const control = this._control?.querySelector<HTMLElement>(
-      'e-input, e-textarea, e-select, e-checkbox, e-toggle, e-radio-group, e-checkbox-group, e-date-picker, e-time-picker, e-cascader, e-tree-select, e-input-number, e-upload',
-    );
+    const control =
+      this._control?.querySelector<HTMLElement>(
+        'e-input, e-textarea, e-select, e-checkbox, e-toggle, e-radio-group, e-checkbox-group, e-date-picker, e-time-picker, e-cascader, e-tree-select, e-input-number, e-upload',
+      ) ?? null;
+    // Ownership is tracked per control. A different control starts out unowned
+    // so its author-set attributes are never claimed from the previous one.
+    if (control !== this._resolvedControl) {
+      this._resolvedControl = control;
+      this._labelApplied = false;
+      this._requiredApplied = false;
+      this._errorApplied = false;
+    }
     if (!control) return;
     if (!control.id) control.id = randId('e-field');
     if (this._labelEl) this._labelEl.htmlFor = control.id;
@@ -197,12 +214,24 @@ export class EFormItem extends HTMLElement {
       this._requiredApplied = false;
     }
 
-    if (error && (control.localName === 'e-input' || control.localName === 'e-textarea')) {
+    this._syncControlError(control, error);
+  }
+
+  /**
+   * Mirror the error onto the controls that render one, claiming ownership the
+   * same way `aria-label` and `required` do: an author-set `error` on the
+   * control is left alone, and only what this component wrote is cleared.
+   */
+  private _syncControlError(control: HTMLElement, error: string | null): void {
+    if (control.localName !== 'e-input' && control.localName !== 'e-textarea') return;
+    if (error && (!control.hasAttribute('error') || this._errorApplied)) {
       control.setAttribute('error', '');
       control.setAttribute('error-message', error);
-    } else if (control.localName === 'e-input' || control.localName === 'e-textarea') {
+      this._errorApplied = true;
+    } else if (!error && this._errorApplied) {
       control.removeAttribute('error');
       control.removeAttribute('error-message');
+      this._errorApplied = false;
     }
   }
 }
