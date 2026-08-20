@@ -71,6 +71,7 @@ function softwareGraph(version: string): Record<string, unknown> {
       'custom elements',
       'e-paper',
       'e-ink',
+      'eink',
       'design system',
       'form-associated',
       'accessibility',

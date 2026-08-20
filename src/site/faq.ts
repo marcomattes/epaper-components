@@ -36,7 +36,7 @@ export const FAQ: FaqGroup[] = [
       {
         q: 'What is EPaper?',
         a: [
-          'EPaper is an open-source library of 71 web components built for e-paper and e-ink displays. The components are vanilla custom elements — they extend `HTMLElement` directly, use no Shadow DOM, ship no animations and depend on no framework.',
+          'EPaper is an open-source library of 71 web components built for e-paper and e-ink (also spelled "eink") displays. The components are vanilla custom elements — they extend `HTMLElement` directly, use no Shadow DOM, ship no animations and depend on no framework.',
           'It is published as `@marcomattes/epaper-components` under the MIT licence, and the full barrel is roughly 40 KB gzipped.',
         ],
       },

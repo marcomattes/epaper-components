@@ -27,7 +27,7 @@ const PARTIAL_REFRESH: Article = {
   lede: 'An e-paper panel does not have a frame rate. It has waveform modes, each a different trade between speed, grey depth and how much of the last image it leaves behind. Understanding that trade is most of what separates a UI that feels instant on e-ink from one that flashes like a broken fluorescent tube.',
   published: '2026-06-24',
   updated: '2026-08-12',
-  topics: ['e-paper', 'e-ink', 'partial refresh', 'waveform', 'ghosting', 'EPDC'],
+  topics: ['e-paper', 'e-ink', 'eink', 'partial refresh', 'waveform', 'ghosting', 'EPDC'],
   blocks: [
     {
       kind: 'p',
