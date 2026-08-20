@@ -30,10 +30,7 @@ export class EFloatButton extends HTMLElement {
     const btn = this._btn!;
 
     if (name === 'primary') {
-      const primary = !this.hasAttribute('primary')
-        ? true
-        : this.getAttribute('primary') !== 'false';
-      btn.classList.toggle('ink-fab--secondary', !primary);
+      btn.classList.toggle('ink-fab--secondary', !this._isPrimary());
       return;
     }
 
@@ -48,10 +45,15 @@ export class EFloatButton extends HTMLElement {
     patchAttr(btn, 'aria-label', this.getAttribute('label') || icon);
   }
 
+  /** Primary is the default treatment: absent or anything but `"false"` counts as primary. */
+  private _isPrimary(): boolean {
+    return !this.hasAttribute('primary') || this.getAttribute('primary') !== 'false';
+  }
+
   private _build(): void {
     const icon = this.getAttribute('icon') || 'plus';
     const label = this.getAttribute('label');
-    const primary = !this.hasAttribute('primary') ? true : this.getAttribute('primary') !== 'false';
+    const primary = this._isPrimary();
     this._icon = icon;
 
     const btn = document.createElement('button');

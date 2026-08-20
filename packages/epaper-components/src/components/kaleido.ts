@@ -27,7 +27,7 @@ const BAYER_8 = [
 const SWATCH_PX = 88;
 
 function hexToRgb(h: string): [number, number, number] {
-  const n = parseInt(h.replace('#', ''), 16);
+  const n = Number.parseInt(h.replace('#', ''), 16);
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 

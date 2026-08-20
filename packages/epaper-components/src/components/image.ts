@@ -121,6 +121,74 @@ export class EImage extends HTMLElement {
     );
   };
 
+  private _syncSrc(src: string): void {
+    if (src === this._requestedSrc || !this._img) return;
+    this._requestedSrc = src;
+    this._triedFallback = false;
+    this._placeholderReported = false;
+    this._removePlaceholder();
+    patchAttr(this._img, 'hidden', null);
+    delete this._img.dataset.state;
+    patchAttr(this._img, 'src', src || null);
+  }
+
+  private _syncFallback(src: string, fallback: string): void {
+    if (fallback === this._fallbackSrc || !this._img) return;
+    this._fallbackSrc = fallback;
+    if (!fallback || this._img.dataset.state !== 'error' || !src) return;
+    this._triedFallback = true;
+    this._removePlaceholder();
+    patchAttr(this._img, 'hidden', null);
+    patchAttr(this._img, 'data-state', null);
+    patchAttr(this._img, 'src', fallback);
+  }
+
+  private _syncCaption(caption: string): void {
+    if (!this._figure) return;
+    if (!caption) {
+      this._caption?.remove();
+      this._caption = null;
+      return;
+    }
+    if (!this._caption) {
+      this._caption = document.createElement('figcaption');
+      this._caption.className = 'ink-image__caption';
+      this._figure.appendChild(this._caption);
+    }
+    patchText(this._caption, caption);
+  }
+
+  /** Reports the inline placeholder as the effective render, once per missing `src`. */
+  private _reportPlaceholder(): void {
+    if (this._placeholderReported) return;
+    this._placeholderReported = true;
+    queueMicrotask(() => {
+      if (!this.isConnected || this.getAttribute('src')) return;
+      this.dispatchEvent(
+        new CustomEvent('e-load', {
+          detail: { value: 'placeholder' },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    });
+  }
+
+  private _syncEmptySrc(src: string, alt: string): void {
+    if (src || !this._img) return;
+    patchAttr(this._img, 'hidden', '');
+    this._ensurePlaceholder();
+    if (this._placeholder) {
+      let label = this._placeholder.querySelector<HTMLElement>('span');
+      if (!label) {
+        label = document.createElement('span');
+        this._placeholder.appendChild(label);
+      }
+      patchText(label, alt || 'No image');
+    }
+    this._reportPlaceholder();
+  }
+
   private _render(): void {
     if (!this._figure || !this._img) return;
     const src = this.getAttribute('src') || '';
@@ -132,25 +200,9 @@ export class EImage extends HTMLElement {
     const fit = this.getAttribute('fit') || 'cover';
     const fallback = this.getAttribute('fallback') || '';
 
-    if (src !== this._requestedSrc) {
-      this._requestedSrc = src;
-      this._triedFallback = false;
-      this._placeholderReported = false;
-      this._removePlaceholder();
-      patchAttr(this._img, 'hidden', null);
-      this._img.removeAttribute('data-state');
-      patchAttr(this._img, 'src', src || null);
-    }
-    if (fallback !== this._fallbackSrc) {
-      this._fallbackSrc = fallback;
-      if (fallback && this._img.getAttribute('data-state') === 'error' && src) {
-        this._triedFallback = true;
-        this._removePlaceholder();
-        patchAttr(this._img, 'hidden', null);
-        patchAttr(this._img, 'data-state', null);
-        patchAttr(this._img, 'src', fallback);
-      }
-    }
+    this._syncSrc(src);
+    this._syncFallback(src, fallback);
+
     patchAttr(this._img, 'alt', alt);
     patchAttr(this._img, 'loading', lazy ? 'lazy' : null);
     patchAttr(this._img, 'decoding', 'async');
@@ -158,43 +210,8 @@ export class EImage extends HTMLElement {
     patchAttr(this._img, 'height', height);
     this._img.style.objectFit = ['cover', 'contain', 'fill', 'none'].includes(fit) ? fit : 'cover';
 
-    if (caption) {
-      if (!this._caption) {
-        this._caption = document.createElement('figcaption');
-        this._caption.className = 'ink-image__caption';
-        this._figure.appendChild(this._caption);
-      }
-      patchText(this._caption, caption);
-    } else if (this._caption) {
-      this._caption.remove();
-      this._caption = null;
-    }
-
-    if (!src) {
-      patchAttr(this._img, 'hidden', '');
-      this._ensurePlaceholder();
-      if (this._placeholder) {
-        let label = this._placeholder.querySelector<HTMLElement>('span');
-        if (!label) {
-          label = document.createElement('span');
-          this._placeholder.appendChild(label);
-        }
-        patchText(label, alt || 'No image');
-      }
-      if (!this._placeholderReported) {
-        this._placeholderReported = true;
-        queueMicrotask(() => {
-          if (!this.isConnected || this.getAttribute('src')) return;
-          this.dispatchEvent(
-            new CustomEvent('e-load', {
-              detail: { value: 'placeholder' },
-              bubbles: true,
-              composed: true,
-            }),
-          );
-        });
-      }
-    }
+    this._syncCaption(caption);
+    this._syncEmptySrc(src, alt);
   }
 }
 define('e-image', EImage);
