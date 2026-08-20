@@ -92,7 +92,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   under "Added", and `<e-input>`/`<e-textarea>` do call
   `internals.setValidity()` via `mirrorNativeValidity()`.
 - `<e-tabs>`: a `default-value` naming a tab that doesn't exist left the
-  whole strip inert — every button `aria-selected="false"` *and*
+  whole strip inert — every button `aria-selected="false"` _and_
   `tabIndex="-1"`, every panel hidden, so no panel was visible and the
   component had no tab stop at all. The fallback only fired for an absent or
   empty attribute; an unmatched key now falls back to the first tab as the
@@ -169,13 +169,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   through the base class, so `<e-input required required-message="…">`
   announced an error on first paint and lost its focus ring — exactly what
   the deferred-validation gate exists to prevent. `required-message` now
-  changes only *what* is reported, not *when* it surfaces.
+  changes only _what_ is reported, not _when_ it surfaces.
 - `<e-checkbox>` / `<e-toggle>`: `formStateRestoreCallback(null)` computed
   `state === 'checked'`, which is `false` for `null`, so a BFCache restore
   with no stored state cleared a checked control instead of leaving it alone.
 - `disabled` on `<e-input>`, `<e-textarea>`, `<e-checkbox>` and `<e-toggle>`
   was read with `boolAttr()`, but the HTML spec disables a form-associated
-  custom element whenever the attribute is *present*, so the browser called
+  custom element whenever the attribute is _present_, so the browser called
   `formDisabledCallback(true)` and re-disabled a control the component had
   just enabled. `disabled="false"` ended up disabled anyway, via two code
   paths that disagreed. All read sites now use `hasAttribute('disabled')` —
