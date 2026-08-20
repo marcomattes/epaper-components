@@ -297,15 +297,67 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ------------------------------------------------------------ dev channel
+
+  # Mirrors the `changes` job in ci.yml: a website-only push must not start
+  # an automatic dev-channel npm publish either. Computed independently here
+  # because a workflow_run event doesn't carry ci.yml's job outputs. Left
+  # unconditional at the job level (only its steps are conditional) so it
+  # always reports `success` and never cascades a skip into `dev` below.
+  changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      website_only: ${{ steps.filter.outputs.website_only }}
+    steps:
+      - name: Checkout
+        if: >-
+          github.event_name == 'workflow_run' &&
+          github.event.workflow_run.event == 'push'
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      # Every push to main that reaches here went through GitHub's merge
+      # button, so it is a single merge commit whose first parent is the
+      # previous tip of main. Diffing tree-to-tree against that parent
+      # reproduces the same before/after comparison ci.yml made for this
+      # push, regardless of how many commits the merged branch contained.
+      - name: Determine changed paths
+        id: filter
+        if: >-
+          github.event_name == 'workflow_run' &&
+          github.event.workflow_run.event == 'push'
+        run: |
+          set -euo pipefail
+
+          if ! git rev-parse -q --verify HEAD~1 >/dev/null; then
+            echo "website_only=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          CHANGED="$(git diff --name-only HEAD~1 HEAD)"
+          echo "$CHANGED"
+
+          if [ -z "$CHANGED" ] || echo "$CHANGED" | grep -vE '^(src/site/|vite\.site\.config\.ts$|scripts/(build-site-routes|inline-site-css|site-template|site-shots|github-stars)\.mjs$)' | grep -q .; then
+            echo "website_only=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "website_only=true" >> "$GITHUB_OUTPUT"
+          fi
+
   dev:
     name: Publish dev
+    needs: changes
     if: >-
       github.event_name != 'push' &&
       github.repository == 'marcomattes/epaper-components' &&
       (github.event_name == 'workflow_dispatch' ||
         (github.event.workflow_run.conclusion == 'success' &&
          github.event.workflow_run.event == 'push' &&
-         github.event.workflow_run.head_repository.full_name == github.repository))
+         github.event.workflow_run.head_repository.full_name == github.repository &&
+         needs.changes.outputs.website_only != 'true'))
     runs-on: ubuntu-latest
     environment: npm
     permissions:

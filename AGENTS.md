@@ -186,8 +186,11 @@ CI runs all of the above on every PR (`.github/workflows/ci.yml`).
 `.github/workflows/release.yml` owns both npm channels:
 
 - **`dev`** — every green CI run on `main` publishes
-  `<next-patch>-dev.<run number>` under the `dev` dist-tag. Nothing to do
-  by hand; `package.json` `version` is stamped in CI only, never committed.
+  `<next-patch>-dev.<run number>` under the `dev` dist-tag, _unless_ the
+  push only touched the marketing site (`src/site/`, `vite.site.config.ts`,
+  its build scripts — see the `changes` job in `release.yml`), which isn't
+  part of the npm package and skips the publish. Nothing to do by hand;
+  `package.json` `version` is stamped in CI only, never committed.
 - **`latest`** — pushing a `v*` tag runs four gated stages: `guard`
   (tag equals `v<package.json version>`, fails in seconds otherwise),
   `checks` (calls `ci.yml` as a reusable workflow — do not duplicate the
