@@ -9,6 +9,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Changed
 
+- Playwright bumped from 1.59.1 to 1.62.1 (`package.json`, `package-lock.json`),
+  with the dev container and every CI job that pins the matching
+  `mcr.microsoft.com/playwright` image (`ci.yml`, `visual-baselines.yml`)
+  updated to `v1.62.1-noble` alongside it so the browser build stays
+  identical everywhere visual-regression baselines are created or compared.
 - `CLAUDE.md` renamed to `AGENTS.md`, following the cross-tool
   [AGENTS.md](https://agents.md) convention so other coding agents pick it
   up by default. A one-line `CLAUDE.md` stub (`@AGENTS.md` import) remains
