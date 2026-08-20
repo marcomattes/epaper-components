@@ -16,7 +16,7 @@
 > **[Storybook](https://epaper-components.dev/storybook/)**
 
 EPaper is a component library of plain custom elements for user interfaces that
-run on electrophoretic displays. It ships 95 registered elements, a three-layer
+run on electrophoretic (e-paper, e-ink) displays. It ships 95 registered elements, a three-layer
 CSS token system, strict TypeScript types and a Custom Elements Manifest. There
 is no framework dependency and no runtime dependency at all; components extend
 `HTMLElement` or a shared `BaseFormControl` base class and render into the light

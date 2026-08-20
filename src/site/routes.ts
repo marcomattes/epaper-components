@@ -55,7 +55,7 @@ export const ROUTES: Route[] = [
     nav: 'Cover',
     title: 'EPaper — Web Components for E-Paper Displays',
     description:
-      'A vanilla custom-element library tuned for e-paper displays: surgical DOM updates, no animations, no :hover, no Shadow DOM. 71 framework-agnostic components in 40 KB gzipped, MIT licensed.',
+      'A vanilla custom-element library tuned for e-paper and e-ink displays: surgical DOM updates, no animations, no :hover, no Shadow DOM. 71 framework-agnostic components in 40 KB gzipped, MIT licensed.',
     heading: 'Web components for ink & paper.',
     folio: '01',
   },
@@ -65,7 +65,7 @@ export const ROUTES: Route[] = [
     nav: 'Features',
     title: 'Features — Why EPaper is built for ink, not pixels',
     description:
-      'Partial-refresh-friendly DOM patches, vanilla custom elements without Shadow DOM, form-associated inputs via ElementInternals, accessibility by default and theming through CSS custom properties.',
+      'Partial-refresh-friendly DOM patches for e-paper and e-ink displays, vanilla custom elements without Shadow DOM, form-associated inputs via ElementInternals, accessibility by default and theming through CSS custom properties.',
     heading: 'Built for ink, not pixels.',
     folio: '02',
   },
@@ -75,7 +75,7 @@ export const ROUTES: Route[] = [
     nav: 'Components',
     title: 'Components — All 71 EPaper custom elements',
     description:
-      'The complete EPaper component inventory: buttons, inputs, pickers, tables, calendars and layout primitives, each shipped as a standalone custom element you can import on its own.',
+      'The complete EPaper component inventory for e-paper and e-ink displays: buttons, inputs, pickers, tables, calendars and layout primitives, each shipped as a standalone custom element you can import on its own.',
     heading: 'Every component, one tile each.',
     folio: '03',
   },
