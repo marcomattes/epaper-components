@@ -3,6 +3,24 @@ import { SVG_NS } from '../core/icons';
 
 type SparklineTrend = 'up' | 'down' | 'flat';
 
+const TREND_META: Record<SparklineTrend, { text: string; glyph: string }> = {
+  up: { text: 'Rising', glyph: '▲' },
+  down: { text: 'Falling', glyph: '▼' },
+  flat: { text: 'Flat', glyph: '—' },
+};
+
+/** Accessible summary of the series: label, latest value and trend, or "No data". */
+function sparklineAriaLabel(
+  label: string,
+  hasData: boolean,
+  lastValue: number | undefined,
+  trendText: string,
+): string {
+  const prefix = label ? `${label}: ` : '';
+  if (!hasData) return `${prefix}No data`;
+  return `${prefix}${lastValue}; ${trendText.toLowerCase()}`;
+}
+
 const valuesFrom = (raw: string | null): number[] => {
   if (!raw) return [];
   try {
@@ -103,8 +121,24 @@ export class ESparkline extends HTMLElement {
   }
 
   private _trend(values: number[]): SparklineTrend {
-    if (values.length < 2 || values[0] === values[values.length - 1]) return 'flat';
-    return values[values.length - 1]! > values[0]! ? 'up' : 'down';
+    if (values.length < 2 || values[0] === values.at(-1)) return 'flat';
+    return values.at(-1)! > values[0]! ? 'up' : 'down';
+  }
+
+  /** Explicit min/max: attribute override, else the data's own range (widened by 1 if flat). */
+  private _bounds(values: number[]): { min: number; max: number } {
+    const dataMin = values.length ? Math.min(...values) : 0;
+    const dataMax = values.length ? Math.max(...values) : 1;
+    const min = this.hasAttribute('min') ? numAttr(this, 'min', dataMin) : dataMin;
+    const rawMax = this.hasAttribute('max') ? numAttr(this, 'max', dataMax) : dataMax;
+    const max = rawMax > min ? rawMax : min + 1;
+    return { min, max };
+  }
+
+  private _pointFor(value: number, index: number, count: number, min: number, max: number): string {
+    const x = count === 1 ? 50 : 2 + (index / (count - 1)) * 96;
+    const y = 34 - ((Math.min(max, Math.max(min, value)) - min) / (max - min)) * 32;
+    return `${x.toFixed(2)},${y.toFixed(2)}`;
   }
 
   private _patch(): void {
@@ -124,30 +158,15 @@ export class ESparkline extends HTMLElement {
     const values = valuesFrom(this.getAttribute('values'));
     const label = this.getAttribute('label') || '';
     const trend = this._trend(values);
-    const lastValue = values[values.length - 1];
-    const dataMin = values.length ? Math.min(...values) : 0;
-    const dataMax = values.length ? Math.max(...values) : 1;
-    const min = this.hasAttribute('min') ? numAttr(this, 'min', dataMin) : dataMin;
-    const rawMax = this.hasAttribute('max') ? numAttr(this, 'max', dataMax) : dataMax;
-    const max = rawMax > min ? rawMax : min + 1;
-    const span = max - min;
-    const points = values.map((value, index) => {
-      const x = values.length === 1 ? 50 : 2 + (index / (values.length - 1)) * 96;
-      const y = 34 - ((Math.min(max, Math.max(min, value)) - min) / span) * 32;
-      return `${x.toFixed(2)},${y.toFixed(2)}`;
-    });
-    const lastPoint = points[points.length - 1]?.split(',') ?? [];
-    const trendText = trend === 'up' ? 'Rising' : trend === 'down' ? 'Falling' : 'Flat';
+    const lastValue = values.at(-1);
+    const { min, max } = this._bounds(values);
+    const points = values.map((value, index) => this._pointFor(value, index, values.length, min, max));
+    const lastPoint = points.at(-1)?.split(',') ?? [];
+    const { text: trendText, glyph } = TREND_META[trend];
     const hasData = values.length > 0;
 
     patchAttr(this, 'role', 'img');
-    patchAttr(
-      this,
-      'aria-label',
-      hasData
-        ? `${label ? `${label}: ` : ''}${lastValue}; ${trendText.toLowerCase()}`
-        : `${label ? `${label}: ` : ''}No data`,
-    );
+    patchAttr(this, 'aria-label', sparklineAriaLabel(label, hasData, lastValue, trendText));
     patchAttr(this._root, 'data-trend', trend);
     patchAttr(this._line, 'points', points.join(' '));
     patchAttr(this._last, 'cx', lastPoint[0] ?? null);
@@ -158,7 +177,7 @@ export class ESparkline extends HTMLElement {
     patchText(this._labelEl, label);
     patchAttr(this._labelEl, 'hidden', label ? null : '');
     patchText(this._valueEl, hasData ? String(lastValue) : '');
-    patchText(this._trendEl, `${trend === 'up' ? '▲' : trend === 'down' ? '▼' : '—'} ${trendText}`);
+    patchText(this._trendEl, `${glyph} ${trendText}`);
     patchAttr(this._caption, 'hidden', this.hasAttribute('hide-caption') ? '' : null);
   }
 }

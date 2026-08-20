@@ -1,6 +1,11 @@
 import { define, numAttr, patchAttr } from '../core/dom';
 import { iconSvg } from '../core/icons';
 
+function stepStatusLabel(done: boolean, active: boolean): string {
+  if (done) return 'DONE';
+  return active ? 'IN PROGRESS' : 'PENDING';
+}
+
 /**
  * @summary Numbered or check-marked step list rendered from `<e-step>` children.
  * @since v1.0.1
@@ -55,65 +60,70 @@ export class ESteps extends HTMLElement {
 
     const ol = document.createElement('ol');
     ol.className = horiz ? 'ink-steps ink-steps--horizontal' : 'ink-steps';
-    if (horiz) {
-      ol.style.gridTemplateColumns = `repeat(${this._items.length},1fr)`;
-    } else {
-      ol.style.gridTemplateColumns = '';
-    }
+    ol.style.gridTemplateColumns = horiz ? `repeat(${this._items.length},1fr)` : '';
 
     for (let i = 0; i < this._items.length; i++) {
-      const it = this._items[i];
-      const done = i < current;
-      const active = i === current;
-
-      const li = document.createElement('li');
-      li.className = 'ink-steps__item';
-      li.dataset.done = String(done);
-      li.dataset.active = String(active);
-
-      const bubble = document.createElement('div');
-      bubble.className = 'ink-steps__bubble';
-      bubble.setAttribute('aria-hidden', 'true');
-      bubble.innerHTML = done ? iconSvg('check', 14) : String(i + 1);
-      li.appendChild(bubble);
-
-      const body = document.createElement('div');
-      body.style.flex = '1';
-
-      let statusEl: HTMLElement | null = null;
-      if (!horiz) {
-        statusEl = document.createElement('div');
-        statusEl.className = 'ink-steps__status';
-        statusEl.textContent = done ? 'DONE' : active ? 'IN PROGRESS' : 'PENDING';
-        body.appendChild(statusEl);
-      }
-
-      const titleEl = document.createElement('div');
-      titleEl.className = 'ink-steps__title';
-      if (!horiz) {
-        titleEl.style.fontSize = 'var(--ink-text-body)';
-        titleEl.style.marginTop = '2px';
-      }
-      titleEl.textContent = it.title;
-      body.appendChild(titleEl);
-
-      if (it.desc) {
-        const descEl = document.createElement('div');
-        descEl.className = 'ink-steps__desc';
-        if (!horiz) {
-          descEl.style.fontSize = 'var(--ink-text-small)';
-          descEl.style.marginTop = '4px';
-        }
-        descEl.textContent = it.desc;
-        body.appendChild(descEl);
-      }
-
-      li.appendChild(body);
-      ol.appendChild(li);
-      this._stepEls.push({ li, bubble, statusEl });
+      const stepEl = this._buildStepItem(this._items[i], i, current, horiz);
+      ol.appendChild(stepEl.li);
+      this._stepEls.push(stepEl);
     }
 
     this.replaceChildren(ol);
+  }
+
+  private _buildStepItem(
+    it: { title: string; desc: string },
+    i: number,
+    current: number,
+    horiz: boolean,
+  ): { li: HTMLElement; bubble: HTMLElement; statusEl: HTMLElement | null } {
+    const done = i < current;
+    const active = i === current;
+
+    const li = document.createElement('li');
+    li.className = 'ink-steps__item';
+    li.dataset.done = String(done);
+    li.dataset.active = String(active);
+
+    const bubble = document.createElement('div');
+    bubble.className = 'ink-steps__bubble';
+    bubble.setAttribute('aria-hidden', 'true');
+    bubble.innerHTML = done ? iconSvg('check', 14) : String(i + 1);
+    li.appendChild(bubble);
+
+    const body = document.createElement('div');
+    body.style.flex = '1';
+
+    let statusEl: HTMLElement | null = null;
+    if (!horiz) {
+      statusEl = document.createElement('div');
+      statusEl.className = 'ink-steps__status';
+      statusEl.textContent = stepStatusLabel(done, active);
+      body.appendChild(statusEl);
+    }
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'ink-steps__title';
+    if (!horiz) {
+      titleEl.style.fontSize = 'var(--ink-text-body)';
+      titleEl.style.marginTop = '2px';
+    }
+    titleEl.textContent = it.title;
+    body.appendChild(titleEl);
+
+    if (it.desc) {
+      const descEl = document.createElement('div');
+      descEl.className = 'ink-steps__desc';
+      if (!horiz) {
+        descEl.style.fontSize = 'var(--ink-text-small)';
+        descEl.style.marginTop = '4px';
+      }
+      descEl.textContent = it.desc;
+      body.appendChild(descEl);
+    }
+
+    li.appendChild(body);
+    return { li, bubble, statusEl };
   }
 
   private _patchCurrent(): void {
@@ -127,7 +137,7 @@ export class ESteps extends HTMLElement {
       const bubbleContent = done ? iconSvg('check', 14) : String(i + 1);
       if (bubble.innerHTML !== bubbleContent) bubble.innerHTML = bubbleContent;
       if (statusEl) {
-        statusEl.textContent = done ? 'DONE' : active ? 'IN PROGRESS' : 'PENDING';
+        statusEl.textContent = stepStatusLabel(done, active);
       }
     }
   }
