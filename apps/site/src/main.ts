@@ -9,11 +9,8 @@ import '../../../packages/epaper-components/src/styles/tokens.css';
 import '../../../packages/epaper-components/src/styles/base.css';
 import '../../../packages/epaper-components/src/styles/components.css';
 import './site.css';
-// Imported as a value, not just for its side effect: the bundler would
-// otherwise elide the module and leave <e-site-pager> unregistered. The
-// underscore prefix marks it deliberately unused so the reference alone
-// (not a `void` expression) is what keeps the import alive.
-import { ESitePager as _ESitePager } from './pager';
+// Side-effect import: registers <e-site-pager> via its own define() call.
+import './pager';
 import { esc } from '../../../packages/epaper-components/src/core/dom';
 import { type ComponentCategory } from './data';
 

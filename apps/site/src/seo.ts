@@ -310,7 +310,7 @@ function routeGraph(
 /** Markdown companion route for one HTML path (e.g. /install/ -> /install.md). */
 export function markdownRoutePath(path: string): string {
   if (path === '/') return '/index.md';
-  const slug = path.replace(/^\/+/, '').replace(/\/+$/, '');
+  const slug = path.replace(/^\/{1,300}/, '').replace(/\/{1,300}$/, '');
   return `/${slug}.md`;
 }
 

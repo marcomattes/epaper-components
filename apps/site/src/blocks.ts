@@ -142,9 +142,9 @@ export function headingId(text: string): string {
   return text
     .toLowerCase()
     .replaceAll('`', '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+/, '')
-    .replace(/-+$/, '');
+    .replace(/[^a-z0-9]{1,300}/g, '-')
+    .replace(/^-{1,300}/, '')
+    .replace(/-{1,300}$/, '');
 }
 
 /** The `h2` headings of a body, in order — the article's table of contents. */

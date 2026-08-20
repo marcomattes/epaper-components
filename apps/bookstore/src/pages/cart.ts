@@ -32,6 +32,18 @@ interface RenderedLine {
 
 let repaint: (() => void) | null = null;
 
+function summaryLines(summary: CartSummary): Array<[string, string]> {
+  const lines: Array<[string, string]> = [
+    ['Subtotal', eur(summary.subtotal)],
+    ['Delivery (standard)', summary.delivery === 0 ? 'Free' : eur(summary.delivery)],
+  ];
+  if (summary.discount > 0 && summary.voucher) {
+    lines.push([`Voucher ${summary.voucher.code}`, `− ${eur(summary.discount)}`]);
+  }
+  lines.push(['Total', eur(summary.total)], ['Included VAT (7 %)', eur(summary.vat)]);
+  return lines;
+}
+
 /** Recompute and repaint the basket totals. */
 export function updateCartSummary(): void {
   repaint?.();
@@ -196,18 +208,6 @@ export function createCartPage(): Page {
       setAttr(row.quantityControl, 'value', String(line.quantity));
       setText(row.lineTotal, eur(unit * line.quantity));
     }
-  }
-
-  function summaryLines(summary: CartSummary): Array<[string, string]> {
-    const lines: Array<[string, string]> = [
-      ['Subtotal', eur(summary.subtotal)],
-      ['Delivery (standard)', summary.delivery === 0 ? 'Free' : eur(summary.delivery)],
-    ];
-    if (summary.discount > 0 && summary.voucher) {
-      lines.push([`Voucher ${summary.voucher.code}`, `− ${eur(summary.discount)}`]);
-    }
-    lines.push(['Total', eur(summary.total)], ['Included VAT (7 %)', eur(summary.vat)]);
-    return lines;
   }
 
   function paintVoucherAlert(summary: CartSummary): void {

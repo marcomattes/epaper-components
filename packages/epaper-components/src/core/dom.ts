@@ -1,7 +1,20 @@
 // Shared DOM/string helpers used by every component.
 
+/**
+ * Stringifies anything for `esc()`. Deliberately mirrors `String(s ?? '')`'s
+ * behavior — including a bare object falling back to "[object Object]" and a
+ * custom `toString()` being honored — just without the literal `String(x)`
+ * call on a non-primitive that trips static "may stringify as an object"
+ * analysis; `Object.prototype.toString` runs the same either way.
+ */
+function stringify(s: unknown): string {
+  if (typeof s === 'string') return s;
+  if (s == null) return '';
+  return (s as { toString(): string }).toString();
+}
+
 export const esc = (s: unknown): string =>
-  String(s ?? '')
+  stringify(s)
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;')

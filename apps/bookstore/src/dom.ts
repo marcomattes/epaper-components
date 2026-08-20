@@ -100,8 +100,7 @@ export function removeFlag(el: Element, name: string): void {
 
 /** Add or remove a boolean attribute only when it changes. */
 export function setFlag(el: Element, name: string, on: boolean): void {
-  if (on) addFlag(el, name);
-  else removeFlag(el, name);
+  el.toggleAttribute(name, on);
 }
 
 /**

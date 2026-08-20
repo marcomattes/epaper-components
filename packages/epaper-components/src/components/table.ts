@@ -69,7 +69,9 @@ function cellText(v: unknown): string {
   try {
     return JSON.stringify(v);
   } catch {
-    return String(v);
+    // JSON.stringify only throws for a circular reference or a BigInt — never
+    // for a primitive, which the checks above already ruled out.
+    return Array.isArray(v) ? '[array]' : '[object]';
   }
 }
 
@@ -240,7 +242,7 @@ export class ETable extends HTMLElement {
     if (!this._table) return;
     const sort = this._currentSort();
     for (const [key, btn] of this._sortBtns) {
-      const dir: SortDir = sort && sort.key === key ? sort.dir : 'none';
+      const dir: SortDir = sort?.key === key ? sort.dir : 'none';
       this._patchSortButton(key, btn, dir);
     }
   }
@@ -300,7 +302,7 @@ export class ETable extends HTMLElement {
       return th;
     }
 
-    const dir: SortDir = sort && sort.key === col.key ? sort.dir : 'none';
+    const dir: SortDir = sort?.key === col.key ? sort.dir : 'none';
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'ink-table__sort';

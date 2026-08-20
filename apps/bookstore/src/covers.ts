@@ -18,11 +18,11 @@ const MOTIFS: Motif[] = ['rules', 'hatch', 'arc', 'grid'];
 
 const xml = (value: string): string =>
   value
-    .replaceAll(/&/g, '&amp;')
-    .replaceAll(/</g, '&lt;')
-    .replaceAll(/>/g, '&gt;')
-    .replaceAll(/"/g, '&quot;')
-    .replaceAll(/'/g, '&apos;');
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&apos;');
 
 /** Stable small integer for a book id, so a cover never changes between loads. */
 function hash(seed: string): number {
