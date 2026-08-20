@@ -70,21 +70,15 @@ export class ECheckbox extends BaseFormControl {
     this._syncFormValue();
     this._cb!.addEventListener('change', (e) => {
       const v = (e.target as HTMLInputElement).checked;
-      if (v) this._markChecked();
-      else this._markUnchecked();
+      this._reflectChecked(v);
       this._syncFormValue();
       this.dispatchEvent(new CustomEvent('e-change', { detail: { checked: v }, bubbles: true }));
     });
   }
 
-  /** Reflects the checked state to the `checked` attribute. */
-  private _markChecked(): void {
-    this.setAttribute('checked', '');
-  }
-
-  /** Clears the `checked` attribute. */
-  private _markUnchecked(): void {
-    this.removeAttribute('checked');
+  /** Reflects the checked state to the `checked` attribute (present/absent). */
+  private _reflectChecked(v: boolean): void {
+    this.toggleAttribute('checked', v);
   }
 
   attributeChangedCallback(name: string) {
@@ -119,8 +113,7 @@ export class ECheckbox extends BaseFormControl {
     return this._cb?.checked || false;
   }
   set checked(v: boolean) {
-    if (v) this._markChecked();
-    else this._markUnchecked();
+    this._reflectChecked(v);
   }
 
   /** Submitted value when checked (defaults to "on"). */

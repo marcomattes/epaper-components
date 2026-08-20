@@ -1,5 +1,18 @@
 import { clampedNumAttr, define, patchAttr, patchText } from '../core/dom';
 
+type TrendDirection = 'up' | 'down' | 'flat';
+
+const TREND_GLYPH: Record<TrendDirection, string> = { up: '▲', down: '▼', flat: '—' };
+const TREND_A11Y: Record<TrendDirection, string> = {
+  up: 'increased by',
+  down: 'decreased by',
+  flat: 'unchanged',
+};
+
+function normalizeTrendDirection(trend: string | null): TrendDirection {
+  return trend === 'up' || trend === 'down' ? trend : 'flat';
+}
+
 /**
  * @summary KPI block with a large numeric value, label and optional trend arrow.
  * @since v1.0.1
@@ -89,8 +102,6 @@ export class EStatistic extends HTMLElement {
     const label = this.getAttribute('label') || '';
     const prefix = this.getAttribute('prefix') || '';
     const suffix = this.getAttribute('suffix') || '';
-    const trend = this.getAttribute('trend');
-    const delta = this.getAttribute('delta');
 
     patchText(this._labelEl, label);
     patchAttr(this._labelEl, 'hidden', label ? null : '');
@@ -100,19 +111,22 @@ export class EStatistic extends HTMLElement {
     patchText(this._suffixEl, suffix);
     patchAttr(this._suffixEl, 'hidden', suffix ? null : '');
 
+    this._renderTrend();
+  }
+
+  private _renderTrend(): void {
+    if (!this._trendEl) return;
+    const trend = this.getAttribute('trend');
+    const delta = this.getAttribute('delta');
     const trendVisible = !!(trend || delta);
-    if (this._trendEl) {
-      patchAttr(this._trendEl, 'hidden', trendVisible ? null : '');
-      if (trendVisible) {
-        const arrow = trend === 'up' ? '\u25B2' : trend === 'down' ? '\u25BC' : '\u2014';
-        const dir = trend === 'up' || trend === 'down' || trend === 'flat' ? trend : 'flat';
-        patchAttr(this._trendEl, 'data-trend', dir);
-        const a11y = dir === 'up' ? 'increased by' : dir === 'down' ? 'decreased by' : 'unchanged';
-        if (this._trendArrow) patchText(this._trendArrow, arrow);
-        if (this._trendDelta) patchText(this._trendDelta, delta || '');
-        if (this._trendA11y) patchText(this._trendA11y, a11y);
-      }
-    }
+    patchAttr(this._trendEl, 'hidden', trendVisible ? null : '');
+    if (!trendVisible) return;
+
+    const dir = normalizeTrendDirection(trend);
+    patchAttr(this._trendEl, 'data-trend', dir);
+    if (this._trendArrow) patchText(this._trendArrow, TREND_GLYPH[dir]);
+    if (this._trendDelta) patchText(this._trendDelta, delta || '');
+    if (this._trendA11y) patchText(this._trendA11y, TREND_A11Y[dir]);
   }
 }
 

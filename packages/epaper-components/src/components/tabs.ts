@@ -28,86 +28,97 @@ export class ETabs extends HTMLElement {
   connectedCallback() {
     if (!this._wired) {
       this._wired = true;
-      const dflt = this.getAttribute('default-value');
-      const tabs = [...this.querySelectorAll('e-tab')].map((tab) => ({
-        key: tab.getAttribute('key') ?? '',
-        label: tab.getAttribute('label') || '',
-        icon: tab.getAttribute('icon'),
-        count: tab.getAttribute('count'),
-        content: [...tab.childNodes],
-      }));
-      // A `default-value` that matches no tab falls back to the first tab, so
-      // exactly one tab is always selected and reachable by keyboard.
-      const requested = dflt ? tabs.findIndex((t) => t.key === dflt) : -1;
-      const activeIndex = requested === -1 ? 0 : requested;
-      this._active = tabs[activeIndex]?.key ?? '';
-
-      // Build all tab buttons and panels once. Panels are persistent — never rebuilt.
-      const strip = document.createElement('div');
-      strip.className = 'ink-tabs__list';
-      strip.setAttribute('role', 'tablist');
-
-      this._buttons.clear();
-      this._panels.clear();
-
-      for (const [index, t] of tabs.entries()) {
-        const isActive = index === activeIndex;
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'ink-tabs__tab';
-        btn.setAttribute('role', 'tab');
-        const tabId = randId('ink-tab');
-        const panelId = randId('ink-tabpanel');
-        btn.id = tabId;
-        btn.setAttribute('aria-selected', String(isActive));
-        btn.setAttribute('aria-controls', panelId);
-        btn.tabIndex = isActive ? 0 : -1;
-        btn.dataset['key'] = t.key;
-
-        if (t.icon) {
-          const iconWrap = document.createElement('span');
-          iconWrap.innerHTML = iconSvg(t.icon, 16);
-          btn.appendChild(iconWrap);
-        }
-        const labelSpan = document.createElement('span');
-        labelSpan.textContent = t.label;
-        btn.appendChild(labelSpan);
-
-        if (t.count != null) {
-          const badge = document.createElement('e-badge');
-          badge.textContent = t.count;
-          if (isActive) badge.setAttribute('inverted', '');
-          btn.appendChild(badge);
-        }
-
-        strip.appendChild(btn);
-        this._buttons.set(t.key, btn);
-
-        const panel = document.createElement('div');
-        panel.className = 'ink-tabs__panel';
-        panel.setAttribute('role', 'tabpanel');
-        panel.id = panelId;
-        panel.setAttribute('aria-labelledby', tabId);
-        panel.tabIndex = 0;
-        panel.dataset['panel'] = t.key;
-        panel.hidden = !isActive;
-        panel.append(...t.content);
-        this._panels.set(t.key, panel);
-      }
-
-      const wrap = document.createElement('div');
-      wrap.className = 'ink-tabs';
-      wrap.appendChild(strip);
-      for (const panel of this._panels.values()) {
-        wrap.appendChild(panel);
-      }
-      this.replaceChildren(wrap);
+      this._build();
     }
 
     this.addEventListener('click', this._onClick);
     this.addEventListener('keydown', this._onKeydown);
     addCleanup(this, () => this.removeEventListener('click', this._onClick));
     addCleanup(this, () => this.removeEventListener('keydown', this._onKeydown));
+  }
+
+  private _build(): void {
+    const dflt = this.getAttribute('default-value');
+    const tabs = [...this.querySelectorAll('e-tab')].map((tab) => ({
+      key: tab.getAttribute('key') ?? '',
+      label: tab.getAttribute('label') || '',
+      icon: tab.getAttribute('icon'),
+      count: tab.getAttribute('count'),
+      content: [...tab.childNodes],
+    }));
+    // A `default-value` that matches no tab falls back to the first tab, so
+    // exactly one tab is always selected and reachable by keyboard.
+    const requested = dflt ? tabs.findIndex((t) => t.key === dflt) : -1;
+    const activeIndex = requested === -1 ? 0 : requested;
+    this._active = tabs[activeIndex]?.key ?? '';
+
+    // Build all tab buttons and panels once. Panels are persistent — never rebuilt.
+    const strip = document.createElement('div');
+    strip.className = 'ink-tabs__list';
+    strip.setAttribute('role', 'tablist');
+
+    this._buttons.clear();
+    this._panels.clear();
+
+    for (const [index, t] of tabs.entries()) {
+      const { btn, panel } = this._buildTabPair(t, index === activeIndex);
+      strip.appendChild(btn);
+      this._buttons.set(t.key, btn);
+      this._panels.set(t.key, panel);
+    }
+
+    const wrap = document.createElement('div');
+    wrap.className = 'ink-tabs';
+    wrap.appendChild(strip);
+    for (const panel of this._panels.values()) {
+      wrap.appendChild(panel);
+    }
+    this.replaceChildren(wrap);
+  }
+
+  private _buildTabPair(
+    t: { key: string; label: string; icon: string | null; count: string | null; content: Node[] },
+    isActive: boolean,
+  ): { btn: HTMLButtonElement; panel: HTMLElement } {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ink-tabs__tab';
+    btn.setAttribute('role', 'tab');
+    const tabId = randId('ink-tab');
+    const panelId = randId('ink-tabpanel');
+    btn.id = tabId;
+    btn.setAttribute('aria-selected', String(isActive));
+    btn.setAttribute('aria-controls', panelId);
+    btn.tabIndex = isActive ? 0 : -1;
+    btn.dataset['key'] = t.key;
+
+    if (t.icon) {
+      const iconWrap = document.createElement('span');
+      iconWrap.innerHTML = iconSvg(t.icon, 16);
+      btn.appendChild(iconWrap);
+    }
+    const labelSpan = document.createElement('span');
+    labelSpan.textContent = t.label;
+    btn.appendChild(labelSpan);
+
+    if (t.count != null) {
+      const badge = document.createElement('e-badge');
+      badge.textContent = t.count;
+      if (isActive) badge.setAttribute('inverted', '');
+      btn.appendChild(badge);
+    }
+
+    const panel = document.createElement('div');
+    panel.className = 'ink-tabs__panel';
+    panel.setAttribute('role', 'tabpanel');
+    panel.id = panelId;
+    panel.setAttribute('aria-labelledby', tabId);
+    panel.tabIndex = 0;
+    panel.dataset['panel'] = t.key;
+    panel.hidden = !isActive;
+    panel.append(...t.content);
+
+    return { btn, panel };
   }
 
   disconnectedCallback() {

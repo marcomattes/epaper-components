@@ -281,6 +281,37 @@ function readLines(value: unknown): CartLine[] | null {
   return lines;
 }
 
+function readOrder(entry: unknown): Order | null {
+  if (!isRecord(entry)) return null;
+  const orderLines = readLines(entry['lines']);
+  if (
+    typeof entry['id'] !== 'string' ||
+    typeof entry['placed'] !== 'string' ||
+    typeof entry['total'] !== 'number' ||
+    !orderLines
+  ) {
+    return null;
+  }
+  return {
+    id: entry['id'],
+    placed: entry['placed'],
+    status: readStatus(entry['status']),
+    delivery: readDelivery(entry['delivery']),
+    total: entry['total'],
+    lines: orderLines,
+  };
+}
+
+function readOrders(value: unknown): Order[] | null {
+  if (!Array.isArray(value)) return null;
+  const restored: Order[] = [];
+  for (const entry of value) {
+    const order = readOrder(entry);
+    if (order) restored.push(order);
+  }
+  return restored.length > 0 ? restored : null;
+}
+
 /**
  * Read the persisted shop.
  *
@@ -314,31 +345,8 @@ export function loadState(): AppState {
   const voucher = parsed['voucher'];
   state.voucher = typeof voucher === 'string' && findVoucher(voucher) ? voucher : null;
 
-  const orders = parsed['orders'];
-  if (Array.isArray(orders)) {
-    const restored: Order[] = [];
-    for (const entry of orders) {
-      if (!isRecord(entry)) continue;
-      const orderLines = readLines(entry['lines']);
-      if (
-        typeof entry['id'] !== 'string' ||
-        typeof entry['placed'] !== 'string' ||
-        typeof entry['total'] !== 'number' ||
-        !orderLines
-      ) {
-        continue;
-      }
-      restored.push({
-        id: entry['id'],
-        placed: entry['placed'],
-        status: readStatus(entry['status']),
-        delivery: readDelivery(entry['delivery']),
-        total: entry['total'],
-        lines: orderLines,
-      });
-    }
-    if (restored.length > 0) state.orders = restored;
-  }
+  const orders = readOrders(parsed['orders']);
+  if (orders) state.orders = orders;
 
   readPreferences(parsed['preferences']);
   readDisplay(parsed['display']);
@@ -574,22 +582,32 @@ export function linePrice(line: CartLine): number {
  * from the *undiscounted* subtotal, so a discount can never push an order
  * below the free-delivery threshold it already qualified for.
  */
-export function cartSummary(method: DeliveryMethod = 'standard'): CartSummary {
-  const subtotal = state.cart.reduce((sum, line) => sum + linePrice(line), 0);
-  const voucher = state.voucher ? (findVoucher(state.voucher) ?? null) : null;
-  const eligible = voucher != null && subtotal >= voucher.minimum;
-  let discount = 0;
-  if (eligible && voucher) {
-    discount =
-      voucher.percent > 0 ? subtotal * voucher.percent : Math.min(voucher.amount, subtotal);
-  }
+function computeDiscount(subtotal: number, eligible: boolean, voucher: Voucher | null): number {
+  if (!eligible || !voucher) return 0;
+  return voucher.percent > 0 ? subtotal * voucher.percent : Math.min(voucher.amount, subtotal);
+}
 
+function computeDelivery(
+  method: DeliveryMethod,
+  subtotal: number,
+  eligible: boolean,
+  voucher: Voucher | null,
+): number {
   let delivery = 0;
   if (state.cart.length > 0 && method !== 'pickup') {
     if (method === 'express') delivery = EXPRESS_DELIVERY;
     else delivery = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : STANDARD_DELIVERY;
   }
   if (eligible && voucher?.freeDelivery && method === 'standard') delivery = 0;
+  return delivery;
+}
+
+export function cartSummary(method: DeliveryMethod = 'standard'): CartSummary {
+  const subtotal = state.cart.reduce((sum, line) => sum + linePrice(line), 0);
+  const voucher = state.voucher ? (findVoucher(state.voucher) ?? null) : null;
+  const eligible = voucher != null && subtotal >= voucher.minimum;
+  const discount = computeDiscount(subtotal, eligible, voucher);
+  const delivery = computeDelivery(method, subtotal, eligible, voucher);
 
   const total = Math.max(0, subtotal - discount) + delivery;
   return {

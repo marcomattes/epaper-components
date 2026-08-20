@@ -97,7 +97,7 @@ function sitePagesPlugin(opts: ContentOptions): Plugin {
 
         const route = routeByPath(url);
         // The home page goes through Vite's own index.html handling.
-        if (!route || !route.dir) return next();
+        if (!route?.dir) return next();
         void (async () => {
           try {
             const shell = readFileSync(resolve(__dirname, 'src/index.html'), 'utf8');

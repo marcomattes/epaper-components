@@ -2,6 +2,12 @@ import { define, intAttr, numAttr, patchAttr, patchBoolAttr, patchText } from '.
 
 type MeterBand = 'low' | 'normal' | 'high';
 
+const BAND_LABEL: Record<MeterBand, string> = {
+  low: 'Low',
+  high: 'High',
+  normal: 'In range',
+};
+
 /**
  * @summary Discrete, non-animated meter for bounded measurements.
  * @since v1.1.0
@@ -92,7 +98,7 @@ export class EMeter extends HTMLElement {
     }
     while (this._segments.length > count) {
       const segment = this._segments.pop();
-      if (segment) this._scale.removeChild(segment);
+      segment?.remove();
     }
   }
 
@@ -118,7 +124,7 @@ export class EMeter extends HTMLElement {
     patchAttr(this._labelEl, 'hidden', label ? null : '');
     patchText(this._valueEl, reading);
     patchAttr(this._valueEl, 'hidden', this.hasAttribute('hide-value') ? '' : null);
-    patchText(this._bandEl, band === 'low' ? 'Low' : band === 'high' ? 'High' : 'In range');
+    patchText(this._bandEl, BAND_LABEL[band]);
 
     this._syncSegments(count);
     for (let i = 0; i < this._segments.length; i++) {

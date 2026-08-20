@@ -79,7 +79,7 @@ describe('e-badge-count', () => {
   it('wraps slotted content and appends the chip last', () => {
     const el = mount('<e-badge-count count="3">Inbox</e-badge-count>');
     const wrap = el.firstElementChild as HTMLElement;
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
     expect(wrap.tagName).toBe('SPAN');
     expect(wrap.className).toBe('ink-badge-count');
     expect(wrap.firstChild!.textContent).toBe('Inbox');
@@ -90,7 +90,7 @@ describe('e-badge-count', () => {
   it('hides the chip entirely when count is 0 and dot is absent', () => {
     const el = mount('<e-badge-count count="0">x</e-badge-count>');
     expect(chip(el)).toBeNull();
-    expect(el.querySelector('.ink-badge-count')!.children.length).toBe(0);
+    expect(el.querySelector('.ink-badge-count')!.children).toHaveLength(0);
   });
 
   it('adds, updates and removes the chip as count changes after mount', () => {
@@ -176,15 +176,15 @@ describe('e-badge-count', () => {
   it('does not double-wrap on reconnect', () => {
     const el = mount('<e-badge-count count="1">x</e-badge-count>');
     remount(el);
-    expect(el.children.length).toBe(1);
-    expect(el.querySelectorAll('.ink-badge-count').length).toBe(1);
-    expect(el.querySelectorAll('.ink-badge-count__num').length).toBe(1);
+    expect(el.children).toHaveLength(1);
+    expect(el.querySelectorAll('.ink-badge-count')).toHaveLength(1);
+    expect(el.querySelectorAll('.ink-badge-count__num')).toHaveLength(1);
   });
 
   it('ignores attribute changes before the wrapper exists', () => {
     const el = document.createElement('e-badge-count');
     el.setAttribute('count', '5');
-    expect(el.children.length).toBe(0);
+    expect(el.children).toHaveLength(0);
   });
 });
 
@@ -201,13 +201,13 @@ describe('e-breadcrumb', () => {
   it('builds a nav with anchors, separators and a current span', () => {
     const el = mount(trail);
     const nav = el.firstElementChild as HTMLElement;
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
     expect(nav.tagName).toBe('NAV');
     expect(nav.className).toBe('ink-breadcrumb');
     expect(nav.getAttribute('aria-label')).toBe('Breadcrumb');
     expect([...nav.children].map((c) => c.tagName)).toEqual(['A', 'SPAN', 'A', 'SPAN', 'SPAN']);
     const anchors = nav.querySelectorAll('a');
-    expect(anchors.length).toBe(2);
+    expect(anchors).toHaveLength(2);
     expect(anchors[0]!.getAttribute('href')).toBe('/a');
     expect(anchors[0]!.textContent).toBe('A');
     expect(anchors[0]!.className).toBe('');
@@ -286,7 +286,7 @@ describe('e-breadcrumb', () => {
       '<e-breadcrumb><e-breadcrumb-item href="/x">Only</e-breadcrumb-item></e-breadcrumb>',
     );
     const nav = el.querySelector('nav')!;
-    expect(nav.children.length).toBe(1);
+    expect(nav.children).toHaveLength(1);
     expect(nav.children[0]!.className).toBe('ink-breadcrumb__current');
     expect(nav.querySelector('span[aria-hidden]')).toBeNull();
   });
@@ -294,14 +294,14 @@ describe('e-breadcrumb', () => {
   it('renders an empty nav for zero items and survives a separator change', () => {
     const el = mount('<e-breadcrumb></e-breadcrumb>');
     const nav = el.querySelector('nav')!;
-    expect(nav.children.length).toBe(0);
+    expect(nav.children).toHaveLength(0);
     el.setAttribute('separator', '-');
-    expect(nav.children.length).toBe(0);
+    expect(nav.children).toHaveLength(0);
   });
 
   it('destroys the authored e-breadcrumb-item elements', () => {
     const el = mount(trail);
-    expect(el.querySelectorAll('e-breadcrumb-item').length).toBe(0);
+    expect(el.querySelectorAll('e-breadcrumb-item')).toHaveLength(0);
   });
 
   it('ignores items appended after connect (_wired snapshot)', () => {
@@ -311,7 +311,7 @@ describe('e-breadcrumb', () => {
     const late = document.createElement('e-breadcrumb-item');
     late.textContent = 'D';
     el.appendChild(late);
-    expect(nav.children.length).toBe(before);
+    expect(nav.children).toHaveLength(before);
     expect(el.querySelector('.ink-breadcrumb__current')!.textContent).toBe('C');
   });
 
@@ -319,7 +319,7 @@ describe('e-breadcrumb', () => {
     const el = mount(trail);
     const nav = el.querySelector('nav')!;
     remount(el);
-    expect(el.querySelectorAll('nav').length).toBe(1);
+    expect(el.querySelectorAll('nav')).toHaveLength(1);
     expect(el.querySelector('nav')).toBe(nav);
   });
 
@@ -334,7 +334,7 @@ describe('e-breadcrumb', () => {
 
   it('e-breadcrumb-item on its own is an inert data carrier', () => {
     const el = mount('<e-breadcrumb-item href="/x">Solo</e-breadcrumb-item>');
-    expect(el.children.length).toBe(0);
+    expect(el.children).toHaveLength(0);
     expect(el.textContent).toBe('Solo');
   });
 });
@@ -358,7 +358,7 @@ describe('e-flex', () => {
     const el = mount(
       '<e-flex direction="column" wrap="wrap" justify="space-between" align="center" gap="12"><i>a</i></e-flex>',
     );
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
     expect(el.firstElementChild!.tagName).toBe('I');
     expect(el.style.flexDirection).toBe('column');
     expect(el.style.flexWrap).toBe('wrap');
@@ -632,7 +632,7 @@ describe('e-icon', () => {
     const el = mount('<e-icon name="plus"></e-icon>');
     el.setAttribute('label', '<img src=x onerror="boom()">');
     expect(el.querySelector('img')).toBeNull();
-    expect(el.querySelectorAll('svg').length).toBe(1);
+    expect(el.querySelectorAll('svg')).toHaveLength(1);
     expect(el.querySelector('svg')!.getAttribute('aria-label')).toBe(
       '<img src=x onerror="boom()">',
     );
@@ -656,7 +656,7 @@ describe('e-link', () => {
   it('wraps children in an anchor and mirrors the raw href attribute', () => {
     const el = mount('<e-link href="/docs">Docs</e-link>');
     const a = el.firstElementChild as HTMLAnchorElement;
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
     expect(a.tagName).toBe('A');
     expect(a.className).toBe('ink-link');
     expect(a.getAttribute('href')).toBe('/docs');
@@ -687,14 +687,14 @@ describe('e-link', () => {
     const el = mount('<e-link href="/a">x</e-link>');
     const a = el.querySelector('a')!;
     remount(el);
-    expect(el.querySelectorAll('a').length).toBe(1);
+    expect(el.querySelectorAll('a')).toHaveLength(1);
     expect(el.querySelector('a')).toBe(a);
   });
 
   it('ignores attribute changes before the anchor exists', () => {
     const el = document.createElement('e-link');
     el.setAttribute('href', '/x');
-    expect(el.children.length).toBe(0);
+    expect(el.children).toHaveLength(0);
   });
 });
 
@@ -762,7 +762,7 @@ describe('e-ribbon', () => {
   it('wraps children and always creates the tag span, even without text', () => {
     const el = mount('<e-ribbon><p>Body</p></e-ribbon>');
     const wrap = el.firstElementChild as HTMLElement;
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
     expect(wrap.className).toBe('ink-ribbon');
     expect(wrap.firstElementChild!.tagName).toBe('P');
     const tag = el.querySelector('.ink-ribbon__tag')!;
@@ -792,14 +792,14 @@ describe('e-ribbon', () => {
   it('does not double-wrap or duplicate the tag on reconnect', () => {
     const el = mount('<e-ribbon text="A">x</e-ribbon>');
     remount(el);
-    expect(el.querySelectorAll('.ink-ribbon').length).toBe(1);
-    expect(el.querySelectorAll('.ink-ribbon__tag').length).toBe(1);
+    expect(el.querySelectorAll('.ink-ribbon')).toHaveLength(1);
+    expect(el.querySelectorAll('.ink-ribbon__tag')).toHaveLength(1);
   });
 
   it('ignores attribute changes before the tag exists', () => {
     const el = document.createElement('e-ribbon');
     el.setAttribute('text', 'A');
-    expect(el.children.length).toBe(0);
+    expect(el.children).toHaveLength(0);
   });
 });
 
@@ -872,7 +872,7 @@ describe('e-space', () => {
 describe('e-form', () => {
   it('moves light-DOM children into an inner form.ink-form', () => {
     const el = mount('<e-form><span id="a">A</span><span id="b">B</span></e-form>');
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
     const form = el.firstElementChild as HTMLFormElement;
     expect(form.tagName).toBe('FORM');
     expect(form.className).toBe('ink-form');
@@ -882,7 +882,7 @@ describe('e-form', () => {
   it('creates an empty inner form for an empty host', () => {
     const el = mount('<e-form></e-form>');
     const form = el.querySelector('form.ink-form')!;
-    expect(form.children.length).toBe(0);
+    expect(form.children).toHaveLength(0);
   });
 
   it('toggles the inline modifier only for the exact string "inline"', () => {
@@ -905,7 +905,7 @@ describe('e-form', () => {
     const seen = listen<{ form: HTMLFormElement }>(el, 'e-submit');
     const form = el.querySelector('form.ink-form') as HTMLFormElement;
     form.requestSubmit();
-    expect(seen.length).toBe(1);
+    expect(seen).toHaveLength(1);
     expect(seen[0]!.detail.form).toBe(form);
     expect(Object.keys(seen[0]!.detail)).toEqual(['form']);
     expect(seen[0]!.bubbles).toBe(true);
@@ -925,7 +925,7 @@ describe('e-form', () => {
     const el = mount('<e-form></e-form>');
     const seen = listen<{ form: HTMLFormElement }>(el.parentElement!, 'e-submit');
     (el.querySelector('form.ink-form') as HTMLFormElement).requestSubmit();
-    expect(seen.length).toBe(1);
+    expect(seen).toHaveLength(1);
     expect(seen[0]!.target).toBe(el);
   });
 
@@ -933,17 +933,17 @@ describe('e-form', () => {
     const el = mount('<e-form><span>x</span></e-form>');
     const form = el.querySelector('form.ink-form') as HTMLFormElement;
     remount(el);
-    expect(el.querySelectorAll('form.ink-form').length).toBe(1);
+    expect(el.querySelectorAll('form.ink-form')).toHaveLength(1);
     expect(el.querySelector('form.ink-form')).toBe(form);
     const seen = listen<{ form: HTMLFormElement }>(el, 'e-submit');
     form.requestSubmit();
-    expect(seen.length).toBe(1);
+    expect(seen).toHaveLength(1);
   });
 
   it('ignores attribute changes before the inner form exists', () => {
     const el = document.createElement('e-form');
     el.setAttribute('layout', 'inline');
-    expect(el.children.length).toBe(0);
+    expect(el.children).toHaveLength(0);
   });
 });
 
@@ -956,7 +956,7 @@ describe('e-form-item', () => {
 
   it('builds the root/control scaffold and moves children into it', () => {
     const el = mount('<e-form-item><e-input></e-input></e-form-item>');
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
     const r = root(el);
     expect(r.tagName).toBe('DIV');
     const control = r.querySelector('[data-control]') as HTMLElement;
@@ -1220,8 +1220,8 @@ describe('e-form-item', () => {
     const el = mount('<e-form-item label="L"><e-input></e-input></e-form-item>');
     const r = root(el);
     remount(el);
-    expect(el.querySelectorAll('.ink-form-item').length).toBe(1);
-    expect(el.querySelectorAll('[data-control]').length).toBe(1);
+    expect(el.querySelectorAll('.ink-form-item')).toHaveLength(1);
+    expect(el.querySelectorAll('[data-control]')).toHaveLength(1);
     expect(root(el)).toBe(r);
   });
 
@@ -1241,7 +1241,7 @@ describe('e-form-item', () => {
   it('ignores attribute changes before the root exists', () => {
     const el = document.createElement('e-form-item');
     el.setAttribute('label', 'L');
-    expect(el.children.length).toBe(0);
+    expect(el.children).toHaveLength(0);
   });
 });
 
@@ -1253,7 +1253,7 @@ describe('e-layout', () => {
   it('marks the host and never moves its children', () => {
     const el = mount('<e-layout><span id="c">x</span></e-layout>');
     expect(el.classList.contains('ink-layout')).toBe(true);
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
     expect(el.firstElementChild!.id).toBe('c');
   });
 
@@ -1293,7 +1293,7 @@ describe('e-layout regions', () => {
   for (const [tag, wrapperTag, cls] of cases) {
     it(`${tag} wraps its children in a <${wrapperTag.toLowerCase()}>`, () => {
       const el = mount(`<${tag}><span id="k">x</span></${tag}>`);
-      expect(el.children.length).toBe(1);
+      expect(el.children).toHaveLength(1);
       const wrap = el.firstElementChild as HTMLElement;
       expect(wrap.tagName).toBe(wrapperTag);
       expect(wrap.className).toBe(cls);
@@ -1303,9 +1303,9 @@ describe('e-layout regions', () => {
     it(`${tag} creates the wrapper even when empty and does not double-wrap on reconnect`, () => {
       const el = mount(`<${tag}></${tag}>`);
       const wrap = el.firstElementChild as HTMLElement;
-      expect(wrap.children.length).toBe(0);
+      expect(wrap.children).toHaveLength(0);
       remount(el);
-      expect(el.children.length).toBe(1);
+      expect(el.children).toHaveLength(1);
       expect(el.firstElementChild).toBe(wrap);
     });
 
@@ -1321,7 +1321,7 @@ describe('e-layout-sider', () => {
 
   it('wraps children in an aside and applies the default width', () => {
     const el = mount('<e-layout-sider><span id="s">x</span></e-layout-sider>');
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
     const a = aside(el);
     expect(a.tagName).toBe('ASIDE');
     expect(a.firstElementChild!.id).toBe('s');
@@ -1355,7 +1355,7 @@ describe('e-layout-sider', () => {
     const el = mount('<e-layout-sider width="300">x</e-layout-sider>');
     const a = aside(el);
     remount(el);
-    expect(el.querySelectorAll('aside').length).toBe(1);
+    expect(el.querySelectorAll('aside')).toHaveLength(1);
     expect(aside(el)).toBe(a);
     expect(a.style.width).toBe('300px');
   });
@@ -1363,7 +1363,7 @@ describe('e-layout-sider', () => {
   it('ignores attribute changes before the aside exists', () => {
     const el = document.createElement('e-layout-sider');
     el.setAttribute('width', '300');
-    expect(el.children.length).toBe(0);
+    expect(el.children).toHaveLength(0);
   });
 });
 
@@ -1383,7 +1383,7 @@ describe('e-kaleido', () => {
   it('renders one canvas per palette entry, in order', () => {
     const el = mount('<e-kaleido></e-kaleido>');
     const canvases = [...el.querySelectorAll<HTMLCanvasElement>('canvas[data-color]')];
-    expect(canvases.length).toBe(7);
+    expect(canvases).toHaveLength(7);
     expect(canvases.map((c) => c.dataset['color'])).toEqual(HEXES);
   });
 
@@ -1392,13 +1392,13 @@ describe('e-kaleido', () => {
     const text = el.textContent ?? '';
     for (const name of NAMES) expect(text).toContain(name);
     for (const hex of HEXES) expect(text).toContain(hex);
-    expect(text.match(/IDEAL/g)!.length).toBe(7);
-    expect(text.match(/KALEIDO/g)!.length).toBe(7);
+    expect(text.match(/IDEAL/g)!).toHaveLength(7);
+    expect(text.match(/KALEIDO/g)!).toHaveLength(7);
   });
 
   it('uses no CSS classes at all', () => {
     const el = mount('<e-kaleido></e-kaleido>');
-    expect(el.querySelectorAll('[class]').length).toBe(0);
+    expect(el.querySelectorAll('[class]')).toHaveLength(0);
   });
 
   it('sizes every canvas to 88 CSS px at device pixel ratio', () => {
@@ -1449,7 +1449,7 @@ describe('e-kaleido', () => {
     const after = el.querySelector('canvas')!;
     expect(after).not.toBe(before);
     expect(before.isConnected).toBe(false);
-    expect(el.querySelectorAll('canvas').length).toBe(7);
+    expect(el.querySelectorAll('canvas')).toHaveLength(7);
   });
 
   it('falls back to cell=3 for an empty or non-numeric value', () => {
@@ -1464,14 +1464,14 @@ describe('e-kaleido', () => {
 
   it('accepts a fractional cell', () => {
     const el = mount('<e-kaleido cell="2.5"></e-kaleido>');
-    expect(el.querySelectorAll('canvas').length).toBe(7);
+    expect(el.querySelectorAll('canvas')).toHaveLength(7);
   });
 
   it('fully re-renders on every reconnect (no _wired latch)', () => {
     const el = mount('<e-kaleido></e-kaleido>');
     const before = el.querySelector('canvas')!;
     remount(el);
-    expect(el.querySelectorAll('canvas').length).toBe(7);
+    expect(el.querySelectorAll('canvas')).toHaveLength(7);
     expect(el.querySelector('canvas')).not.toBe(before);
   });
 
@@ -1497,7 +1497,7 @@ describe('e-watermark', () => {
 
   it('wraps children and appends an aria-hidden layer last', () => {
     const el = mount('<e-watermark content="DRAFT"><article id="a">Body</article></e-watermark>');
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
     const wrap = el.firstElementChild as HTMLElement;
     expect(wrap.className).toBe('ink-watermark');
     expect(wrap.firstElementChild!.id).toBe('a');
@@ -1577,15 +1577,15 @@ describe('e-watermark', () => {
     const el = mount('<e-watermark content="DRAFT">x</e-watermark>');
     const l = layer(el);
     remount(el);
-    expect(el.querySelectorAll('.ink-watermark').length).toBe(1);
-    expect(el.querySelectorAll('.ink-watermark__layer').length).toBe(1);
+    expect(el.querySelectorAll('.ink-watermark')).toHaveLength(1);
+    expect(el.querySelectorAll('.ink-watermark__layer')).toHaveLength(1);
     expect(layer(el)).toBe(l);
   });
 
   it('ignores attribute changes before the layer exists', () => {
     const el = document.createElement('e-watermark');
     el.setAttribute('content', 'DRAFT');
-    expect(el.children.length).toBe(0);
+    expect(el.children).toHaveLength(0);
   });
 });
 
@@ -1597,7 +1597,7 @@ describe('e-badge', () => {
   it('wraps children in span.ink-badge', () => {
     const el = mount('<e-badge>NEW</e-badge>');
     const wrap = el.firstElementChild as HTMLElement;
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
     expect(wrap.tagName).toBe('SPAN');
     expect(wrap.className).toBe('ink-badge');
     expect(wrap.textContent).toBe('NEW');
@@ -1625,14 +1625,14 @@ describe('e-badge', () => {
     const el = mount('<e-badge inverted>NEW</e-badge>');
     const wrap = el.firstElementChild;
     remount(el);
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
     expect(el.firstElementChild).toBe(wrap);
   });
 
   it('ignores attribute changes before the wrapper exists', () => {
     const el = document.createElement('e-badge');
     el.setAttribute('inverted', '');
-    expect(el.children.length).toBe(0);
+    expect(el.children).toHaveLength(0);
   });
 });
 
@@ -1647,7 +1647,7 @@ describe('e-tag', () => {
   it('wraps children and renders no close button by default', () => {
     const el = mount('<e-tag>Draft</e-tag>');
     const wrap = el.firstElementChild as HTMLElement;
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
     expect(wrap.className).toBe('ink-tag');
     expect(closeBtn(el)).toBeNull();
   });
@@ -1672,7 +1672,7 @@ describe('e-tag', () => {
     const el = mount('<e-tag closable> Draft </e-tag>');
     const seen = listen<{ value: string }>(el, 'e-close');
     closeBtn(el)!.click();
-    expect(seen.length).toBe(1);
+    expect(seen).toHaveLength(1);
     expect(seen[0]!.detail).toEqual({ value: 'Draft' });
     expect(seen[0]!.bubbles).toBe(true);
   });
@@ -1686,12 +1686,12 @@ describe('e-tag', () => {
     expect(btn.hasAttribute('disabled')).toBe(true);
     const seen = listen<{ value: string }>(el, 'e-close');
     btn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    expect(seen.length).toBe(0);
+    expect(seen).toHaveLength(0);
     el.removeAttribute('disabled');
     expect(btn.disabled).toBe(false);
     expect(btn.hasAttribute('disabled')).toBe(false);
     btn.click();
-    expect(seen.length).toBe(1);
+    expect(seen).toHaveLength(1);
   });
 
   it('honours disabled="false" as enabled', () => {
@@ -1702,17 +1702,17 @@ describe('e-tag', () => {
   it('does not double-bind the close listener across disconnect/reconnect', () => {
     const el = mount('<e-tag closable>Draft</e-tag>');
     remount(el);
-    expect(el.querySelectorAll('.ink-tag').length).toBe(1);
-    expect(el.querySelectorAll('button.ink-tag__close').length).toBe(1);
+    expect(el.querySelectorAll('.ink-tag')).toHaveLength(1);
+    expect(el.querySelectorAll('button.ink-tag__close')).toHaveLength(1);
     const seen = listen<{ value: string }>(el, 'e-close');
     closeBtn(el)!.click();
-    expect(seen.length).toBe(1);
+    expect(seen).toHaveLength(1);
   });
 
   it('ignores attribute changes before the wrapper exists', () => {
     const el = document.createElement('e-tag');
     el.setAttribute('closable', '');
-    expect(el.children.length).toBe(0);
+    expect(el.children).toHaveLength(0);
   });
 });
 
@@ -1726,7 +1726,7 @@ describe('e-chip', () => {
   it('wraps children in a type=button chip with aria-pressed', () => {
     const el = mount('<e-chip>Today</e-chip>');
     const btn = inner(el);
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
     expect(btn.type).toBe('button');
     expect(btn.className).toBe('ink-chip');
     expect(btn.textContent).toBe('Today');
@@ -1754,7 +1754,7 @@ describe('e-chip', () => {
     inner(el).click();
     expect(el.hasAttribute('selected')).toBe(false);
     expect(seen[1]!.detail).toEqual({ value: false });
-    expect(seen.length).toBe(2);
+    expect(seen).toHaveLength(2);
   });
 
   it('reflects disabled and suppresses the click entirely', () => {
@@ -1764,29 +1764,29 @@ describe('e-chip', () => {
     expect(btn.hasAttribute('disabled')).toBe(true);
     const seen = listen<{ value: boolean }>(el, 'e-change');
     btn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    expect(seen.length).toBe(0);
+    expect(seen).toHaveLength(0);
     expect(el.hasAttribute('selected')).toBe(false);
     el.removeAttribute('disabled');
     expect(btn.disabled).toBe(false);
     btn.click();
-    expect(seen.length).toBe(1);
+    expect(seen).toHaveLength(1);
   });
 
   it('does not double-bind the click listener across disconnect/reconnect', () => {
     const el = mount('<e-chip>Today</e-chip>');
     const btn = inner(el);
     remount(el);
-    expect(el.querySelectorAll('button.ink-chip').length).toBe(1);
+    expect(el.querySelectorAll('button.ink-chip')).toHaveLength(1);
     expect(inner(el)).toBe(btn);
     const seen = listen<{ value: boolean }>(el, 'e-change');
     btn.click();
-    expect(seen.length).toBe(1);
+    expect(seen).toHaveLength(1);
   });
 
   it('ignores attribute changes before the wrapper exists', () => {
     const el = document.createElement('e-chip');
     el.setAttribute('selected', '');
-    expect(el.children.length).toBe(0);
+    expect(el.children).toHaveLength(0);
   });
 });
 
@@ -1800,7 +1800,7 @@ describe('e-card', () => {
     const section = el.firstElementChild as HTMLElement;
     expect(section.tagName).toBe('SECTION');
     expect(section.className).toBe('ink-card');
-    expect(section.children.length).toBe(1);
+    expect(section.children).toHaveLength(1);
     expect(section.firstElementChild!.className).toBe('ink-card__body');
     expect(section.firstElementChild!.textContent).toBe('Body');
     expect(el.querySelector('.ink-card__header')).toBeNull();
@@ -1868,15 +1868,15 @@ describe('e-card', () => {
     const el = mount('<e-card title="T">Body</e-card>');
     const section = el.querySelector('section.ink-card');
     remount(el);
-    expect(el.querySelectorAll('section.ink-card').length).toBe(1);
+    expect(el.querySelectorAll('section.ink-card')).toHaveLength(1);
     expect(el.querySelector('section.ink-card')).toBe(section);
-    expect(el.querySelectorAll('.ink-card__body').length).toBe(1);
+    expect(el.querySelectorAll('.ink-card__body')).toHaveLength(1);
   });
 
   it('ignores attribute changes before the section exists', () => {
     const el = document.createElement('e-card');
     el.setAttribute('title', 'T');
-    expect(el.children.length).toBe(0);
+    expect(el.children).toHaveLength(0);
   });
 });
 
@@ -1970,15 +1970,15 @@ describe('e-card-image', () => {
     );
     const section = el.querySelector('section.ink-card');
     remount(el);
-    expect(el.querySelectorAll('section.ink-card').length).toBe(1);
+    expect(el.querySelectorAll('section.ink-card')).toHaveLength(1);
     expect(el.querySelector('section.ink-card')).toBe(section);
-    expect(el.querySelectorAll('.ink-card__footer').length).toBe(1);
+    expect(el.querySelectorAll('.ink-card__footer')).toHaveLength(1);
   });
 
   it('ignores attribute changes before the section exists', () => {
     const el = document.createElement('e-card-image');
     el.setAttribute('cover', 'hatch');
-    expect(el.children.length).toBe(0);
+    expect(el.children).toHaveLength(0);
   });
 });
 
@@ -1996,11 +1996,11 @@ describe('e-description-list', () => {
   it('renders a dl of dt/dd pairs and moves the detail nodes across', () => {
     const el = mount(sample);
     const dl = el.firstElementChild as HTMLElement;
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
     expect(dl.tagName).toBe('DL');
     expect(dl.className).toBe('ink-desc-list ink-desc-list--horizontal ink-desc-list--bordered');
     const pairs = dl.querySelectorAll('.ink-desc-list__pair');
-    expect(pairs.length).toBe(2);
+    expect(pairs).toHaveLength(2);
     expect(pairs[0]!.children[0]!.tagName).toBe('DT');
     expect(pairs[0]!.children[0]!.className).toBe('ink-desc-list__term');
     expect(pairs[0]!.children[0]!.textContent).toBe('Status');
@@ -2008,7 +2008,7 @@ describe('e-description-list', () => {
     expect(pairs[0]!.children[1]!.className).toBe('ink-desc-list__detail');
     expect(pairs[0]!.children[1]!.textContent).toBe('Shipped');
     expect(pairs[1]!.querySelector('#code')).not.toBeNull();
-    expect(el.querySelectorAll('e-desc-item').length).toBe(0);
+    expect(el.querySelectorAll('e-desc-item')).toHaveLength(0);
   });
 
   it('clamps columns into 1..4 and rejects fractions back to the default', () => {
@@ -2064,7 +2064,7 @@ describe('e-description-list', () => {
   it('renders an empty dl for zero items and still patches attributes', () => {
     const el = mount('<e-description-list></e-description-list>');
     const dl = el.querySelector('dl')!;
-    expect(dl.children.length).toBe(0);
+    expect(dl.children).toHaveLength(0);
     el.setAttribute('columns', '3');
     expect(dl.style.gridTemplateColumns).toBe('repeat(3, minmax(0px, 1fr))');
   });
@@ -2074,14 +2074,14 @@ describe('e-description-list', () => {
     const late = document.createElement('e-desc-item');
     late.setAttribute('term', 'Late');
     el.appendChild(late);
-    expect(el.querySelectorAll('.ink-desc-list__pair').length).toBe(2);
+    expect(el.querySelectorAll('.ink-desc-list__pair')).toHaveLength(2);
   });
 
   it('does not rebuild on reconnect', () => {
     const el = mount(sample);
     const dl = el.querySelector('dl');
     remount(el);
-    expect(el.querySelectorAll('dl').length).toBe(1);
+    expect(el.querySelectorAll('dl')).toHaveLength(1);
     expect(el.querySelector('dl')).toBe(dl);
   });
 
@@ -2096,12 +2096,12 @@ describe('e-description-list', () => {
   it('ignores attribute changes before the dl exists', () => {
     const el = document.createElement('e-description-list');
     el.setAttribute('columns', '3');
-    expect(el.children.length).toBe(0);
+    expect(el.children).toHaveLength(0);
   });
 
   it('e-desc-item on its own is an inert data carrier', () => {
     const el = mount('<e-desc-item term="Status">Shipped</e-desc-item>');
-    expect(el.children.length).toBe(0);
+    expect(el.children).toHaveLength(0);
     expect(el.textContent).toBe('Shipped');
   });
 });
@@ -2120,11 +2120,11 @@ describe('e-timeline', () => {
   it('renders an ordered list with marker, time, title and body', () => {
     const el = mount(sample);
     const list = el.firstElementChild as HTMLElement;
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
     expect(list.tagName).toBe('OL');
     expect(list.className).toBe('ink-timeline ink-timeline--time-left');
     const rows = list.querySelectorAll('li.ink-timeline__item');
-    expect(rows.length).toBe(2);
+    expect(rows).toHaveLength(2);
     const first = rows[0]!;
     expect(first.getAttribute('data-variant')).toBe('done');
     expect([...first.children].map((c) => c.className)).toEqual([
@@ -2139,7 +2139,7 @@ describe('e-timeline', () => {
     expect(first.querySelector('.ink-timeline__title')!.textContent).toBe('Stand-up');
     expect(first.querySelector('.ink-timeline__body')!.textContent).toBe('Daily sync.');
     expect(first.querySelector('#sync')).not.toBeNull();
-    expect(el.querySelectorAll('e-timeline-item').length).toBe(0);
+    expect(el.querySelectorAll('e-timeline-item')).toHaveLength(0);
   });
 
   it('omits the title and body blocks for an item that has neither', () => {
@@ -2148,7 +2148,7 @@ describe('e-timeline', () => {
     expect(second.getAttribute('data-variant')).toBe('default');
     expect(second.querySelector('.ink-timeline__title')).toBeNull();
     expect(second.querySelector('.ink-timeline__body')).toBeNull();
-    expect(second.querySelector('.ink-timeline__content')!.children.length).toBe(0);
+    expect(second.querySelector('.ink-timeline__content')!.children).toHaveLength(0);
   });
 
   it('swaps the time-position modifier after mount without rebuilding', () => {
@@ -2172,7 +2172,7 @@ describe('e-timeline', () => {
   it('renders an empty ol for zero items and still patches the modifier', () => {
     const el = mount('<e-timeline></e-timeline>');
     const list = el.querySelector('ol')!;
-    expect(list.children.length).toBe(0);
+    expect(list.children).toHaveLength(0);
     el.setAttribute('time-position', 'right');
     expect(list.className).toBe('ink-timeline ink-timeline--time-right');
   });
@@ -2182,14 +2182,14 @@ describe('e-timeline', () => {
     const late = document.createElement('e-timeline-item');
     late.setAttribute('time', '13:00');
     el.appendChild(late);
-    expect(el.querySelectorAll('li.ink-timeline__item').length).toBe(2);
+    expect(el.querySelectorAll('li.ink-timeline__item')).toHaveLength(2);
   });
 
   it('does not rebuild on reconnect', () => {
     const el = mount(sample);
     const list = el.querySelector('ol');
     remount(el);
-    expect(el.querySelectorAll('ol').length).toBe(1);
+    expect(el.querySelectorAll('ol')).toHaveLength(1);
     expect(el.querySelector('ol')).toBe(list);
   });
 
@@ -2206,12 +2206,12 @@ describe('e-timeline', () => {
   it('ignores attribute changes before the list exists', () => {
     const el = document.createElement('e-timeline');
     el.setAttribute('time-position', 'right');
-    expect(el.children.length).toBe(0);
+    expect(el.children).toHaveLength(0);
   });
 
   it('e-timeline-item on its own is an inert data carrier', () => {
     const el = mount('<e-timeline-item time="08:30">Body</e-timeline-item>');
-    expect(el.children.length).toBe(0);
+    expect(el.children).toHaveLength(0);
     expect(el.textContent).toBe('Body');
   });
 });
@@ -2318,9 +2318,9 @@ describe('e-diff', () => {
     const el = mount('<e-diff before="a" after="b"></e-diff>');
     const rootEl = el.querySelector('.ink-diff');
     remount(el);
-    expect(el.querySelectorAll('.ink-diff').length).toBe(1);
+    expect(el.querySelectorAll('.ink-diff')).toHaveLength(1);
     expect(el.querySelector('.ink-diff')).toBe(rootEl);
-    expect(el.querySelectorAll('.ink-diff__value').length).toBe(2);
+    expect(el.querySelectorAll('.ink-diff__value')).toHaveLength(2);
   });
 
   it('ignores attribute changes before the scaffold exists', () => {
@@ -2377,14 +2377,14 @@ describe('e-button', () => {
     const el = mount('<e-button variant="destructive">Delete</e-button>');
     el.setAttribute('variant', 'destructive ');
     el.setAttribute('variant', 'destructive');
-    expect(inner(el).querySelectorAll('span svg').length).toBe(1);
+    expect(inner(el).querySelectorAll('span svg')).toHaveLength(1);
   });
 
   it('fires e-click carrying the original MouseEvent', () => {
     const el = mount('<e-button>Go</e-button>');
     const seen = listen<{ originalEvent: MouseEvent }>(el, 'e-click');
     inner(el).click();
-    expect(seen.length).toBe(1);
+    expect(seen).toHaveLength(1);
     expect(Object.keys(seen[0]!.detail)).toEqual(['originalEvent']);
     expect(seen[0]!.detail.originalEvent).toBeInstanceOf(MouseEvent);
     expect(seen[0]!.detail.originalEvent.type).toBe('click');
@@ -2395,10 +2395,10 @@ describe('e-button', () => {
     const el = mount('<e-button disabled>Go</e-button>');
     const seen = listen<{ originalEvent: MouseEvent }>(el, 'e-click');
     inner(el).dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    expect(seen.length).toBe(0);
+    expect(seen).toHaveLength(0);
     el.removeAttribute('disabled');
     inner(el).click();
-    expect(seen.length).toBe(1);
+    expect(seen).toHaveLength(1);
   });
 
   it('submits the owning form for type="submit" and resets it for type="reset"', () => {
@@ -2427,18 +2427,18 @@ describe('e-button', () => {
     const el = mount('<e-button>Go</e-button>');
     const btn = inner(el);
     remount(el);
-    expect(el.querySelectorAll('button.ink-btn').length).toBe(1);
+    expect(el.querySelectorAll('button.ink-btn')).toHaveLength(1);
     expect(inner(el)).toBe(btn);
     const seen = listen<{ originalEvent: MouseEvent }>(el, 'e-click');
     btn.click();
-    expect(seen.length).toBe(1);
+    expect(seen).toHaveLength(1);
   });
 
   it('ignores attribute changes before the inner button exists', () => {
     const el = document.createElement('e-button');
     el.setAttribute('variant', 'primary');
     el.setAttribute('disabled', '');
-    expect(el.children.length).toBe(0);
+    expect(el.children).toHaveLength(0);
   });
 });
 
@@ -2456,8 +2456,8 @@ describe('e-form integration', () => {
     const submits = listen<{ form: HTMLFormElement }>(el, 'e-submit');
     const clicks = listen<{ originalEvent: MouseEvent }>(el, 'e-click');
     el.querySelector<HTMLButtonElement>('button.ink-btn')!.click();
-    expect(clicks.length).toBe(1);
-    expect(submits.length).toBe(1);
+    expect(clicks).toHaveLength(1);
+    expect(submits).toHaveLength(1);
     expect(submits[0]!.detail.form).toBe(form);
     expect(el.querySelector('.ink-form-item__label')!.textContent).toBe('Name');
   });

@@ -27,6 +27,31 @@ const relativeAge = (ageSeconds: number): string => {
   return 'just now';
 };
 
+const computeFreshness = (
+  age: number,
+  staleAfter: number,
+  expiredAfter: number,
+): UpdateFreshness => {
+  if (age > expiredAfter) return 'expired';
+  if (age > staleAfter) return 'stale';
+  return 'fresh';
+};
+
+const formatAbsolute = (timestamp: number, locale: string): string => {
+  try {
+    return new Date(timestamp).toLocaleString(locale);
+  } catch {
+    return new Date(timestamp).toISOString();
+  }
+};
+
+const FRESHNESS_META: Record<UpdateFreshness, { symbol: string; label: string }> = {
+  fresh: { symbol: '✓', label: 'Fresh' },
+  stale: { symbol: '!', label: 'Stale' },
+  expired: { symbol: '×', label: 'Expired' },
+  invalid: { symbol: '?', label: 'Unknown' },
+};
+
 /**
  * @summary Timestamp with explicit age and freshness state.
  * @since v1.1.0
@@ -109,34 +134,23 @@ export class ELastUpdated extends HTMLElement {
     const expiredAfter = Math.max(staleAfter, numAttr(this, 'expired-after', 3600));
     const valid = Number.isFinite(timestamp) && Number.isFinite(now);
     const age = valid ? Math.floor((now - timestamp) / 1000) : 0;
-    let freshness: UpdateFreshness = 'invalid';
-    if (valid) {
-      freshness = age > expiredAfter ? 'expired' : age > staleAfter ? 'stale' : 'fresh';
-    }
-    const meta: Record<UpdateFreshness, { symbol: string; label: string }> = {
-      fresh: { symbol: '✓', label: 'Fresh' },
-      stale: { symbol: '!', label: 'Stale' },
-      expired: { symbol: '×', label: 'Expired' },
-      invalid: { symbol: '?', label: 'Unknown' },
-    };
+    const freshness: UpdateFreshness = valid
+      ? computeFreshness(age, staleAfter, expiredAfter)
+      : 'invalid';
     const relative = valid ? relativeAge(age) : 'Unknown time';
-    let absolute = '';
-    if (valid && this.hasAttribute('show-absolute')) {
-      try {
-        absolute = new Date(timestamp).toLocaleString(this.getAttribute('locale') || 'en');
-      } catch {
-        absolute = new Date(timestamp).toISOString();
-      }
-    }
+    const absolute =
+      valid && this.hasAttribute('show-absolute')
+        ? formatAbsolute(timestamp, this.getAttribute('locale') || 'en')
+        : '';
 
     patchAttr(this, 'role', 'group');
-    patchAttr(this, 'aria-label', `${label}: ${relative}; ${meta[freshness].label}`);
+    patchAttr(this, 'aria-label', `${label}: ${relative}; ${FRESHNESS_META[freshness].label}`);
     patchAttr(this._root, 'data-freshness', freshness);
-    patchText(this._cueEl, meta[freshness].symbol);
+    patchText(this._cueEl, FRESHNESS_META[freshness].symbol);
     patchText(this._labelEl, label);
     patchText(this._relativeEl, relative);
     patchAttr(this._relativeEl, 'datetime', valid && raw ? raw : null);
-    patchText(this._stateEl, meta[freshness].label);
+    patchText(this._stateEl, FRESHNESS_META[freshness].label);
     patchText(this._absoluteEl, absolute);
     patchAttr(this._absoluteEl, 'datetime', valid && raw ? raw : null);
     patchAttr(this._absoluteEl, 'hidden', absolute ? null : '');

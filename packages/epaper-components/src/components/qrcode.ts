@@ -112,7 +112,11 @@ function getAlignmentPositions(ver: number): number[] {
   const numAlign = Math.floor(ver / 7) + 2;
   const step = ver === 32 ? 26 : Math.ceil((ver * 4 + 4) / (numAlign * 2 - 2)) * 2;
   const result: number[] = [6];
-  for (let pos = ver * 4 + 10; result.length < numAlign; pos -= step) result.splice(1, 0, pos);
+  let pos = ver * 4 + 10;
+  while (result.length < numAlign) {
+    result.splice(1, 0, pos);
+    pos -= step;
+  }
   return result;
 }
 
@@ -268,20 +272,28 @@ class QrCode {
 
   private _drawCodewords(data: number[]): void {
     let i = 0;
-    for (let right = this.size - 1; right >= 1; right -= 2) {
+    let right = this.size - 1;
+    while (right >= 1) {
       if (right === 6) right = 5;
-      for (let vert = 0; vert < this.size; vert++) {
-        for (let j = 0; j < 2; j++) {
-          const x = right - j;
-          const upward = ((right + 1) & 2) === 0;
-          const y = upward ? this.size - 1 - vert : vert;
-          if (!this._isFn[y][x] && i < data.length * 8) {
-            this.modules[y][x] = ((data[i >>> 3] >>> (7 - (i & 7))) & 1) !== 0;
-            i++;
-          }
+      i = this._drawColumnPair(right, i, data);
+      right -= 2;
+    }
+  }
+
+  /** Writes one zigzag two-column strip (right, right-1) starting at bit index `i`; returns the advanced index. */
+  private _drawColumnPair(right: number, i: number, data: number[]): number {
+    const upward = ((right + 1) & 2) === 0;
+    for (let vert = 0; vert < this.size; vert++) {
+      for (let j = 0; j < 2; j++) {
+        const x = right - j;
+        const y = upward ? this.size - 1 - vert : vert;
+        if (!this._isFn[y][x] && i < data.length * 8) {
+          this.modules[y][x] = ((data[i >>> 3] >>> (7 - (i & 7))) & 1) !== 0;
+          i++;
         }
       }
     }
+    return i;
   }
 
   private _applyMask(mask: number): void {
@@ -324,45 +336,41 @@ class QrCode {
   private _getPenaltyScore(): number {
     let result = 0;
     const size = this.size;
-    // N1: rows
-    for (let y = 0; y < size; y++) {
-      let runColor = false;
-      let runLen = 0;
-      const runHistory = [0, 0, 0, 0, 0, 0, 0];
-      for (let x = 0; x < size; x++) {
-        if (this.modules[y][x] === runColor) {
-          runLen++;
-          if (runLen === 5) result += PENALTY_N1;
-          else if (runLen > 5) result++;
-        } else {
-          this._finderPenaltyAddHistory(runLen, runHistory);
-          if (!runColor) result += this._finderPenaltyCountPatterns(runHistory) * PENALTY_N3;
-          runColor = this.modules[y][x];
-          runLen = 1;
-        }
+    // N1: rows, then columns — same run-length algorithm, just transposed.
+    for (let y = 0; y < size; y++) result += this._runPenalty((x) => this.modules[y][x]);
+    for (let x = 0; x < size; x++) result += this._runPenalty((y) => this.modules[y][x]);
+    result += this._blockPenalty();
+    result += this._balancePenalty();
+    return result;
+  }
+
+  /** N1: penalizes runs of 5+ same-color modules, plus finder-like patterns, along one line. */
+  private _runPenalty(at: (i: number) => boolean): number {
+    let result = 0;
+    let runColor = false;
+    let runLen = 0;
+    const runHistory = [0, 0, 0, 0, 0, 0, 0];
+    for (let i = 0; i < this.size; i++) {
+      const v = at(i);
+      if (v === runColor) {
+        runLen++;
+        if (runLen === 5) result += PENALTY_N1;
+        else if (runLen > 5) result++;
+      } else {
+        this._finderPenaltyAddHistory(runLen, runHistory);
+        if (!runColor) result += this._finderPenaltyCountPatterns(runHistory) * PENALTY_N3;
+        runColor = v;
+        runLen = 1;
       }
-      result += this._finderPenaltyTerminateAndCount(runColor, runLen, runHistory) * PENALTY_N3;
     }
-    // N1: cols
-    for (let x = 0; x < size; x++) {
-      let runColor = false;
-      let runLen = 0;
-      const runHistory = [0, 0, 0, 0, 0, 0, 0];
-      for (let y = 0; y < size; y++) {
-        if (this.modules[y][x] === runColor) {
-          runLen++;
-          if (runLen === 5) result += PENALTY_N1;
-          else if (runLen > 5) result++;
-        } else {
-          this._finderPenaltyAddHistory(runLen, runHistory);
-          if (!runColor) result += this._finderPenaltyCountPatterns(runHistory) * PENALTY_N3;
-          runColor = this.modules[y][x];
-          runLen = 1;
-        }
-      }
-      result += this._finderPenaltyTerminateAndCount(runColor, runLen, runHistory) * PENALTY_N3;
-    }
-    // N2: 2x2 blocks
+    result += this._finderPenaltyTerminateAndCount(runColor, runLen, runHistory) * PENALTY_N3;
+    return result;
+  }
+
+  /** N2: penalizes each 2x2 block of same-color modules. */
+  private _blockPenalty(): number {
+    let result = 0;
+    const size = this.size;
     for (let y = 0; y < size - 1; y++) {
       for (let x = 0; x < size - 1; x++) {
         const c = this.modules[y][x];
@@ -374,13 +382,16 @@ class QrCode {
           result += PENALTY_N2;
       }
     }
-    // N4: balance
+    return result;
+  }
+
+  /** N4: penalizes deviation from a 50/50 dark/light balance. */
+  private _balancePenalty(): number {
     let dark = 0;
     for (const row of this.modules) for (const v of row) if (v) dark++;
-    const total = size * size;
+    const total = this.size * this.size;
     const k = Math.ceil(Math.abs(dark * 20 - total * 10) / total) - 1;
-    result += k * PENALTY_N4;
-    return result;
+    return k * PENALTY_N4;
   }
 
   private _finderPenaltyAddHistory(currentRunLength: number, runHistory: number[]): void {
@@ -446,7 +457,11 @@ function encodeText(text: string, ecl: Ecl): QrCode {
   appendBits(0, Math.min(4, dataCapacityBits - bb.length));
   while (bb.length % 8 !== 0) bb.push(0);
   // Byte padding
-  for (let pad = 0xec; bb.length < dataCapacityBits; pad ^= 0xec ^ 0x11) appendBits(pad, 8);
+  let pad = 0xec;
+  while (bb.length < dataCapacityBits) {
+    appendBits(pad, 8);
+    pad ^= 0xec ^ 0x11;
+  }
   // Pack into bytes
   const codewords: number[] = new Array<number>(bb.length >>> 3).fill(0);
   for (let i = 0; i < bb.length; i++) codewords[i >>> 3] |= bb[i] << (7 - (i & 7));

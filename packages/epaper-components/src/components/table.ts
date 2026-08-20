@@ -52,6 +52,29 @@ const parseJson = <T>(s: string | null, fallback: T): T => {
   }
 };
 
+type SortDir = 'asc' | 'desc' | 'none';
+
+const SORT_ARIA: Record<SortDir, 'ascending' | 'descending' | 'none'> = {
+  asc: 'ascending',
+  desc: 'descending',
+  none: 'none',
+};
+
+const SORT_ICON: Record<SortDir, string> = { asc: 'chevU', desc: 'chevD', none: 'arrowU' };
+
+/** Cell text for an arbitrary JSON value — objects/arrays get JSON.stringify instead of "[object Object]". */
+function cellText(v: unknown): string {
+  if (v == null) return '';
+  if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') return String(v);
+  try {
+    return JSON.stringify(v);
+  } catch {
+    // JSON.stringify only throws for a circular reference or a BigInt — never
+    // for a primitive, which the checks above already ruled out.
+    return Array.isArray(v) ? '[array]' : '[object]';
+  }
+}
+
 /**
  * @summary Data grid with header, optional sort and row-selection.
  * @since v1.0.1
@@ -175,8 +198,8 @@ export class ETable extends HTMLElement {
     if (sortBtn && this.contains(sortBtn)) {
       const key = sortBtn.dataset['sortKey'] || '';
       const cur = this._currentSort();
-      let next: 'asc' | 'desc' | 'none';
-      if (!cur || cur.key !== key) next = 'asc';
+      let next: SortDir;
+      if (cur?.key !== key) next = 'asc';
       else if (cur.dir === 'asc') next = 'desc';
       else next = 'none';
       if (next === 'none') patchAttr(this, 'sort', null);
@@ -219,15 +242,17 @@ export class ETable extends HTMLElement {
     if (!this._table) return;
     const sort = this._currentSort();
     for (const [key, btn] of this._sortBtns) {
-      const dir = sort && sort.key === key ? sort.dir : 'none';
-      const ariaSort = dir === 'none' ? 'none' : dir === 'asc' ? 'ascending' : 'descending';
-      btn.closest('th')?.setAttribute('aria-sort', ariaSort);
-      const icon = this._sortIcons.get(key);
-      if (icon) {
-        icon.innerHTML = iconSvg(dir === 'desc' ? 'chevD' : dir === 'asc' ? 'chevU' : 'arrowU', 12);
-        icon.style.opacity = dir === 'none' ? '0.5' : '';
-      }
+      const dir: SortDir = sort?.key === key ? sort.dir : 'none';
+      this._patchSortButton(key, btn, dir);
     }
+  }
+
+  private _patchSortButton(key: string, btn: HTMLButtonElement, dir: SortDir): void {
+    btn.closest('th')?.setAttribute('aria-sort', SORT_ARIA[dir]);
+    const icon = this._sortIcons.get(key);
+    if (!icon) return;
+    icon.innerHTML = iconSvg(SORT_ICON[dir], 12);
+    icon.style.opacity = dir === 'none' ? '0.5' : '';
   }
 
   /** Surgical: only toggles data-selected + checkbox state on affected rows. */
@@ -245,6 +270,91 @@ export class ETable extends HTMLElement {
       else delete this._rowEls[i].dataset.selected;
       if (this._rowCbs[i]) this._rowCbs[i].checked = sel;
     }
+  }
+
+  private _buildHeaderCheckboxCell(
+    allSelected: boolean,
+    someSelected: boolean,
+  ): HTMLTableCellElement {
+    const th = document.createElement('th');
+    th.className = 'ink-table__check';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.className = 'ink-table__cb';
+    cb.setAttribute('aria-label', 'Select all rows');
+    cb.checked = allSelected;
+    cb.indeterminate = someSelected;
+    th.appendChild(cb);
+    this._headerCb = cb;
+    return th;
+  }
+
+  private _buildHeaderCell(
+    col: ColumnDef,
+    sort: { key: string; dir: 'asc' | 'desc' } | null,
+  ): HTMLTableCellElement {
+    const th = document.createElement('th');
+    th.dataset['key'] = col.key;
+    th.style.textAlign = col.align || 'left';
+    if (col.width) th.style.width = col.width;
+    if (!col.sortable) {
+      th.textContent = col.title;
+      return th;
+    }
+
+    const dir: SortDir = sort?.key === col.key ? sort.dir : 'none';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ink-table__sort';
+    btn.dataset['sortKey'] = col.key;
+    th.setAttribute('aria-sort', SORT_ARIA[dir]);
+    const label = document.createElement('span');
+    label.textContent = col.title;
+    btn.appendChild(label);
+    const icon = document.createElement('span');
+    icon.className = 'ink-table__sort-icon';
+    icon.innerHTML = iconSvg(SORT_ICON[dir], 12);
+    if (dir === 'none') icon.style.opacity = '0.5';
+    btn.appendChild(icon);
+    th.appendChild(btn);
+    this._sortBtns.set(col.key, btn);
+    this._sortIcons.set(col.key, icon);
+    return th;
+  }
+
+  private _buildEmptyRow(colCount: number, emptyText: string): HTMLTableRowElement {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.className = 'ink-table__empty';
+    td.colSpan = colCount;
+    td.textContent = emptyText;
+    tr.appendChild(td);
+    return tr;
+  }
+
+  private _buildDataRow(row: Row, index: number, selectable: boolean): HTMLTableRowElement {
+    const tr = document.createElement('tr');
+    if (this._selected.has(index)) tr.dataset.selected = '';
+    if (selectable) {
+      const td = document.createElement('td');
+      td.className = 'ink-table__check';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.className = 'ink-table__cb';
+      cb.dataset['rowIndex'] = String(index);
+      cb.setAttribute('aria-label', `Select row ${index + 1}`);
+      cb.checked = this._selected.has(index);
+      td.appendChild(cb);
+      tr.appendChild(td);
+      this._rowCbs.push(cb);
+    }
+    for (const col of this._columns) {
+      const td = document.createElement('td');
+      td.style.textAlign = col.align || 'left';
+      td.textContent = cellText(row[col.key]);
+      tr.appendChild(td);
+    }
+    return tr;
   }
 
   /** Full rebuild — called on data / columns / selectable / empty-text changes. */
@@ -268,46 +378,10 @@ export class ETable extends HTMLElement {
     const thead = document.createElement('thead');
     const headRow = document.createElement('tr');
     if (selectable) {
-      const th = document.createElement('th');
-      th.className = 'ink-table__check';
-      const cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.className = 'ink-table__cb';
-      cb.setAttribute('aria-label', 'Select all rows');
-      cb.checked = allSelected;
-      cb.indeterminate = someSelected;
-      th.appendChild(cb);
-      headRow.appendChild(th);
-      this._headerCb = cb;
+      headRow.appendChild(this._buildHeaderCheckboxCell(allSelected, someSelected));
     }
     for (const col of this._columns) {
-      const th = document.createElement('th');
-      th.dataset['key'] = col.key;
-      th.style.textAlign = col.align || 'left';
-      if (col.width) th.style.width = col.width;
-      if (col.sortable) {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'ink-table__sort';
-        btn.dataset['sortKey'] = col.key;
-        const dir = sort && sort.key === col.key ? sort.dir : 'none';
-        const ariaSort = dir === 'none' ? 'none' : dir === 'asc' ? 'ascending' : 'descending';
-        th.setAttribute('aria-sort', ariaSort);
-        const label = document.createElement('span');
-        label.textContent = col.title;
-        btn.appendChild(label);
-        const icon = document.createElement('span');
-        icon.className = 'ink-table__sort-icon';
-        icon.innerHTML = iconSvg(dir === 'desc' ? 'chevD' : dir === 'asc' ? 'chevU' : 'arrowU', 12);
-        if (dir === 'none') icon.style.opacity = '0.5';
-        btn.appendChild(icon);
-        th.appendChild(btn);
-        this._sortBtns.set(col.key, btn);
-        this._sortIcons.set(col.key, icon);
-      } else {
-        th.textContent = col.title;
-      }
-      headRow.appendChild(th);
+      headRow.appendChild(this._buildHeaderCell(col, sort));
     }
     thead.appendChild(headRow);
     table.appendChild(thead);
@@ -315,37 +389,12 @@ export class ETable extends HTMLElement {
     // Body
     const tbody = document.createElement('tbody');
     if (this._rows.length === 0) {
-      const tr = document.createElement('tr');
-      const td = document.createElement('td');
-      td.className = 'ink-table__empty';
-      td.colSpan = this._columns.length + (selectable ? 1 : 0);
-      td.textContent = emptyText;
-      tr.appendChild(td);
-      tbody.appendChild(tr);
+      tbody.appendChild(
+        this._buildEmptyRow(this._columns.length + (selectable ? 1 : 0), emptyText),
+      );
     } else {
       this._rows.forEach((row, i) => {
-        const tr = document.createElement('tr');
-        if (this._selected.has(i)) tr.dataset.selected = '';
-        if (selectable) {
-          const td = document.createElement('td');
-          td.className = 'ink-table__check';
-          const cb = document.createElement('input');
-          cb.type = 'checkbox';
-          cb.className = 'ink-table__cb';
-          cb.dataset['rowIndex'] = String(i);
-          cb.setAttribute('aria-label', `Select row ${i + 1}`);
-          cb.checked = this._selected.has(i);
-          td.appendChild(cb);
-          tr.appendChild(td);
-          this._rowCbs.push(cb);
-        }
-        for (const col of this._columns) {
-          const td = document.createElement('td');
-          td.style.textAlign = col.align || 'left';
-          const v = row[col.key];
-          td.textContent = v == null ? '' : String(v);
-          tr.appendChild(td);
-        }
+        const tr = this._buildDataRow(row, i, selectable);
         tbody.appendChild(tr);
         this._rowEls.push(tr);
       });

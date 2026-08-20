@@ -19,6 +19,7 @@ import {
   updateCartQuantity,
   VOUCHERS,
   type CartLine,
+  type CartSummary,
   type VoucherRejection,
 } from '../state';
 import { coverFor } from '../ui';
@@ -30,6 +31,18 @@ interface RenderedLine {
 }
 
 let repaint: (() => void) | null = null;
+
+function summaryLines(summary: CartSummary): Array<[string, string]> {
+  const lines: Array<[string, string]> = [
+    ['Subtotal', eur(summary.subtotal)],
+    ['Delivery (standard)', summary.delivery === 0 ? 'Free' : eur(summary.delivery)],
+  ];
+  if (summary.discount > 0 && summary.voucher) {
+    lines.push([`Voucher ${summary.voucher.code}`, `− ${eur(summary.discount)}`]);
+  }
+  lines.push(['Total', eur(summary.total)], ['Included VAT (7 %)', eur(summary.vat)]);
+  return lines;
+}
 
 /** Recompute and repaint the basket totals. */
 export function updateCartSummary(): void {
@@ -180,54 +193,24 @@ export function createCartPage(): Page {
     listSlot.replaceChildren(list);
   }
 
-  function paint(): void {
+  function syncLines(): void {
     const ids = state.cart.map((line) => `${line.id}:${line.format}`).join('|');
     if (ids !== renderedIds) {
       renderedIds = ids;
       renderLines();
-    } else {
-      for (const line of state.cart) {
-        const row = rows.get(line.id);
-        const book = bookById(line.id);
-        if (!row || !book) continue;
-        const unit = book.formats.find((option) => option.id === line.format)?.price ?? 0;
-        setAttr(row.quantityControl, 'value', String(line.quantity));
-        setText(row.lineTotal, eur(unit * line.quantity));
-      }
+      return;
     }
-
-    const summary = cartSummary('standard');
-    const filled = state.cart.length > 0;
-    setAttr(listSlot, 'hidden', filled ? null : '');
-    setAttr(emptyState, 'hidden', filled ? '' : null);
-    setAttr(checkoutButton, 'disabled', filled ? null : '');
-
-    setAttr(freeDelivery, 'value', String(Math.min(summary.subtotal, FREE_DELIVERY_THRESHOLD)));
-    setText(
-      freeDeliveryNote,
-      summary.freeDeliveryGap > 0
-        ? `${eur(summary.freeDeliveryGap)} more for free standard delivery within Germany.`
-        : 'Standard delivery within Germany is free on this order.',
-    );
-
-    const lines: Array<[string, string]> = [
-      ['Subtotal', eur(summary.subtotal)],
-      ['Delivery (standard)', summary.delivery === 0 ? 'Free' : eur(summary.delivery)],
-    ];
-    if (summary.discount > 0 && summary.voucher) {
-      lines.push([`Voucher ${summary.voucher.code}`, `− ${eur(summary.discount)}`]);
+    for (const line of state.cart) {
+      const row = rows.get(line.id);
+      const book = bookById(line.id);
+      if (!row || !book) continue;
+      const unit = book.formats.find((option) => option.id === line.format)?.price ?? 0;
+      setAttr(row.quantityControl, 'value', String(line.quantity));
+      setText(row.lineTotal, eur(unit * line.quantity));
     }
-    lines.push(['Total', eur(summary.total)]);
-    lines.push(['Included VAT (7 %)', eur(summary.vat)]);
+  }
 
-    totalsSlot.replaceChildren(
-      h(
-        'e-description-list',
-        { columns: 1, bordered: true },
-        lines.map(([term, detail]) => t('e-desc-item', { term }, detail)),
-      ),
-    );
-
+  function paintVoucherAlert(summary: CartSummary): void {
     setAttr(voucherRemove, 'hidden', state.voucher ? null : '');
     if (summary.voucher) {
       // Content only — whether the banner is showing stays with the customer,
@@ -246,6 +229,34 @@ export function createCartPage(): Page {
         'The basket no longer reaches the minimum goods value for this code.',
       );
     }
+  }
+
+  function paint(): void {
+    syncLines();
+
+    const summary = cartSummary('standard');
+    const filled = state.cart.length > 0;
+    setAttr(listSlot, 'hidden', filled ? null : '');
+    setAttr(emptyState, 'hidden', filled ? '' : null);
+    setAttr(checkoutButton, 'disabled', filled ? null : '');
+
+    setAttr(freeDelivery, 'value', String(Math.min(summary.subtotal, FREE_DELIVERY_THRESHOLD)));
+    setText(
+      freeDeliveryNote,
+      summary.freeDeliveryGap > 0
+        ? `${eur(summary.freeDeliveryGap)} more for free standard delivery within Germany.`
+        : 'Standard delivery within Germany is free on this order.',
+    );
+
+    totalsSlot.replaceChildren(
+      h(
+        'e-description-list',
+        { columns: 1, bordered: true },
+        summaryLines(summary).map(([term, detail]) => t('e-desc-item', { term }, detail)),
+      ),
+    );
+
+    paintVoucherAlert(summary);
   }
 
   repaint = paint;

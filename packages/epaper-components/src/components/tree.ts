@@ -5,6 +5,12 @@ import type { TreeNode } from '../core/types';
 
 type CheckState = 'true' | 'false' | 'mixed';
 
+function glyphForCheckState(state: CheckState): string {
+  if (state === 'true') return iconSvg('check', 12);
+  if (state === 'mixed') return iconSvg('minus', 12);
+  return '';
+}
+
 /**
  * @summary Hierarchical tree for navigation and display, with optional checkboxes.
  * @since v1.1.0
@@ -47,8 +53,9 @@ export class ETree extends HTMLElement {
 
   connectedCallback() {
     if (!this._built) {
+      const selectionAttr = !this._checkable() && this._selectable() ? 'aria-selected' : null;
       this._view = new TreeView(this, {
-        selectionAttr: this._checkable() ? null : this._selectable() ? 'aria-selected' : null,
+        selectionAttr,
         renderRowExtra: (row, node) => this._renderCheckbox(row, node),
         onActivate: (value) => this._activate(value),
         onToggle: (value, expanded) => {
@@ -190,8 +197,7 @@ export class ETree extends HTMLElement {
       patchAttr(row, 'aria-checked', state);
       const box = row.querySelector<HTMLElement>('.ink-tree__check');
       if (!box) continue;
-      const glyph =
-        state === 'true' ? iconSvg('check', 12) : state === 'mixed' ? iconSvg('minus', 12) : '';
+      const glyph = glyphForCheckState(state);
       if (box.innerHTML !== glyph) box.innerHTML = glyph;
     }
   }

@@ -28,25 +28,31 @@ const statusFrom = (value: unknown): StatusBoardStatus => {
   return 'neutral';
 };
 
+/** Validates and normalizes one raw entry, deduping its key against `keys`. */
+function parseStatusItem(entry: unknown, index: number, keys: Set<string>): StatusBoardItem | null {
+  if (!isRecord(entry)) return null;
+  const value = entry['value'];
+  if (typeof value !== 'string' && typeof value !== 'number') return null;
+  const label = typeof entry['label'] === 'string' ? entry['label'] : '';
+  const requestedKey =
+    typeof entry['key'] === 'string' && entry['key'] ? entry['key'] : String(index);
+  const key = keys.has(requestedKey) ? `${requestedKey}-${index}` : requestedKey;
+  keys.add(key);
+  const item: StatusBoardItem = { key, label, value, status: statusFrom(entry['status']) };
+  if (typeof entry['detail'] === 'string') item.detail = entry['detail'];
+  return item;
+}
+
 const dataFrom = (raw: string | null): StatusBoardItem[] => {
   if (!raw) return [];
   try {
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    const items: StatusBoardItem[] = [];
     const keys = new Set<string>();
+    const items: StatusBoardItem[] = [];
     for (const [index, entry] of parsed.entries()) {
-      if (!isRecord(entry)) continue;
-      const label = typeof entry['label'] === 'string' ? entry['label'] : '';
-      const value = entry['value'];
-      if (typeof value !== 'string' && typeof value !== 'number') continue;
-      const requestedKey =
-        typeof entry['key'] === 'string' && entry['key'] ? entry['key'] : String(index);
-      const key = keys.has(requestedKey) ? `${requestedKey}-${index}` : requestedKey;
-      keys.add(key);
-      const item: StatusBoardItem = { key, label, value, status: statusFrom(entry['status']) };
-      if (typeof entry['detail'] === 'string') item.detail = entry['detail'];
-      items.push(item);
+      const item = parseStatusItem(entry, index, keys);
+      if (item) items.push(item);
     }
     return items.slice(0, 100);
   } catch {
@@ -131,10 +137,11 @@ export class EStatusBoard extends HTMLElement {
     patchText(cell.cue, `${meta.symbol} ${meta.label}`);
     patchText(cell.detail, item.detail ?? '');
     patchAttr(cell.detail, 'hidden', item.detail ? null : '');
+    const detailSuffix = item.detail ? `; ${item.detail}` : '';
     patchAttr(
       cell.root,
       'aria-label',
-      `${item.label}: ${item.value}; ${meta.label}${item.detail ? `; ${item.detail}` : ''}`,
+      `${item.label}: ${item.value}; ${meta.label}${detailSuffix}`,
     );
   }
 

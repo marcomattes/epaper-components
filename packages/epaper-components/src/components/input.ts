@@ -131,58 +131,88 @@ export class EInput extends BaseFormControl {
 
   attributeChangedCallback(name: string, _old: string | null, v: string | null) {
     if (!this._input) return;
-    if (name === 'value') {
-      if (this._input.value !== (v ?? '')) this._input.value = v ?? '';
-      this._value = this._input.value;
-      this.internals.setFormValue(this._value);
-      this._syncValidity();
+    switch (name) {
+      case 'value':
+        this._applyValueAttr(v);
+        break;
+      case 'error':
+      case 'error-message':
+        this._syncValidity();
+        break;
+      case 'disabled':
+        // Presence alone disables — the HTML spec governs `disabled` here.
+        this._input.disabled = this.hasAttribute('disabled') || this._formDisabled;
+        break;
+      case 'readonly':
+        this._input.readOnly = boolAttr(this, 'readonly');
+        break;
+      case 'aria-label':
+        this._applyAriaLabelAttr(v);
+        break;
+      case 'placeholder':
+        this._input.placeholder = v ?? '';
+        break;
+      case 'type':
+        this._applyTypeAttr(v);
+        break;
+      case 'required':
+      case 'required-message':
+        this._input.required = boolAttr(this, 'required');
+        this._syncValidity();
+        break;
+      case 'label':
+        this._syncLabel(v ?? '');
+        break;
+      case 'hint':
+        this._syncHint(v ?? '');
+        break;
+      default:
+        this._applyConstraintAttr(name, v);
     }
-    if (name === 'error' || name === 'error-message') this._syncValidity();
-    if (name === 'disabled') {
-      // Presence alone disables — the HTML spec governs `disabled` here.
-      this._input.disabled = this.hasAttribute('disabled') || this._formDisabled;
-    }
-    if (name === 'readonly') {
-      this._input.readOnly = boolAttr(this, 'readonly');
-    }
-    if (name === 'aria-label') {
-      if (v) this._input.setAttribute('aria-label', v);
-      else this._input.removeAttribute('aria-label');
-    }
-    if (name === 'placeholder') {
-      this._input.placeholder = v ?? '';
-    }
-    if (name === 'type') {
-      this._input.type = v || 'text';
-      this._value = this._input.value;
-      this.internals.setFormValue(this._value);
-      this._syncValidity();
-    }
-    if (name === 'required' || name === 'required-message') {
-      this._input.required = boolAttr(this, 'required');
-      this._syncValidity();
-    }
-    if (['pattern', 'minlength', 'maxlength', 'min', 'max', 'step'].includes(name)) {
+  }
+
+  private _applyValueAttr(v: string | null): void {
+    const input = this._input!;
+    if (input.value !== (v ?? '')) input.value = v ?? '';
+    this._value = input.value;
+    this.internals.setFormValue(this._value);
+    this._syncValidity();
+  }
+
+  private _applyAriaLabelAttr(v: string | null): void {
+    if (v) this._input!.setAttribute('aria-label', v);
+    else this._input!.removeAttribute('aria-label');
+  }
+
+  private _applyTypeAttr(v: string | null): void {
+    const input = this._input!;
+    input.type = v || 'text';
+    this._value = input.value;
+    this.internals.setFormValue(this._value);
+    this._syncValidity();
+  }
+
+  /** `pattern`/length/range constraints revalidate; passive UX hints just forward. */
+  private _applyConstraintAttr(name: string, v: string | null): void {
+    const validating = ['pattern', 'minlength', 'maxlength', 'min', 'max', 'step'];
+    const passive = ['autocomplete', 'inputmode', 'enterkeyhint', 'spellcheck'];
+    if (validating.includes(name)) {
       this._syncNativeConstraint(name, v);
       this._syncValidity();
-    }
-    if (['autocomplete', 'inputmode', 'enterkeyhint', 'spellcheck'].includes(name)) {
+    } else if (passive.includes(name)) {
       this._syncNativeConstraint(name, v);
     }
-    if (name === 'label') this._syncLabel(v ?? '');
-    if (name === 'hint') this._syncHint(v ?? '');
   }
 
   override get value(): string {
     return this._input?.value ?? this._value;
   }
   override set value(v: string) {
-    const next = v ?? '';
     if (this._input) {
-      this._input.value = next;
+      this._input.value = v;
       this._value = this._input.value;
     } else {
-      this._value = next;
+      this._value = v;
     }
     this.internals.setFormValue(this._value);
     this._syncValidity();

@@ -72,26 +72,38 @@ export class EResult extends HTMLElement {
   attributeChangedCallback(name: string) {
     if (!this._wired || !this._root) return;
     if (name === 'status') {
-      const status = this._status();
-      this._root.dataset.status = status;
-      if (this._iconWrap) this._iconWrap.innerHTML = iconSvg(STATUS_ICON[status], 64);
+      this._syncStatus();
     } else if (name === 'title' && this._titleEl) {
       patchText(this._titleEl, this.getAttribute('title') || '');
     } else if (name === 'description') {
-      const desc = this.getAttribute('description') || '';
-      if (desc && !this._descEl) {
-        const el = document.createElement('p');
-        el.className = 'ink-result__desc';
-        el.textContent = desc;
-        if (this._actionWrap) this._root.insertBefore(el, this._actionWrap);
-        else this._root.appendChild(el);
-        this._descEl = el;
-      } else if (desc && this._descEl) {
-        patchText(this._descEl, desc);
-      } else if (!desc && this._descEl) {
-        this._descEl.remove();
-        this._descEl = null;
-      }
+      this._syncDescription();
+    }
+  }
+
+  private _syncStatus(): void {
+    const status = this._status();
+    this._root!.dataset.status = status;
+    if (this._iconWrap) this._iconWrap.innerHTML = iconSvg(STATUS_ICON[status], 64);
+  }
+
+  private _syncDescription(): void {
+    const desc = this.getAttribute('description') || '';
+    if (desc && !this._descEl) {
+      const el = document.createElement('p');
+      el.className = 'ink-result__desc';
+      el.textContent = desc;
+      if (this._actionWrap) this._root!.insertBefore(el, this._actionWrap);
+      else this._root!.appendChild(el);
+      this._descEl = el;
+      return;
+    }
+    if (desc && this._descEl) {
+      patchText(this._descEl, desc);
+      return;
+    }
+    if (!desc && this._descEl) {
+      this._descEl.remove();
+      this._descEl = null;
     }
   }
 

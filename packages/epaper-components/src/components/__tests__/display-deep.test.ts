@@ -197,7 +197,7 @@ describe('e-list', () => {
     const root = el.querySelector<HTMLElement>('.ink-list')!;
     remount(el);
     expect(el.querySelector('.ink-list')).toBe(root);
-    expect(el.querySelectorAll('.ink-list').length).toBe(1);
+    expect(el.querySelectorAll('.ink-list')).toHaveLength(1);
     expect(root.querySelector('.ink-list__header-title')!.textContent).toBe('Keep');
   });
 });
@@ -211,14 +211,14 @@ describe('e-list-item', () => {
     const el = mount(`<e-list-item title="Report" description="Finance"></e-list-item>`);
     expect(el.getAttribute('role')).toBe('listitem');
     const main = el.querySelector<HTMLElement>('.ink-list__item > .ink-list__main')!;
-    expect(main.children.length).toBe(2);
+    expect(main.children).toHaveLength(2);
     expect(main.querySelector('.ink-list__title')!.textContent).toBe('Report');
     expect(main.querySelector('.ink-list__desc')!.textContent).toBe('Finance');
   });
 
   it('renders no title/desc nodes when neither attribute is set', () => {
     const el = mount(`<e-list-item></e-list-item>`);
-    expect(el.querySelector<HTMLElement>('.ink-list__main')!.children.length).toBe(0);
+    expect(el.querySelector<HTMLElement>('.ink-list__main')!.children).toHaveLength(0);
   });
 
   it('wraps slot="leading" and slot="trailing" around the main column', () => {
@@ -255,7 +255,7 @@ describe('e-list-item', () => {
 
     el.setAttribute('title', '');
     expect(main.querySelector('.ink-list__title')).toBeNull();
-    expect(main.children.length).toBe(1);
+    expect(main.children).toHaveLength(1);
 
     el.removeAttribute('title');
     expect(main.querySelector('.ink-list__title')).toBeNull();
@@ -280,7 +280,7 @@ describe('e-list-item', () => {
 
     el.removeAttribute('description');
     expect(main.querySelector('.ink-list__desc')).toBeNull();
-    expect(main.children.length).toBe(1);
+    expect(main.children).toHaveLength(1);
   });
 
   it('escapes attribute-supplied markup in title and description', () => {
@@ -324,7 +324,7 @@ describe('e-list-item', () => {
     const row = el.querySelector<HTMLElement>('.ink-list__item')!;
     expect(row.querySelector('.ink-list__title')!.textContent).toBe('Pre');
     remount(el);
-    expect(el.querySelectorAll('.ink-list__item').length).toBe(1);
+    expect(el.querySelectorAll('.ink-list__item')).toHaveLength(1);
     expect(el.querySelector('.ink-list__item')).toBe(row);
   });
 });
@@ -341,8 +341,8 @@ describe('e-skeleton', () => {
     const wrap = el.querySelector<HTMLElement>('.ink-skeleton')!;
     expect(wrap.className).toBe('ink-skeleton ink-skeleton--block');
     expect(wrap.getAttribute('aria-hidden')).toBe('true');
-    expect(wrap.querySelectorAll('.ink-skeleton__block').length).toBe(1);
-    expect(wrap.querySelectorAll('.ink-skeleton__line').length).toBe(0);
+    expect(wrap.querySelectorAll('.ink-skeleton__block')).toHaveLength(1);
+    expect(wrap.querySelectorAll('.ink-skeleton__line')).toHaveLength(0);
   });
 
   it('renders a circle shape through the block branch', () => {
@@ -365,7 +365,7 @@ describe('e-skeleton', () => {
       `<e-skeleton shape="text" lines="3" width="12rem" height="0.75rem"></e-skeleton>`,
     );
     const lines = el.querySelectorAll<HTMLElement>('.ink-skeleton__line');
-    expect(lines.length).toBe(3);
+    expect(lines).toHaveLength(3);
     expect(widths(lines)).toEqual(['12rem', '12rem', '60%']);
     expect([...lines].map((l) => l.style.height)).toEqual(['0.75rem', '0.75rem', '0.75rem']);
   });
@@ -373,7 +373,7 @@ describe('e-skeleton', () => {
   it('a single text line uses the configured width, not 60%', () => {
     const el = mount(`<e-skeleton shape="text" lines="1" width="9rem"></e-skeleton>`);
     const lines = el.querySelectorAll<HTMLElement>('.ink-skeleton__line');
-    expect(lines.length).toBe(1);
+    expect(lines).toHaveLength(1);
     expect(lines[0]!.style.width).toBe('9rem');
   });
 
@@ -386,7 +386,7 @@ describe('e-skeleton', () => {
 
     el.setAttribute('lines', '5');
     let lines = el.querySelectorAll<HTMLElement>('.ink-skeleton__line');
-    expect(lines.length).toBe(5);
+    expect(lines).toHaveLength(5);
     expect(widths(lines)).toEqual(['12rem', '12rem', '12rem', '12rem', '60%']);
     expect([...lines].every((l) => l.style.height === '0.75rem')).toBe(true);
     // the wrapper and the pre-existing lines keep their identity
@@ -395,7 +395,7 @@ describe('e-skeleton', () => {
 
     el.setAttribute('lines', '1');
     lines = el.querySelectorAll<HTMLElement>('.ink-skeleton__line');
-    expect(lines.length).toBe(1);
+    expect(lines).toHaveLength(1);
     expect(lines[0]).toBe(firstLine);
     expect(lines[0]!.style.width).toBe('12rem');
 
@@ -418,12 +418,12 @@ describe('e-skeleton', () => {
 
   it('rebuilds only when the shape actually changes, and patches otherwise', () => {
     const el = mount(`<e-skeleton shape="text" lines="2"></e-skeleton>`);
-    expect(el.querySelectorAll('.ink-skeleton__line').length).toBe(2);
+    expect(el.querySelectorAll('.ink-skeleton__line')).toHaveLength(2);
 
     el.setAttribute('shape', 'block');
     const wrap = el.querySelector<HTMLElement>('.ink-skeleton')!;
     expect(wrap.className).toBe('ink-skeleton ink-skeleton--block');
-    expect(el.querySelectorAll('.ink-skeleton__line').length).toBe(0);
+    expect(el.querySelectorAll('.ink-skeleton__line')).toHaveLength(0);
     const block = wrap.querySelector<HTMLElement>('.ink-skeleton__block')!;
 
     // same shape re-asserted → patch path, no rebuild
@@ -454,10 +454,10 @@ describe('e-skeleton', () => {
     el.setAttribute('lines', '4');
     expect(el.querySelector('.ink-skeleton')).toBeNull();
     document.body.appendChild(el);
-    expect(el.querySelectorAll('.ink-skeleton__line').length).toBe(4);
+    expect(el.querySelectorAll('.ink-skeleton__line')).toHaveLength(4);
     const wrap = el.querySelector<HTMLElement>('.ink-skeleton')!;
     remount(el);
-    expect(el.querySelectorAll('.ink-skeleton').length).toBe(1);
+    expect(el.querySelectorAll('.ink-skeleton')).toHaveLength(1);
     expect(el.querySelector('.ink-skeleton')).toBe(wrap);
   });
 });
@@ -560,7 +560,7 @@ describe('e-result', () => {
     const el = mount(`<e-result title="T"><span slot="action" id="ra">Act</span></e-result>`);
     const wrapEl = el.querySelector<HTMLElement>('.ink-result__action')!;
     expect(wrapEl.querySelector('#ra')!.textContent).toBe('Act');
-    expect(wrapEl.children.length).toBe(1);
+    expect(wrapEl.children).toHaveLength(1);
   });
 
   it('escapes attribute-supplied markup in title and description', () => {
@@ -584,7 +584,7 @@ describe('e-result', () => {
     const root = el.querySelector<HTMLElement>('.ink-result')!;
     expect(root.dataset['status']).toBe('success');
     remount(el);
-    expect(el.querySelectorAll('.ink-result').length).toBe(1);
+    expect(el.querySelectorAll('.ink-result')).toHaveLength(1);
     expect(el.querySelector('.ink-result')).toBe(root);
   });
 });
@@ -697,7 +697,7 @@ describe('e-empty', () => {
     const root = el.querySelector<HTMLElement>('.ink-empty')!;
     expect(root.querySelector('.ink-empty__title')!.textContent).toBe('Pre');
     remount(el);
-    expect(el.querySelectorAll('.ink-empty').length).toBe(1);
+    expect(el.querySelectorAll('.ink-empty')).toHaveLength(1);
     expect(el.querySelector('.ink-empty')).toBe(root);
   });
 });
@@ -797,8 +797,8 @@ describe('e-progress', () => {
     const wrap = el.querySelector<HTMLElement>('.ink-progress')!;
     expect(wrap.className).toBe('ink-progress ink-progress--steps');
     const segs = wrap.querySelectorAll<HTMLElement>('.ink-progress__steps > .ink-progress__seg');
-    expect(segs.length).toBe(4);
-    expect(wrap.querySelectorAll('.ink-progress__seg[data-on]').length).toBe(2);
+    expect(segs).toHaveLength(4);
+    expect(wrap.querySelectorAll('.ink-progress__seg[data-on]')).toHaveLength(2);
     expect(wrap.querySelector('.ink-progress__fill')).toBeNull();
   });
 
@@ -808,18 +808,18 @@ describe('e-progress', () => {
     const firstSeg = grid.querySelector<HTMLElement>('.ink-progress__seg')!;
 
     el.setAttribute('value', '100');
-    expect(grid.querySelectorAll('.ink-progress__seg[data-on]').length).toBe(4);
+    expect(grid.querySelectorAll('.ink-progress__seg[data-on]')).toHaveLength(4);
 
     el.setAttribute('steps', '6');
-    expect(grid.querySelectorAll('.ink-progress__seg').length).toBe(6);
-    expect(grid.querySelectorAll('.ink-progress__seg[data-on]').length).toBe(6);
+    expect(grid.querySelectorAll('.ink-progress__seg')).toHaveLength(6);
+    expect(grid.querySelectorAll('.ink-progress__seg[data-on]')).toHaveLength(6);
     expect(grid.querySelector('.ink-progress__seg')).toBe(firstSeg);
 
     el.setAttribute('steps', '2');
-    expect(grid.querySelectorAll('.ink-progress__seg').length).toBe(2);
+    expect(grid.querySelectorAll('.ink-progress__seg')).toHaveLength(2);
 
     el.setAttribute('value', '0');
-    expect(grid.querySelectorAll('.ink-progress__seg[data-on]').length).toBe(0);
+    expect(grid.querySelectorAll('.ink-progress__seg[data-on]')).toHaveLength(0);
   });
 
   it('clamps steps to 1..1000 and falls back for invalid input', () => {
@@ -838,7 +838,7 @@ describe('e-progress', () => {
 
     el.setAttribute('variant', 'steps');
     expect(el.querySelector('.ink-progress__fill')).toBeNull();
-    expect(el.querySelectorAll('.ink-progress__seg').length).toBe(5);
+    expect(el.querySelectorAll('.ink-progress__seg')).toHaveLength(5);
     expect(el.querySelector('.ink-progress__label')!.textContent).toBe('L · 100%');
     const grid = el.querySelector<HTMLElement>('.ink-progress__steps')!;
 
@@ -862,7 +862,7 @@ describe('e-progress', () => {
   it('ignores a steps change while linear', () => {
     const el = mount(`<e-progress value="50"></e-progress>`);
     el.setAttribute('steps', '8');
-    expect(el.querySelectorAll('.ink-progress__seg').length).toBe(0);
+    expect(el.querySelectorAll('.ink-progress__seg')).toHaveLength(0);
     expect(el.querySelector<HTMLElement>('.ink-progress__fill')!.style.width).toBe('50%');
   });
 
@@ -874,7 +874,7 @@ describe('e-progress', () => {
     const wrap = el.querySelector<HTMLElement>('.ink-progress')!;
     expect(el.querySelector<HTMLElement>('.ink-progress__fill')!.style.width).toBe('30%');
     remount(el);
-    expect(el.querySelectorAll('.ink-progress').length).toBe(1);
+    expect(el.querySelectorAll('.ink-progress')).toHaveLength(1);
     expect(el.querySelector('.ink-progress')).toBe(wrap);
   });
 });
@@ -1038,7 +1038,7 @@ describe('e-alert', () => {
 
     el.querySelector<HTMLButtonElement>('.ink-alert__close')!.click();
 
-    expect(details.length).toBe(1);
+    expect(details).toHaveLength(1);
     expect(details[0]).toEqual({ value: 'Battery low' });
     expect(bubbled).toBe(1);
     expect(el.hidden).toBe(true);
@@ -1067,7 +1067,7 @@ describe('e-alert', () => {
     const el = mount(`<e-alert heading="H" closable>Body</e-alert>`);
     const root = el.querySelector<HTMLElement>('.ink-alert')!;
     remount(el);
-    expect(el.querySelectorAll('.ink-alert').length).toBe(1);
+    expect(el.querySelectorAll('.ink-alert')).toHaveLength(1);
     expect(el.querySelector('.ink-alert')).toBe(root);
 
     let fired = 0;
@@ -1109,7 +1109,7 @@ describe('e-divider', () => {
     const hr = el.firstElementChild as HTMLElement;
     expect(hr.tagName).toBe('HR');
     expect(hr.className).toBe('ink-divider');
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
   });
 
   it('renders a dashed <hr> for variant="dashed"', () => {
@@ -1196,7 +1196,7 @@ describe('e-divider', () => {
 
     el.setAttribute('label', 'OR');
     expect((el.firstElementChild as HTMLElement).tagName).toBe('DIV');
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
 
     el.setAttribute('orientation', 'vertical');
     expect((el.firstElementChild as HTMLElement).tagName).toBe('SPAN');
@@ -1206,7 +1206,7 @@ describe('e-divider', () => {
 
     el.removeAttribute('label');
     expect((el.firstElementChild as HTMLElement).tagName).toBe('HR');
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
   });
 
   it('renders label markup as text', () => {
@@ -1224,12 +1224,12 @@ describe('e-divider', () => {
   it('ignores attribute changes before connection and does not rebuild on re-connection', () => {
     const el = document.createElement('e-divider');
     el.setAttribute('label', 'Pre');
-    expect(el.children.length).toBe(0);
+    expect(el.children).toHaveLength(0);
     document.body.appendChild(el);
     const div = el.firstElementChild as HTMLElement;
     expect(div.textContent).toBe('Pre');
     remount(el);
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
     expect(el.firstElementChild).toBe(div);
   });
 });
@@ -1282,7 +1282,7 @@ describe('e-text', () => {
     const second = el.firstElementChild as HTMLElement;
     expect(second.tagName).toBe('DIV');
     expect(second).not.toBe(first);
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
     expect(second.querySelector('#tk')).toBe(child);
     // the rebuilt wrapper carries the same classes as a freshly mounted one
     expect(second.className).toBe('ink-text ink-text--label');
@@ -1310,7 +1310,7 @@ describe('e-text', () => {
 
     el.setAttribute('as', 'a b');
     expect(el.firstElementChild).toBe(wrap);
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
 
     // a valid value afterwards still rebuilds
     el.setAttribute('as', 'div');
@@ -1339,7 +1339,7 @@ describe('e-text', () => {
     const el = mount(`<e-text kind="small">Once</e-text>`);
     const wrap = el.firstElementChild as HTMLElement;
     remount(el);
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
     expect(el.firstElementChild).toBe(wrap);
     expect(wrap.className).toBe('ink-text ink-text--small');
     expect(wrap.textContent).toBe('Once');
@@ -1350,7 +1350,7 @@ describe('e-text', () => {
     el.textContent = 'Pre';
     el.setAttribute('kind', 'mono');
     el.setAttribute('as', 'p');
-    expect(el.children.length).toBe(0);
+    expect(el.children).toHaveLength(0);
     document.body.appendChild(el);
     const wrap = el.firstElementChild as HTMLElement;
     expect(wrap.tagName).toBe('P');
@@ -1370,7 +1370,7 @@ describe('e-title', () => {
     expect(h.tagName).toBe('H1');
     expect(h.className).toBe('ink-title ink-title--1');
     expect(h.textContent).toBe('Heading');
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
   });
 
   it('renders each level 1..6', () => {
@@ -1404,7 +1404,7 @@ describe('e-title', () => {
     expect(second.tagName).toBe('H4');
     expect(second.className).toBe('ink-title ink-title--4');
     expect(second).not.toBe(first);
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
     expect(second.querySelector('#tt')).toBe(child);
 
     // same effective level → no swap
@@ -1452,12 +1452,12 @@ describe('e-title', () => {
     const el = document.createElement('e-title');
     el.textContent = 'Pre';
     el.setAttribute('level', '3');
-    expect(el.children.length).toBe(0);
+    expect(el.children).toHaveLength(0);
     document.body.appendChild(el);
     const h = el.firstElementChild as HTMLElement;
     expect(h.tagName).toBe('H3');
     remount(el);
-    expect(el.children.length).toBe(1);
+    expect(el.children).toHaveLength(1);
     expect(el.firstElementChild).toBe(h);
   });
 });
@@ -1483,7 +1483,7 @@ describe('e-meter', () => {
     expect(root.querySelector('.ink-meter__reading')!.textContent).toBe('72%');
     expect(root.querySelector('.ink-meter__band')!.textContent).toBe('In range');
     expect(root.querySelector('.ink-meter__scale')!.getAttribute('aria-hidden')).toBe('true');
-    expect(root.querySelectorAll('.ink-meter__segment').length).toBe(10);
+    expect(root.querySelectorAll('.ink-meter__segment')).toHaveLength(10);
     expect(on(root)).toBe(7);
   });
 
@@ -1601,15 +1601,15 @@ describe('e-meter', () => {
     const el = mount(`<e-meter value="100" segments="10"></e-meter>`);
     const scale = el.querySelector<HTMLElement>('.ink-meter__scale')!;
     const firstSeg = scale.querySelector<HTMLElement>('.ink-meter__segment')!;
-    expect(scale.children.length).toBe(10);
+    expect(scale.children).toHaveLength(10);
 
     el.setAttribute('segments', '20');
-    expect(scale.children.length).toBe(20);
+    expect(scale.children).toHaveLength(20);
     expect(scale.firstElementChild).toBe(firstSeg);
     expect(on(scale)).toBe(20);
 
     el.setAttribute('segments', '3');
-    expect(scale.children.length).toBe(3);
+    expect(scale.children).toHaveLength(3);
     expect(scale.firstElementChild).toBe(firstSeg);
     expect(on(scale)).toBe(3);
 
@@ -1672,7 +1672,7 @@ describe('e-meter', () => {
     const root = el.querySelector<HTMLElement>('.ink-meter')!;
     expect(el.getAttribute('aria-valuenow')).toBe('25');
     remount(el);
-    expect(el.querySelectorAll('.ink-meter').length).toBe(1);
+    expect(el.querySelectorAll('.ink-meter')).toHaveLength(1);
     expect(el.querySelector('.ink-meter')).toBe(root);
   });
 });
@@ -1780,7 +1780,7 @@ describe('e-status-board', () => {
     const el = mount(`<e-status-board></e-status-board>`);
     el.setAttribute('data', data);
     const rendered = cells(el);
-    expect(rendered.length).toBe(2);
+    expect(rendered).toHaveLength(2);
     expect(rendered.map((c) => c.dataset['key'])).toEqual(['6', '7']);
     expect(rendered[0]!.querySelector('.ink-status-board__label')!.textContent).toBe('');
     expect(rendered[1]!.querySelector('.ink-status-board__label')!.textContent).toBe('K');
@@ -1810,26 +1810,26 @@ describe('e-status-board', () => {
         Array.from({ length: 120 }, (_, i) => ({ key: `k${i}`, label: `L${i}`, value: i })),
       ),
     );
-    expect(cells(el).length).toBe(100);
+    expect(cells(el)).toHaveLength(100);
   });
 
   it('falls back to the empty state for invalid JSON and non-array payloads', () => {
     const el = mount(
       `<e-status-board data='[{"key":"a","label":"A","value":1}]'></e-status-board>`,
     );
-    expect(cells(el).length).toBe(1);
+    expect(cells(el)).toHaveLength(1);
 
     el.setAttribute('data', '{not json');
-    expect(cells(el).length).toBe(0);
+    expect(cells(el)).toHaveLength(0);
     expect(el.querySelector<HTMLElement>('.ink-status-board__grid')!.hasAttribute('hidden')).toBe(
       true,
     );
 
     el.setAttribute('data', '{"a":1}');
-    expect(cells(el).length).toBe(0);
+    expect(cells(el)).toHaveLength(0);
 
     el.setAttribute('data', '');
-    expect(cells(el).length).toBe(0);
+    expect(cells(el)).toHaveLength(0);
     expect(el.querySelector<HTMLElement>('.ink-status-board__empty')!.hasAttribute('hidden')).toBe(
       false,
     );
@@ -1966,7 +1966,7 @@ describe('e-status-board', () => {
     const section = el.querySelector<HTMLElement>('.ink-status-board')!;
     expect(el.getAttribute('aria-label')).toBe('Pre');
     remount(el);
-    expect(el.querySelectorAll('.ink-status-board').length).toBe(1);
+    expect(el.querySelectorAll('.ink-status-board')).toHaveLength(1);
     expect(el.querySelector('.ink-status-board')).toBe(section);
   });
 });

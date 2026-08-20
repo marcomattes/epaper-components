@@ -59,7 +59,7 @@ export function isoDay(date: Date): string {
  * weekends, so both are skipped — the estimate is the conservative one.
  */
 export function addWorkingDays(from: Date, days: number): Date {
-  const date = new Date(from.getTime());
+  const date = new Date(from);
   let left = days;
   while (left > 0) {
     date.setDate(date.getDate() + 1);

@@ -99,7 +99,7 @@ export function createCheckoutPage(): Page {
     name: 'postcode',
     autocomplete: 'postal-code',
     required: true,
-    pattern: '\\d{5}',
+    pattern: String.raw`\d{5}`,
     inputmode: 'numeric',
     hint: 'Five digits, German format.',
     'required-message': 'A five-digit German postcode is needed for delivery.',
@@ -378,8 +378,7 @@ export function createCheckoutPage(): Page {
     if (summary.discount > 0 && summary.voucher) {
       rows.push([`Voucher ${summary.voucher.code}`, `− ${eur(summary.discount)}`]);
     }
-    rows.push(['Total', eur(summary.total)]);
-    rows.push(['Included VAT (7 %)', eur(summary.vat)]);
+    rows.push(['Total', eur(summary.total)], ['Included VAT (7 %)', eur(summary.vat)]);
     summarySlot.replaceChildren(
       h(
         'e-description-list',
@@ -388,16 +387,19 @@ export function createCheckoutPage(): Page {
       ),
     );
 
+    const deliveryDays = method() === 'express' ? 1 : 3;
     setText(
       deliveryEstimate,
       method() === 'pickup'
         ? 'Ready for collection the next working day, Mon–Sat 10:00–18:30.'
-        : `Estimated arrival ${deliveryWindow(method() === 'express' ? 1 : 3)}.`,
+        : `Estimated arrival ${deliveryWindow(deliveryDays)}.`,
     );
   }
 
   function renderReview(): void {
     const summary = cartSummary(method());
+    const giftArtworkSuffix = giftArtwork ? ` · artwork ${giftArtwork}` : '';
+    const giftValue = giftCheckbox.hasAttribute('checked') ? `Yes${giftArtworkSuffix}` : 'No';
     const addressRows: Array<[string, string]> = [
       ['Name', `${fieldValue(firstName)} ${fieldValue(lastName)}`.trim() || '—'],
       ['Street', fieldValue(street) || '—'],
@@ -409,12 +411,7 @@ export function createCheckoutPage(): Page {
       ['Preferred time', deliveryTime.getAttribute('value') ?? '—'],
       ['Invoice', invoiceToggle.hasAttribute('checked') ? 'By email' : 'On paper with the parcel'],
       ['Payment', paymentGroup.getAttribute('value') ?? 'invoice'],
-      [
-        'Gift',
-        giftCheckbox.hasAttribute('checked')
-          ? `Yes${giftArtwork ? ` · artwork ${giftArtwork}` : ''}`
-          : 'No',
-      ],
+      ['Gift', giftValue],
     ];
     if (giftCheckbox.hasAttribute('checked') && fieldValue(giftMessage)) {
       addressRows.push(['Gift message', fieldValue(giftMessage)]);
@@ -551,12 +548,13 @@ export function createCheckoutPage(): Page {
     placed = order;
 
     setAttr(result, 'title', `Order ${order.id} confirmed`);
+    const orderDeliveryDays = method() === 'express' ? 1 : 3;
     setAttr(
       result,
       'description',
       method() === 'pickup'
         ? `Ready for collection from tomorrow. Total ${eur(order.total)}, payable at the counter.`
-        : `Arriving ${deliveryWindow(method() === 'express' ? 1 : 3)}. Total ${eur(order.total)}.`,
+        : `Arriving ${deliveryWindow(orderDeliveryDays)}. Total ${eur(order.total)}.`,
     );
     setAttr(qrcode, 'value', `INKBOUND:${order.id}:${order.total.toFixed(2)}EUR`);
 

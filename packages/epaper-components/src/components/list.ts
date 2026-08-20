@@ -201,39 +201,49 @@ export class EListItem extends HTMLElement {
   }
 
   attributeChangedCallback(name: string) {
-    if (!this._wired || !this._row) return;
-    if (this._customContent) return;
+    if (!this._wired || !this._row || this._customContent) return;
     if (name === 'title') {
-      const v = this.getAttribute('title') || '';
-      if (v && !this._titleEl) {
-        const t = document.createElement('div');
-        t.className = 'ink-list__title';
-        t.textContent = v;
-        const main = this._row.querySelector<HTMLElement>('.ink-list__main');
-        if (main) main.insertBefore(t, main.firstChild);
-        this._titleEl = t;
-      } else if (v && this._titleEl) {
-        patchText(this._titleEl, v);
-      } else if (!v && this._titleEl) {
-        this._titleEl.remove();
-        this._titleEl = null;
-      }
+      this._titleEl = this._syncOptionalText(
+        'title',
+        this._titleEl,
+        'ink-list__title',
+        (main, el) => main.insertBefore(el, main.firstChild),
+      );
     } else if (name === 'description') {
-      const v = this.getAttribute('description') || '';
-      if (v && !this._descEl) {
-        const d = document.createElement('div');
-        d.className = 'ink-list__desc';
-        d.textContent = v;
-        const main = this._row.querySelector<HTMLElement>('.ink-list__main');
-        if (main) main.appendChild(d);
-        this._descEl = d;
-      } else if (v && this._descEl) {
-        patchText(this._descEl, v);
-      } else if (!v && this._descEl) {
-        this._descEl.remove();
-        this._descEl = null;
-      }
+      this._descEl = this._syncOptionalText(
+        'description',
+        this._descEl,
+        'ink-list__desc',
+        (main, el) => main.appendChild(el),
+      );
     }
+  }
+
+  /** Creates, updates or removes an optional title/description child, keeping both attributes' handling identical. */
+  private _syncOptionalText(
+    attr: string,
+    existing: HTMLElement | null,
+    className: string,
+    insert: (main: HTMLElement, el: HTMLElement) => void,
+  ): HTMLElement | null {
+    const v = this.getAttribute(attr) || '';
+    if (v && !existing) {
+      const el = document.createElement('div');
+      el.className = className;
+      el.textContent = v;
+      const main = this._row!.querySelector<HTMLElement>('.ink-list__main');
+      if (main) insert(main, el);
+      return el;
+    }
+    if (v && existing) {
+      patchText(existing, v);
+      return existing;
+    }
+    if (!v && existing) {
+      existing.remove();
+      return null;
+    }
+    return existing;
   }
 }
 
