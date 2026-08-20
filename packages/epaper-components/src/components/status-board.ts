@@ -29,11 +29,7 @@ const statusFrom = (value: unknown): StatusBoardStatus => {
 };
 
 /** Validates and normalizes one raw entry, deduping its key against `keys`. */
-function parseStatusItem(
-  entry: unknown,
-  index: number,
-  keys: Set<string>,
-): StatusBoardItem | null {
+function parseStatusItem(entry: unknown, index: number, keys: Set<string>): StatusBoardItem | null {
   if (!isRecord(entry)) return null;
   const value = entry['value'];
   if (typeof value !== 'string' && typeof value !== 'number') return null;
@@ -142,7 +138,11 @@ export class EStatusBoard extends HTMLElement {
     patchText(cell.detail, item.detail ?? '');
     patchAttr(cell.detail, 'hidden', item.detail ? null : '');
     const detailSuffix = item.detail ? `; ${item.detail}` : '';
-    patchAttr(cell.root, 'aria-label', `${item.label}: ${item.value}; ${meta.label}${detailSuffix}`);
+    patchAttr(
+      cell.root,
+      'aria-label',
+      `${item.label}: ${item.value}; ${meta.label}${detailSuffix}`,
+    );
   }
 
   private _patch(): void {

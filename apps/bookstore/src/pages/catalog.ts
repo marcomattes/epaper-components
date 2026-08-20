@@ -263,9 +263,7 @@ function categoryChip(): ActiveChip | null {
 
 function publisherChipLabel(): string {
   if (filters.publisher) return PUBLISHERS[filters.publisher];
-  return (
-    PUBLISHER_TREE.find((node) => node.value === filters.publisherGroup)?.label ?? 'Publisher'
-  );
+  return PUBLISHER_TREE.find((node) => node.value === filters.publisherGroup)?.label ?? 'Publisher';
 }
 
 function publisherChip(): ActiveChip | null {

@@ -160,7 +160,9 @@ export class ESparkline extends HTMLElement {
     const trend = this._trend(values);
     const lastValue = values.at(-1);
     const { min, max } = this._bounds(values);
-    const points = values.map((value, index) => this._pointFor(value, index, values.length, min, max));
+    const points = values.map((value, index) =>
+      this._pointFor(value, index, values.length, min, max),
+    );
     const lastPoint = points.at(-1)?.split(',') ?? [];
     const { text: trendText, glyph } = TREND_META[trend];
     const hasData = values.length > 0;

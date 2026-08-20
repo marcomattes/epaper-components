@@ -270,7 +270,10 @@ export class ETable extends HTMLElement {
     }
   }
 
-  private _buildHeaderCheckboxCell(allSelected: boolean, someSelected: boolean): HTMLTableCellElement {
+  private _buildHeaderCheckboxCell(
+    allSelected: boolean,
+    someSelected: boolean,
+  ): HTMLTableCellElement {
     const th = document.createElement('th');
     th.className = 'ink-table__check';
     const cb = document.createElement('input');
@@ -284,7 +287,10 @@ export class ETable extends HTMLElement {
     return th;
   }
 
-  private _buildHeaderCell(col: ColumnDef, sort: { key: string; dir: 'asc' | 'desc' } | null): HTMLTableCellElement {
+  private _buildHeaderCell(
+    col: ColumnDef,
+    sort: { key: string; dir: 'asc' | 'desc' } | null,
+  ): HTMLTableCellElement {
     const th = document.createElement('th');
     th.dataset['key'] = col.key;
     th.style.textAlign = col.align || 'left';
@@ -381,7 +387,9 @@ export class ETable extends HTMLElement {
     // Body
     const tbody = document.createElement('tbody');
     if (this._rows.length === 0) {
-      tbody.appendChild(this._buildEmptyRow(this._columns.length + (selectable ? 1 : 0), emptyText));
+      tbody.appendChild(
+        this._buildEmptyRow(this._columns.length + (selectable ? 1 : 0), emptyText),
+      );
     } else {
       this._rows.forEach((row, i) => {
         const tr = this._buildDataRow(row, i, selectable);

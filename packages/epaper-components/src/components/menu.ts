@@ -240,7 +240,11 @@ export class EMenu extends HTMLElement {
     if (icon) btn.appendChild(icon);
   }
 
-  private _appendBadge(btn: HTMLButtonElement, badge: string | null, on: boolean): HTMLElement | null {
+  private _appendBadge(
+    btn: HTMLButtonElement,
+    badge: string | null,
+    on: boolean,
+  ): HTMLElement | null {
     if (badge == null) return null;
     const badgeEl = document.createElement('e-badge');
     if (!on) badgeEl.setAttribute('inverted', '');
