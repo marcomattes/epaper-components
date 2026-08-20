@@ -1518,6 +1518,9 @@ e-text {
 .ink-tabs__list {
   display: flex;
   border-bottom: var(--ink-border);
+  /* Labels don't shrink or wrap; once a panel is narrower than the sum of
+     its tabs, scroll the strip instead of forcing the whole page wider. */
+  overflow-x: auto;
 }
 .ink-tabs__tab {
   padding: 12px 18px;

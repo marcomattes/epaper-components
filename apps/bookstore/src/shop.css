@@ -911,20 +911,36 @@ body {
 }
 
 /* The three floating clusters share the bottom-right corner, so each one is
-   given its own band instead of stacking on top of the others. */
+   given its own band instead of stacking on top of the others. Stacked
+   vertically they run to 250px+ tall; `.shop-root` only gets side margins
+   once the viewport clears its 1280px max-width, which none of the shop's
+   e-reader and tablet targets do (including the 1024x758 design target
+   itself), so a fixed column that tall sits directly on top of page content
+   — form fields, card edges — rather than in dead space beside it. A single
+   row keeps the fixed cluster to one button's height instead.
+   `<e-float-button-group>` writes its own orientation class on an inner
+   `.ink-fab-group` div, so the row direction is forced here rather than
+   through the `orientation` attribute. */
 .shop-floats {
   position: fixed;
   right: 20px;
   bottom: 20px;
   z-index: 30;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: flex-end;
   gap: var(--ink-space-2);
   pointer-events: none;
 }
 .shop-floats > * {
   pointer-events: auto;
+}
+.shop-floats .ink-fab-group {
+  flex-direction: row;
+}
+.shop-floats .ink-fab-group > button + button {
+  border-top: none;
+  border-left: var(--ink-border);
 }
 .shop-floats e-back-top {
   --ink-back-top-bottom: 0px;
@@ -957,9 +973,19 @@ body {
     flex-direction: column;
   }
   /* `<e-layout-sider>` writes its width inline, so a stacked rail can only be
-     widened from here. */
-  .shop-body > .ink-layout__sider {
+     widened from here. The rule targets `.ink-layout__sider` as a descendant,
+     not a direct child: `<e-layout-sider>` is itself a block box (see
+     components.css) that wraps the `aside.ink-layout__sider` one level
+     further in, so `.shop-body > .ink-layout__sider` never matched anything
+     and the rail stayed pinned at its 268px inline width — full-height and
+     narrow, with the rest of the row left blank beside it.
+     `max-height` + `overflow-y` keep a fully expanded menu (every department
+     and shelf open at once) from pushing the actual page content below the
+     fold: the rail scrolls internally instead of growing without bound. */
+  .shop-body .ink-layout__sider {
     width: auto !important;
+    max-height: 45vh;
+    overflow-y: auto;
     border-right: none;
     border-bottom: var(--ink-border);
   }
