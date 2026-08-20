@@ -166,17 +166,21 @@ export class ETimePicker extends BaseFormControl {
     if (e.key === 'ArrowUp') this._step(axis, 1);
     else if (e.key === 'ArrowDown') this._step(axis, -1);
     else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') partner?.focus();
-    else if (e.key === 'Home' || e.key === 'End') {
-      let [hours, minutes] = this._parts(this._value);
-      if (axis === 'h') hours = e.key === 'Home' ? 0 : 23;
-      else minutes = e.key === 'Home' ? 0 : 59;
-      const value = `${pad2(hours)}:${pad2(minutes)}`;
-      this.setAttribute('value', value);
-      this.dispatchEvent(new CustomEvent('e-change', { detail: { value }, bubbles: true }));
-    } else return;
+    else if (e.key === 'Home' || e.key === 'End') this._jumpToEdge(axis, e.key);
+    else return;
     e.preventDefault();
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') cell.focus();
   };
+
+  /** Home/End: jump the active axis (hours or minutes) to its min or max value. */
+  private _jumpToEdge(axis: 'h' | 'm', key: 'Home' | 'End'): void {
+    let [hours, minutes] = this._parts(this._value);
+    if (axis === 'h') hours = key === 'Home' ? 0 : 23;
+    else minutes = key === 'Home' ? 0 : 59;
+    const value = `${pad2(hours)}:${pad2(minutes)}`;
+    this.setAttribute('value', value);
+    this.dispatchEvent(new CustomEvent('e-change', { detail: { value }, bubbles: true }));
+  }
 
   override get value(): string {
     return this._value;

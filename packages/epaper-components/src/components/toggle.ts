@@ -81,39 +81,44 @@ export class EToggle extends BaseFormControl {
 
   attributeChangedCallback(name: string) {
     if (!this._cb) return;
-    if (name === 'checked') {
-      const v = boolAttr(this, 'checked');
-      this._cb.checked = v;
-      if (this._state) patchText(this._state, v ? 'ON' : 'OFF');
-      this._syncFormValue();
-    }
+    if (name === 'checked') this._syncChecked();
     // Presence alone disables — the HTML spec governs `disabled` here.
     if (name === 'disabled')
       this._cb.disabled = this.hasAttribute('disabled') || this._formDisabled;
     if (name === 'value') this._syncFormValue();
     if (name === 'required' || name === 'required-message') this._syncFormValue();
-    if (name === 'label') {
-      const text = this.getAttribute('label') || '';
-      const label = this.querySelector('label.ink-toggle') as HTMLElement | null;
-      const state = this._state;
-      if (!label) return;
-      let span: HTMLElement | null = null;
-      for (const child of [...label.children]) {
-        if (child === state) break;
-        if (child.tagName === 'SPAN' && !child.hasAttribute('style')) {
-          span = child as HTMLElement;
-        }
+    if (name === 'label') this._syncLabel();
+  }
+
+  private _syncChecked(): void {
+    const v = boolAttr(this, 'checked');
+    this._cb!.checked = v;
+    if (this._state) patchText(this._state, v ? 'ON' : 'OFF');
+    this._syncFormValue();
+  }
+
+  /** Finds/creates/removes the label text span, which lives between the switch and the ON/OFF pill. */
+  private _syncLabel(): void {
+    const text = this.getAttribute('label') || '';
+    const label = this.querySelector('label.ink-toggle') as HTMLElement | null;
+    const state = this._state;
+    if (!label) return;
+    let span: HTMLElement | null = null;
+    for (const child of label.children) {
+      if (child === state) break;
+      if (child.tagName === 'SPAN' && !child.hasAttribute('style')) {
+        span = child as HTMLElement;
       }
-      if (text && !span) {
-        span = document.createElement('span');
-        span.textContent = text;
-        if (state) label.insertBefore(span, state);
-        else label.appendChild(span);
-      } else if (!text && span) {
-        span.remove();
-      } else if (span) {
-        patchText(span, text);
-      }
+    }
+    if (text && !span) {
+      span = document.createElement('span');
+      span.textContent = text;
+      if (state) state.before(span);
+      else label.appendChild(span);
+    } else if (!text && span) {
+      span.remove();
+    } else if (span) {
+      patchText(span, text);
     }
   }
 
@@ -121,8 +126,7 @@ export class EToggle extends BaseFormControl {
     return this._cb?.checked || false;
   }
   set checked(v: boolean) {
-    if (v) this.setAttribute('checked', '');
-    else this.removeAttribute('checked');
+    this.toggleAttribute('checked', v);
   }
 
   override get value(): string {
