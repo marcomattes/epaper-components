@@ -32,7 +32,7 @@ jobs:
     permissions:
       contents: read
     container:
-      image: mcr.microsoft.com/playwright:v1.59.1-noble
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
       options: --user 1001
     steps:
       - name: Checkout
@@ -65,7 +65,7 @@ jobs:
     container:
       # Keep browser rendering identical to the environment used to create the
       # visual-regression baselines. This tag must match package-lock.json.
-      image: mcr.microsoft.com/playwright:v1.59.1-noble
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
       options: --user 1001
     steps:
       - name: Checkout
@@ -110,7 +110,7 @@ jobs:
       # Keep the browser, its system dependencies, and visual-regression
       # rendering identical to the environment used to create CI baselines.
       # This tag must match the Playwright version in package-lock.json.
-      image: mcr.microsoft.com/playwright:v1.59.1-noble
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
       options: --user 1001
     steps:
       - name: Checkout
