@@ -1,7 +1,7 @@
 {
   "name": "@marcomattes/epaper-components",
   "version": "1.1.0",
-  "description": "E-Paper web component library — vanilla custom elements with design tokens. Zero runtime dependencies, framework-agnostic.",
+  "description": "E-Paper (e-ink) web component library — vanilla custom elements with design tokens. Zero runtime dependencies, framework-agnostic.",
   "license": "MIT",
   "author": "Marco Mattes",
   "homepage": "https://epaper-components.dev/",
@@ -17,6 +17,8 @@
     "custom-elements",
     "e-paper",
     "epaper",
+    "e-ink",
+    "eink",
     "design-system",
     "ui",
     "typescript",

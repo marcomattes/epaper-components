@@ -25,7 +25,7 @@ const STATUS_DASHBOARD: Article = {
   lede: 'A dashboard is the most common reason to put an e-paper panel on a wall, and the most common way to get it wrong. The failure mode is never the layout — it is a refresh loop that asks the panel for more than it can deliver, so the display spends its life mid-flash.',
   published: '2026-06-30',
   updated: '2026-08-10',
-  topics: ['dashboard', 'e-ink', 'monitoring', 'ops', 'kiosk'],
+  topics: ['dashboard', 'e-ink', 'eink', 'monitoring', 'ops', 'kiosk'],
   blocks: [
     { kind: 'h2', text: 'The shape of the problem' },
     {
@@ -471,7 +471,7 @@ const WEATHER_STATION: Article = {
   lede: 'Weather is the classic first e-paper project, and it is a good one — the data changes slowly, the display suits glanceable reading, and the whole thing can run for months on a battery if the refresh schedule is honest about how often forecasts actually update.',
   published: '2026-08-04',
   updated: '2026-08-17',
-  topics: ['weather station', 'e-ink', 'raspberry pi', 'sparkline', 'forecast'],
+  topics: ['weather station', 'e-ink', 'eink', 'raspberry pi', 'sparkline', 'forecast'],
   blocks: [
     { kind: 'h2', text: 'Match the refresh rate to the data' },
     {
