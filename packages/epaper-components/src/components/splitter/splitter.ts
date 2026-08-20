@@ -1,4 +1,11 @@
-import { addCleanup, clampedNumAttr, define, onGlobal, patchAttr, runCleanups } from '../../core/dom';
+import {
+  addCleanup,
+  clampedNumAttr,
+  define,
+  onGlobal,
+  patchAttr,
+  runCleanups,
+} from '../../core/dom';
 
 /**
  * @summary Two-pane resizable splitter with mouse and keyboard support.

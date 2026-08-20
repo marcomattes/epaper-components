@@ -1,4 +1,12 @@
-import { addCleanup, boolAttr, define, esc, patchAttr, patchText, runCleanups } from '../../core/dom';
+import {
+  addCleanup,
+  boolAttr,
+  define,
+  esc,
+  patchAttr,
+  patchText,
+  runCleanups,
+} from '../../core/dom';
 import { iconSvg } from '../../core/icons';
 
 type Variant = 'info' | 'success' | 'warning' | 'error';

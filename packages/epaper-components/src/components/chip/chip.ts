@@ -1,4 +1,11 @@
-import { addCleanup, boolAttr, captureWrap, define, patchBoolAttr, runCleanups } from '../../core/dom';
+import {
+  addCleanup,
+  boolAttr,
+  captureWrap,
+  define,
+  patchBoolAttr,
+  runCleanups,
+} from '../../core/dom';
 
 /**
  * @summary Selectable label, often used for filters or quick choices.

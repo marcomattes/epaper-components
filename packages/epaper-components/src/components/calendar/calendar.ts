@@ -1,4 +1,11 @@
-import { addCleanup, define, patchAttr, patchBoolAttr, patchText, runCleanups } from '../../core/dom';
+import {
+  addCleanup,
+  define,
+  patchAttr,
+  patchBoolAttr,
+  patchText,
+  runCleanups,
+} from '../../core/dom';
 import { iconSvg } from '../../core/icons';
 import { parseYMD, ymd } from '../../core/date';
 import type { CalendarEvent } from '../../core/types';
