@@ -107,6 +107,45 @@ export class EProgress extends HTMLElement {
     this.replaceChildren(wrap);
   }
 
+  private _patchLinear(pct: number): void {
+    if (!this._fill) return;
+    const w = `${pct}%`;
+    if (this._fill.style.width !== w) this._fill.style.width = w;
+  }
+
+  private _patchSteps(pct: number): void {
+    const stepsCount = Math.max(1, Math.min(1000, intAttr(this, 'steps', 5)));
+    const filledSteps = Math.round((pct / 100) * stepsCount);
+
+    while (this._segs.length < stepsCount) {
+      const seg = document.createElement('span');
+      seg.className = 'ink-progress__seg';
+      this._stepsGrid!.appendChild(seg);
+      this._segs.push(seg);
+    }
+    while (this._segs.length > stepsCount) {
+      this._segs.pop()!.remove();
+    }
+    for (let i = 0; i < this._segs.length; i++) {
+      patchBoolAttr(this._segs[i], 'data-on', i < filledSteps);
+    }
+  }
+
+  private _patchCaption(label: string, hideLabel: boolean, pct: number): void {
+    if (!label || hideLabel) {
+      this._cap?.remove();
+      this._cap = null;
+      return;
+    }
+    if (!this._cap) {
+      const cap = document.createElement('div');
+      cap.className = 'ink-progress__label';
+      this._wrap!.appendChild(cap);
+      this._cap = cap;
+    }
+    patchText(this._cap, `${label} · ${pct}%`);
+  }
+
   private _patch(): void {
     const value = Math.max(0, numAttr(this, 'value', 0));
     const max = Math.max(1, numAttr(this, 'max', 100));
@@ -116,39 +155,13 @@ export class EProgress extends HTMLElement {
 
     this._patchAria(value, max, label);
 
-    if (this._variant === 'linear' && this._fill) {
-      const w = `${pct}%`;
-      if (this._fill.style.width !== w) this._fill.style.width = w;
+    if (this._variant === 'linear') {
+      this._patchLinear(pct);
     } else if (this._variant === 'steps') {
-      const stepsCount = Math.max(1, Math.min(1000, intAttr(this, 'steps', 5)));
-      const filledSteps = Math.round((pct / 100) * stepsCount);
-
-      while (this._segs.length < stepsCount) {
-        const seg = document.createElement('span');
-        seg.className = 'ink-progress__seg';
-        this._stepsGrid!.appendChild(seg);
-        this._segs.push(seg);
-      }
-      while (this._segs.length > stepsCount) {
-        this._stepsGrid!.removeChild(this._segs.pop()!);
-      }
-      for (let i = 0; i < this._segs.length; i++) {
-        patchBoolAttr(this._segs[i], 'data-on', i < filledSteps);
-      }
+      this._patchSteps(pct);
     }
 
-    if (label && !hideLabel) {
-      if (!this._cap) {
-        const cap = document.createElement('div');
-        cap.className = 'ink-progress__label';
-        this._wrap!.appendChild(cap);
-        this._cap = cap;
-      }
-      patchText(this._cap, `${label} · ${pct}%`);
-    } else if (this._cap) {
-      this._wrap!.removeChild(this._cap);
-      this._cap = null;
-    }
+    this._patchCaption(label, hideLabel, pct);
   }
 }
 

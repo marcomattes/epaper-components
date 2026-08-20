@@ -107,31 +107,40 @@ export class EMenu extends HTMLElement {
       this._focusSibling(btn, -1);
     } else if (ke.key === 'ArrowRight' && !horiz) {
       ke.preventDefault();
-      if (ri.hasKids && !ri.open) {
-        ri.open = true;
-        this._applyOpen(ri);
-      } else if (ri.hasKids && ri.childUl) {
-        const first = ri.childUl.querySelector<HTMLButtonElement>('.ink-menu__btn');
-        first?.focus();
-      }
+      this._expandOrDescend(ri);
     } else if (ke.key === 'ArrowLeft' && !horiz) {
       ke.preventDefault();
-      if (ri.hasKids && ri.open) {
-        ri.open = false;
-        this._applyOpen(ri);
-      } else {
-        this._focusParent(btn);
-      }
+      this._collapseOrAscend(ri, btn);
     } else if (ke.key === 'Home') {
       ke.preventDefault();
-      const all = this._visibleButtons();
-      all[0]?.focus();
+      this._visibleButtons()[0]?.focus();
     } else if (ke.key === 'End') {
       ke.preventDefault();
-      const all = this._visibleButtons();
-      all[all.length - 1]?.focus();
+      this._visibleButtons().at(-1)?.focus();
     }
   };
+
+  /** ArrowRight in vertical mode: open a collapsed submenu, or descend into an open one. */
+  private _expandOrDescend(ri: RenderedItem): void {
+    if (ri.hasKids && !ri.open) {
+      ri.open = true;
+      this._applyOpen(ri);
+      return;
+    }
+    if (ri.hasKids && ri.childUl) {
+      ri.childUl.querySelector<HTMLButtonElement>('.ink-menu__btn')?.focus();
+    }
+  }
+
+  /** ArrowLeft in vertical mode: close an open submenu, or ascend to the parent item. */
+  private _collapseOrAscend(ri: RenderedItem, btn: HTMLButtonElement): void {
+    if (ri.hasKids && ri.open) {
+      ri.open = false;
+      this._applyOpen(ri);
+      return;
+    }
+    this._focusParent(btn);
+  }
 
   private _visibleButtons(): HTMLButtonElement[] {
     if (!this._rootUl) return [];
@@ -197,40 +206,21 @@ export class EMenu extends HTMLElement {
     const on = value === item.value;
     btn.setAttribute('aria-current', on ? 'page' : 'false');
 
-    if (item.icon) {
-      const icon = this._svgFromString(iconSvg(item.icon, 16));
-      if (icon) btn.appendChild(icon);
-    }
+    this._appendIcon(btn, item.icon);
 
     const span = document.createElement('span');
     span.style.flex = '1';
     span.textContent = item.label ?? '';
     btn.appendChild(span);
 
-    let badgeEl: HTMLElement | null = null;
-    if (item.badge != null) {
-      badgeEl = document.createElement('e-badge');
-      if (!on) badgeEl.setAttribute('inverted', '');
-      badgeEl.textContent = item.badge;
-      btn.appendChild(badgeEl);
-    }
+    const badgeEl = this._appendBadge(btn, item.badge, on);
 
     const isOpen = hasKids && item.children.some((c) => c.value === value);
-    let chevron: Element | null = null;
-    if (hasKids) {
-      chevron = this._svgFromString(iconSvg(isOpen ? 'chevU' : 'chevD', 14));
-      if (chevron) btn.appendChild(chevron);
-    }
+    const chevron = hasKids ? this._appendChevron(btn, isOpen) : null;
 
     li.appendChild(btn);
 
-    let childUl: HTMLUListElement | null = null;
-    if (hasKids) {
-      childUl = document.createElement('ul');
-      for (const c of item.children) childUl.appendChild(this._buildItem(c, value));
-      childUl.hidden = !isOpen;
-      li.appendChild(childUl);
-    }
+    const childUl = hasKids ? this._buildChildList(li, item.children, value, isOpen) : null;
 
     this._byValue.set(item.value, {
       item,
@@ -242,6 +232,40 @@ export class EMenu extends HTMLElement {
       open: isOpen,
     });
     return li;
+  }
+
+  private _appendIcon(btn: HTMLButtonElement, iconName: string | null): void {
+    if (!iconName) return;
+    const icon = this._svgFromString(iconSvg(iconName, 16));
+    if (icon) btn.appendChild(icon);
+  }
+
+  private _appendBadge(btn: HTMLButtonElement, badge: string | null, on: boolean): HTMLElement | null {
+    if (badge == null) return null;
+    const badgeEl = document.createElement('e-badge');
+    if (!on) badgeEl.setAttribute('inverted', '');
+    badgeEl.textContent = badge;
+    btn.appendChild(badgeEl);
+    return badgeEl;
+  }
+
+  private _appendChevron(btn: HTMLButtonElement, isOpen: boolean): Element | null {
+    const chevron = this._svgFromString(iconSvg(isOpen ? 'chevU' : 'chevD', 14));
+    if (chevron) btn.appendChild(chevron);
+    return chevron;
+  }
+
+  private _buildChildList(
+    li: HTMLLIElement,
+    children: MenuItem[],
+    value: string | null,
+    isOpen: boolean,
+  ): HTMLUListElement {
+    const childUl = document.createElement('ul');
+    for (const c of children) childUl.appendChild(this._buildItem(c, value));
+    childUl.hidden = !isOpen;
+    li.appendChild(childUl);
+    return childUl;
   }
 
   private _svgFromString(svg: string): Element | null {
