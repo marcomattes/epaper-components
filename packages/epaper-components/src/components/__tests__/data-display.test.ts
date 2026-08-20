@@ -5,23 +5,23 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 
 beforeAll(async () => {
-  await import('../tag');
-  await import('../chip');
-  await import('../empty');
-  await import('../skeleton');
-  await import('../progress');
-  await import('../result');
-  await import('../list');
-  await import('../table');
-  await import('../alert');
-  await import('../collapse');
-  await import('../tree');
-  await import('../meter');
-  await import('../sparkline');
-  await import('../status-board');
-  await import('../change-marker');
-  await import('../last-updated');
-  await import('../diff');
+  await import('../tag/tag');
+  await import('../chip/chip');
+  await import('../empty/empty');
+  await import('../skeleton/skeleton');
+  await import('../progress/progress');
+  await import('../result/result');
+  await import('../list/list');
+  await import('../table/table');
+  await import('../alert/alert');
+  await import('../collapse/collapse');
+  await import('../tree/tree');
+  await import('../meter/meter');
+  await import('../sparkline/sparkline');
+  await import('../status-board/status-board');
+  await import('../change-marker/change-marker');
+  await import('../last-updated/last-updated');
+  await import('../diff/diff');
 });
 
 /** `<details>` dispatches `toggle` as a queued task, never synchronously. */

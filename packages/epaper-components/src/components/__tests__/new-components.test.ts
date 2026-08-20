@@ -4,14 +4,14 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 
 beforeAll(async () => {
-  await import('../statistic');
-  await import('../timeline');
-  await import('../description-list');
-  await import('../affix');
-  await import('../back-top');
-  await import('../watermark');
-  await import('../image');
-  await import('../qrcode');
+  await import('../statistic/statistic');
+  await import('../timeline/timeline');
+  await import('../description-list/description-list');
+  await import('../affix/affix');
+  await import('../back-top/back-top');
+  await import('../watermark/watermark');
+  await import('../image/image');
+  await import('../qrcode/qrcode');
 });
 
 const mount = <T extends HTMLElement = HTMLElement>(html: string): T => {

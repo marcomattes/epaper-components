@@ -208,7 +208,7 @@ both would be resolved through dithering:
 --kaleido-blue: #1e4fb8;
 ```
 
-`<e-kaleido>` ([src/components/kaleido.ts](packages/epaper-components/src/components/kaleido.ts)) is a
+`<e-kaleido>` ([src/components/kaleido/kaleido.ts](packages/epaper-components/src/components/kaleido/kaleido.ts)) is a
 diagnostic component that renders those colors alongside a Bayer-8 dithered
 preview, so a swatch can be evaluated against its likely hardware rendering
 before it ships.

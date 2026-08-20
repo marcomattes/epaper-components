@@ -6,7 +6,7 @@ import '../../styles/themes/mono-high-contrast.css';
 import '../../styles/themes/kaleido.css';
 
 beforeAll(async () => {
-  await import('../alert');
+  await import('../alert/alert');
 });
 
 afterEach(() => {

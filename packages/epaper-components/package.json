@@ -42,7 +42,7 @@
     "./dist/index.js",
     "./dist/components/*.js",
     "./src/index.ts",
-    "./src/components/*.ts",
+    "./src/components/*/*.ts",
     "./src/styles/*.css",
     "./src/styles/themes/*.css",
     "./dist/styles/*.css",

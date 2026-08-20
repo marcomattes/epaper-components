@@ -15,12 +15,16 @@ selects) or a **display/action component** (buttons, cards, badges,
 dropdowns that don't submit a form value). That decision determines which
 base class to extend.
 
-## 1. Component file — `packages/epaper-components/src/components/<name>.ts`
+## 1. Component file — `packages/epaper-components/src/components/<name>/<name>.ts`
+
+Each component lives in its own folder alongside its auto-generated
+`<name>.md` README (written by `npm run docs:components` from JSDoc — never
+edit it by hand).
 
 Non-form component, extend `HTMLElement` directly:
 
 ```ts
-import { define, esc } from '../core/dom';
+import { define, esc } from '../../core/dom';
 
 /**
  * @summary Short description.
@@ -43,7 +47,7 @@ export class EFoo extends HTMLElement {
   attributeChangedCallback(_n: string, _o: string | null, _v: string | null) {
     if (!this._wired) return;
     // surgical patch only — patchText/patchAttr/patchBoolAttr/patchClassModifier
-    // from ../core/dom, never innerHTML reassignment after first render
+    // from ../../core/dom, never innerHTML reassignment after first render
   }
 }
 
@@ -54,7 +58,7 @@ Form control, extend `BaseFormControl<T>` instead — implement `serialize(v: T)
 (the string handed to `ElementInternals.setFormValue`) and `parse(s: string)`
 (used by reset/state-restore); override `resetValue()`, not
 `formResetCallback()`, if you need custom reset behavior. Look at
-`packages/epaper-components/src/components/input.ts` for the canonical minimal example before writing
+`packages/epaper-components/src/components/input/input.ts` for the canonical minimal example before writing
 a new one from scratch.
 
 For any global (`document`/`window`) listener — dropdown outside-click,

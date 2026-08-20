@@ -1,12 +1,14 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
-import { readdirSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 
 const componentsDir = resolve(__dirname, 'src/components');
 const componentEntries = Object.fromEntries(
-  readdirSync(componentsDir)
-    .filter((f) => f.endsWith('.ts') && !f.endsWith('.d.ts'))
-    .map((f) => [`components/${f.replace(/\.ts$/, '')}`, resolve(componentsDir, f)]),
+  readdirSync(componentsDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => [entry.name, resolve(componentsDir, entry.name, `${entry.name}.ts`)])
+    .filter(([, entryFile]) => existsSync(entryFile))
+    .map(([name, entryFile]) => [`components/${name}`, entryFile]),
 );
 
 const coreEntries = {

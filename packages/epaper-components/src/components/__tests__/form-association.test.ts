@@ -3,20 +3,20 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 
 beforeAll(async () => {
-  await import('../input');
-  await import('../textarea');
-  await import('../checkbox');
-  await import('../toggle');
-  await import('../select');
-  await import('../radio-group');
-  await import('../checkbox-group');
-  await import('../date-picker');
-  await import('../time-picker');
-  await import('../cascader');
-  await import('../tree-select');
-  await import('../button');
-  await import('../upload');
-  await import('../input-number');
+  await import('../input/input');
+  await import('../textarea/textarea');
+  await import('../checkbox/checkbox');
+  await import('../toggle/toggle');
+  await import('../select/select');
+  await import('../radio-group/radio-group');
+  await import('../checkbox-group/checkbox-group');
+  await import('../date-picker/date-picker');
+  await import('../time-picker/time-picker');
+  await import('../cascader/cascader');
+  await import('../tree-select/tree-select');
+  await import('../button/button');
+  await import('../upload/upload');
+  await import('../input-number/input-number');
 });
 
 const mount = (html: string): HTMLFormElement => {

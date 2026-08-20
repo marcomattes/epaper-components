@@ -10,17 +10,17 @@
 import { describe, it, expect, beforeAll, afterEach } from 'vitest';
 
 beforeAll(async () => {
-  await import('../popover');
-  await import('../dialog');
-  await import('../tabs');
-  await import('../menu');
-  await import('../float-button');
-  await import('../dropdown');
-  await import('../collapse');
-  await import('../back-top');
-  await import('../splitter');
-  await import('../affix');
-  await import('../anchor');
+  await import('../popover/popover');
+  await import('../dialog/dialog');
+  await import('../tabs/tabs');
+  await import('../menu/menu');
+  await import('../float-button/float-button');
+  await import('../dropdown/dropdown');
+  await import('../collapse/collapse');
+  await import('../back-top/back-top');
+  await import('../splitter/splitter');
+  await import('../affix/affix');
+  await import('../anchor/anchor');
 });
 
 const mounted: HTMLElement[] = [];

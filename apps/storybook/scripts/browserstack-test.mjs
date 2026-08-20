@@ -132,7 +132,7 @@ function safeFileName(value) {
 // Declarative authoring API only: the parent reads these as a data source while
 // rendering and replaces them with its own markup, so they never survive into
 // the rendered DOM. `e-menu` reading `:scope > e-menu-item` and emitting
-// `.ink-menu__btn` (src/components/menu.ts) is the canonical example. They are
+// `.ink-menu__btn` (src/components/menu/menu.ts) is the canonical example. They are
 // registered and stories do use them, but the coverage check cannot observe
 // them — excluding them keeps that check meaningful for the elements that do
 // render, instead of failing unconditionally. Remove a tag from this list as

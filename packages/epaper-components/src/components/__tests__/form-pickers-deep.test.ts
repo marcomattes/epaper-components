@@ -6,24 +6,24 @@
 import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest';
 
 import { ICONS } from '../../core/icons';
-import type { ECascader } from '../cascader';
-import type { EDatePicker } from '../date-picker';
-import type { EInputNumber } from '../input-number';
-import type { ESelect } from '../select';
-import type { ETimePicker } from '../time-picker';
-import type { ETree } from '../tree';
-import type { ETreeSelect } from '../tree-select';
-import type { EUpload } from '../upload';
+import type { ECascader } from '../cascader/cascader';
+import type { EDatePicker } from '../date-picker/date-picker';
+import type { EInputNumber } from '../input-number/input-number';
+import type { ESelect } from '../select/select';
+import type { ETimePicker } from '../time-picker/time-picker';
+import type { ETree } from '../tree/tree';
+import type { ETreeSelect } from '../tree-select/tree-select';
+import type { EUpload } from '../upload/upload';
 
 beforeAll(async () => {
-  await import('../upload');
-  await import('../select');
-  await import('../input-number');
-  await import('../cascader');
-  await import('../date-picker');
-  await import('../time-picker');
-  await import('../tree-select');
-  await import('../tree');
+  await import('../upload/upload');
+  await import('../select/select');
+  await import('../input-number/input-number');
+  await import('../cascader/cascader');
+  await import('../date-picker/date-picker');
+  await import('../time-picker/time-picker');
+  await import('../tree-select/tree-select');
+  await import('../tree/tree');
 });
 
 /* ------------------------------------------------------------------ *

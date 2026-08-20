@@ -9,17 +9,17 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { ICONS } from '../../core/icons';
 
 beforeAll(async () => {
-  await import('../list');
-  await import('../skeleton');
-  await import('../result');
-  await import('../empty');
-  await import('../progress');
-  await import('../alert');
-  await import('../divider');
-  await import('../text');
-  await import('../title');
-  await import('../meter');
-  await import('../status-board');
+  await import('../list/list');
+  await import('../skeleton/skeleton');
+  await import('../result/result');
+  await import('../empty/empty');
+  await import('../progress/progress');
+  await import('../alert/alert');
+  await import('../divider/divider');
+  await import('../text/text');
+  await import('../title/title');
+  await import('../meter/meter');
+  await import('../status-board/status-board');
 });
 
 const mount = <T extends HTMLElement = HTMLElement>(html: string): T => {
