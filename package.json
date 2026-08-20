@@ -1,462 +1,64 @@
 {
-  "name": "@marcomattes/epaper-components",
-  "version": "1.1.0",
-  "description": "E-Paper (e-ink) web component library — vanilla custom elements with design tokens. Zero runtime dependencies, framework-agnostic.",
+  "name": "epaper-components-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Monorepo for @marcomattes/epaper-components: the component library, its docs/marketing site, Storybook, and consumer sample apps.",
   "license": "MIT",
-  "author": "Marco Mattes",
-  "homepage": "https://epaper-components.dev/",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/marcomattes/epaper-components.git"
-  },
-  "bugs": {
-    "url": "https://github.com/marcomattes/epaper-components/issues"
-  },
-  "keywords": [
-    "web-components",
-    "custom-elements",
-    "e-paper",
-    "epaper",
-    "e-ink",
-    "eink",
-    "design-system",
-    "ui",
-    "typescript",
-    "form-associated",
-    "element-internals",
-    "accessibility"
-  ],
-  "publishConfig": {
-    "access": "public",
-    "provenance": true,
-    "registry": "https://npm.pkg.github.com"
-  },
   "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "customElements": "dist/custom-elements.json",
-  "web-types": "./dist/web-types.json",
-  "sideEffects": [
-    "./dist/index.js",
-    "./dist/components/*.js",
-    "./src/index.ts",
-    "./src/components/*.ts",
-    "./src/site/*.ts",
-    "./src/styles/*.css",
-    "./src/styles/themes/*.css",
-    "./dist/styles/*.css",
-    "./dist/styles/*.min.css",
-    "./dist/styles/themes/*.css",
-    "./dist/styles/themes/*.min.css"
-  ],
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    },
-    "./anchor": {
-      "types": "./dist/components/anchor.d.ts",
-      "import": "./dist/components/anchor.js"
-    },
-    "./avatar": {
-      "types": "./dist/components/avatar.d.ts",
-      "import": "./dist/components/avatar.js"
-    },
-    "./affix": {
-      "types": "./dist/components/affix.d.ts",
-      "import": "./dist/components/affix.js"
-    },
-    "./alert": {
-      "types": "./dist/components/alert.d.ts",
-      "import": "./dist/components/alert.js"
-    },
-    "./back-top": {
-      "types": "./dist/components/back-top.d.ts",
-      "import": "./dist/components/back-top.js"
-    },
-    "./badge": {
-      "types": "./dist/components/badge.d.ts",
-      "import": "./dist/components/badge.js"
-    },
-    "./badge-count": {
-      "types": "./dist/components/badge-count.d.ts",
-      "import": "./dist/components/badge-count.js"
-    },
-    "./breadcrumb": {
-      "types": "./dist/components/breadcrumb.d.ts",
-      "import": "./dist/components/breadcrumb.js"
-    },
-    "./button": {
-      "types": "./dist/components/button.d.ts",
-      "import": "./dist/components/button.js"
-    },
-    "./calendar": {
-      "types": "./dist/components/calendar.d.ts",
-      "import": "./dist/components/calendar.js"
-    },
-    "./card": {
-      "types": "./dist/components/card.d.ts",
-      "import": "./dist/components/card.js"
-    },
-    "./card-image": {
-      "types": "./dist/components/card-image.d.ts",
-      "import": "./dist/components/card-image.js"
-    },
-    "./cascader": {
-      "types": "./dist/components/cascader.d.ts",
-      "import": "./dist/components/cascader.js"
-    },
-    "./checkbox": {
-      "types": "./dist/components/checkbox.d.ts",
-      "import": "./dist/components/checkbox.js"
-    },
-    "./checkbox-group": {
-      "types": "./dist/components/checkbox-group.d.ts",
-      "import": "./dist/components/checkbox-group.js"
-    },
-    "./chip": {
-      "types": "./dist/components/chip.d.ts",
-      "import": "./dist/components/chip.js"
-    },
-    "./change-marker": {
-      "types": "./dist/components/change-marker.d.ts",
-      "import": "./dist/components/change-marker.js"
-    },
-    "./collapse": {
-      "types": "./dist/components/collapse.d.ts",
-      "import": "./dist/components/collapse.js"
-    },
-    "./date-picker": {
-      "types": "./dist/components/date-picker.d.ts",
-      "import": "./dist/components/date-picker.js"
-    },
-    "./dialog": {
-      "types": "./dist/components/dialog.d.ts",
-      "import": "./dist/components/dialog.js"
-    },
-    "./diff": {
-      "types": "./dist/components/diff.d.ts",
-      "import": "./dist/components/diff.js"
-    },
-    "./divider": {
-      "types": "./dist/components/divider.d.ts",
-      "import": "./dist/components/divider.js"
-    },
-    "./dropdown": {
-      "types": "./dist/components/dropdown.d.ts",
-      "import": "./dist/components/dropdown.js"
-    },
-    "./description-list": {
-      "types": "./dist/components/description-list.d.ts",
-      "import": "./dist/components/description-list.js"
-    },
-    "./empty": {
-      "types": "./dist/components/empty.d.ts",
-      "import": "./dist/components/empty.js"
-    },
-    "./flex": {
-      "types": "./dist/components/flex.d.ts",
-      "import": "./dist/components/flex.js"
-    },
-    "./float-button": {
-      "types": "./dist/components/float-button.d.ts",
-      "import": "./dist/components/float-button.js"
-    },
-    "./form": {
-      "types": "./dist/components/form.d.ts",
-      "import": "./dist/components/form.js"
-    },
-    "./grid": {
-      "types": "./dist/components/grid.d.ts",
-      "import": "./dist/components/grid.js"
-    },
-    "./icon": {
-      "types": "./dist/components/icon.d.ts",
-      "import": "./dist/components/icon.js"
-    },
-    "./image": {
-      "types": "./dist/components/image.d.ts",
-      "import": "./dist/components/image.js"
-    },
-    "./input": {
-      "types": "./dist/components/input.d.ts",
-      "import": "./dist/components/input.js"
-    },
-    "./input-number": {
-      "types": "./dist/components/input-number.d.ts",
-      "import": "./dist/components/input-number.js"
-    },
-    "./kaleido": {
-      "types": "./dist/components/kaleido.d.ts",
-      "import": "./dist/components/kaleido.js"
-    },
-    "./layout": {
-      "types": "./dist/components/layout.d.ts",
-      "import": "./dist/components/layout.js"
-    },
-    "./last-updated": {
-      "types": "./dist/components/last-updated.d.ts",
-      "import": "./dist/components/last-updated.js"
-    },
-    "./link": {
-      "types": "./dist/components/link.d.ts",
-      "import": "./dist/components/link.js"
-    },
-    "./list": {
-      "types": "./dist/components/list.d.ts",
-      "import": "./dist/components/list.js"
-    },
-    "./masonry": {
-      "types": "./dist/components/masonry.d.ts",
-      "import": "./dist/components/masonry.js"
-    },
-    "./menu": {
-      "types": "./dist/components/menu.d.ts",
-      "import": "./dist/components/menu.js"
-    },
-    "./meter": {
-      "types": "./dist/components/meter.d.ts",
-      "import": "./dist/components/meter.js"
-    },
-    "./pagination": {
-      "types": "./dist/components/pagination.d.ts",
-      "import": "./dist/components/pagination.js"
-    },
-    "./popconfirm": {
-      "types": "./dist/components/popover.d.ts",
-      "import": "./dist/components/popover.js"
-    },
-    "./popover": {
-      "types": "./dist/components/popover.d.ts",
-      "import": "./dist/components/popover.js"
-    },
-    "./qrcode": {
-      "types": "./dist/components/qrcode.d.ts",
-      "import": "./dist/components/qrcode.js"
-    },
-    "./progress": {
-      "types": "./dist/components/progress.d.ts",
-      "import": "./dist/components/progress.js"
-    },
-    "./radio-group": {
-      "types": "./dist/components/radio-group.d.ts",
-      "import": "./dist/components/radio-group.js"
-    },
-    "./ribbon": {
-      "types": "./dist/components/ribbon.d.ts",
-      "import": "./dist/components/ribbon.js"
-    },
-    "./result": {
-      "types": "./dist/components/result.d.ts",
-      "import": "./dist/components/result.js"
-    },
-    "./segmented": {
-      "types": "./dist/components/segmented.d.ts",
-      "import": "./dist/components/segmented.js"
-    },
-    "./select": {
-      "types": "./dist/components/select.d.ts",
-      "import": "./dist/components/select.js"
-    },
-    "./skeleton": {
-      "types": "./dist/components/skeleton.d.ts",
-      "import": "./dist/components/skeleton.js"
-    },
-    "./space": {
-      "types": "./dist/components/space.d.ts",
-      "import": "./dist/components/space.js"
-    },
-    "./sparkline": {
-      "types": "./dist/components/sparkline.d.ts",
-      "import": "./dist/components/sparkline.js"
-    },
-    "./splitter": {
-      "types": "./dist/components/splitter.d.ts",
-      "import": "./dist/components/splitter.js"
-    },
-    "./statistic": {
-      "types": "./dist/components/statistic.d.ts",
-      "import": "./dist/components/statistic.js"
-    },
-    "./status-board": {
-      "types": "./dist/components/status-board.d.ts",
-      "import": "./dist/components/status-board.js"
-    },
-    "./steps": {
-      "types": "./dist/components/steps.d.ts",
-      "import": "./dist/components/steps.js"
-    },
-    "./table": {
-      "types": "./dist/components/table.d.ts",
-      "import": "./dist/components/table.js"
-    },
-    "./tabs": {
-      "types": "./dist/components/tabs.d.ts",
-      "import": "./dist/components/tabs.js"
-    },
-    "./tag": {
-      "types": "./dist/components/tag.d.ts",
-      "import": "./dist/components/tag.js"
-    },
-    "./text": {
-      "types": "./dist/components/text.d.ts",
-      "import": "./dist/components/text.js"
-    },
-    "./textarea": {
-      "types": "./dist/components/textarea.d.ts",
-      "import": "./dist/components/textarea.js"
-    },
-    "./time-picker": {
-      "types": "./dist/components/time-picker.d.ts",
-      "import": "./dist/components/time-picker.js"
-    },
-    "./timeline": {
-      "types": "./dist/components/timeline.d.ts",
-      "import": "./dist/components/timeline.js"
-    },
-    "./title": {
-      "types": "./dist/components/title.d.ts",
-      "import": "./dist/components/title.js"
-    },
-    "./toggle": {
-      "types": "./dist/components/toggle.d.ts",
-      "import": "./dist/components/toggle.js"
-    },
-    "./tree": {
-      "types": "./dist/components/tree.d.ts",
-      "import": "./dist/components/tree.js"
-    },
-    "./tree-select": {
-      "types": "./dist/components/tree-select.d.ts",
-      "import": "./dist/components/tree-select.js"
-    },
-    "./upload": {
-      "types": "./dist/components/upload.d.ts",
-      "import": "./dist/components/upload.js"
-    },
-    "./watermark": {
-      "types": "./dist/components/watermark.d.ts",
-      "import": "./dist/components/watermark.js"
-    },
-    "./core/base-form-control": {
-      "types": "./dist/core/base-form-control.d.ts",
-      "import": "./dist/core/base-form-control.js"
-    },
-    "./core/dom": {
-      "types": "./dist/core/dom.d.ts",
-      "import": "./dist/core/dom.js"
-    },
-    "./core/icons": {
-      "types": "./dist/core/icons.d.ts",
-      "import": "./dist/core/icons.js"
-    },
-    "./tokens.css": "./src/styles/tokens.css",
-    "./base.css": "./src/styles/base.css",
-    "./components.css": "./src/styles/components.css",
-    "./styles/tokens.css": "./src/styles/tokens.css",
-    "./styles/base.css": "./src/styles/base.css",
-    "./styles/components.css": "./src/styles/components.css",
-    "./themes/mono-high-contrast.css": "./src/styles/themes/mono-high-contrast.css",
-    "./themes/kaleido.css": "./src/styles/themes/kaleido.css",
-    "./styles/themes/mono-high-contrast.css": "./src/styles/themes/mono-high-contrast.css",
-    "./styles/themes/kaleido.css": "./src/styles/themes/kaleido.css",
-    "./tokens.min.css": "./dist/styles/tokens.min.css",
-    "./base.min.css": "./dist/styles/base.min.css",
-    "./components.min.css": "./dist/styles/components.min.css",
-    "./themes/mono-high-contrast.min.css": "./dist/styles/themes/mono-high-contrast.min.css",
-    "./themes/kaleido.min.css": "./dist/styles/themes/kaleido.min.css",
-    "./styles.min.css": "./dist/styles/epaper.min.css",
-    "./tokens.min.css.map": "./dist/styles/tokens.min.css.map",
-    "./base.min.css.map": "./dist/styles/base.min.css.map",
-    "./components.min.css.map": "./dist/styles/components.min.css.map",
-    "./themes/mono-high-contrast.min.css.map": "./dist/styles/themes/mono-high-contrast.min.css.map",
-    "./themes/kaleido.min.css.map": "./dist/styles/themes/kaleido.min.css.map",
-    "./styles.min.css.map": "./dist/styles/epaper.min.css.map",
-    "./custom-elements.json": "./dist/custom-elements.json"
-  },
-  "files": [
-    "dist",
-    "src/styles",
-    "README.md",
-    "OVERVIEW.md",
-    "THEMING.md",
-    "CONTRIBUTING.md",
-    "CHANGELOG.md",
-    "LICENSE"
+  "workspaces": [
+    "packages/*",
+    "apps/*"
   ],
   "engines": {
     "node": ">=20"
   },
-  "contributes": {
-    "html": {
-      "customData": [
-        "./dist/vscode.html-custom-data.json"
-      ]
-    }
-  },
   "scripts": {
-    "dev": "vite",
-    "start": "vite",
-    "build": "vite build && node scripts/build-css.mjs && tsc -p tsconfig.build.json && cem analyze && node scripts/gen-tag-map.mjs",
-    "dev:site": "vite --config vite.site.config.ts",
-    "build:site": "vite build --config vite.site.config.ts && node scripts/inline-site-css.mjs && node scripts/build-site-routes.mjs",
-    "preview:site": "vite preview --config vite.site.config.ts",
-    "preview": "vite preview",
+    "dev": "npm run dev -w packages/epaper-components",
+    "start": "npm run start -w packages/epaper-components",
+    "build": "npm run build -w packages/epaper-components",
+    "dev:site": "npm run dev -w apps/site",
+    "build:site": "npm run build -w apps/site",
+    "preview:site": "npm run preview -w apps/site",
+    "dev:bookstore": "npm run dev -w apps/bookstore",
+    "build:bookstore": "npm run build -w apps/bookstore",
+    "preview:bookstore": "npm run preview -w apps/bookstore",
+    "preview": "npm run preview -w packages/epaper-components",
     "type-check": "tsc --noEmit",
-    "lint": "eslint \"src/**/*.ts\"",
-    "lint:check": "eslint \"src/**/*.ts\" --max-warnings=0",
-    "format": "prettier --write \"src/**/*.{ts,css}\" \"*.{md,json,mjs,ts}\" \"scripts/**/*.mjs\" \".storybook/**/*.ts\" \"sample-app/**/*.{ts,mjs,html}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,css}\" \"*.{md,json,mjs,ts}\" \"scripts/**/*.mjs\" \".storybook/**/*.ts\" \"sample-app/**/*.{ts,mjs,html}\"",
-    "analyze": "cem analyze && node scripts/gen-tag-map.mjs",
-    "docs:components": "cem analyze && node scripts/gen-readmes.mjs",
-    "analyze:watch": "cem analyze --watch",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
-    "browserstack:serve": "node scripts/serve-static.mjs storybook-static 6006",
+    "lint": "eslint \"packages/epaper-components/src/**/*.ts\" \"apps/site/src/**/*.ts\" \"apps/bookstore/src/**/*.ts\"",
+    "lint:check": "eslint \"packages/epaper-components/src/**/*.ts\" \"apps/site/src/**/*.ts\" \"apps/bookstore/src/**/*.ts\" --max-warnings=0",
+    "format": "prettier --write \"packages/*/src/**/*.{ts,css}\" \"apps/*/src/**/*.{ts,css}\" \"*.{md,json,mjs,ts}\" \"packages/*/*.{json,mjs,ts}\" \"apps/*/*.{json,mjs,ts}\" \"packages/*/scripts/**/*.mjs\" \"apps/*/scripts/**/*.mjs\" \"apps/storybook/.storybook/**/*.ts\" \"apps/sample-app/**/*.{ts,mjs,html}\"",
+    "format:check": "prettier --check \"packages/*/src/**/*.{ts,css}\" \"apps/*/src/**/*.{ts,css}\" \"*.{md,json,mjs,ts}\" \"packages/*/*.{json,mjs,ts}\" \"apps/*/*.{json,mjs,ts}\" \"packages/*/scripts/**/*.mjs\" \"apps/*/scripts/**/*.mjs\" \"apps/storybook/.storybook/**/*.ts\" \"apps/sample-app/**/*.{ts,mjs,html}\"",
+    "analyze": "npm run analyze -w packages/epaper-components",
+    "docs:components": "npm run docs:components -w packages/epaper-components",
+    "analyze:watch": "npm run analyze:watch -w packages/epaper-components",
+    "storybook": "npm run storybook -w apps/storybook",
+    "build-storybook": "npm run build-storybook -w apps/storybook",
+    "browserstack:serve": "npm run browserstack:serve -w apps/storybook",
     "test": "vitest",
     "test:ci": "vitest run",
     "test-storybook": "vitest --project=storybook",
-    "test:visual": "vitest run src/components/__tests__/screenshots.test.ts",
+    "test:visual": "vitest run packages/epaper-components/src/components/__tests__/screenshots.test.ts",
     "test:visual:update": "npm run test:visual -- --update",
-    "test:refresh": "vitest run src/components/__tests__/refresh-budget.test.ts",
-    "test:browserstack": "node scripts/browserstack-test.mjs",
+    "test:refresh": "vitest run packages/epaper-components/src/components/__tests__/refresh-budget.test.ts",
+    "test:browserstack": "npm run test:browserstack -w apps/storybook",
     "test:coverage": "vitest --coverage",
     "test:coverage:ci": "vitest run --coverage",
-    "size": "size-limit",
-    "size:why": "size-limit --why",
-    "validate:sample-app": "node sample-app/validate.mjs",
-    "validate:sample-app:types": "tsc -p sample-app/tsconfig.json",
-    "pages:index": "node scripts/gen-pages-index.mjs",
-    "bump-version": "node scripts/bump-version.mjs",
-    "prepublishOnly": "npm run lint:check && npm run type-check && npm run build",
-    "build-browserstack": "vite build && browserstack-node-sdk node scripts/build-css.mjs && tsc -p tsconfig.build.json && cem analyze && node scripts/gen-tag-map.mjs",
-    "build:site-browserstack": "vite build --config vite.site.config.ts && browserstack-node-sdk node scripts/inline-site-css.mjs && node scripts/build-site-routes.mjs",
-    "analyze-browserstack": "cem analyze && browserstack-node-sdk node scripts/gen-tag-map.mjs",
-    "docs:components-browserstack": "cem analyze && browserstack-node-sdk node scripts/gen-readmes.mjs",
-    "browserstack:serve-browserstack": "browserstack-node-sdk node scripts/serve-static.mjs storybook-static 6006",
-    "test:browserstack-browserstack": "browserstack-node-sdk node scripts/browserstack-test.mjs",
-    "validate:sample-app-browserstack": "browserstack-node-sdk node sample-app/validate.mjs",
-    "pages:index-browserstack": "browserstack-node-sdk node scripts/gen-pages-index.mjs",
-    "bump-version-browserstack": "browserstack-node-sdk node scripts/bump-version.mjs"
+    "size": "npm run size -w packages/epaper-components",
+    "size:why": "npm run size:why -w packages/epaper-components",
+    "validate:sample-app": "npm run validate -w apps/sample-app",
+    "validate:sample-app:types": "npm run types-check -w apps/sample-app",
+    "pages:index": "npm run pages:index -w apps/site",
+    "bump-version": "npm run bump-version -w packages/epaper-components --",
+    "build-browserstack": "npm run build-browserstack -w packages/epaper-components",
+    "build:site-browserstack": "npm run build-browserstack -w apps/site",
+    "analyze-browserstack": "npm run analyze-browserstack -w packages/epaper-components",
+    "docs:components-browserstack": "npm run docs:components-browserstack -w packages/epaper-components",
+    "browserstack:serve-browserstack": "npm run browserstack:serve-browserstack -w apps/storybook",
+    "test:browserstack-browserstack": "npm run test:browserstack-browserstack -w apps/storybook",
+    "validate:sample-app-browserstack": "npm run validate-browserstack -w apps/sample-app",
+    "pages:index-browserstack": "npm run pages:index-browserstack -w apps/site",
+    "bump-version-browserstack": "npm run bump-version-browserstack -w packages/epaper-components --"
   },
-  "size-limit": [
-    {
-      "name": "barrel (all components)",
-      "path": "dist/index.js",
-      "limit": "40 KB"
-    },
-    {
-      "name": "e-button (single component)",
-      "path": "dist/components/button.js",
-      "limit": "6 KB"
-    },
-    {
-      "name": "e-input (single component)",
-      "path": "dist/components/input.js",
-      "limit": "8 KB"
-    }
-  ],
   "devDependencies": {
     "@custom-elements-manifest/analyzer": "0.11.0",
     "@eslint/js": "10.0.1",

@@ -1,0 +1,18 @@
+{
+  "name": "epaper-site",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Marketing/docs site for @marcomattes/epaper-components, served at epaper-components.dev.",
+  "type": "module",
+  "dependencies": {
+    "@marcomattes/epaper-components": "*"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && node scripts/inline-site-css.mjs && node scripts/build-site-routes.mjs",
+    "build-browserstack": "vite build && browserstack-node-sdk node scripts/inline-site-css.mjs && node scripts/build-site-routes.mjs",
+    "preview": "vite preview",
+    "pages:index": "node scripts/gen-pages-index.mjs",
+    "pages:index-browserstack": "browserstack-node-sdk node scripts/gen-pages-index.mjs"
+  }
+}

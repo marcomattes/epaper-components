@@ -15,7 +15,7 @@ selects) or a **display/action component** (buttons, cards, badges,
 dropdowns that don't submit a form value). That decision determines which
 base class to extend.
 
-## 1. Component file — `src/components/<name>.ts`
+## 1. Component file — `packages/epaper-components/src/components/<name>.ts`
 
 Non-form component, extend `HTMLElement` directly:
 
@@ -54,7 +54,7 @@ Form control, extend `BaseFormControl<T>` instead — implement `serialize(v: T)
 (the string handed to `ElementInternals.setFormValue`) and `parse(s: string)`
 (used by reset/state-restore); override `resetValue()`, not
 `formResetCallback()`, if you need custom reset behavior. Look at
-`src/components/input.ts` for the canonical minimal example before writing
+`packages/epaper-components/src/components/input.ts` for the canonical minimal example before writing
 a new one from scratch.
 
 For any global (`document`/`window`) listener — dropdown outside-click,
@@ -67,13 +67,13 @@ Pick the version for `@since` by checking actual tag history
 (`git tag --sort=-v:refname | head`) — use the next unreleased version, not
 a guess.
 
-## 2. Export — `src/index.ts`
+## 2. Export — `packages/epaper-components/src/index.ts`
 
 Add the barrel export as a side-effect import so registration happens on
 library import. Match the existing import style/ordering in that file
 exactly (it's grouped, not alphabetical-by-accident).
 
-## 3. Storybook story — `src/stories/<group>/<Name>.stories.ts`
+## 3. Storybook story — `packages/epaper-components/src/stories/<group>/<Name>.stories.ts`
 
 Pick the group by what the component *is*, not where you'd guess:
 `composite/`, `display/`, `inputs/`, `layout/`, `navigation/`,
@@ -81,7 +81,7 @@ Pick the group by what the component *is*, not where you'd guess:
 copy its structure — args, argTypes, and the Lit `html` template tag (the
 only place Lit appears at runtime, and only in Storybook).
 
-## 4. Styles — `src/styles/components.css`
+## 4. Styles — `packages/epaper-components/src/styles/components.css`
 
 Find the section for the component's group (the file is organized to
 mirror the stories groups) and add the rule block there, not at the end of
@@ -90,7 +90,7 @@ the file. Remember the two absolute constraints: no `transition`/
 `[aria-selected]`, `[aria-checked]`, or `[data-active]` for interactive
 states instead.
 
-## 5. Tests — `src/components/__tests__/*.test.ts`
+## 5. Tests — `packages/epaper-components/src/components/__tests__/*.test.ts`
 
 Don't create a new suite file. Add cases to whichever existing suite fits:
 `cleanup` (listener/cleanup contract), `form-association` (form controls
@@ -99,10 +99,10 @@ coverage — mandatory if the component interpolates any user-controlled
 string), `data-display`, or `new-components` (general smoke coverage for
 anything not covered by a more specific suite).
 
-## 6. `package.json` exports entry
+## 6. `packages/epaper-components/package.json` exports entry
 
 Add a sub-path entry alphabetically among the existing `exports` entries so
-`import '@marcomattes/epaper-components/foo'` resolves. This file is
+`import '@marcomattes/epaper-components/foo'` resolves. This file (`packages/epaper-components/package.json`) is
 otherwise on the "don't touch without asking" list in `AGENTS.md` — this
 one addition is the expected exception when adding a component, not a
 license to change anything else in it.

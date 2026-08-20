@@ -241,10 +241,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      # The marketing site (src/site/, its Vite config and its build scripts)
-      # ships to epaper-components.dev, never to npm, and none of it is
-      # exercised by the BrowserStack component matrix — so a push or pull
-      # request touching only those paths can skip both safely. Skipped
+      # The marketing site (apps/site/ — its source, Vite config and build
+      # scripts) ships to epaper-components.dev, never to npm, and none of it
+      # is exercised by the BrowserStack component matrix — so a push or pull
+      # request touching only that path can skip both safely. Skipped
       # entirely for the tag-release path (workflow_call from release.yml):
       # a release always gets the full gate, whatever the tag touches.
       - name: Determine changed paths
@@ -272,7 +272,7 @@ jobs:
           CHANGED="$(git diff --name-only "$BASE" "$HEAD")"
           echo "$CHANGED"
 
-          if [ -z "$CHANGED" ] || echo "$CHANGED" | grep -vE '^(src/site/|vite\.site\.config\.ts$|scripts/(build-site-routes|inline-site-css|site-template|site-shots|github-stars)\.mjs$)' | grep -q .; then
+          if [ -z "$CHANGED" ] || echo "$CHANGED" | grep -vE '^apps/site/' | grep -q .; then
             echo "website_only=false" >> "$GITHUB_OUTPUT"
           else
             echo "website_only=true" >> "$GITHUB_OUTPUT"

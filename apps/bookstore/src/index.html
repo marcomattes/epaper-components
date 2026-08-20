@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Inkbound Books — an independent bookshop for e-paper readers</title>
+    <meta
+      name="description"
+      content="A demonstration storefront built entirely from the EPaper component library: twenty fictional titles, a full catalogue, basket, checkout, account and Display Lab, designed for reflective panels."
+    />
+    <meta name="color-scheme" content="light" />
+    <!-- First paint, before the bundle's stylesheets arrive. Only the page
+         ground and the loading notice — everything else comes from
+         tokens.css / base.css / components.css, imported by main.ts. -->
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: #fff;
+        color: #000;
+        font-family: ui-sans-serif, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      }
+      .shop-boot {
+        padding: 32px 24px;
+        font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        border-bottom: 2px solid #000;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- The shop is assembled with DOM calls in src/shell.ts rather than
+         written out here: every view is built from custom elements, and a
+         component that reads its children at connect time has to receive a
+         finished subtree. -->
+    <div id="shop-root">
+      <p class="shop-boot">Inkbound Books · loading the shop</p>
+    </div>
+    <noscript>
+      <p style="padding: 24px">
+        Inkbound Books is an interactive demonstration of the EPaper component library and needs
+        JavaScript. The library itself does not: its components render into the light DOM and the
+        documentation site at
+        <a href="https://epaper-components.dev/">epaper-components.dev</a> works without it.
+      </p>
+    </noscript>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

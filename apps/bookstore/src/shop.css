@@ -1,0 +1,994 @@
+/* Inkbound Books — shop chrome. Page layout only, never the library.
+ *
+ * The rules from AGENTS.md hold here too: no transitions, no animations, no
+ * `:hover`, no soft shadows, no translucency and no status carried by colour
+ * alone. Texture comes from rules, hatches and solid fills; state comes from
+ * borders, icons and words.
+ *
+ * Everything is expressed in the library's own tokens, so the Display Lab can
+ * change type scale and spacing by rewriting a handful of custom properties on
+ * `.shop-root` instead of touching any of the selectors below.
+ */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--ink-bg);
+  color: var(--ink-fg);
+  font-family: var(--ink-sans);
+}
+
+body {
+  /* One overflowing table or cover strip must never widen the document. */
+  overflow-x: hidden;
+}
+
+/* `hidden` has to win against the inline `display` that the layout primitives
+   set on themselves (`e-grid` writes `display:grid`, `e-flex` writes
+   `display:flex`). Without this the catalogue's hidden result container would
+   still lay itself out. */
+.shop-root [hidden] {
+  display: none !important;
+}
+
+/* Visually hidden, still announced. */
+.shop-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.shop-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+/* ---------------------------------------------------------------- *
+ * Display preferences
+ * ---------------------------------------------------------------- */
+
+.shop-root[data-text-size='small'] {
+  --ink-text-h1: 34px;
+  --ink-text-h2: 25px;
+  --ink-text-h3: 20px;
+  --ink-text-h4: 17px;
+  --ink-text-prose: 16px;
+  --ink-text-body: 14px;
+  --ink-text-small: 12px;
+  --ink-text-caption: 11px;
+}
+
+.shop-root[data-text-size='large'] {
+  --ink-text-h1: 52px;
+  --ink-text-h2: 38px;
+  --ink-text-h3: 28px;
+  --ink-text-h4: 23px;
+  --ink-text-prose: 21px;
+  --ink-text-body: 19px;
+  --ink-text-small: 16px;
+  --ink-text-caption: 14px;
+  --ink-control-h-md: 48px;
+}
+
+.shop-root[data-density='dense'] {
+  --ink-space-3: 9px;
+  --ink-space-4: 12px;
+  --ink-space-5: 18px;
+  --ink-space-6: 24px;
+  --ink-space-7: 32px;
+  --ink-space-8: 44px;
+}
+
+/* ---------------------------------------------------------------- *
+ * Shell
+ * ---------------------------------------------------------------- */
+
+.shop-root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* The inner layout carries the sider row. Its own border would double the
+   header rule above it and the footer rule below it. */
+.shop-body {
+  border: none;
+}
+
+.shop-body > .ink-layout__sider {
+  background: var(--ink-bg);
+}
+
+.shop-header {
+  display: flex;
+  align-items: center;
+  gap: var(--ink-space-4);
+  flex-wrap: wrap;
+  width: 100%;
+  min-width: 0;
+}
+
+.shop-brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  text-decoration: none;
+  color: var(--ink-fg);
+  white-space: nowrap;
+}
+.shop-brand__mark {
+  font-family: var(--ink-serif);
+  font-size: clamp(22px, 3vw, 30px);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-tight);
+}
+.shop-brand__rule {
+  font-size: 18px;
+}
+.shop-brand__sub {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-small);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-label);
+  text-transform: uppercase;
+}
+
+.shop-search {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--ink-space-2);
+  flex: 1 1 320px;
+  min-width: 240px;
+}
+.shop-search e-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.shop-header__actions {
+  margin-left: auto;
+}
+
+.shop-sider {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-4);
+  min-width: 0;
+}
+.shop-sider__extra:empty {
+  display: none;
+}
+
+.shop-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-4);
+  min-width: 0;
+}
+
+.shop-pages:focus-visible {
+  outline: var(--ink-focus-width) solid var(--ink-fg);
+  outline-offset: var(--ink-focus-offset);
+}
+
+.shop-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-5);
+  min-width: 0;
+}
+
+.shop-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-4);
+  min-width: 0;
+}
+.shop-section:focus-visible {
+  outline: var(--ink-focus-width) solid var(--ink-fg);
+  outline-offset: var(--ink-focus-offset);
+}
+
+.shop-section__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--ink-space-4);
+  flex-wrap: wrap;
+  border-bottom: var(--ink-border);
+  padding-bottom: var(--ink-space-2);
+}
+
+.shop-eyebrow {
+  display: block;
+  font-family: var(--ink-mono);
+  letter-spacing: var(--ink-tracking-label);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.shop-masthead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-2);
+  border-bottom: var(--ink-border-strong);
+  padding-bottom: var(--ink-space-4);
+}
+.shop-masthead e-title h1 {
+  font-family: var(--ink-serif);
+}
+
+.shop-lede {
+  max-width: 62ch;
+}
+
+/* ---------------------------------------------------------------- *
+ * Product cards
+ * ---------------------------------------------------------------- */
+
+.shop-card {
+  display: block;
+  min-width: 0;
+  height: 100%;
+}
+.shop-card e-ribbon,
+.shop-card .ink-ribbon {
+  display: block;
+  height: 100%;
+}
+.shop-card .ink-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+/* The cover sits flush against the frame; the copy keeps the padding. */
+.shop-card .ink-card__body {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.shop-card__cover {
+  display: block;
+  border-bottom: var(--ink-border);
+}
+.shop-card__cover e-image .ink-image {
+  border: none;
+}
+.shop-card__cover img {
+  aspect-ratio: 2 / 3;
+  object-position: center;
+}
+
+.shop-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--ink-space-3);
+  flex: 1;
+  min-width: 0;
+}
+.shop-card__title h3 {
+  font-family: var(--ink-serif);
+  font-size: var(--ink-text-h5);
+  line-height: var(--ink-lh-tight);
+}
+.shop-card__title a,
+.shop-listrow a,
+.shop-cart__line a {
+  color: var(--ink-fg);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.shop-card__author {
+  margin: 0;
+}
+.shop-card__badges,
+.shop-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.shop-card__actions {
+  margin-top: auto;
+  padding-top: var(--ink-space-2);
+  border-top: var(--ink-border-hair);
+}
+.shop-card__in-basket {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-caption);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: var(--ink-border-hair);
+  padding: 2px 6px;
+}
+.shop-card__delivery {
+  margin: 0;
+}
+
+/* List view: cover on the left, one row per title. */
+.shop-card--list .ink-card {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+}
+.shop-card--list .ink-card__body {
+  display: contents;
+}
+.shop-card--list .shop-card__cover {
+  border-bottom: none;
+  border-right: var(--ink-border);
+}
+
+.shop-price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.shop-price__now {
+  font-family: var(--ink-serif);
+  font-size: var(--ink-text-h5);
+  font-weight: 700;
+}
+.shop-price__was {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-small);
+}
+
+.shop-rating {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-small);
+}
+.shop-rating__stars {
+  letter-spacing: 1px;
+}
+.shop-rating__value {
+  font-weight: 700;
+}
+
+.shop-stock {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-small);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: var(--ink-border-hair);
+  padding: 2px 8px;
+  align-self: flex-start;
+}
+/* Out of stock and low stock also carry a hatch, so the state survives a
+   grayscale panel with no colour at all. */
+.shop-stock[data-availability='out-of-stock'] {
+  border-width: var(--ink-border-width-error);
+  background-image: var(--ink-hatch-error);
+}
+.shop-stock[data-availability='low-stock'] {
+  border-width: var(--ink-border-width);
+}
+.shop-stock[data-availability='preorder'] {
+  border-style: dashed;
+}
+
+.shop-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 118px;
+  text-decoration: none;
+  color: var(--ink-fg);
+  border: var(--ink-border);
+  padding: 6px;
+}
+.shop-tile__title {
+  font-family: var(--ink-serif);
+  font-size: var(--ink-text-small);
+  font-weight: 700;
+  line-height: var(--ink-lh-tight);
+}
+.shop-tile__price {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-caption);
+}
+.shop-tiles {
+  align-items: flex-start;
+}
+
+.shop-rank {
+  display: flex;
+  align-items: center;
+  gap: var(--ink-space-2);
+}
+.shop-rank__num {
+  font-family: var(--ink-serif);
+  font-size: 26px;
+  font-weight: 700;
+  min-width: 28px;
+}
+.shop-rank e-image {
+  width: 46px;
+}
+.shop-rank .ink-image {
+  border-width: var(--ink-border-width-hair);
+}
+
+.shop-listrow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.shop-listrow h3 {
+  font-family: var(--ink-serif);
+  font-size: var(--ink-text-h6);
+}
+
+/* ---------------------------------------------------------------- *
+ * Storefront
+ * ---------------------------------------------------------------- */
+
+.shop-hero__grid {
+  display: grid;
+  grid-template-columns: minmax(180px, 260px) minmax(0, 1fr);
+  gap: var(--ink-space-5);
+  align-items: start;
+}
+.shop-hero__cover {
+  display: block;
+}
+.shop-hero__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-3);
+  min-width: 0;
+}
+.shop-hero__body e-title h2 {
+  font-family: var(--ink-serif);
+}
+.shop-hero__subtitle,
+.shop-hero__blurb {
+  margin: 0;
+  max-width: 60ch;
+}
+.shop-hero__facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  border: var(--ink-border);
+}
+.shop-hero__facts > * {
+  padding: var(--ink-space-3);
+  border-right: var(--ink-border);
+}
+.shop-hero__facts > *:last-child {
+  border-right: none;
+}
+
+.shop-editorial {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: var(--ink-space-5);
+  align-items: start;
+}
+
+/* ---------------------------------------------------------------- *
+ * Catalogue
+ * ---------------------------------------------------------------- */
+
+.shop-filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-3);
+  min-width: 0;
+}
+.shop-filters__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ink-space-2);
+}
+
+.shop-fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.shop-fieldset__legend {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-label);
+  text-transform: uppercase;
+  padding: 0 0 var(--ink-space-1);
+}
+
+.shop-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--ink-space-4);
+  flex-wrap: wrap;
+  border-top: var(--ink-border);
+  border-bottom: var(--ink-border);
+  padding: var(--ink-space-3) 0;
+}
+.shop-toolbar__controls {
+  align-items: flex-end;
+}
+.shop-toolbar__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ink-space-4);
+  flex-wrap: wrap;
+}
+.shop-count {
+  margin: 0;
+  font-family: var(--ink-mono);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.shop-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.shop-skeletons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(228px, 1fr));
+  gap: 18px;
+}
+.shop-skeletons__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: var(--ink-border);
+  padding: var(--ink-space-3);
+}
+
+.shop-results {
+  min-width: 0;
+}
+.shop-results--list .shop-card {
+  height: auto;
+}
+
+/* ---------------------------------------------------------------- *
+ * Product page
+ * ---------------------------------------------------------------- */
+
+.shop-product {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-5);
+  min-width: 0;
+}
+.shop-product__top {
+  display: grid;
+  grid-template-columns: minmax(200px, 300px) minmax(0, 1fr);
+  gap: var(--ink-space-5);
+  align-items: start;
+}
+.shop-product__cover e-ribbon,
+.shop-product__cover .ink-ribbon {
+  display: block;
+}
+/* An empty ribbon caption would still paint a black chip; the ribbon element
+   stays so a title going on offer is one attribute write away. */
+.shop-product__cover e-ribbon[text=''] .ink-ribbon__tag {
+  display: none;
+}
+
+.shop-buy .ink-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-3);
+}
+.shop-buy__meters {
+  display: grid;
+  gap: var(--ink-space-3);
+}
+.shop-buy__rating,
+.shop-buy__stock {
+  display: flex;
+}
+
+.shop-sidenav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-3);
+}
+
+.shop-tags {
+  align-items: center;
+}
+
+.shop-details,
+.shop-delivery,
+.shop-timeline,
+.shop-editions,
+.shop-reviews__list {
+  min-width: 0;
+}
+.shop-editions {
+  display: grid;
+  gap: var(--ink-space-3);
+}
+
+.shop-reviews__summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-2);
+  border: var(--ink-border);
+  padding: var(--ink-space-3);
+  margin-bottom: var(--ink-space-4);
+}
+.shop-reviews__head {
+  display: flex;
+  gap: var(--ink-space-5);
+  flex-wrap: wrap;
+  border-bottom: var(--ink-border);
+  padding-bottom: var(--ink-space-2);
+}
+.shop-review {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.shop-review h3 {
+  font-family: var(--ink-serif);
+  font-size: var(--ink-text-h6);
+}
+.shop-review__meta {
+  margin: 0;
+  font-family: var(--ink-mono);
+}
+
+/* ---------------------------------------------------------------- *
+ * Basket
+ * ---------------------------------------------------------------- */
+
+.shop-cart {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr);
+  gap: var(--ink-space-5);
+  align-items: start;
+}
+.shop-cart__lines,
+.shop-cart__summary .ink-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-3);
+  min-width: 0;
+}
+.shop-cart__cover {
+  display: block;
+  width: 64px;
+}
+.shop-cart__cover .ink-image {
+  border-width: var(--ink-border-width-hair);
+}
+.shop-cart__line {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.shop-cart__line h3 {
+  font-family: var(--ink-serif);
+  font-size: var(--ink-text-h6);
+}
+.shop-cart__actions {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--ink-space-3);
+  flex-wrap: wrap;
+}
+.shop-cart__line-total {
+  font-family: var(--ink-serif);
+  font-size: var(--ink-text-h5);
+  font-weight: 700;
+  min-width: 5ch;
+  text-align: right;
+}
+
+/* ---------------------------------------------------------------- *
+ * Checkout
+ * ---------------------------------------------------------------- */
+
+.shop-checkout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(240px, 1fr);
+  gap: var(--ink-space-5);
+  align-items: start;
+}
+.shop-checkout__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-4);
+  min-width: 0;
+}
+.shop-step {
+  border: var(--ink-border);
+  padding: var(--ink-space-4);
+  margin: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-3);
+}
+.shop-step__legend {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-label);
+  text-transform: uppercase;
+  border: var(--ink-border);
+  background: var(--ink-bg-inverted);
+  color: var(--ink-fg-inverted);
+  padding: 4px 10px;
+}
+.shop-step__legend:focus-visible {
+  outline: var(--ink-focus-width) solid var(--ink-fg);
+  outline-offset: var(--ink-focus-offset);
+}
+.shop-checkout__gift {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-3);
+  border-left: var(--ink-border-strong);
+  padding-left: var(--ink-space-3);
+}
+.shop-checkout__nav {
+  display: flex;
+  gap: var(--ink-space-3);
+  flex-wrap: wrap;
+}
+.shop-checkout__review {
+  min-width: 0;
+}
+.shop-checkout__confirmation {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-4);
+  align-items: center;
+}
+.shop-checkout__confirmation > * {
+  width: 100%;
+  max-width: 720px;
+}
+.shop-checkout__qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ink-space-2);
+  border: var(--ink-border);
+  padding: var(--ink-space-4);
+}
+.shop-checkout__result-actions {
+  display: flex;
+  justify-content: center;
+}
+
+/* ---------------------------------------------------------------- *
+ * Account
+ * ---------------------------------------------------------------- */
+
+.shop-account {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-5);
+  min-width: 0;
+}
+.shop-account__identity {
+  display: flex;
+  align-items: center;
+  gap: var(--ink-space-4);
+  flex-wrap: wrap;
+}
+.shop-account__identity p {
+  margin: 0;
+}
+.shop-account__profile .ink-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-3);
+}
+.shop-account__stats e-statistic {
+  border: var(--ink-border);
+  padding: var(--ink-space-3);
+}
+.shop-account__timeline,
+.shop-account__wishlist {
+  min-width: 0;
+}
+
+/* ---------------------------------------------------------------- *
+ * Display Lab
+ * ---------------------------------------------------------------- */
+
+.shop-lab__pane {
+  padding: var(--ink-space-3);
+  min-width: 0;
+  background: var(--ink-bg);
+  color: var(--ink-fg);
+}
+.shop-lab__receipt {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: var(--ink-border);
+  padding: var(--ink-space-3);
+  background: var(--ink-bg);
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-small);
+}
+.shop-lab__receipt-head {
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-label);
+  border-bottom: var(--ink-border);
+  padding-bottom: 6px;
+}
+.shop-lab__receipt-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.shop-lab__receipt-line {
+  white-space: pre;
+  overflow-x: auto;
+}
+.shop-lab__stamp {
+  border-top: var(--ink-border);
+  padding-top: 6px;
+  font-weight: 700;
+}
+
+/* ---------------------------------------------------------------- *
+ * Footer and floating actions
+ * ---------------------------------------------------------------- */
+
+.shop-footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-4);
+  font-family: var(--ink-sans);
+  font-size: var(--ink-text-body);
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.shop-footer__columns > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  min-width: 0;
+}
+.shop-footer__link {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: var(--ink-text-small);
+  color: var(--ink-fg);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  text-align: left;
+}
+.shop-footer__link:focus-visible {
+  outline: var(--ink-focus-width) solid var(--ink-fg);
+  outline-offset: var(--ink-focus-offset);
+}
+.shop-footer__note {
+  margin: 0;
+  max-width: 80ch;
+}
+
+/* The three floating clusters share the bottom-right corner, so each one is
+   given its own band instead of stacking on top of the others. */
+.shop-floats {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--ink-space-2);
+  pointer-events: none;
+}
+.shop-floats > * {
+  pointer-events: auto;
+}
+.shop-floats e-back-top {
+  --ink-back-top-bottom: 0px;
+  --ink-back-top-right: 0px;
+  position: relative;
+}
+
+.shop-compare__table {
+  overflow-x: auto;
+}
+
+/* ---------------------------------------------------------------- *
+ * Responsive
+ *
+ * The design target is a 1024 × 758 panel, which needs no adjustment. These
+ * steps keep the shop usable down to 600px, where the sider stacks above the
+ * content and the two-column pages become one.
+ * ---------------------------------------------------------------- */
+
+@media (max-width: 1080px) {
+  .shop-editorial,
+  .shop-cart,
+  .shop-checkout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .shop-body.ink-layout--has-sider {
+    flex-direction: column;
+  }
+  /* `<e-layout-sider>` writes its width inline, so a stacked rail can only be
+     widened from here. */
+  .shop-body > .ink-layout__sider {
+    width: auto !important;
+    border-right: none;
+    border-bottom: var(--ink-border);
+  }
+  .shop-product__top,
+  .shop-hero__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .shop-header__actions {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .shop-root {
+    max-width: none;
+  }
+  .shop-filters__row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .shop-card--list .ink-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .shop-card--list .shop-card__cover {
+    border-right: none;
+    border-bottom: var(--ink-border);
+  }
+  /* `<e-masonry>` writes `column-count` inline for the same reason as the
+     sider width above. */
+  .shop-page--home e-masonry {
+    column-count: 1 !important;
+  }
+}
