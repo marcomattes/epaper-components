@@ -23,7 +23,11 @@ export default defineConfig([
   js.configs.recommended,
   tseslint.configs.recommended,
   {
-    files: ['packages/epaper-components/src/**/*.ts', 'apps/site/src/**/*.ts'],
+    files: [
+      'packages/epaper-components/src/**/*.ts',
+      'apps/site/src/**/*.ts',
+      'apps/bookstore/src/**/*.ts',
+    ],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
