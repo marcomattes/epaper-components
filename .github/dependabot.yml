@@ -38,12 +38,6 @@ updates:
           - "size-limit"
           - "@size-limit/*"
 
-      postcss:
-        patterns:
-          - "postcss"
-          - "postcss-cli"
-          - "cssnano"
-
       custom-elements:
         patterns:
           - "@custom-elements-manifest/*"
