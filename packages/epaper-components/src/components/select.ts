@@ -260,6 +260,10 @@ export class ESelect extends BaseFormControl {
       return;
     }
     if (name !== 'value') return;
+    this._syncValueAttr(v);
+  }
+
+  private _syncValueAttr(v: string | null): void {
     const hasValue = v !== null;
     const newValue = v ?? '';
     if (hasValue === this._hasValue && newValue === this._value) return;

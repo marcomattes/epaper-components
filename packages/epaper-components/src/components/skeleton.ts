@@ -56,27 +56,61 @@ export class ESkeleton extends HTMLElement {
     this._blockEl = null;
 
     if (shape === 'text') {
-      for (let i = 0; i < lines; i++) {
-        const line = document.createElement('div');
-        line.className = 'ink-skeleton__line';
-        if (i === lines - 1 && lines > 1) line.style.width = '60%';
-        else if (width) line.style.width = width;
-        if (height) line.style.height = height;
-        wrap.appendChild(line);
-        this._lineEls.push(line);
-      }
+      this._buildLines(wrap, lines, width, height);
     } else {
-      const block = document.createElement('div');
-      block.className = 'ink-skeleton__block';
-      if (width) block.style.width = width;
-      if (height) block.style.height = height;
-      wrap.appendChild(block);
-      this._blockEl = block;
+      this._buildBlock(wrap, width, height);
     }
 
     patchAttr(this, 'role', 'status');
     patchAttr(this, 'aria-busy', 'true');
     this.replaceChildren(wrap);
+  }
+
+  private _buildLines(wrap: HTMLElement, lines: number, width: string, height: string): void {
+    for (let i = 0; i < lines; i++) {
+      const line = document.createElement('div');
+      line.className = 'ink-skeleton__line';
+      const isLast = i === lines - 1 && lines > 1;
+      if (isLast) line.style.width = '60%';
+      else if (width) line.style.width = width;
+      if (height) line.style.height = height;
+      wrap.appendChild(line);
+      this._lineEls.push(line);
+    }
+  }
+
+  private _buildBlock(wrap: HTMLElement, width: string, height: string): void {
+    const block = document.createElement('div');
+    block.className = 'ink-skeleton__block';
+    if (width) block.style.width = width;
+    if (height) block.style.height = height;
+    wrap.appendChild(block);
+    this._blockEl = block;
+  }
+
+  private _patchLines(lines: number, width: string, height: string): void {
+    while (this._lineEls.length < lines) {
+      const line = document.createElement('div');
+      line.className = 'ink-skeleton__line';
+      this._wrap!.appendChild(line);
+      this._lineEls.push(line);
+    }
+    while (this._lineEls.length > lines) {
+      this._lineEls.pop()!.remove();
+    }
+    for (let i = 0; i < this._lineEls.length; i++) {
+      const line = this._lineEls[i];
+      const isLast = i === lines - 1 && lines > 1;
+      const w = isLast ? '60%' : width;
+      if (line.style.width !== w) line.style.width = w;
+      if (line.style.height !== height) line.style.height = height;
+    }
+  }
+
+  private _patchBlock(width: string, height: string): void {
+    if (!this._blockEl) return;
+    if (this._blockEl.style.width !== width) this._blockEl.style.width = width;
+    if (this._blockEl.style.height !== height) this._blockEl.style.height = height;
   }
 
   private _patch(): void {
@@ -85,25 +119,9 @@ export class ESkeleton extends HTMLElement {
     const height = this.getAttribute('height') || '';
 
     if (this._shape === 'text') {
-      while (this._lineEls.length < lines) {
-        const line = document.createElement('div');
-        line.className = 'ink-skeleton__line';
-        this._wrap!.appendChild(line);
-        this._lineEls.push(line);
-      }
-      while (this._lineEls.length > lines) {
-        this._wrap!.removeChild(this._lineEls.pop()!);
-      }
-      for (let i = 0; i < this._lineEls.length; i++) {
-        const line = this._lineEls[i];
-        const isLast = i === lines - 1 && lines > 1;
-        const w = isLast ? '60%' : width;
-        if (line.style.width !== w) line.style.width = w;
-        if (line.style.height !== height) line.style.height = height;
-      }
-    } else if (this._blockEl) {
-      if (this._blockEl.style.width !== width) this._blockEl.style.width = width;
-      if (this._blockEl.style.height !== height) this._blockEl.style.height = height;
+      this._patchLines(lines, width, height);
+    } else {
+      this._patchBlock(width, height);
     }
   }
 }
