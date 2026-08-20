@@ -398,7 +398,7 @@
   "scripts": {
     "dev": "vite",
     "start": "vite",
-    "build": "vite build && node scripts/build-css.mjs && tsc -p tsconfig.build.json && cem analyze && node scripts/gen-tag-map.mjs",
+    "build": "vite build && node scripts/build-css.mjs && tsc -p tsconfig.build.json && node scripts/flatten-dts.mjs && cem analyze && node scripts/gen-tag-map.mjs",
     "preview": "vite preview",
     "analyze": "cem analyze && node scripts/gen-tag-map.mjs",
     "docs:components": "cem analyze && node scripts/gen-readmes.mjs",
@@ -408,7 +408,7 @@
     "bump-version": "node scripts/bump-version.mjs",
     "prepack": "node scripts/copy-root-docs.mjs",
     "prepublishOnly": "npm run build",
-    "build-browserstack": "vite build && browserstack-node-sdk node scripts/build-css.mjs && tsc -p tsconfig.build.json && cem analyze && node scripts/gen-tag-map.mjs",
+    "build-browserstack": "vite build && browserstack-node-sdk node scripts/build-css.mjs && tsc -p tsconfig.build.json && node scripts/flatten-dts.mjs && cem analyze && node scripts/gen-tag-map.mjs",
     "analyze-browserstack": "cem analyze && browserstack-node-sdk node scripts/gen-tag-map.mjs",
     "docs:components-browserstack": "cem analyze && browserstack-node-sdk node scripts/gen-readmes.mjs",
     "bump-version-browserstack": "browserstack-node-sdk node scripts/bump-version.mjs"
