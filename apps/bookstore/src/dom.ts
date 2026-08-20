@@ -88,10 +88,20 @@ export function setAttr(el: Element, name: string, value: string | null): void {
   }
 }
 
+/** Add a boolean attribute, if it isn't already present. */
+export function addFlag(el: Element, name: string): void {
+  if (!el.hasAttribute(name)) el.setAttribute(name, '');
+}
+
+/** Remove a boolean attribute, if it is present. */
+export function removeFlag(el: Element, name: string): void {
+  if (el.hasAttribute(name)) el.removeAttribute(name);
+}
+
 /** Add or remove a boolean attribute only when it changes. */
 export function setFlag(el: Element, name: string, on: boolean): void {
-  if (on && !el.hasAttribute(name)) el.setAttribute(name, '');
-  else if (!on && el.hasAttribute(name)) el.removeAttribute(name);
+  if (on) addFlag(el, name);
+  else removeFlag(el, name);
 }
 
 /**

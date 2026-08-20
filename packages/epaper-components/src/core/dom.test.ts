@@ -382,7 +382,7 @@ describe('patchText', () => {
     const drain = watch(el, { childList: true, characterData: true, subtree: true });
     patchText(el, '');
     expect(drain()).toEqual([]);
-    expect(el.childNodes.length).toBe(0);
+    expect(el.childNodes).toHaveLength(0);
   });
 
   it('does write when the text really changes (observer sees it)', () => {
@@ -543,7 +543,7 @@ describe('captureWrap', () => {
     const first = host.firstElementChild;
     const wrap = captureWrap(host);
     expect(wrap.tagName).toBe('SPAN');
-    expect(host.children.length).toBe(1);
+    expect(host.children).toHaveLength(1);
     expect(host.firstElementChild).toBe(wrap);
     expect(wrap.firstElementChild).toBe(first);
     expect(wrap.textContent).toBe('one two');
@@ -555,14 +555,14 @@ describe('captureWrap', () => {
     const wrap = captureWrap(host, 'div');
     expect(wrap.tagName).toBe('DIV');
     expect(wrap.textContent).toBe('x');
-    expect(host.childNodes.length).toBe(1);
+    expect(host.childNodes).toHaveLength(1);
   });
 
   it('produces an empty wrapper when the host had no children', () => {
     const host = document.createElement('div');
     const wrap = captureWrap(host, 'section');
     expect(wrap.tagName).toBe('SECTION');
-    expect(wrap.childNodes.length).toBe(0);
+    expect(wrap.childNodes).toHaveLength(0);
     expect(host.firstChild).toBe(wrap);
   });
 });
@@ -608,7 +608,7 @@ describe('syncEyebrowTitle', () => {
     expect(second.titleEl).toBe(first.titleEl);
     expect(second.eyebrow!.textContent).toBe('A2');
     expect(second.titleEl!.textContent).toBe('B2');
-    expect(left.children.length).toBe(2);
+    expect(left.children).toHaveLength(2);
   });
 
   it('does not rewrite the text when it is unchanged', () => {
@@ -630,14 +630,14 @@ describe('syncEyebrowTitle', () => {
     expect(cleared.titleEl).toBeNull();
     expect(eyebrowEl.isConnected).toBe(false);
     expect(titleEl.parentElement).toBeNull();
-    expect(left.children.length).toBe(0);
+    expect(left.children).toHaveLength(0);
   });
 
   it('stays null when nothing exists and nothing is requested', () => {
     const left = document.createElement('div');
     const refs = syncEyebrowTitle(left, null, null, emptyRefs());
     expect(refs).toEqual({ eyebrow: null, titleEl: null });
-    expect(left.children.length).toBe(0);
+    expect(left.children).toHaveLength(0);
   });
 
   it('handles the eyebrow and the title independently', () => {
@@ -660,6 +660,6 @@ describe('syncEyebrowTitle', () => {
     const cleared = syncEyebrowTitle(left, '', '', refs);
     expect(cleared.eyebrow).toBeNull();
     expect(cleared.titleEl).toBeNull();
-    expect(left.children.length).toBe(0);
+    expect(left.children).toHaveLength(0);
   });
 });

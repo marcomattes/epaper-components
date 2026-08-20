@@ -88,13 +88,13 @@ export function createAccountPage(): Page {
   const ordersStat = h('e-statistic', { label: 'Orders placed', value: '0' });
   const averageStat = h('e-statistic', { label: 'Average order', value: '', prefix: '€ ' });
   const spendLine = h('e-sparkline', {
-    label: `Spend by month, ${MONTH_LABELS[0]}–${MONTH_LABELS[MONTH_LABELS.length - 1]}`,
+    label: `Spend by month, ${MONTH_LABELS[0]}–${MONTH_LABELS.at(-1)}`,
     values: JSON.stringify(SPEND_BY_MONTH),
   });
   const monthChange = h('e-change-marker', {
     label: 'This month against last',
-    value: SPEND_BY_MONTH[SPEND_BY_MONTH.length - 1] ?? 0,
-    previous: SPEND_BY_MONTH[SPEND_BY_MONTH.length - 2] ?? 0,
+    value: SPEND_BY_MONTH.at(-1) ?? 0,
+    previous: SPEND_BY_MONTH.at(-2) ?? 0,
     prefix: '€ ',
     precision: 0,
     'show-previous': true,
@@ -363,8 +363,10 @@ export function createAccountPage(): Page {
       delivered: 4,
     };
     const stage = reached[order.status];
-    const mark = (index: number): string =>
-      order.status === 'cancelled' && index > 1 ? 'pending' : index <= stage ? 'done' : 'pending';
+    const mark = (index: number): string => {
+      if (order.status === 'cancelled' && index > 1) return 'pending';
+      return index <= stage ? 'done' : 'pending';
+    };
 
     orderTimeline.replaceChildren(
       h('e-timeline', { 'time-position': 'left' }, [
@@ -516,11 +518,12 @@ export function createAccountPage(): Page {
       sortKey = key;
       sortDirection = direction;
       renderOrders();
-      announce(
-        direction === 'none'
-          ? 'Order history back in its original order.'
-          : `Order history sorted by ${key}, ${direction === 'asc' ? 'ascending' : 'descending'}.`,
-      );
+      if (direction === 'none') {
+        announce('Order history back in its original order.');
+      } else {
+        const orderWord = direction === 'asc' ? 'ascending' : 'descending';
+        announce(`Order history sorted by ${key}, ${orderWord}.`);
+      }
     },
   );
 

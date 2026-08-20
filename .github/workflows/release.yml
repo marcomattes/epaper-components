@@ -226,7 +226,11 @@ jobs:
           cd "$RUNNER_TEMP/smoke"
           npm init -y >/dev/null
           npm pkg set type=module >/dev/null
-          npm install "@marcomattes/epaper-components@$VERSION" jsdom@30.0.1 --save-exact --ignore-scripts --silent
+          # Resolve exact versions + integrity hashes into a lockfile first,
+          # then install strictly from it — a lock-file-enforcing command,
+          # rather than a floating `npm install`.
+          npm install "@marcomattes/epaper-components@$VERSION" jsdom@30.0.1 --save-exact --ignore-scripts --silent --package-lock-only
+          npm ci --ignore-scripts --silent
 
       - name: Run smoke test
         run: |
@@ -314,7 +318,8 @@ jobs:
       - name: Checkout
         if: >-
           github.event_name == 'workflow_run' &&
-          github.event.workflow_run.event == 'push'
+          github.event.workflow_run.event == 'push' &&
+          github.event.workflow_run.head_repository.full_name == github.repository
         uses: actions/checkout@v7
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
@@ -329,7 +334,8 @@ jobs:
         id: filter
         if: >-
           github.event_name == 'workflow_run' &&
-          github.event.workflow_run.event == 'push'
+          github.event.workflow_run.event == 'push' &&
+          github.event.workflow_run.head_repository.full_name == github.repository
         run: |
           set -euo pipefail
 

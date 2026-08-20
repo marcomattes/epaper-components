@@ -89,6 +89,18 @@ const HELP_PANELS = [
   },
 ];
 
+function menuValueFor(route: Route): string {
+  if (route.name === 'catalog') {
+    const category = route.query.get('cat');
+    if (category) return `cat:${category}`;
+    const shelf = route.query.get('shelf');
+    if (shelf) return `shelf:${shelf}`;
+    return 'catalog';
+  }
+  if (route.name === 'book') return 'catalog';
+  return route.name;
+}
+
 let syncCounts: (() => void) | null = null;
 
 /** Repaint the basket and wishlist counters wherever they appear. */
@@ -410,18 +422,6 @@ export function mountShop(root: HTMLElement): void {
     else if (value === 'home') navigate('/');
     else navigate(`/${value}`);
   });
-
-  function menuValueFor(route: Route): string {
-    if (route.name === 'catalog') {
-      const category = route.query.get('cat');
-      if (category) return `cat:${category}`;
-      const shelf = route.query.get('shelf');
-      if (shelf) return `shelf:${shelf}`;
-      return 'catalog';
-    }
-    if (route.name === 'book') return 'catalog';
-    return route.name;
-  }
 
   /* ---------------- routing ---------------- */
 

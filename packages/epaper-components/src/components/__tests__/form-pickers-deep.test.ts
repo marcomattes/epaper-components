@@ -1869,7 +1869,7 @@ describe('e-date-picker · initial render', () => {
 
     // January 2026 starts on a Thursday, so the first four cells are padding.
     const padding = dpCells(el).filter((c) => c.disabled);
-    expect(padding.length).toBe(42 - 31);
+    expect(padding).toHaveLength(42 - 31);
     expect(padding[0]!.textContent).toBe('');
     expect(padding[0]!.hasAttribute('aria-selected')).toBe(false);
     expect(padding[0]!.hasAttribute('aria-label')).toBe(false);

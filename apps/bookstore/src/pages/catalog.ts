@@ -96,7 +96,7 @@ const HAYSTACK = new Map<string, string>(
       book.subtitle,
       book.author,
       book.isbn,
-      book.isbn.replace(/-/g, ''),
+      book.isbn.replaceAll('-', ''),
       publisherName(book),
       CATEGORY_LABELS[book.category],
       ...book.tags,
@@ -105,6 +105,65 @@ const HAYSTACK = new Map<string, string>(
       .toLowerCase(),
   ]),
 );
+
+function matchesQuery(book: Book, needle: string): boolean {
+  if (!needle) return true;
+  return HAYSTACK.get(book.id)?.includes(needle) ?? false;
+}
+
+function matchesCategory(book: Book, active: Filters): boolean {
+  return !active.category || book.category === active.category;
+}
+
+function matchesPublisher(
+  book: Book,
+  active: Filters,
+  allowedPublishers: readonly PublisherId[],
+): boolean {
+  if (active.publisher && book.publisher !== active.publisher) return false;
+  if (allowedPublishers.length > 0 && !allowedPublishers.includes(book.publisher)) return false;
+  return true;
+}
+
+function matchesFormats(book: Book, active: Filters): boolean {
+  if (active.formats.length === 0) return true;
+  return book.formats.some((option) => active.formats.includes(option.id));
+}
+
+function matchesLanguages(book: Book, active: Filters): boolean {
+  return active.languages.length === 0 || active.languages.includes(book.language);
+}
+
+function matchesAvailability(book: Book, active: Filters): boolean {
+  if (active.availability === 'in-stock') {
+    return book.availability === 'in-stock' || book.availability === 'low-stock';
+  }
+  if (active.availability === 'preorder') {
+    return book.availability === 'preorder';
+  }
+  return true;
+}
+
+function matchesRatingAndDate(book: Book, active: Filters): boolean {
+  if (book.rating < active.minRating) return false;
+  if (active.publishedFrom && book.published < active.publishedFrom) return false;
+  return true;
+}
+
+function matchesPrice(book: Book, active: Filters): boolean {
+  const price = listPrice(book);
+  if (active.priceMin != null && price < active.priceMin) return false;
+  if (active.priceMax != null && price > active.priceMax) return false;
+  return true;
+}
+
+function matchesShelves(book: Book, active: Filters): boolean {
+  return active.shelves.length === 0 || active.shelves.some((id) => book.shelves.includes(id));
+}
+
+function matchesDeals(book: Book, active: Filters): boolean {
+  return !active.dealsOnly || book.previousPrice != null;
+}
 
 /**
  * Apply the active filters.
@@ -119,37 +178,19 @@ export function filterProducts(books: readonly Book[], active: Filters = filters
     ? (PUBLISHERS_IN_GROUP[active.publisherGroup] ?? [])
     : [];
 
-  return books.filter((book) => {
-    if (needle && !HAYSTACK.get(book.id)?.includes(needle)) return false;
-    if (active.category && book.category !== active.category) return false;
-    if (active.publisher && book.publisher !== active.publisher) return false;
-    if (allowedPublishers.length > 0 && !allowedPublishers.includes(book.publisher)) return false;
-    if (
-      active.formats.length > 0 &&
-      !book.formats.some((option) => active.formats.includes(option.id))
-    ) {
-      return false;
-    }
-    if (active.languages.length > 0 && !active.languages.includes(book.language)) return false;
-    if (
-      active.availability === 'in-stock' &&
-      book.availability !== 'in-stock' &&
-      book.availability !== 'low-stock'
-    ) {
-      return false;
-    }
-    if (active.availability === 'preorder' && book.availability !== 'preorder') return false;
-    if (book.rating < active.minRating) return false;
-    if (active.publishedFrom && book.published < active.publishedFrom) return false;
-    const price = listPrice(book);
-    if (active.priceMin != null && price < active.priceMin) return false;
-    if (active.priceMax != null && price > active.priceMax) return false;
-    if (active.shelves.length > 0 && !active.shelves.some((id) => book.shelves.includes(id))) {
-      return false;
-    }
-    if (active.dealsOnly && book.previousPrice == null) return false;
-    return true;
-  });
+  return books.filter(
+    (book) =>
+      matchesQuery(book, needle) &&
+      matchesCategory(book, active) &&
+      matchesPublisher(book, active, allowedPublishers) &&
+      matchesFormats(book, active) &&
+      matchesLanguages(book, active) &&
+      matchesAvailability(book, active) &&
+      matchesRatingAndDate(book, active) &&
+      matchesPrice(book, active) &&
+      matchesShelves(book, active) &&
+      matchesDeals(book, active),
+  );
 }
 
 /** Weight for the `relevance` order: a title hit outranks a tag hit. */
@@ -161,7 +202,7 @@ function relevance(book: Book, needle: string): number {
   else if (title.startsWith(needle)) score += 600;
   else if (title.includes(needle)) score += 400;
   if (book.author.toLowerCase().includes(needle)) score += 250;
-  if (book.isbn.replace(/-/g, '').includes(needle.replace(/-/g, ''))) score += 800;
+  if (book.isbn.replaceAll('-', '').includes(needle.replaceAll('-', ''))) score += 800;
   if (book.tags.some((tag) => tag.includes(needle))) score += 120;
   return score + book.rating * 10;
 }
@@ -198,77 +239,151 @@ interface ActiveChip {
   clear: () => void;
 }
 
-function activeChips(): ActiveChip[] {
-  const chips: ActiveChip[] = [];
-  const add = (key: string, label: string, clear: () => void): void => {
-    chips.push({ key, label, clear });
-  };
-
-  if (filters.query) {
-    add('query', `Search: “${filters.query}”`, () => {
+function queryChip(): ActiveChip | null {
+  if (!filters.query) return null;
+  return {
+    key: 'query',
+    label: `Search: “${filters.query}”`,
+    clear: () => {
       filters.query = '';
-    });
-  }
-  if (filters.category) {
-    add('category', `Shelf: ${CATEGORY_LABELS[filters.category]}`, () => {
+    },
+  };
+}
+
+function categoryChip(): ActiveChip | null {
+  if (!filters.category) return null;
+  return {
+    key: 'category',
+    label: `Shelf: ${CATEGORY_LABELS[filters.category]}`,
+    clear: () => {
       filters.category = '';
-    });
-  }
-  if (filters.publisher || filters.publisherGroup) {
-    const label = filters.publisher
-      ? PUBLISHERS[filters.publisher]
-      : (PUBLISHER_TREE.find((node) => node.value === filters.publisherGroup)?.label ??
-        'Publisher');
-    add('publisher', `Publisher: ${label}`, () => {
+    },
+  };
+}
+
+function publisherChipLabel(): string {
+  if (filters.publisher) return PUBLISHERS[filters.publisher];
+  return (
+    PUBLISHER_TREE.find((node) => node.value === filters.publisherGroup)?.label ?? 'Publisher'
+  );
+}
+
+function publisherChip(): ActiveChip | null {
+  if (!filters.publisher && !filters.publisherGroup) return null;
+  return {
+    key: 'publisher',
+    label: `Publisher: ${publisherChipLabel()}`,
+    clear: () => {
       filters.publisher = '';
       filters.publisherGroup = '';
-    });
-  }
-  for (const format of filters.formats) {
-    add(`format-${format}`, `Format: ${FORMAT_LABELS[format]}`, () => {
+    },
+  };
+}
+
+function formatChips(): ActiveChip[] {
+  return filters.formats.map((format) => ({
+    key: `format-${format}`,
+    label: `Format: ${FORMAT_LABELS[format]}`,
+    clear: () => {
       filters.formats = filters.formats.filter((item) => item !== format);
-    });
-  }
-  for (const language of filters.languages) {
-    add(`language-${language}`, `Language: ${LANGUAGE_LABELS[language]}`, () => {
+    },
+  }));
+}
+
+function languageChips(): ActiveChip[] {
+  return filters.languages.map((language) => ({
+    key: `language-${language}`,
+    label: `Language: ${LANGUAGE_LABELS[language]}`,
+    clear: () => {
       filters.languages = filters.languages.filter((item) => item !== language);
-    });
-  }
-  if (filters.availability !== 'any') {
-    const label = filters.availability === 'in-stock' ? 'Ready to ship' : 'Pre-order';
-    add('availability', `Availability: ${label}`, () => {
+    },
+  }));
+}
+
+function availabilityChip(): ActiveChip | null {
+  if (filters.availability === 'any') return null;
+  const label = filters.availability === 'in-stock' ? 'Ready to ship' : 'Pre-order';
+  return {
+    key: 'availability',
+    label: `Availability: ${label}`,
+    clear: () => {
       filters.availability = 'any';
-    });
-  }
-  if (filters.minRating > 0) {
-    add('rating', `Rating: ${filters.minRating} stars and up`, () => {
+    },
+  };
+}
+
+function ratingChip(): ActiveChip | null {
+  if (filters.minRating <= 0) return null;
+  return {
+    key: 'rating',
+    label: `Rating: ${filters.minRating} stars and up`,
+    clear: () => {
       filters.minRating = 0;
-    });
-  }
-  if (filters.publishedFrom) {
-    add('published', `Published from ${filters.publishedFrom}`, () => {
+    },
+  };
+}
+
+function publishedChip(): ActiveChip | null {
+  if (!filters.publishedFrom) return null;
+  return {
+    key: 'published',
+    label: `Published from ${filters.publishedFrom}`,
+    clear: () => {
       filters.publishedFrom = '';
-    });
-  }
-  if (filters.priceMin != null || filters.priceMax != null) {
-    const from = filters.priceMin != null ? eur(filters.priceMin) : 'any';
-    const to = filters.priceMax != null ? eur(filters.priceMax) : 'any';
-    add('price', `Price ${from} – ${to}`, () => {
+    },
+  };
+}
+
+function priceChip(): ActiveChip | null {
+  if (filters.priceMin == null && filters.priceMax == null) return null;
+  const from = filters.priceMin != null ? eur(filters.priceMin) : 'any';
+  const to = filters.priceMax != null ? eur(filters.priceMax) : 'any';
+  return {
+    key: 'price',
+    label: `Price ${from} – ${to}`,
+    clear: () => {
       filters.priceMin = null;
       filters.priceMax = null;
-    });
-  }
-  for (const id of filters.shelves) {
-    add(`shelf-${id}`, SHELF_LABELS[id], () => {
+    },
+  };
+}
+
+function shelfChips(): ActiveChip[] {
+  return filters.shelves.map((id) => ({
+    key: `shelf-${id}`,
+    label: SHELF_LABELS[id],
+    clear: () => {
       filters.shelves = filters.shelves.filter((item) => item !== id);
-    });
-  }
-  if (filters.dealsOnly) {
-    add('deals', 'Reduced price only', () => {
+    },
+  }));
+}
+
+function dealsChip(): ActiveChip | null {
+  if (!filters.dealsOnly) return null;
+  return {
+    key: 'deals',
+    label: 'Reduced price only',
+    clear: () => {
       filters.dealsOnly = false;
-    });
-  }
-  return chips;
+    },
+  };
+}
+
+function activeChips(): ActiveChip[] {
+  const chips: Array<ActiveChip | null> = [
+    queryChip(),
+    categoryChip(),
+    publisherChip(),
+    ...formatChips(),
+    ...languageChips(),
+    availabilityChip(),
+    ratingChip(),
+    publishedChip(),
+    priceChip(),
+    ...shelfChips(),
+    dealsChip(),
+  ];
+  return chips.filter((chip): chip is ActiveChip => chip !== null);
 }
 
 let update: (() => void) | null = null;
@@ -556,10 +671,11 @@ export function createCatalogPage(): Page {
     setAttr(lastUpdated, 'datetime', lastRefreshed);
     setAttr(compareBadge, 'count', String(state.comparison.length));
 
+    const titleSuffix = results.length === 1 ? '' : 's';
     setText(
       resultCount,
       hasResults
-        ? `${results.length} title${results.length === 1 ? '' : 's'} · page ${page} of ${totalPages}`
+        ? `${results.length} title${titleSuffix} · page ${page} of ${totalPages}`
         : 'No titles match',
     );
 
@@ -614,7 +730,7 @@ export function createCatalogPage(): Page {
   });
 
   onDetail<{ value: string[] }>(categoryPicker, 'e-change', ({ value }) => {
-    filters.category = (value[value.length - 1] ?? '') as CategoryId | '';
+    filters.category = (value.at(-1) ?? '') as CategoryId | '';
     page = 1;
     paint();
     announce(
@@ -760,8 +876,10 @@ export function createCatalogPage(): Page {
 
       const trail: Crumb[] = [{ label: 'Shop', href: '#/' }];
       if (filters.category) {
-        trail.push({ label: 'Catalogue', href: `#${catalogHref({})}` });
-        trail.push({ label: CATEGORY_LABELS[filters.category] });
+        trail.push(
+          { label: 'Catalogue', href: `#${catalogHref({})}` },
+          { label: CATEGORY_LABELS[filters.category] },
+        );
       } else {
         trail.push({ label: 'Catalogue' });
       }

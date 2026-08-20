@@ -43,7 +43,8 @@ export const currentRoute = (): Route => parseHash(window.location.hash);
 
 /** Navigate to `path` (without the leading `#`). */
 export function navigate(path: string): void {
-  const next = `#${path.startsWith('/') ? path : `/${path}`}`;
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const next = `#${normalizedPath}`;
   if (window.location.hash === next) {
     // Same URL: `hashchange` will not fire, so drive the listeners directly.
     emit();

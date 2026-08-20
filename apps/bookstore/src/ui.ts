@@ -69,8 +69,8 @@ export function priceRun(book: Book): HTMLElement {
   const price = listPrice(book);
   const children: Child[] = [t('span', { class: 'shop-price__now' }, eur(price))];
   if (book.previousPrice != null) {
-    children.push(t('s', { class: 'shop-price__was' }, eur(book.previousPrice)));
     children.push(
+      t('s', { class: 'shop-price__was' }, eur(book.previousPrice)),
       t('e-badge', { inverted: true }, `−${discountPercent(price, book.previousPrice)} %`),
     );
   }
