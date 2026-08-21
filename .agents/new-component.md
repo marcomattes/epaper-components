@@ -18,8 +18,8 @@ base class to extend.
 ## 1. Component file — `packages/epaper-components/src/components/<name>/<name>.ts`
 
 Each component lives in its own folder alongside its auto-generated
-`<name>.md` README (written by `npm run docs:components` from JSDoc — never
-edit it by hand).
+`README.md` (written by `npm run docs:components` from JSDoc — never edit
+it by hand).
 
 Non-form component, extend `HTMLElement` directly:
 
