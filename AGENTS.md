@@ -31,7 +31,7 @@ packages/epaper-components/  the library — the only npm-published package
   src/
     components/         70 components, each in its own <name>/ folder as
                         <name>.ts (ending with `define('e-tag', Class)`) +
-                        <name>.md (auto-generated README, don't edit by hand)
+                        README.md (auto-generated, don't edit by hand)
       __tests__/        7 suites (cleanup, form-association, reactivity, security,
                         data-display, new-components, screenshots)
     core/               dom.ts, base-form-control.ts, icons.ts, date.ts, types.ts

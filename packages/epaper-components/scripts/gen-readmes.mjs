@@ -1,4 +1,4 @@
-// Generates per-component READMEs at `src/components/<name>/<name>.md` from
+// Generates per-component READMEs at `src/components/<name>/README.md` from
 // the Custom Elements Manifest produced by `cem analyze`.
 //
 // Why: gives each component a versioned, source-of-truth README that browsers
@@ -11,7 +11,7 @@
 //     `npx vitest run --project=unit src/components/__tests__/screenshots.test.ts`)
 //
 // Outputs:
-//   • src/components/<basename>/<basename>.md  (one per custom element)
+//   • src/components/<basename>/README.md  (one per custom element)
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -147,7 +147,7 @@ for (const mod of cem.modules ?? []) {
   const decl = (mod.declarations ?? []).find((d) => d.kind === 'class' && d.customElement);
   if (!decl) continue;
   const baseNoExt = basename(mod.path).replace(/\.ts$/, '');
-  const outPath = resolve(componentsDir, baseNoExt, `${baseNoExt}.md`);
+  const outPath = resolve(componentsDir, baseNoExt, 'README.md');
   writeFileSync(outPath, buildReadme(decl, mod.path), 'utf8');
   written++;
 }
