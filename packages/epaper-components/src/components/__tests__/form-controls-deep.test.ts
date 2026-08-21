@@ -5,20 +5,20 @@
 // documented events through real DOM interaction, and put the element in a
 // `<form>` to check FormData / reset / validity.
 import { describe, it, expect, beforeAll, afterEach } from 'vitest';
-import type { EInput } from '../input';
-import type { EToggle } from '../toggle';
-import type { ECheckbox } from '../checkbox';
-import type { ECheckboxGroup } from '../checkbox-group';
-import type { ETextarea } from '../textarea';
-import type { ERadioGroup } from '../radio-group';
+import type { EInput } from '../input/input';
+import type { EToggle } from '../toggle/toggle';
+import type { ECheckbox } from '../checkbox/checkbox';
+import type { ECheckboxGroup } from '../checkbox-group/checkbox-group';
+import type { ETextarea } from '../textarea/textarea';
+import type { ERadioGroup } from '../radio-group/radio-group';
 
 beforeAll(async () => {
-  await import('../input');
-  await import('../toggle');
-  await import('../checkbox');
-  await import('../checkbox-group');
-  await import('../textarea');
-  await import('../radio-group');
+  await import('../input/input');
+  await import('../toggle/toggle');
+  await import('../checkbox/checkbox');
+  await import('../checkbox-group/checkbox-group');
+  await import('../textarea/textarea');
+  await import('../radio-group/radio-group');
 });
 
 const roots: HTMLElement[] = [];

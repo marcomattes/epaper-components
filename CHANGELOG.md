@@ -9,6 +9,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Changed
 
+- Each of the 70 components now lives in its own
+  `packages/epaper-components/src/components/<name>/` folder alongside its
+  `<name>.md` (auto-generated README) instead of sitting flat in
+  `src/components/`, e.g. `components/button.ts` + `components/button.md` →
+  `components/button/button.ts` + `components/button/button.md`. Purely
+  structural — the public API, sub-path exports, and built `dist/` output
+  are unchanged. `vite.config.ts`'s build entry discovery and
+  `scripts/gen-readmes.mjs`'s README generation were updated for the new
+  layout, along with every import path this touched.
 - CI no longer runs the BrowserStack cross-browser matrix or triggers an
   automatic `dev`-channel npm publish for pushes and pull requests that only
   touch the marketing site (`src/site/`, `vite.site.config.ts`, its build

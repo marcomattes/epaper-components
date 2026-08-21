@@ -18,10 +18,10 @@ import { describe, it, expect, beforeAll } from 'vitest';
 // registered. Using a glob instead of a fixed list means a newly added
 // component is automatically covered by the sweep below without anyone
 // having to remember to add an import here.
-const componentModules = import.meta.glob<Record<string, unknown>>('../*.ts');
+const componentModules = import.meta.glob<Record<string, unknown>>('../*/*.ts');
 // Raw source text of the same files, used only to statically derive which
 // components interpolate into `innerHTML` and which attributes they accept.
-const componentSources = import.meta.glob<string>('../*.ts', {
+const componentSources = import.meta.glob<string>('../*/*.ts', {
   query: '?raw',
   import: 'default',
   eager: true,

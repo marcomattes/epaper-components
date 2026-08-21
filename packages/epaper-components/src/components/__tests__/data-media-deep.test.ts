@@ -9,18 +9,18 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 
 beforeAll(async () => {
-  await import('../calendar');
-  await import('../table');
-  await import('../segmented');
-  await import('../qrcode');
-  await import('../avatar');
-  await import('../image');
-  await import('../steps');
-  await import('../pagination');
-  await import('../sparkline');
-  await import('../statistic');
-  await import('../change-marker');
-  await import('../last-updated');
+  await import('../calendar/calendar');
+  await import('../table/table');
+  await import('../segmented/segmented');
+  await import('../qrcode/qrcode');
+  await import('../avatar/avatar');
+  await import('../image/image');
+  await import('../steps/steps');
+  await import('../pagination/pagination');
+  await import('../sparkline/sparkline');
+  await import('../statistic/statistic');
+  await import('../change-marker/change-marker');
+  await import('../last-updated/last-updated');
 });
 
 /** Lets queued microtasks and browser-fired image events run. */

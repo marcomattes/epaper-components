@@ -29,17 +29,17 @@ interface RefreshScenario {
 
 beforeAll(async () => {
   await Promise.all([
-    import('../progress'),
-    import('../time-picker'),
-    import('../table'),
-    import('../select'),
-    import('../tabs'),
-    import('../meter'),
-    import('../sparkline'),
-    import('../status-board'),
-    import('../change-marker'),
-    import('../last-updated'),
-    import('../diff'),
+    import('../progress/progress'),
+    import('../time-picker/time-picker'),
+    import('../table/table'),
+    import('../select/select'),
+    import('../tabs/tabs'),
+    import('../meter/meter'),
+    import('../sparkline/sparkline'),
+    import('../status-board/status-board'),
+    import('../change-marker/change-marker'),
+    import('../last-updated/last-updated'),
+    import('../diff/diff'),
   ]);
 });
 

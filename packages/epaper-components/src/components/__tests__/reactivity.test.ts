@@ -3,23 +3,23 @@
 import { describe, it, expect, afterEach, beforeAll } from 'vitest';
 
 beforeAll(async () => {
-  await import('../button');
-  await import('../input');
-  await import('../select');
-  await import('../checkbox');
-  await import('../toggle');
-  await import('../checkbox-group');
-  await import('../segmented');
-  await import('../alert');
-  await import('../dialog');
-  await import('../tree');
-  await import('../popover');
-  await import('../card');
-  await import('../card-image');
-  await import('../avatar');
-  await import('../calendar');
-  await import('../cascader');
-  await import('../date-picker');
+  await import('../button/button');
+  await import('../input/input');
+  await import('../select/select');
+  await import('../checkbox/checkbox');
+  await import('../toggle/toggle');
+  await import('../checkbox-group/checkbox-group');
+  await import('../segmented/segmented');
+  await import('../alert/alert');
+  await import('../dialog/dialog');
+  await import('../tree/tree');
+  await import('../popover/popover');
+  await import('../card/card');
+  await import('../card-image/card-image');
+  await import('../avatar/avatar');
+  await import('../calendar/calendar');
+  await import('../cascader/cascader');
+  await import('../date-picker/date-picker');
 });
 
 // A modal <dialog> makes the rest of the document inert and holds a share of

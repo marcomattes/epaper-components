@@ -74,7 +74,7 @@ Walk every changed `.ts` file in `packages/epaper-components/src/components/` ag
 
 ## Wiring checklist for a new/renamed component
 
-If the diff adds a component (`packages/epaper-components/src/components/<name>.ts`), confirm all of
+If the diff adds a component (`packages/epaper-components/src/components/<name>/<name>.ts`), confirm all of
 the following are present in the same PR — a component that only has the
 `.ts` file is incomplete, not just under-documented:
 

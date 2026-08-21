@@ -3,29 +3,29 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 
 beforeAll(async () => {
-  await import('../dropdown');
-  await import('../select');
-  await import('../cascader');
-  await import('../date-picker');
-  await import('../menu');
-  await import('../badge');
-  await import('../pagination');
-  await import('../tree-select');
-  await import('../tabs');
-  await import('../time-picker');
-  await import('../anchor');
-  await import('../splitter');
-  await import('../calendar');
-  await import('../segmented');
-  await import('../input-number');
-  await import('../tag');
-  await import('../chip');
-  await import('../table');
-  await import('../checkbox-group');
-  await import('../dialog');
-  await import('../popover');
-  await import('../collapse');
-  await import('../tree');
+  await import('../dropdown/dropdown');
+  await import('../select/select');
+  await import('../cascader/cascader');
+  await import('../date-picker/date-picker');
+  await import('../menu/menu');
+  await import('../badge/badge');
+  await import('../pagination/pagination');
+  await import('../tree-select/tree-select');
+  await import('../tabs/tabs');
+  await import('../time-picker/time-picker');
+  await import('../anchor/anchor');
+  await import('../splitter/splitter');
+  await import('../calendar/calendar');
+  await import('../segmented/segmented');
+  await import('../input-number/input-number');
+  await import('../tag/tag');
+  await import('../chip/chip');
+  await import('../table/table');
+  await import('../checkbox-group/checkbox-group');
+  await import('../dialog/dialog');
+  await import('../popover/popover');
+  await import('../collapse/collapse');
+  await import('../tree/tree');
 });
 
 describe('disconnect/reconnect behaviour', () => {

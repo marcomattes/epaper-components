@@ -29,7 +29,9 @@ to validate the published artifact).
 ```
 packages/epaper-components/  the library — the only npm-published package
   src/
-    components/         70 components, one file each, ending with `define('e-tag', Class)`
+    components/         70 components, each in its own <name>/ folder as
+                        <name>.ts (ending with `define('e-tag', Class)`) +
+                        <name>.md (auto-generated README, don't edit by hand)
       __tests__/        7 suites (cleanup, form-association, reactivity, security,
                         data-display, new-components, screenshots)
     core/               dom.ts, base-form-control.ts, icons.ts, date.ts, types.ts
@@ -56,7 +58,7 @@ the right workspace, so day-to-day commands are unchanged.
 
 ## Most-touched files (in order of likelihood)
 
-1. `packages/epaper-components/src/components/<name>.ts` — adding a component or fixing a bug
+1. `packages/epaper-components/src/components/<name>/<name>.ts` — adding a component or fixing a bug
 2. `packages/epaper-components/src/styles/components.css` — styling matches the component file
 3. `packages/epaper-components/src/stories/<group>/<Name>.stories.ts` — every component has one
 4. `packages/epaper-components/src/components/__tests__/*.test.ts` — add to existing suite, don't fragment
@@ -253,7 +255,7 @@ and strand the tag — then tag the merged commit on `main` and push the tag.
   reason — those files ARE shipped (see `files` array).
 - **The library is vanilla, not Lit.** Lit is a `devDependency` for
   Storybook templating only. Never import `lit` from a
-  `packages/epaper-components/src/components/*.ts` file. The `"lit"` `package.json` keyword was
+  `packages/epaper-components/src/components/**/*.ts` file. The `"lit"` `package.json` keyword was
   removed in V1.0.0.
 - **`LICENSE`, `CHANGELOG.md` exist at root since V1.0.0** and are
   shipped via the `files` array. Update `CHANGELOG.md` in the same PR
@@ -264,7 +266,7 @@ and strand the tag — then tag the merged commit on `main` and push the tag.
 ## Files NOT to touch without asking
 
 - `packages/epaper-components/package.json` `version` — bumped only by release process
-- `packages/epaper-components/package.json` `exports` — auto-aligned with `packages/epaper-components/src/components/*.ts`
+- `packages/epaper-components/package.json` `exports` — auto-aligned with `packages/epaper-components/src/components/*/*.ts`
 - `packages/epaper-components/dist/**/*` — build output, always overwritten
 - `.github/workflows/release.yml` — publish gate (`dev` on main, `latest` on
   `v*` tags). The **filename is load-bearing**: npm Trusted Publishing binds
@@ -287,6 +289,6 @@ in-flight context.
 - Read `CONTRIBUTING.md` first (component-author contract).
 - Read `OVERVIEW.md` for architecture and known V1.0 inconsistencies.
 - Read `THEMING.md` for the CSS custom property registry.
-- Look at `packages/epaper-components/src/components/button.ts` (simplest non-form) and
-  `packages/epaper-components/src/components/input.ts` (simplest form-associated) as canonical
+- Look at `packages/epaper-components/src/components/button/button.ts` (simplest non-form) and
+  `packages/epaper-components/src/components/input/input.ts` (simplest form-associated) as canonical
   references.

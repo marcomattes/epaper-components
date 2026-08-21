@@ -132,7 +132,7 @@ function safeFileName(value) {
 // Declarative authoring API only: the parent reads these as a data source while
 // rendering and replaces them with its own markup, so they never survive into
 // the rendered DOM. `e-menu` reading `:scope > e-menu-item` and emitting
-// `.ink-menu__btn` (src/components/menu.ts) is the canonical example. They are
+// `.ink-menu__btn` (src/components/menu/menu.ts) is the canonical example. They are
 // registered and stories do use them, but the coverage check cannot observe
 // them — excluding them keeps that check meaningful for the elements that do
 // render, instead of failing unconditionally. Remove a tag from this list as
@@ -155,11 +155,20 @@ const CONSUMED_BY_PARENT = new Set([
 
 async function discoverRegisteredTags() {
   const componentDirectory = resolve(repoRoot, 'packages/epaper-components/src', 'components');
-  const files = (await readdir(componentDirectory)).filter((file) => file.endsWith('.ts'));
+  // Each component lives in its own <name>/<name>.ts folder.
+  const componentNames = (await readdir(componentDirectory, { withFileTypes: true }))
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
   const tags = new Set();
 
-  for (const file of files) {
-    const source = await readFile(join(componentDirectory, file), 'utf8');
+  for (const name of componentNames) {
+    const file = join(componentDirectory, name, `${name}.ts`);
+    let source;
+    try {
+      source = await readFile(file, 'utf8');
+    } catch {
+      continue;
+    }
     for (const match of source.matchAll(/define\(\s*['"](e-[a-z0-9-]+)['"]/g)) tags.add(match[1]);
   }
 

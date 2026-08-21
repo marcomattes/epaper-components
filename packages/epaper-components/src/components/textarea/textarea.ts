@@ -1,0 +1,180 @@
+import { boolAttr, define, esc } from '../../core/dom';
+import { BaseFormControl } from '../../core/base-form-control';
+
+/**
+ * @summary Multi-line text input with error and disabled states.
+ * @since v1.0.1
+ *
+ * Form-associated: participates in `<form>` submission and FormData.
+ *
+ * @attr {string} [value] - Current value.
+ * @attr {string} [placeholder] - Native placeholder text.
+ * @attr {string} [name] - Form field name. Required to participate in `FormData`.
+ * @attr {boolean} [error] - Marks the textarea as invalid. Sets `aria-invalid="true"` and a custom `ElementInternals` validity error so `form.checkValidity()` returns `false`.
+ * @attr {string} [error-message] - Message reported to `ElementInternals.setValidity` when `error` is set. Defaults to "Invalid value.".
+ * @attr {boolean} [disabled] - Disables interaction. Presence alone disables, per the HTML spec for form-associated elements — `disabled="false"` still disables.
+ * @attr {boolean} [readonly] - Renders as a non-editable read-only textarea. Still submitted with the form.
+ * @attr {boolean} [required] - Requires a non-empty value for form validation.
+ * @attr {string} [required-message] - Overrides the native message reported when `required` is not satisfied.
+ * @attr {number} [minlength] - Minimum text length.
+ * @attr {number} [maxlength] - Maximum text length.
+ * @attr {string} [autocomplete] - Forwarded to the native `autocomplete` attribute.
+ * @attr {string} [inputmode] - Forwarded to the native `inputmode` attribute (virtual keyboard layout).
+ * @attr {string} [enterkeyhint] - Forwarded to the native `enterkeyhint` attribute.
+ * @attr {string} [spellcheck] - Forwarded to the native `spellcheck` attribute.
+ *
+ * @fires {CustomEvent<{value: string}>} e-input - Fired on every keystroke.
+ * @fires {CustomEvent<{value: string}>} e-change - Fired on commit (blur / Enter).
+ *
+ * @example
+ * <e-textarea placeholder="Notes…"></e-textarea>
+ */
+export class ETextarea extends BaseFormControl {
+  static readonly observedAttributes = [
+    'value',
+    'error',
+    'error-message',
+    'disabled',
+    'readonly',
+    'aria-label',
+    'placeholder',
+    'required',
+    'required-message',
+    'minlength',
+    'maxlength',
+    'autocomplete',
+    'inputmode',
+    'enterkeyhint',
+    'spellcheck',
+  ];
+
+  private _wired = false;
+  private _ta: HTMLTextAreaElement | null = null;
+
+  connectedCallback() {
+    if (this._wired) return;
+    this._wired = true;
+    const value = this.getAttribute('value') || '';
+    const placeholder = this.getAttribute('placeholder') || '';
+    const ariaLabel = this.getAttribute('aria-label') || '';
+    const error = boolAttr(this, 'error');
+    // The HTML spec, not the library's `x="false"` convention, governs
+    // `disabled` on a form-associated element: presence alone disables, and
+    // that is what the browser reports through `formDisabledCallback`.
+    const disabled = this.hasAttribute('disabled');
+    const readonly = boolAttr(this, 'readonly');
+    const required = boolAttr(this, 'required');
+    this.innerHTML = `<textarea class="ink-control" placeholder="${esc(placeholder)}"
+      style="min-height:96px;resize:vertical"
+      ${ariaLabel ? `aria-label="${esc(ariaLabel)}"` : ''}
+      ${error ? 'aria-invalid="true"' : ''} ${disabled ? 'disabled' : ''} ${readonly ? 'readonly' : ''} ${required ? 'required' : ''}>${esc(value)}</textarea>`;
+    this._ta = this.querySelector('textarea');
+    for (const name of [
+      'minlength',
+      'maxlength',
+      'autocomplete',
+      'inputmode',
+      'enterkeyhint',
+      'spellcheck',
+    ]) {
+      this._syncNativeConstraint(name, this.getAttribute(name));
+    }
+    this._value = value;
+    this.internals.setFormValue(value);
+    this._syncValidity();
+    this._ta!.addEventListener('input', (e) => {
+      const v = (e.target as HTMLTextAreaElement).value;
+      this._value = v;
+      this.internals.setFormValue(v);
+      this._syncValidity();
+      this.dispatchEvent(new CustomEvent('e-input', { detail: { value: v }, bubbles: true }));
+    });
+    this._ta!.addEventListener('change', (e) => {
+      const v = (e.target as HTMLTextAreaElement).value;
+      this._value = v;
+      this.internals.setFormValue(v);
+      this._syncValidity();
+      this.dispatchEvent(new CustomEvent('e-change', { detail: { value: v }, bubbles: true }));
+    });
+  }
+
+  attributeChangedCallback(name: string, _old: string | null, v: string | null) {
+    if (!this._ta) return;
+    if (name === 'value') {
+      if (this._ta.value !== (v ?? '')) this._ta.value = v ?? '';
+      this._value = v ?? '';
+      this.internals.setFormValue(this._value);
+      this._syncValidity();
+    }
+    if (name === 'aria-label') {
+      if (v) this._ta.setAttribute('aria-label', v);
+      else this._ta.removeAttribute('aria-label');
+    }
+    if (name === 'error' || name === 'error-message') this._syncValidity();
+    // Presence alone disables — the HTML spec governs `disabled` here.
+    if (name === 'disabled')
+      this._ta.disabled = this.hasAttribute('disabled') || this._formDisabled;
+    if (name === 'readonly') this._ta.readOnly = boolAttr(this, 'readonly');
+    if (name === 'placeholder') this._ta.placeholder = v ?? '';
+    if (name === 'required' || name === 'required-message') {
+      this._ta.required = boolAttr(this, 'required');
+      this._syncValidity();
+    }
+    if (name === 'minlength' || name === 'maxlength') {
+      this._syncNativeConstraint(name, v);
+      this._syncValidity();
+    }
+    if (['autocomplete', 'inputmode', 'enterkeyhint', 'spellcheck'].includes(name)) {
+      this._syncNativeConstraint(name, v);
+    }
+  }
+
+  override get value(): string {
+    return this._ta?.value ?? this._value;
+  }
+  override set value(v: string) {
+    this._value = v ?? '';
+    if (this._ta) this._ta.value = this._value;
+    this.internals.setFormValue(this._value);
+    this._syncValidity();
+  }
+
+  protected serialize(v: string): string {
+    return v ?? '';
+  }
+  protected parse(s: string): string {
+    return s;
+  }
+
+  private _syncValidity(): void {
+    if (!this._ta) return;
+    this._ta.required = boolAttr(this, 'required');
+    const customMessage = boolAttr(this, 'error')
+      ? (this.getAttribute('error-message') ?? 'Invalid value.')
+      : undefined;
+    if (!customMessage && this._ta.validity.valueMissing) {
+      const message = this.getAttribute('required-message');
+      if (message) {
+        // Only the message differs from the native one; when the violation is
+        // shown stays with the base class's deferred-validation gate.
+        this.internals.setValidity({ valueMissing: true }, message, this._ta);
+        this._markInvalid(this._ta);
+        return;
+      }
+    }
+    this.mirrorNativeValidity(this._ta, customMessage);
+  }
+
+  private _syncNativeConstraint(name: string, value: string | null): void {
+    if (!this._ta) return;
+    if (value == null) this._ta.removeAttribute(name);
+    else this._ta.setAttribute(name, value);
+  }
+
+  protected override formDisabledChanged(): void {
+    // Presence alone disables — the HTML spec governs `disabled` here.
+    if (this._ta) this._ta.disabled = this.hasAttribute('disabled') || this._formDisabled;
+  }
+}
+
+define('e-textarea', ETextarea);
