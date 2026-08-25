@@ -7,40 +7,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-### Changed
-
-- Each of the 70 components now lives in its own
-  `packages/epaper-components/src/components/<name>/` folder alongside its
-  `<name>.md` (auto-generated README) instead of sitting flat in
-  `src/components/`, e.g. `components/button.ts` + `components/button.md` →
-  `components/button/button.ts` + `components/button/button.md`. Purely
-  structural — the public API, sub-path exports, and built `dist/` output
-  are unchanged. `vite.config.ts`'s build entry discovery and
-  `scripts/gen-readmes.mjs`'s README generation were updated for the new
-  layout, along with every import path this touched.
-- CI no longer runs the BrowserStack cross-browser matrix or triggers an
-  automatic `dev`-channel npm publish for pushes and pull requests that only
-  touch the marketing site (`src/site/`, `vite.site.config.ts`, its build
-  scripts) — that code never ships in the npm package and isn't exercised by
-  the component test matrix, so it only needed the local quality/test/build
-  gate and its own FTP deploy, both of which still run unchanged.
-- Playwright bumped from 1.59.1 to 1.62.1 (`package.json`, `package-lock.json`),
-  with the dev container and every CI job that pins the matching
-  `mcr.microsoft.com/playwright` image (`ci.yml`, `visual-baselines.yml`)
-  updated to `v1.62.1-noble` alongside it so the browser build stays
-  identical everywhere visual-regression baselines are created or compared.
-- `CLAUDE.md` renamed to `AGENTS.md`, following the cross-tool
-  [AGENTS.md](https://agents.md) convention so other coding agents pick it
-  up by default. A one-line `CLAUDE.md` stub (`@AGENTS.md` import) remains
-  at the repo root because Claude Code only auto-loads files literally
-  named `CLAUDE.md`.
-- Repo review/scaffolding checklists moved out of Claude-specific tooling
-  into a new, LLM-agnostic `.agents/` folder (`.agents/pr-review.md`,
-  `.agents/new-component.md`). Claude Code keeps thin pointer skills in
-  `.claude/skills/` for its own skill-triggering mechanism, and a new
-  `.github/copilot-instructions.md` points GitHub Copilot at the same
-  files, so both tools (and any other coding agent) read one shared
-  source of truth instead of duplicated, tool-specific copies.
+## [1.2.0] — 2026-08-25
 
 ### Added
 
@@ -52,36 +19,6 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `inputmode`, `enterkeyhint` and `spellcheck` attributes to their inner
   control, so autofill and virtual-keyboard behavior match a plain
   `<input>`/`<textarea>` instead of being silently dropped.
-- An ESLint rule (`local/no-unescaped-innerhtml`, scoped to `src/components/**/*.ts`)
-  that flags an `innerHTML` template-literal assignment whose interpolations
-  aren't escaped via `esc()`/`iconSvg()`, a ternary of safe branches, an
-  `items.map(...).join('')` built from a safe per-item template,
-  or the `html` tagged-template helper. CLAUDE.md's hard rule #1 ("use `esc()`
-  for every interpolated string") was previously enforced by convention only —
-  this makes it a lint failure instead. The survey behind the rule turned up
-  six interpolations across `anchor.ts`, `kaleido.ts`, `radio-group.ts`,
-  `result.ts` and `select.ts` that weren't wrapped in `esc()`; none are
-  exploitable (a loop index, `numAttr()`-derived arithmetic, a boolean
-  comparison, a closed status-enum union, an internally generated `randId()`
-  id, and a hardcoded color-array lookup — none can carry the characters
-  `esc()` escapes), so each site keeps its bare interpolation with an inline
-  `eslint-disable`/`-enable` and a comment explaining why, rather than paying
-  bundle bytes against the `size-limit` budget for no security benefit.
-- `security.test.ts` now discovers its component list automatically via
-  `import.meta.glob`, instead of a hand-maintained `beforeAll` import list: it
-  registers every component in `src/components/*.ts`, then statically derives
-  which files interpolate into `innerHTML` and which `@attr {string}` values
-  they document, and runs the existing XSS payload sweep against each one. A
-  new component with an unescaped `innerHTML` interpolation can no longer ship
-  without XSS coverage.
-- A 404 page on the website, built from the same shell as every other page and
-  listing all of them as real links. It is written to `dist-site/404.html`,
-  stays out of the sitemap, `llms.txt` and the markdown alternates, and carries
-  `noindex,follow` with no canonical and no structured data.
-- The site build now emits an `.htaccess` next to `_headers`, pointing the host
-  at `/404.html` and declaring `text/markdown` for the `.md` alternates. The
-  existing `_headers` file is the Netlify/Cloudflare Pages format and has no
-  effect on the FTP host the site is deployed to.
 
 ### Fixed
 
@@ -96,10 +33,6 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   untouched, first-paint state after a reset instead of keeping the stale
   violation visible. Subclasses implement the new `resetValue()` hook instead
   of overriding `formResetCallback()` directly.
-- Removed two stale "Known limitations (V1.0)" bullets from the 1.1.0
-  entry below: keyboard navigation in compound pickers was already listed
-  under "Added", and `<e-input>`/`<e-textarea>` do call
-  `internals.setValidity()` via `mirrorNativeValidity()`.
 - `<e-tabs>`: a `default-value` naming a tab that doesn't exist left the
   whole strip inert — every button `aria-selected="false"` _and_
   `tabIndex="-1"`, every panel hidden, so no panel was visible and the
@@ -564,7 +497,8 @@ These are intentional V1.0 trade-offs and slated for V1.1:
   the public API for demo purposes; it is not a general-purpose layout
   primitive.
 
-[unreleased]: https://github.com/marcomattes/epaper-components/compare/v1.1.0...HEAD
+[unreleased]: https://github.com/marcomattes/epaper-components/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/marcomattes/epaper-components/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/marcomattes/epaper-components/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/marcomattes/epaper-components/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/marcomattes/epaper-components/releases/tag/v1.0.0
