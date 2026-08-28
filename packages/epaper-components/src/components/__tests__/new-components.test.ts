@@ -416,6 +416,27 @@ Two."></e-redline>`);
     expect(changed.every((r) => !r.hidden)).toBe(true);
     expect(unchanged.every((r) => r.hidden)).toBe(true);
   });
+
+  it('falls back to whole-paragraph markup above the word-count cap', () => {
+    const longBefore = Array.from({ length: 401 }, (_, i) => `w${i}`).join(' ');
+    const el = mount(`<e-redline before="${longBefore}" after="short after text"></e-redline>`);
+    const row = el.querySelector('.ink-redline__row')!;
+    expect(row.getAttribute('data-changed')).toBe('true');
+    expect(row.querySelector('del')!.textContent).toBe(longBefore);
+    expect(row.querySelector('ins')!.textContent).toBe('short after text');
+  });
+
+  it('removes extra rows when a later attribute change has fewer paragraphs', () => {
+    const el = mount(`<e-redline before="One a.
+
+Two b." after="One a!
+
+Two c."></e-redline>`);
+    expect(el.querySelectorAll('.ink-redline__row')).toHaveLength(2);
+    el.setAttribute('before', 'Only one.');
+    el.setAttribute('after', 'Only one!');
+    expect(el.querySelectorAll('.ink-redline__row')).toHaveLength(1);
+  });
 });
 
 describe('e-toc', () => {
@@ -474,5 +495,51 @@ describe('e-toc', () => {
     h2.remove();
     await flush();
     expect(toc.querySelectorAll('e-anchor-item')).toHaveLength(1);
+  });
+
+  it('reacts to min-level/max-level changing after mount', () => {
+    const el = mount(`
+      <div>
+        <e-toc for="toc-scope-4" min-level="2" max-level="2"></e-toc>
+        <div id="toc-scope-4"><h2>A</h2><h3>B</h3></div>
+      </div>
+    `);
+    const toc = el.querySelector('e-toc')!;
+    expect(toc.querySelectorAll('e-anchor-item')).toHaveLength(1);
+    toc.setAttribute('max-level', '3');
+    expect(toc.querySelectorAll('e-anchor-item')).toHaveLength(2);
+  });
+
+  it('re-points its scan root when "for" changes after mount', async () => {
+    const el = mount(`
+      <div>
+        <e-toc for="toc-scope-5a"></e-toc>
+        <div id="toc-scope-5a"><h2>Old scope</h2></div>
+        <div id="toc-scope-5b"><h2>New scope</h2></div>
+      </div>
+    `);
+    const toc = el.querySelector('e-toc')!;
+    expect(toc.querySelectorAll('e-anchor-item')).toHaveLength(1);
+    toc.setAttribute('for', 'toc-scope-5b');
+    expect(toc.querySelector('e-anchor-item')!.getAttribute('title')).toBe('New scope');
+
+    const stale = document.createElement('h2');
+    stale.textContent = 'Stale';
+    el.querySelector('#toc-scope-5a')!.appendChild(stale);
+    await flush();
+    expect(toc.querySelectorAll('e-anchor-item')).toHaveLength(1);
+  });
+
+  it('defaults to scanning the whole document when "for" is omitted', () => {
+    const marker = document.createElement('h2');
+    marker.textContent = `Toc default scan marker ${Math.random()}`;
+    document.body.appendChild(marker);
+    try {
+      const el = mount(`<e-toc></e-toc>`);
+      const items = [...el.querySelectorAll('e-anchor-item')];
+      expect(items.some((it) => it.getAttribute('title') === marker.textContent)).toBe(true);
+    } finally {
+      marker.remove();
+    }
   });
 });
