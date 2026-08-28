@@ -1,4 +1,5 @@
 import { boolAttr, define, patchAttr, patchText } from '../../core/dom';
+import { t, type LocaleStrings } from '../../core/i18n';
 
 /** Symbol and text rendered for one status value. */
 export interface StatusPillMeta {
@@ -8,15 +9,26 @@ export interface StatusPillMeta {
 
 /**
  * Built-in vocabulary. Deliberately the same five keys as `e-status-board`,
- * so a board and the pills beside it read consistently.
+ * so a board and the pills beside it read consistently. The label is a
+ * string-table key rather than English text, so `setLocaleStrings()` reaches
+ * it the same way it reaches `e-event-log`'s severity words.
  */
-const BUILT_IN: Record<string, StatusPillMeta> = {
-  ok: { symbol: '✓', label: 'OK' },
-  warning: { symbol: '!', label: 'Warning' },
-  critical: { symbol: '×', label: 'Critical' },
-  offline: { symbol: '○', label: 'Offline' },
-  neutral: { symbol: '—', label: 'Neutral' },
+const BUILT_IN_KEYS: Record<string, { symbol: string; key: keyof LocaleStrings }> = {
+  ok: { symbol: '✓', key: 'statusOk' },
+  warning: { symbol: '!', key: 'statusWarning' },
+  critical: { symbol: '×', key: 'statusCritical' },
+  offline: { symbol: '○', key: 'statusOffline' },
+  neutral: { symbol: '—', key: 'statusNeutral' },
 };
+
+/** The built-in vocabulary resolved to the element's locale. */
+function builtInMeta(el: Element): Record<string, StatusPillMeta> {
+  const meta: Record<string, StatusPillMeta> = {};
+  for (const [key, { symbol, key: tableKey }] of Object.entries(BUILT_IN_KEYS)) {
+    meta[key] = { symbol, label: t(el, tableKey) };
+  }
+  return meta;
+}
 
 const SIZES = new Set(['sm', 'md', 'lg']);
 
@@ -27,12 +39,15 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
  * Merge an author-declared vocabulary over the built-ins. Malformed entries
  * are skipped rather than rendering `undefined` into the pill.
  */
-function metaFrom(raw: string | null): Record<string, StatusPillMeta> {
-  if (!raw) return BUILT_IN;
+function metaFrom(
+  raw: string | null,
+  builtIn: Record<string, StatusPillMeta>,
+): Record<string, StatusPillMeta> {
+  if (!raw) return builtIn;
   try {
     const parsed: unknown = JSON.parse(raw);
-    if (!isRecord(parsed)) return BUILT_IN;
-    const merged: Record<string, StatusPillMeta> = { ...BUILT_IN };
+    if (!isRecord(parsed)) return builtIn;
+    const merged: Record<string, StatusPillMeta> = { ...builtIn };
     for (const [key, value] of Object.entries(parsed)) {
       if (!key || !isRecord(value)) continue;
       const { symbol, label } = value;
@@ -41,7 +56,7 @@ function metaFrom(raw: string | null): Record<string, StatusPillMeta> {
     }
     return merged;
   } catch {
-    return BUILT_IN;
+    return builtIn;
   }
 }
 
@@ -118,9 +133,10 @@ export class EStatusPill extends HTMLElement {
 
   private _patch(): void {
     if (!this._root || !this._symbol || !this._label) return;
-    const meta = metaFrom(this.getAttribute('statuses'));
+    const builtIn = builtInMeta(this);
+    const meta = metaFrom(this.getAttribute('statuses'), builtIn);
     const status = this.getAttribute('status') || 'neutral';
-    const cue = meta[status] ?? BUILT_IN['neutral']!;
+    const cue = meta[status] ?? builtIn['neutral']!;
     const text = this.getAttribute('label') || this._authored || cue.label;
     const size = this.getAttribute('size');
 

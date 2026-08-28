@@ -68,6 +68,37 @@ export interface LocaleStrings {
   clear: string;
   backspace: string;
   decimalSeparator: string;
+  /** `e-barcode` visible fallback and error text; `{format}`, `{value}`, `{min}`, `{max}`, `{found}`, `{expected}` and `{char}` are substituted. */
+  barcodeLabel: string;
+  barcodeValueEmpty: string;
+  barcodeDigitsOnly: string;
+  barcodeNeedsDigits: string;
+  barcodeCheckDigit: string;
+  code128CannotEncode: string;
+  /** `e-change-marker`; `{value}` is substituted. */
+  changed: string;
+  from: string;
+  /** `e-sparkline`; `{state}` and `{threshold}` are substituted. */
+  sparklineThreshold: string;
+  thresholdAbove: string;
+  thresholdBelow: string;
+  thresholdAt: string;
+  /** `e-anchor`. */
+  onThisPage: string;
+  inPageNavigation: string;
+  /** `e-qrcode`; `{value}` is substituted. */
+  qrCodeFor: string;
+  qrCodeError: string;
+  /** `e-title`. */
+  linkToSection: string;
+  /** `e-upload`. */
+  anyFileType: string;
+  /** `e-status-pill` built-in vocabulary. */
+  statusOk: string;
+  statusWarning: string;
+  statusCritical: string;
+  statusOffline: string;
+  statusNeutral: string;
 }
 
 const EN: LocaleStrings = {
@@ -111,6 +142,29 @@ const EN: LocaleStrings = {
   clear: 'Clear',
   backspace: 'Backspace',
   decimalSeparator: 'Decimal separator',
+  barcodeLabel: '{format} barcode {value}',
+  barcodeValueEmpty: 'Barcode value is empty.',
+  barcodeDigitsOnly: '{format} accepts digits only.',
+  barcodeNeedsDigits: '{format} needs {min} or {max} digits.',
+  barcodeCheckDigit: 'Check digit is {found}, expected {expected}.',
+  code128CannotEncode: 'Code 128 cannot encode character "{char}".',
+  changed: 'Changed',
+  from: 'from',
+  sparklineThreshold: '; {state} threshold {threshold}',
+  thresholdAbove: 'above',
+  thresholdBelow: 'below',
+  thresholdAt: 'at',
+  onThisPage: 'ON THIS PAGE',
+  inPageNavigation: 'In-page navigation',
+  qrCodeFor: 'QR code for {value}',
+  qrCodeError: 'QR code error',
+  linkToSection: 'Link to this section',
+  anyFileType: 'ANY FILE TYPE',
+  statusOk: 'OK',
+  statusWarning: 'Warning',
+  statusCritical: 'Critical',
+  statusOffline: 'Offline',
+  statusNeutral: 'Neutral',
 };
 
 const DE: LocaleStrings = {
@@ -154,6 +208,29 @@ const DE: LocaleStrings = {
   clear: 'Löschen',
   backspace: 'Rücktaste',
   decimalSeparator: 'Dezimaltrennzeichen',
+  barcodeLabel: '{format} Barcode {value}',
+  barcodeValueEmpty: 'Barcode ist leer.',
+  barcodeDigitsOnly: '{format} akzeptiert nur Ziffern.',
+  barcodeNeedsDigits: '{format} benötigt {min} oder {max} Ziffern.',
+  barcodeCheckDigit: 'Prüfziffer ist {found}, erwartet {expected}.',
+  code128CannotEncode: 'Code 128 kann das Zeichen „{char}“ nicht codieren.',
+  changed: 'Geändert',
+  from: 'von',
+  sparklineThreshold: '; {state} Schwellenwert {threshold}',
+  thresholdAbove: 'über',
+  thresholdBelow: 'unter',
+  thresholdAt: 'am',
+  onThisPage: 'AUF DIESER SEITE',
+  inPageNavigation: 'Seiteninterne Navigation',
+  qrCodeFor: 'QR-Code für {value}',
+  qrCodeError: 'QR-Code-Fehler',
+  linkToSection: 'Link zu diesem Abschnitt',
+  anyFileType: 'BELIEBIGER DATEITYP',
+  statusOk: 'OK',
+  statusWarning: 'Warnung',
+  statusCritical: 'Kritisch',
+  statusOffline: 'Offline',
+  statusNeutral: 'Neutral',
 };
 
 const REGISTRY = new Map<string, LocaleStrings>([

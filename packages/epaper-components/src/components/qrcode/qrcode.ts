@@ -1,4 +1,5 @@
 import { define, esc, intAttr, patchAttr } from '../../core/dom';
+import { t } from '../../core/i18n';
 
 /* ============================================================================
  * Self-contained QR Code encoder (byte mode).
@@ -587,10 +588,10 @@ export class EQrcode extends HTMLElement {
       const svg = this._wrap.firstElementChild;
       if (svg) {
         patchAttr(svg, 'role', 'img');
-        patchAttr(svg, 'aria-label', this.getAttribute('label') || `QR code for ${value}`);
+        patchAttr(svg, 'aria-label', this.getAttribute('label') || t(this, 'qrCodeFor', { value }));
       }
     } catch (err) {
-      const errHtml = `<div class="ink-qrcode__error" role="img" aria-label="QR code error">${esc((err as Error).message)}</div>`;
+      const errHtml = `<div class="ink-qrcode__error" role="img" aria-label="${esc(t(this, 'qrCodeError'))}">${esc((err as Error).message)}</div>`;
       if (this._lastContent !== errHtml) {
         this._wrap.innerHTML = errHtml;
         this._lastContent = errHtml;

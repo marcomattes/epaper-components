@@ -284,7 +284,11 @@ export class ERating extends BaseFormControl<number> {
     patchAttr(this._labelEl, 'hidden', label ? null : '');
     if (this._hintEl.textContent !== hint) this._hintEl.textContent = hint;
     patchAttr(this._hintEl, 'hidden', hint ? null : '');
-    patchAttr(this._group, 'aria-label', label || this.getAttribute('aria-label') || 'Rating');
+    patchAttr(
+      this._group,
+      'aria-label',
+      label || this.getAttribute('aria-label') || t(this, 'rating'),
+    );
   }
 
   private _syncSymbols(): void {
