@@ -2255,6 +2255,52 @@ e-text {
   letter-spacing: var(--ink-tracking-mono);
   text-transform: uppercase;
 }
+.ink-table__caption {
+  caption-side: top;
+  padding: 0 0 var(--ink-space-2);
+  color: var(--ink-fg);
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-label);
+  text-align: left;
+  text-transform: uppercase;
+}
+
+/* Status cells. `border-collapse: collapse` swallows per-cell borders, so the
+   cue is an inset shadow or a fill instead. Every token has its own shape or
+   fill — never colour alone. */
+.ink-table__status {
+  font-family: var(--ink-mono);
+  font-weight: 700;
+}
+.ink-table__status[data-status='warning'] {
+  box-shadow: inset 0 0 0 var(--ink-border-width) var(--ink-fg);
+}
+.ink-table__status[data-status='critical'] {
+  background: var(--ink-fg);
+  color: var(--ink-bg);
+}
+.ink-table__status[data-status='offline'] {
+  background-image: var(--ink-hatch-disabled);
+}
+
+/* Scroll box and sticky header. `--ink-table-max-height` is written onto the
+   host by the component from its `max-height` attribute. */
+e-table[max-height] {
+  display: block;
+  max-height: var(--ink-table-max-height);
+  overflow-y: auto;
+}
+/* The background repeats here on purpose: `thead`'s own background does not
+   paint behind a sticky child, so rows would scroll through the header. */
+e-table[sticky-header] .ink-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--ink-fg);
+  color: var(--ink-bg);
+}
 
 /* ============================================================
  * Statistic ÔÇó KPI value with label and trend
