@@ -1,13 +1,24 @@
-import { boolAttr, define, esc } from '../../core/dom';
+import { boolAttr, define, esc, intAttr, patchText, randId } from '../../core/dom';
 import { BaseFormControl } from '../../core/base-form-control';
 
+/** Inline fallback height used when no `rows` is authored (pre-v1.3.0 default). */
+const DEFAULT_MIN_HEIGHT = '96px';
+
 /**
- * @summary Multi-line text input with error and disabled states.
+ * @summary Multi-line text input with label, hint, row sizing and error states.
  * @since v1.0.1
  *
  * Form-associated: participates in `<form>` submission and FormData.
  *
+ * `label` and `hint` mirror `<e-input>`'s markup exactly (`.ink-label`
+ * / `.ink-hint`), so a form built from both controls stays visually uniform.
+ * Height is authored with `rows`; without it the control keeps its historic
+ * `min-height: 96px`.
+ *
  * @attr {string} [value] - Current value.
+ * @attr {string} [label] - Label rendered above the textarea. @since v1.3.0
+ * @attr {string} [hint] - Helper text rendered below the textarea. @since v1.3.0
+ * @attr {number} [rows] - Visible text rows. Replaces the default `min-height: 96px` sizing. Values below 1 and non-integers are ignored. @since v1.3.0
  * @attr {string} [placeholder] - Native placeholder text.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
  * @attr {boolean} [error] - Marks the textarea as invalid. Sets `aria-invalid="true"` and a custom `ElementInternals` validity error so `form.checkValidity()` returns `false`.
@@ -17,7 +28,7 @@ import { BaseFormControl } from '../../core/base-form-control';
  * @attr {boolean} [required] - Requires a non-empty value for form validation.
  * @attr {string} [required-message] - Overrides the native message reported when `required` is not satisfied.
  * @attr {number} [minlength] - Minimum text length.
- * @attr {number} [maxlength] - Maximum text length.
+ * @attr {number} [maxlength] - Maximum text length. Setting it also renders a `current / max` character counter below the control. @since v1.3.0
  * @attr {string} [autocomplete] - Forwarded to the native `autocomplete` attribute.
  * @attr {string} [inputmode] - Forwarded to the native `inputmode` attribute (virtual keyboard layout).
  * @attr {string} [enterkeyhint] - Forwarded to the native `enterkeyhint` attribute.
@@ -27,7 +38,7 @@ import { BaseFormControl } from '../../core/base-form-control';
  * @fires {CustomEvent<{value: string}>} e-change - Fired on commit (blur / Enter).
  *
  * @example
- * <e-textarea placeholder="Notes…"></e-textarea>
+ * <e-textarea label="Notiz" hint="Max. 280 Zeichen" rows="6" maxlength="280"></e-textarea>
  */
 export class ETextarea extends BaseFormControl {
   static readonly observedAttributes = [
@@ -38,6 +49,9 @@ export class ETextarea extends BaseFormControl {
     'readonly',
     'aria-label',
     'placeholder',
+    'label',
+    'hint',
+    'rows',
     'required',
     'required-message',
     'minlength',
@@ -50,11 +64,17 @@ export class ETextarea extends BaseFormControl {
 
   private _wired = false;
   private _ta: HTMLTextAreaElement | null = null;
+  private _label: HTMLLabelElement | null = null;
+  private _hint: HTMLElement | null = null;
+  private _counter: HTMLElement | null = null;
 
   connectedCallback() {
     if (this._wired) return;
     this._wired = true;
+    const id = this.id ? `${this.id}-control` : randId('e-ta');
     const value = this.getAttribute('value') || '';
+    const label = this.getAttribute('label');
+    const hint = this.getAttribute('hint');
     const placeholder = this.getAttribute('placeholder') || '';
     const ariaLabel = this.getAttribute('aria-label') || '';
     const error = boolAttr(this, 'error');
@@ -64,11 +84,14 @@ export class ETextarea extends BaseFormControl {
     const disabled = this.hasAttribute('disabled');
     const readonly = boolAttr(this, 'readonly');
     const required = boolAttr(this, 'required');
-    this.innerHTML = `<textarea class="ink-control" placeholder="${esc(placeholder)}"
-      style="min-height:96px;resize:vertical"
+    this.innerHTML = `${label ? `<label class="ink-label" for="${esc(id)}">${esc(label)}</label>` : ''}<textarea class="ink-control" id="${esc(id)}" placeholder="${esc(placeholder)}"
+      style="resize:vertical"
       ${ariaLabel ? `aria-label="${esc(ariaLabel)}"` : ''}
-      ${error ? 'aria-invalid="true"' : ''} ${disabled ? 'disabled' : ''} ${readonly ? 'readonly' : ''} ${required ? 'required' : ''}>${esc(value)}</textarea>`;
+      ${error ? 'aria-invalid="true"' : ''} ${disabled ? 'disabled' : ''} ${readonly ? 'readonly' : ''} ${required ? 'required' : ''}>${esc(value)}</textarea>${hint ? `<div class="ink-hint">${esc(hint)}</div>` : ''}`;
     this._ta = this.querySelector('textarea');
+    this._label = this.querySelector('label.ink-label');
+    this._hint = this.querySelector('.ink-hint');
+    this._syncRows();
     for (const name of [
       'minlength',
       'maxlength',
@@ -82,11 +105,13 @@ export class ETextarea extends BaseFormControl {
     this._value = value;
     this.internals.setFormValue(value);
     this._syncValidity();
+    this._syncCounter();
     this._ta!.addEventListener('input', (e) => {
       const v = (e.target as HTMLTextAreaElement).value;
       this._value = v;
       this.internals.setFormValue(v);
       this._syncValidity();
+      this._syncCounter();
       this.dispatchEvent(new CustomEvent('e-input', { detail: { value: v }, bubbles: true }));
     });
     this._ta!.addEventListener('change', (e) => {
@@ -94,6 +119,7 @@ export class ETextarea extends BaseFormControl {
       this._value = v;
       this.internals.setFormValue(v);
       this._syncValidity();
+      this._syncCounter();
       this.dispatchEvent(new CustomEvent('e-change', { detail: { value: v }, bubbles: true }));
     });
   }
@@ -105,6 +131,7 @@ export class ETextarea extends BaseFormControl {
       this._value = v ?? '';
       this.internals.setFormValue(this._value);
       this._syncValidity();
+      this._syncCounter();
     }
     if (name === 'aria-label') {
       if (v) this._ta.setAttribute('aria-label', v);
@@ -116,6 +143,9 @@ export class ETextarea extends BaseFormControl {
       this._ta.disabled = this.hasAttribute('disabled') || this._formDisabled;
     if (name === 'readonly') this._ta.readOnly = boolAttr(this, 'readonly');
     if (name === 'placeholder') this._ta.placeholder = v ?? '';
+    if (name === 'label') this._syncLabel(v ?? '');
+    if (name === 'hint') this._syncHint(v ?? '');
+    if (name === 'rows') this._syncRows();
     if (name === 'required' || name === 'required-message') {
       this._ta.required = boolAttr(this, 'required');
       this._syncValidity();
@@ -123,6 +153,7 @@ export class ETextarea extends BaseFormControl {
     if (name === 'minlength' || name === 'maxlength') {
       this._syncNativeConstraint(name, v);
       this._syncValidity();
+      if (name === 'maxlength') this._syncCounter();
     }
     if (['autocomplete', 'inputmode', 'enterkeyhint', 'spellcheck'].includes(name)) {
       this._syncNativeConstraint(name, v);
@@ -137,6 +168,7 @@ export class ETextarea extends BaseFormControl {
     if (this._ta) this._ta.value = this._value;
     this.internals.setFormValue(this._value);
     this._syncValidity();
+    this._syncCounter();
   }
 
   protected serialize(v: string): string {
@@ -169,6 +201,76 @@ export class ETextarea extends BaseFormControl {
     if (!this._ta) return;
     if (value == null) this._ta.removeAttribute(name);
     else this._ta.setAttribute(name, value);
+  }
+
+  /**
+   * `rows` owns the height when authored; otherwise the pre-v1.3.0
+   * `min-height` keeps the control the size existing layouts expect.
+   */
+  private _syncRows(): void {
+    if (!this._ta) return;
+    const rows = intAttr(this, 'rows', 0);
+    if (this.hasAttribute('rows') && rows >= 1) {
+      this._ta.rows = rows;
+      this._ta.style.minHeight = '';
+    } else {
+      this._ta.removeAttribute('rows');
+      this._ta.style.minHeight = DEFAULT_MIN_HEIGHT;
+    }
+  }
+
+  private _syncLabel(value: string): void {
+    if (!this._ta) return;
+    if (value && !this._label) {
+      const label = document.createElement('label');
+      label.className = 'ink-label';
+      label.htmlFor = this._ta.id;
+      label.textContent = value;
+      this.insertBefore(label, this._ta);
+      this._label = label;
+    } else if (!value && this._label) {
+      this._label.remove();
+      this._label = null;
+    } else if (this._label) {
+      patchText(this._label, value);
+    }
+  }
+
+  private _syncHint(value: string): void {
+    if (value && !this._hint) {
+      const hint = document.createElement('div');
+      hint.className = 'ink-hint';
+      hint.textContent = value;
+      this.appendChild(hint);
+      this._hint = hint;
+    } else if (!value && this._hint) {
+      this._hint.remove();
+      this._hint = null;
+    } else if (this._hint) {
+      patchText(this._hint, value);
+    }
+  }
+
+  /**
+   * A `current / max` readout, rendered only while `maxlength` is set. It is
+   * not a live region: an e-paper panel cannot afford a repaint per keystroke
+   * announcement, and the native `maxlength` already blocks overtyping.
+   */
+  private _syncCounter(): void {
+    if (!this._ta) return;
+    const max = this.getAttribute('maxlength');
+    if (max == null || max.trim() === '') {
+      this._counter?.remove();
+      this._counter = null;
+      return;
+    }
+    if (!this._counter) {
+      const counter = document.createElement('div');
+      counter.className = 'ink-textarea__counter';
+      this._ta.after(counter);
+      this._counter = counter;
+    }
+    patchText(this._counter, `${this._ta.value.length} / ${max}`);
   }
 
   protected override formDisabledChanged(): void {

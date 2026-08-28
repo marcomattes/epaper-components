@@ -10,20 +10,43 @@ import '../badge/badge';
  * tab switch — nested Custom Elements (form controls etc.) keep their state.
  *
  * @attr {string} [default-value] - Key of the tab active on first render. Defaults to the first tab when absent, empty or matching no tab.
+ * @attr {string} [value] - Key of the active tab. Reactive: setting it after mount switches tabs without emitting `e-change`, which is what a wizard or a multi-section form host needs. Wins over `default-value` at mount. A key matching no tab is ignored. Not reflected — read the `value` property for the live key. @since v1.3.0
  *
- * @fires {CustomEvent<{value: string}>} e-change - Fired when the user activates a different tab. `value` is the activated tab's `key`.
+ * @fires {CustomEvent<{value: string}>} e-change - Fired when the user activates a different tab. `value` is the activated tab's `key`. Programmatic switches via the `value` attribute or property stay silent.
  *
  * @example
  * <e-tabs default-value="a">
  *   <e-tab key="a" label="Apples">Apple panel</e-tab>
  *   <e-tab key="b" label="Bananas" count="3">Banana panel</e-tab>
  * </e-tabs>
+ *
+ * @example
+ * // Wizard host driving the strip programmatically.
+ * document.querySelector('e-tabs').value = 'step-2';
  */
 export class ETabs extends HTMLElement {
+  static readonly observedAttributes = ['value'];
+
   private _wired = false;
   private _active = '';
   private readonly _buttons = new Map<string, HTMLButtonElement>();
   private readonly _panels = new Map<string, HTMLElement>();
+
+  /** Key of the active tab. Assigning switches tabs without emitting `e-change`. @since v1.3.0 */
+  get value(): string {
+    return this._active;
+  }
+  set value(v: string) {
+    const key = v ?? '';
+    if (this._wired) this._activate(key, false);
+    else this.setAttribute('value', key);
+  }
+
+  attributeChangedCallback(_name: string, _old: string | null, v: string | null) {
+    // Panels stay mounted, so switching is a pure `hidden` flip: nested form
+    // controls keep their state across a programmatic tab change.
+    if (this._wired) this._activate(v ?? '', false);
+  }
 
   connectedCallback() {
     if (!this._wired) {
@@ -38,7 +61,9 @@ export class ETabs extends HTMLElement {
   }
 
   private _build(): void {
-    const dflt = this.getAttribute('default-value');
+    // An authored `value` is the stronger statement of intent — it is the
+    // attribute a host keeps in sync — so it outranks `default-value`.
+    const dflt = this.getAttribute('value') || this.getAttribute('default-value');
     const tabs = [...this.querySelectorAll('e-tab')].map((tab) => ({
       key: tab.getAttribute('key') ?? '',
       label: tab.getAttribute('label') || '',

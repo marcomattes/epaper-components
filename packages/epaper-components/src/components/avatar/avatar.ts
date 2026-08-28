@@ -2,9 +2,11 @@ import {
   clampedNumAttr,
   define,
   intAttr,
+  observeItems,
   patchAttr,
   patchClassModifier,
   patchText,
+  runCleanups,
 } from '../../core/dom';
 
 /**
@@ -87,7 +89,16 @@ define('e-avatar', EAvatar);
 /**
  * @summary Stack of avatars with overflow indicator.
  *
- * Reads avatar data from child `<e-avatar-item>` elements at connect time.
+ * Reads avatar data from child `<e-avatar-item>` elements and keeps them live:
+ * the authored items stay in the light DOM as the source of truth, and a
+ * `MutationObserver` re-syncs the rendered stack whenever one is added,
+ * removed, renamed or re-sourced. Rendered `<e-avatar>` elements keep their
+ * DOM identity across a sync — only changed attributes are patched.
+ *
+ * The items render nothing themselves, but each one is hidden with an inline
+ * `display:none` when it is wired so it can never take up layout. The stable
+ * form of that is a `e-avatar-item { display: none; }` rule in
+ * `components.css`; the inline style is what guarantees it without one.
  *
  * @attr {number} [max=4] - Maximum visible avatars; remainder collapses into a `+N` chip.
  * @attr {number} [size=36] - Pixel size applied to each avatar.
@@ -102,83 +113,67 @@ export class EAvatarGroup extends HTMLElement {
   static readonly observedAttributes = ['max', 'size'];
 
   private _wired = false;
-  private _avatarData: Array<{ name: string; src: string | null }> = [];
   private _group: HTMLElement | null = null;
   private _avatarEls: HTMLElement[] = [];
   private _overflowEl: HTMLElement | null = null;
 
   connectedCallback() {
-    if (this._wired) return;
-    this._wired = true;
-    this._avatarData = [...this.querySelectorAll('e-avatar-item')].map((a) => ({
-      name: a.getAttribute('name') ?? '',
-      src: a.getAttribute('src'),
-    }));
-    this._build();
+    if (!this._wired) {
+      this._wired = true;
+      const group = document.createElement('div');
+      group.className = 'ink-avatar-group';
+      this._group = group;
+      this.appendChild(group);
+    }
+    this._sync();
+    observeItems(this, this._sync, {
+      attributeFilter: ['name', 'src'],
+      isOutput: (n) => this._group?.contains(n) ?? false,
+    });
   }
 
-  attributeChangedCallback(name: string) {
-    if (!this._wired) return;
-    if (name === 'size') this._patchSize();
-    else if (name === 'max') this._patchMax();
+  disconnectedCallback() {
+    runCleanups(this);
   }
 
-  private _build(): void {
-    const max = Math.max(0, Math.min(this._avatarData.length, intAttr(this, 'max', 4)));
+  attributeChangedCallback() {
+    if (this._wired) this._sync();
+  }
+
+  /** Authored items, excluding anything inside the rendered stack. */
+  private _items(): Array<{ name: string; src: string | null }> {
+    return [...this.querySelectorAll<HTMLElement>('e-avatar-item')]
+      .filter((a) => !this._group?.contains(a))
+      .map((a) => {
+        if (a.style.display !== 'none') a.style.display = 'none';
+        return { name: a.getAttribute('name') ?? '', src: a.getAttribute('src') };
+      });
+  }
+
+  private readonly _sync = (): void => {
+    const group = this._group;
+    if (!group) return;
+    const data = this._items();
+    const max = Math.max(0, Math.min(data.length, intAttr(this, 'max', 4)));
     const size = clampedNumAttr(this, 'size', 36, 8, 512);
-    const overflow = this._avatarData.length - max;
-    const visible = this._avatarData.slice(0, max);
+    const visible = data.slice(0, max);
 
-    const group = document.createElement('div');
-    group.className = 'ink-avatar-group';
-    this._group = group;
-    this._avatarEls = [];
-    this._overflowEl = null;
-
-    for (const a of visible) {
-      const el = this._makeAvatar(a, size);
-      group.appendChild(el);
-      this._avatarEls.push(el);
-    }
-
-    if (overflow > 0) {
-      const chip = this._makeOverflow(overflow, size);
-      group.appendChild(chip);
-      this._overflowEl = chip;
-    }
-
-    this.appendChild(group);
-  }
-
-  private _patchSize(): void {
-    const size = clampedNumAttr(this, 'size', 36, 8, 512);
-    for (const el of this._avatarEls) {
-      el.setAttribute('size', String(size));
-    }
-    if (this._overflowEl) {
-      this._overflowEl.style.width = `${size}px`;
-      this._overflowEl.style.height = `${size}px`;
-    }
-  }
-
-  private _patchMax(): void {
-    const max = Math.max(0, Math.min(this._avatarData.length, intAttr(this, 'max', 4)));
-    const size = clampedNumAttr(this, 'size', 36, 8, 512);
-    const group = this._group!;
-
-    // Remove excess avatars from the end.
-    while (this._avatarEls.length > max) {
-      this._avatarEls.pop()!.remove();
-    }
-    // Add missing avatars (insert before overflow chip).
-    while (this._avatarEls.length < Math.min(max, this._avatarData.length)) {
-      const a = this._avatarData[this._avatarEls.length];
+    // Trim from the end, then patch/extend so existing avatars keep identity.
+    while (this._avatarEls.length > visible.length) this._avatarEls.pop()!.remove();
+    visible.forEach((a, i) => {
+      const existing = this._avatarEls[i];
+      if (existing) {
+        patchAttr(existing, 'name', a.name);
+        patchAttr(existing, 'src', a.src);
+        patchAttr(existing, 'size', String(size));
+        return;
+      }
       const el = this._makeAvatar(a, size);
       group.insertBefore(el, this._overflowEl ?? null);
       this._avatarEls.push(el);
-    }
+    });
 
-    const overflow = this._avatarData.length - max;
+    const overflow = data.length - max;
     if (overflow > 0) {
       if (!this._overflowEl) {
         const chip = this._makeOverflow(overflow, size);
@@ -186,11 +181,20 @@ export class EAvatarGroup extends HTMLElement {
         this._overflowEl = chip;
       } else {
         patchText(this._overflowEl, `+${overflow}`);
+        this._patchChipSize(size);
       }
     } else if (this._overflowEl) {
       this._overflowEl.remove();
       this._overflowEl = null;
     }
+  };
+
+  private _patchChipSize(size: number): void {
+    const chip = this._overflowEl;
+    if (!chip) return;
+    const px = `${size}px`;
+    if (chip.style.width !== px) chip.style.width = px;
+    if (chip.style.height !== px) chip.style.height = px;
   }
 
   private _makeAvatar(a: { name: string; src: string | null }, size: number): HTMLElement {

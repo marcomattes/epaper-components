@@ -2122,8 +2122,9 @@ describe('e-qrcode', () => {
     expect(svg.getAttribute('width')).toBe('100');
     expect(svg.getAttribute('height')).toBe('100');
     expect(svg.getAttribute('shape-rendering')).toBe('crispEdges');
-    expect(svg.querySelector('rect')!.getAttribute('fill')).toBe('#fff');
-    expect(svg.querySelector('path')!.getAttribute('fill')).toBe('#000');
+    // Theme-aware since v1.3.0: hard-coded #fff/#000 ignored both theme packs.
+    expect(svg.querySelector('rect')!.getAttribute('fill')).toBe('var(--ink-bg, #fff)');
+    expect(svg.querySelector('path')!.getAttribute('fill')).toBe('currentColor');
     expect(svg.querySelector('path')!.getAttribute('d')!.length).toBeGreaterThan(0);
   });
 

@@ -171,6 +171,15 @@ e-checkbox-group [role='group'][aria-disabled='true'] {
   padding-left: var(--ink-space-2);
   margin-top: var(--ink-space-2);
 }
+
+/* A passive readout under a textarea, shown only while maxlength is set. */
+.ink-textarea__counter {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-caption);
+  line-height: 1.4;
+  text-align: right;
+  margin-top: var(--ink-space-1);
+}
 .ink-error {
   font-size: var(--ink-text-caption);
   line-height: 1.4;
@@ -276,6 +285,30 @@ e-checkbox-group [role='group'][aria-disabled='true'] {
 }
 .ink-card__cover--hatch {
   background-image: var(--ink-hatch-cover);
+}
+
+/* Image cover mode. The cover box already centres its content with flex, so
+   in image mode the <img> simply fills it. */
+.ink-card__cover--image {
+  padding: 0;
+}
+.ink-card__cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* Shown only after a load failure, sitting on the hatch the cover falls back
+   to — so it needs its own solid backing to stay legible against the stripes. */
+.ink-card__cover-fallback {
+  background: var(--ink-fg);
+  color: var(--ink-bg);
+  padding: var(--ink-space-1) var(--ink-space-2);
+  font-family: var(--ink-sans);
+  font-size: var(--ink-text-small);
+  font-weight: 700;
+  max-width: 80%;
+  text-align: center;
 }
 .ink-card__footer {
   padding: 12px 18px;
@@ -474,6 +507,18 @@ e-checkbox-group [role='group'][aria-disabled='true'] {
   letter-spacing: -0.005em;
 }
 
+/* Always visible: a self-link that only appears on :hover is unreachable on
+   a panel with no pointer. */
+.ink-title__anchor {
+  margin-left: var(--ink-space-2);
+  font-family: var(--ink-mono);
+  font-size: 0.6em;
+  font-weight: 400;
+  color: var(--ink-fg);
+  text-decoration: none;
+  vertical-align: middle;
+}
+
 .ink-text {
   font-family: var(--ink-sans);
   font-size: var(--ink-text-body);
@@ -502,12 +547,49 @@ e-checkbox-group [role='group'][aria-disabled='true'] {
   text-transform: uppercase;
 }
 
+.ink-text--caption {
+  font-family: var(--ink-sans);
+  font-size: var(--ink-text-caption);
+  line-height: 1.4;
+}
+.ink-text--strike {
+  font-family: var(--ink-sans);
+  font-size: var(--ink-text-body);
+  line-height: var(--ink-lh-body);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+/* data-align, not a class: the ink-text-- prefix belongs to `kind`, and
+   patchClassModifier strips every other class under that prefix. */
+.ink-text[data-align='start'] {
+  display: block;
+  text-align: start;
+}
+.ink-text[data-align='center'] {
+  display: block;
+  text-align: center;
+}
+.ink-text[data-align='end'] {
+  display: block;
+  text-align: end;
+}
+.ink-text[data-align='justify'] {
+  display: block;
+  text-align: justify;
+}
+
 .ink-link {
   color: var(--ink-fg);
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-underline-offset: 3px;
   font-weight: 600;
+}
+
+.ink-link[data-external]::after {
+  content: ' ↗';
+  font-size: 0.85em;
+  text-decoration: none;
 }
 
 /* ============================================================
@@ -687,9 +769,23 @@ e-avatar-group,
 e-badge-count,
 e-ribbon,
 e-input-number,
-e-radio,
-e-segment {
+e-radio {
   display: inline-flex;
+}
+
+/* Data carriers. These elements only hold data for their parent component,
+   which renders the visible output into its own container and leaves them in
+   the light DOM so it can keep observing them — see `observeItems` in
+   `core/dom.ts`. Before that they were consumed and removed at connect, which
+   is why they never needed a rule. The components also set `display: none`
+   inline as a belt-and-braces guard; this is the intended stable form. */
+e-timeline-item,
+e-desc-item,
+e-breadcrumb-item,
+e-avatar-item,
+e-anchor-item,
+e-segment {
+  display: none;
 }
 e-title {
   display: block;
@@ -1630,6 +1726,29 @@ e-text {
   background: var(--ink-fg);
   color: var(--ink-bg);
 }
+
+/* Per-step status. Severity has to survive greyscale, so it is carried by
+   border weight and a hatch fill, never by colour alone — same rule as
+   e-alert. */
+.ink-steps__item[data-status] .ink-steps__bubble {
+  border-width: var(--ink-border-width-error);
+}
+.ink-steps__item[data-status='error'] .ink-steps__bubble {
+  background-image: var(--ink-hatch-error);
+  border-color: var(--ink-danger);
+}
+.ink-steps__item[data-status='warning'] .ink-steps__bubble {
+  border-color: var(--ink-warning);
+  border-style: dashed;
+}
+.ink-steps__item[data-status] .ink-steps__status {
+  font-weight: 700;
+}
+/* The active step inverts its whole cell in horizontal mode; keep the status
+   bubble readable inside that inversion. */
+.ink-steps--horizontal .ink-steps__item[data-active='true'][data-status] .ink-steps__bubble {
+  border-color: var(--ink-bg);
+}
 .ink-steps--horizontal .ink-steps__item[data-active='true'] .ink-steps__bubble {
   border-color: var(--ink-bg);
 }
@@ -2219,6 +2338,27 @@ e-text {
 .ink-list[data-split] .ink-list__body > e-list-item + e-list-item {
   border-top: var(--ink-border);
 }
+
+/* Ordered mode. The rows are <e-list-item>, not <li>, so the numbering comes
+   from a counter rather than a native marker. */
+.ink-list[data-ordered] .ink-list__body {
+  counter-reset: ink-list-item;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.ink-list[data-ordered] .ink-list__body > e-list-item {
+  counter-increment: ink-list-item;
+}
+.ink-list[data-ordered] .ink-list__body > e-list-item > .ink-list__item::before {
+  content: counter(ink-list-item) '.';
+  flex-shrink: 0;
+  min-width: 2ch;
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-small);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
 .ink-list__item {
   display: flex;
   align-items: center;
@@ -2555,6 +2695,14 @@ e-statistic[data-status='high'] .ink-statistic__status {
   stroke-width: 0.75;
   stroke-dasharray: 3 3;
   vector-effect: non-scaling-stroke;
+}
+
+/* The guide already strokes with currentColor; a breached threshold thickens
+   and dashes it so the warning reads without colour. */
+.ink-sparkline[data-threshold='above'] .ink-sparkline__guide,
+.ink-sparkline[data-threshold='at'] .ink-sparkline__guide {
+  stroke-width: 1.5;
+  stroke-dasharray: 4 2;
 }
 .ink-sparkline__line {
   fill: none;
@@ -3195,6 +3343,12 @@ e-diff {
   padding: var(--ink-space-2);
   line-height: 0;
   box-sizing: border-box;
+}
+
+/* Required: the SVG path paints with currentColor now, so the wrapper pins
+   the ink token instead of inheriting whatever colour the host happens to set. */
+.ink-qrcode {
+  color: var(--ink-fg);
 }
 .ink-qrcode svg {
   display: block;

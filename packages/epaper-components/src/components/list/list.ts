@@ -9,6 +9,11 @@ import { boolAttr, define, patchBoolAttr, patchText } from '../../core/dom';
  *
  * @attr {boolean} [bordered] - Renders an outer 2 px border.
  * @attr {boolean} [split=true] - Draws a 2 px divider between rows. Set `split="false"` to disable.
+ * @attr {boolean} [ordered] - Renders the row container as an `<ol>` and numbers the rows, for a
+ *   list whose sequence carries meaning (numbered Bekanntmachungspunkte, procedure steps). Rows keep
+ *   their `<e-list-item>` identity, so the numbering comes from a CSS counter rather than from
+ *   native `<li>` markers. Toggling it after mount swaps the container and moves the existing rows
+ *   across untouched. @since v1.3.0
  * @attr {string} [header-title] - Optional header text rendered above the rows.
  *
  * @slot - Default slot for `<e-list-item>` children.
@@ -20,15 +25,23 @@ import { boolAttr, define, patchBoolAttr, patchText } from '../../core/dom';
  *   <e-list-item title="Annual report" description="Finance · 2026"></e-list-item>
  *   <e-list-item title="Sustainability"></e-list-item>
  * </e-list>
+ *
+ * @example
+ * <e-list ordered header-title="Tagesordnung">
+ *   <e-list-item title="Eröffnung"></e-list-item>
+ *   <e-list-item title="Haushaltssatzung 2026"></e-list-item>
+ * </e-list>
  */
 export class EList extends HTMLElement {
-  static readonly observedAttributes = ['bordered', 'split', 'header-title'];
+  static readonly observedAttributes = ['bordered', 'split', 'ordered', 'header-title'];
 
   private _wired = false;
   private _root: HTMLElement | null = null;
+  private _body: HTMLElement | null = null;
   private _headerTitle: HTMLElement | null = null;
   private _header: HTMLElement | null = null;
   private _customHeader = false;
+  private _ordered = false;
 
   connectedCallback() {
     if (this._wired) return;
@@ -63,10 +76,12 @@ export class EList extends HTMLElement {
       root.appendChild(header);
     }
 
-    const body = document.createElement('div');
+    this._ordered = boolAttr(this, 'ordered');
+    const body = document.createElement(this._ordered ? 'ol' : 'div');
     body.className = 'ink-list__body';
     for (const it of items) body.appendChild(it);
     root.appendChild(body);
+    this._body = body;
 
     if (footerSlot) {
       const footer = document.createElement('div');
@@ -92,6 +107,24 @@ export class EList extends HTMLElement {
     const split = this.getAttribute('split') !== 'false';
     patchBoolAttr(this._root, 'data-bordered', bordered);
     patchBoolAttr(this._root, 'data-split', split);
+    this._syncOrdered();
+  }
+
+  /**
+   * `ordered` decides the container element, so a change has to swap it. The
+   * rows themselves are moved over, never recreated: their DOM identity — and
+   * with it any state living inside a row — survives the toggle.
+   */
+  private _syncOrdered(): void {
+    const ordered = boolAttr(this, 'ordered');
+    patchBoolAttr(this._root!, 'data-ordered', ordered);
+    if (ordered === this._ordered || !this._body) return;
+    this._ordered = ordered;
+    const next = document.createElement(ordered ? 'ol' : 'div');
+    next.className = this._body.className;
+    while (this._body.firstChild) next.appendChild(this._body.firstChild);
+    this._body.replaceWith(next);
+    this._body = next;
   }
 
   private _syncHeaderTitle(): void {

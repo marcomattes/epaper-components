@@ -429,7 +429,7 @@
     {
       "name": "barrel (all components)",
       "path": "dist/index.js",
-      "limit": "45 KB"
+      "limit": "50 KB"
     },
     {
       "name": "e-button (single component)",

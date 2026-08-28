@@ -1,4 +1,4 @@
-import { define, esc, intAttr } from '../../core/dom';
+import { define, esc, intAttr, patchAttr } from '../../core/dom';
 
 /* ============================================================================
  * Self-contained QR Code encoder (byte mode).
@@ -478,11 +478,16 @@ function qrToSvg(qr: QrCode, scale: number, border: number): string {
       }
     }
   }
+  // Inline SVG lives in the light DOM, so it inherits the page's colors:
+  // `currentColor` for the modules and `--ink-bg` for the quiet zone make the
+  // code follow both theme packs instead of staying black-on-white while the
+  // rest of the panel inverts. The literal fallbacks keep a bare, unstyled
+  // page (or a scraped standalone SVG) readable.
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${dim} ${dim}"` +
     ` width="${dim}" height="${dim}" shape-rendering="crispEdges">` +
-    `<rect width="100%" height="100%" fill="#fff"/>` +
-    `<path d="${parts.join('')}" fill="#000"/>` +
+    `<rect width="100%" height="100%" fill="var(--ink-bg, #fff)"/>` +
+    `<path d="${parts.join('')}" fill="currentColor"/>` +
     `</svg>`
   );
 }
@@ -497,22 +502,34 @@ function qrToSvg(qr: QrCode, scale: number, border: number): string {
  *
  * Encodes text in byte mode (UTF-8) and selects the smallest version that
  * fits at the given error-correction level. The output is pure SVG with two
- * shapes (white background + single dark path), which is the most
+ * shapes (background rect + single dark path), which is the most
  * e-paper-friendly representation: every module is a sharp 1-bit cell.
+ *
+ * Colors come from the theme, not from hard-coded black and white: the modules
+ * are painted with `currentColor` and the quiet zone with `--ink-bg`, so the
+ * code inverts along with an inverted theme pack instead of staying stuck.
  *
  * @attr {string} value - Text or URL to encode.
  * @attr {'L'|'M'|'Q'|'H'} [level='M'] - Error-correction level (~7%, 15%, 25%, 30% recovery).
- * @attr {number} [scale=4] - Module pixel size.
+ * @attr {number} [scale=4] - Module pixel size. Ignored when `width` is set.
+ * @attr {number} [width] - Target edge length in px. The module size is the largest whole number of
+ *   pixels that fits, so the rendered code is never wider than `width` and every module stays on a
+ *   pixel boundary — a fractional module size dithers into mush on an EPDC panel. @since v1.3.0
  * @attr {number} [border=2] - Quiet-zone width in modules.
+ * @attr {string} [label] - Accessible name for the code. Defaults to `QR code for <value>`, which
+ *   otherwise reads a raw URL out character by character. @since v1.3.0
  *
  * @example
  * <e-qrcode value="https://epaper.example.com" level="M" scale="4"></e-qrcode>
+ *
+ * @example
+ * <e-qrcode value="https://amt.example.de/az/2026-0815" width="180" label="Vorgang 2026-0815"></e-qrcode>
  */
 // Cache key type for the encoder result.
 type QrData = ReturnType<typeof encodeText>;
 
 export class EQrcode extends HTMLElement {
-  static readonly observedAttributes = ['value', 'level', 'scale', 'border'];
+  static readonly observedAttributes = ['value', 'level', 'scale', 'border', 'width', 'label'];
 
   private _wired = false;
   private _wrap: HTMLElement | null = null;
@@ -559,15 +576,18 @@ export class EQrcode extends HTMLElement {
         this._cachedQr = encodeText(value, ecl);
         this._cachedQrKey = qrKey;
       }
-      const newSvg = qrToSvg(this._cachedQr!, scale, border);
+      const qr = this._cachedQr!;
+      const newSvg = qrToSvg(qr, this._effectiveScale(qr.size, border, scale), border);
       if (newSvg !== this._lastContent) {
         this._wrap.innerHTML = newSvg;
         this._lastContent = newSvg;
-        const svg = this._wrap.firstElementChild;
-        if (svg) {
-          svg.setAttribute('role', 'img');
-          svg.setAttribute('aria-label', `QR code for ${value}`);
-        }
+      }
+      // Applied outside the content guard: `label` can change while the
+      // geometry does not, and the cached-SVG comparison would swallow it.
+      const svg = this._wrap.firstElementChild;
+      if (svg) {
+        patchAttr(svg, 'role', 'img');
+        patchAttr(svg, 'aria-label', this.getAttribute('label') || `QR code for ${value}`);
       }
     } catch (err) {
       const errHtml = `<div class="ink-qrcode__error" role="img" aria-label="QR code error">${esc((err as Error).message)}</div>`;
@@ -576,6 +596,20 @@ export class EQrcode extends HTMLElement {
         this._lastContent = errHtml;
       }
     }
+  }
+
+  /**
+   * `width` wins over `scale` when present: it names the box the code has to
+   * fit into. The module size is floored to whole pixels so the code never
+   * exceeds `width` and never lands on half a pixel, which an EPDC panel
+   * renders as a smeared edge rather than a crisp module.
+   */
+  private _effectiveScale(size: number, border: number, scale: number): number {
+    if (!this.hasAttribute('width')) return scale;
+    const width = intAttr(this, 'width', 0);
+    if (width <= 0) return scale;
+    const modules = size + border * 2;
+    return Math.max(1, Math.min(64, Math.floor(width / modules)));
   }
 }
 

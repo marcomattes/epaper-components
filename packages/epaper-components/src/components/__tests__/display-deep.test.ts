@@ -901,7 +901,7 @@ describe('e-alert', () => {
     const root = el.querySelector<HTMLElement>('.ink-alert')!;
     expect(root.dataset['variant']).toBe('info');
     expect(root.getAttribute('role')).toBe('status');
-    expect(iconPath(root, '.ink-alert__icon')).toBe(ICONS.doc);
+    expect(iconPath(root, '.ink-alert__icon')).toBe(ICONS.info);
     expect(root.querySelector('.ink-alert__icon svg')!.getAttribute('width')).toBe('20');
     expect(root.querySelector('.ink-alert__body')!.textContent).toBe('Body text');
     expect(root.querySelector<HTMLElement>('.ink-alert__heading')!.hidden).toBe(true);
@@ -927,11 +927,11 @@ describe('e-alert', () => {
 
   it('maps every variant to its icon and falls back to info', () => {
     const cases: Array<[string, string]> = [
-      ['info', ICONS.doc],
+      ['info', ICONS.info],
       ['success', ICONS.check],
-      ['warning', ICONS.bell],
-      ['error', ICONS.close],
-      ['nonsense', ICONS.doc],
+      ['warning', ICONS.warning],
+      ['error', ICONS.error],
+      ['nonsense', ICONS.info],
     ];
     for (const [variant, path] of cases) {
       const el = mount(`<e-alert variant="${variant}">x</e-alert>`);
@@ -951,7 +951,7 @@ describe('e-alert', () => {
     el.setAttribute('variant', 'error');
     expect(root.dataset['variant']).toBe('error');
     expect(root.getAttribute('role')).toBe('alert');
-    expect(iconPath(root, '.ink-alert__icon')).toBe(ICONS.close);
+    expect(iconPath(root, '.ink-alert__icon')).toBe(ICONS.error);
 
     el.setAttribute('variant', 'success');
     expect(root.getAttribute('role')).toBe('status');
@@ -1107,7 +1107,7 @@ describe('e-alert', () => {
     const root = el.querySelector<HTMLElement>('.ink-alert')!;
     expect(root.dataset['variant']).toBe('warning');
     expect(root.querySelector<HTMLElement>('.ink-alert__heading')!.textContent).toBe('Pre');
-    expect(iconPath(root, '.ink-alert__icon')).toBe(ICONS.bell);
+    expect(iconPath(root, '.ink-alert__icon')).toBe(ICONS.warning);
   });
 });
 

@@ -3,22 +3,23 @@
 // registry.
 import { describe, it, expect } from 'vitest';
 import {
+  addCleanup,
+  boolAttr,
+  captureWrap,
+  clampedNumAttr,
+  cloneItemBody,
+  define,
   esc,
   html,
-  boolAttr,
-  numAttr,
   intAttr,
-  clampedNumAttr,
-  define,
-  randId,
-  addCleanup,
-  runCleanups,
+  numAttr,
   onGlobal,
-  patchText,
   patchAttr,
   patchBoolAttr,
   patchClassModifier,
-  captureWrap,
+  patchText,
+  randId,
+  runCleanups,
   syncEyebrowTitle,
   type EyebrowTitleRefs,
 } from './dom';
@@ -661,5 +662,46 @@ describe('syncEyebrowTitle', () => {
     expect(cleared.eyebrow).toBeNull();
     expect(cleared.titleEl).toBeNull();
     expect(left.children).toHaveLength(0);
+  });
+});
+
+describe('cloneItemBody', () => {
+  const carrier = (html: string): HTMLElement => {
+    const el = document.createElement('div');
+    el.innerHTML = html;
+    return el;
+  };
+
+  it('copies the carrier content into the target', () => {
+    const target = document.createElement('div');
+    cloneItemBody(carrier('<b>Shipped</b> today'), target);
+    expect(target.innerHTML).toBe('<b>Shipped</b> today');
+  });
+
+  it('leaves the carrier untouched, since it stays the source of truth', () => {
+    const item = carrier('<b>Shipped</b>');
+    cloneItemBody(item, document.createElement('div'));
+    expect(item.innerHTML).toBe('<b>Shipped</b>');
+  });
+
+  it('drops ids so the same one never appears twice in the document', () => {
+    const target = document.createElement('div');
+    cloneItemBody(carrier('<b id="code">EP-1</b><i id="x">y</i>'), target);
+    expect(target.querySelectorAll('[id]')).toHaveLength(0);
+    expect(target.textContent).toBe('EP-1y');
+  });
+
+  it('replaces whatever the target held before', () => {
+    const target = document.createElement('div');
+    target.innerHTML = '<span>stale</span>';
+    cloneItemBody(carrier('fresh'), target);
+    expect(target.innerHTML).toBe('fresh');
+  });
+
+  it('clears the target for an empty carrier', () => {
+    const target = document.createElement('div');
+    target.innerHTML = 'stale';
+    cloneItemBody(carrier(''), target);
+    expect(target.innerHTML).toBe('');
   });
 });

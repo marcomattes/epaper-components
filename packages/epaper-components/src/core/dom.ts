@@ -190,6 +190,25 @@ export function observeItems(
   return observer;
 }
 
+/**
+ * Copy a data carrier's child nodes into `target`, replacing whatever was
+ * there before.
+ *
+ * The nodes are cloned rather than moved, because the carrier stays in the
+ * light DOM as the component's source of truth (see {@link observeItems}) and
+ * must keep its own content to re-sync from. Cloning an `id` would put the
+ * same one in the document twice, which is invalid HTML and quietly breaks
+ * `getElementById` and every `label[for]` pointing at it — so ids are dropped
+ * from the copy. The authored element keeps its id and remains the one a page
+ * script addresses; edits to it flow back through the observer.
+ */
+export function cloneItemBody(item: Element, target: Element): void {
+  const fragment = document.createDocumentFragment();
+  for (const node of item.childNodes) fragment.appendChild(node.cloneNode(true));
+  for (const el of fragment.querySelectorAll('[id]')) el.removeAttribute('id');
+  target.replaceChildren(fragment);
+}
+
 /* ----------------------------------------------------------------------- *
  * Reactive patch helpers (E-paper friendly).
  *
