@@ -64,6 +64,13 @@
   padding-left: var(--ink-space-2);
   margin-top: var(--ink-space-2);
 }
+/* Author `display` on these blocks beats the UA sheet's
+ * `[hidden] { display: none }`, so every control that toggles a label or a
+ * hint with the attribute has to opt back out explicitly. */
+.ink-label[hidden],
+.ink-hint[hidden] {
+  display: none;
+}
 .ink-error {
   font-size: var(--ink-text-caption);
   line-height: 1.4;
@@ -1343,6 +1350,302 @@ e-text {
 }
 
 /* ============================================================
+ * Rating · star / smiley scale
+ *
+ * The selected state is a solid glyph plus an inset border, never
+ * a colour change: on a 1-bit panel a filled star is the only
+ * difference that survives a partial refresh.
+ * ============================================================ */
+.ink-rating {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-2);
+  font-family: var(--ink-sans);
+  color: var(--ink-fg);
+}
+.ink-rating__group {
+  display: flex;
+  gap: var(--ink-space-2);
+}
+.ink-rating__symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: var(--ink-border);
+  background: var(--ink-bg);
+  color: var(--ink-fg);
+  box-shadow: inset 0 0 0 0 var(--ink-fg);
+  cursor: pointer;
+  box-sizing: border-box;
+}
+.ink-rating__symbol[data-on='true'] {
+  box-shadow: inset 0 0 0 var(--ink-border-width) var(--ink-fg);
+}
+.ink-rating__symbol:focus-visible {
+  outline: var(--ink-focus-width) solid var(--ink-fg);
+  outline-offset: var(--ink-focus-offset);
+}
+.ink-rating__symbol[disabled] {
+  background-image: var(--ink-hatch-disabled);
+  cursor: not-allowed;
+}
+.ink-rating__group[aria-readonly='true'] .ink-rating__symbol {
+  background-image: none;
+  cursor: default;
+}
+
+/* ============================================================
+ * Slider · range input with printed scale
+ *
+ * The only place the library styles `input[type='range']`. Both
+ * vendor pseudo-elements are needed: a single selector list with
+ * a `::-webkit-` and a `::-moz-` part is dropped whole by the
+ * engine that does not know one of them.
+ * ============================================================ */
+.ink-slider {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-2);
+  font-family: var(--ink-sans);
+  color: var(--ink-fg);
+}
+.ink-slider__row {
+  display: flex;
+  align-items: center;
+  gap: var(--ink-space-3);
+}
+.ink-slider__input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--ink-fg);
+  -webkit-appearance: none;
+  appearance: none;
+}
+.ink-slider__input:focus-visible {
+  outline: var(--ink-focus-width) solid var(--ink-fg);
+  outline-offset: var(--ink-focus-offset);
+}
+.ink-slider__input::-webkit-slider-runnable-track {
+  height: 10px;
+  border: var(--ink-border);
+  background: var(--ink-bg);
+  box-sizing: border-box;
+}
+.ink-slider__input::-moz-range-track {
+  height: 10px;
+  border: var(--ink-border);
+  background: var(--ink-bg);
+  box-sizing: border-box;
+}
+/* A 28×36 grip: a thumb small enough to look elegant on an LCD is
+   unhittable through a kiosk's protective sheet. */
+.ink-slider__input::-webkit-slider-thumb {
+  width: 28px;
+  height: 36px;
+  margin-top: -15px;
+  border: var(--ink-border);
+  background: var(--ink-fg);
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.ink-slider__input::-moz-range-thumb {
+  width: 28px;
+  height: 36px;
+  border: var(--ink-border);
+  border-radius: 0;
+  background: var(--ink-fg);
+  box-sizing: border-box;
+}
+.ink-slider__input[disabled]::-webkit-slider-runnable-track {
+  background-image: var(--ink-hatch-disabled);
+}
+.ink-slider__input[disabled]::-moz-range-track {
+  background-image: var(--ink-hatch-disabled);
+}
+.ink-slider__input[disabled] {
+  cursor: not-allowed;
+}
+.ink-slider__value {
+  flex: none;
+  min-width: 5ch;
+  text-align: right;
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-h6);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-mono);
+}
+.ink-slider__ticks {
+  position: relative;
+  height: 10px;
+  margin: 0 14px;
+}
+.ink-slider__tick {
+  position: absolute;
+  top: 0;
+  width: var(--ink-border-width);
+  height: 8px;
+  background: var(--ink-fg);
+  transform: translateX(-50%);
+}
+.ink-slider__scale {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-mono);
+}
+.ink-slider__value[hidden],
+.ink-slider__ticks[hidden],
+.ink-slider__scale[hidden] {
+  display: none;
+}
+
+/* ============================================================
+ * PIN input · one box per digit
+ * ============================================================ */
+.ink-pin {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-2);
+  font-family: var(--ink-sans);
+}
+.ink-pin__boxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ink-space-2);
+}
+.ink-pin__box {
+  width: 56px;
+  min-height: 64px;
+  padding: 0;
+  text-align: center;
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-h3);
+  font-weight: 700;
+}
+/* Filled state as an inset shadow, not a thicker border: a border
+   change would shift the box by a pixel on every digit. */
+.ink-pin__box[data-filled='true'] {
+  box-shadow: inset 0 0 0 var(--ink-border-width) var(--ink-fg);
+}
+
+/* ============================================================
+ * Signature · canvas capture pad
+ * ============================================================ */
+.ink-signature {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-2);
+  font-family: var(--ink-sans);
+}
+.ink-signature__pad {
+  position: relative;
+  border: var(--ink-border);
+  background: var(--ink-bg);
+}
+.ink-signature__canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--ink-bg);
+  /* Without this the first pointermove scrolls the page instead of
+     drawing, which on a kiosk looks like a dead pad. */
+  touch-action: none;
+}
+.ink-signature__canvas[hidden] {
+  display: none;
+}
+.ink-signature__baseline {
+  position: absolute;
+  right: 8%;
+  bottom: 22%;
+  left: 8%;
+  border-top: var(--ink-border-hair);
+}
+.ink-signature__fallback {
+  margin: 0;
+  padding: var(--ink-space-4);
+  text-align: center;
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-small);
+  font-weight: 700;
+}
+.ink-signature__fallback[hidden] {
+  display: none;
+}
+.ink-signature__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ============================================================
+ * Keypad · on-screen numeric entry
+ * ============================================================ */
+.ink-keypad {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--ink-space-2);
+  font-family: var(--ink-sans);
+  color: var(--ink-fg);
+}
+.ink-keypad__display {
+  min-height: var(--ink-control-h-md);
+  padding: var(--ink-space-2) var(--ink-space-3);
+  border: var(--ink-border);
+  background: var(--ink-bg);
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-h4);
+  font-weight: 700;
+  text-align: right;
+  letter-spacing: var(--ink-tracking-mono);
+  box-sizing: border-box;
+}
+.ink-keypad__display[hidden] {
+  display: none;
+}
+.ink-keypad__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(64px, 1fr));
+  gap: var(--ink-space-2);
+}
+.ink-keypad__key {
+  min-height: 64px;
+  padding: 0;
+  border: var(--ink-border);
+  background: var(--ink-bg);
+  color: var(--ink-fg);
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-h4);
+  font-weight: 700;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+.ink-keypad__key:focus-visible {
+  outline: var(--ink-focus-width) solid var(--ink-fg);
+  outline-offset: calc(var(--ink-focus-offset) * -1);
+}
+.ink-keypad__key:active:not([disabled]) {
+  background: var(--ink-fg);
+  color: var(--ink-bg);
+}
+.ink-keypad__key[data-kind='clear'],
+.ink-keypad__key[data-kind='backspace'] {
+  font-size: var(--ink-text-h5);
+}
+.ink-keypad__key[disabled] {
+  background-image: var(--ink-hatch-disabled);
+  cursor: not-allowed;
+}
+/* ============================================================
  * Menu
  * ============================================================ */
 .ink-menu {
@@ -1765,6 +2068,217 @@ e-text {
   font-weight: 700;
 }
 
+/* ============================================================
+ * Agenda · proportional day/week time axis
+ *
+ * Blocks are positioned as percentages of a fixed-height track,
+ * so a 90-minute entry is literally three times a 30-minute one.
+ * The hour rules come from a repeating gradient driven by
+ * `--ink-agenda-hours`, which the component sets per track — one
+ * custom property instead of a DOM node per hour.
+ * ============================================================ */
+.ink-agenda {
+  --ink-agenda-track-h: 420px;
+  --ink-agenda-axis-w: 60px;
+  border: var(--ink-border);
+  background: var(--ink-bg);
+  color: var(--ink-fg);
+  font-family: var(--ink-sans);
+  box-sizing: border-box;
+}
+.ink-agenda__head {
+  padding: var(--ink-space-3) var(--ink-space-4);
+  border-bottom: var(--ink-border);
+}
+.ink-agenda__eyebrow {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-label);
+  text-transform: uppercase;
+}
+.ink-agenda__title {
+  font-size: var(--ink-text-h5);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-tight);
+}
+.ink-agenda__all-day {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ink-space-3);
+  padding: var(--ink-space-2) var(--ink-space-4);
+  border-bottom: var(--ink-border-hair);
+}
+.ink-agenda__all-day[hidden] {
+  display: none;
+}
+.ink-agenda__all-day-label {
+  flex: none;
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-label);
+  text-transform: uppercase;
+}
+.ink-agenda__all-day-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ink-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ink-agenda__all-day-item {
+  padding: 2px 6px;
+  border: var(--ink-border-hair);
+  font-size: var(--ink-text-small);
+  font-weight: 600;
+}
+.ink-agenda__col-heads {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  margin-left: var(--ink-agenda-axis-w);
+}
+.ink-agenda__col-head {
+  padding: var(--ink-space-2);
+  border-bottom: var(--ink-border-hair);
+  border-left: var(--ink-border-hair);
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-mono);
+  text-transform: uppercase;
+  text-align: center;
+}
+.ink-agenda__col-head[hidden] {
+  display: none;
+}
+.ink-agenda__col-head[data-today='true'] {
+  background: var(--ink-fg);
+  color: var(--ink-bg);
+}
+.ink-agenda__body {
+  display: flex;
+  padding: var(--ink-space-3) var(--ink-space-3) var(--ink-space-4);
+}
+.ink-agenda__axis {
+  position: relative;
+  flex: none;
+  width: calc(var(--ink-agenda-axis-w) - var(--ink-space-3));
+  height: var(--ink-agenda-track-h);
+}
+.ink-agenda__tick {
+  position: absolute;
+  right: 6px;
+  left: 0;
+  text-align: right;
+  transform: translateY(-50%);
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-mono);
+}
+.ink-agenda__tracks {
+  display: grid;
+  flex: 1;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  min-width: 0;
+}
+.ink-agenda__track {
+  position: relative;
+  height: var(--ink-agenda-track-h);
+  border-left: var(--ink-border);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--ink-fg) 0 var(--ink-border-width-hair),
+    transparent var(--ink-border-width-hair) calc(100% / var(--ink-agenda-hours, 10))
+  );
+}
+.ink-agenda__block,
+.ink-agenda__gap {
+  position: absolute;
+  right: 4px;
+  left: 4px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 20px;
+  padding: 2px 6px;
+  background: var(--ink-bg);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.ink-agenda__block {
+  border: var(--ink-border);
+}
+.ink-agenda__block[data-status='confirmed'] {
+  border-left-width: var(--ink-border-width-strong);
+}
+/* Tentative is a dashed outline, not a hatch fill: a hatch behind the
+   entry's own text is the one place the pattern costs more legibility
+   than it buys. */
+.ink-agenda__block[data-status='tentative'],
+.ink-agenda__all-day-item[data-status='tentative'] {
+  border-style: dashed;
+}
+.ink-agenda__block[data-status='cancelled'] .ink-agenda__block-label,
+.ink-agenda__all-day-item[data-status='cancelled'] {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+.ink-agenda__gap {
+  border: var(--ink-border-width-hair) dashed var(--ink-fg);
+  justify-content: flex-start;
+}
+.ink-agenda__block-time {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-mono);
+}
+.ink-agenda__block-time:empty {
+  display: none;
+}
+.ink-agenda__block-label {
+  font-size: var(--ink-text-small);
+  font-weight: 600;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ink-agenda__gap .ink-agenda__block-label {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-mono);
+  text-transform: uppercase;
+}
+/* The marker sits above the blocks: a "now" line hidden behind an
+   entry is worse than no marker at all. */
+.ink-agenda__now {
+  position: absolute;
+  right: 0;
+  left: 0;
+  border-top: var(--ink-border-strong);
+  z-index: 2;
+}
+.ink-agenda__now-label {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0 4px;
+  transform: translateY(-50%);
+  background: var(--ink-fg);
+  color: var(--ink-bg);
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-mono);
+  text-transform: uppercase;
+}
 /* ============================================================
  * Tag · removable inline label
  * ============================================================ */
@@ -2226,6 +2740,86 @@ e-text {
   border: 0;
 }
 
+/* ============================================================
+ * Price · split euro/cent typography
+ *
+ * The two halves of the amount are set at different sizes from
+ * one `font-size` on the wrapper, so a size step changes both in
+ * proportion and the shelf label scales from 1.5" to 10".
+ * ============================================================ */
+.ink-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  font-family: var(--ink-sans);
+  color: var(--ink-fg);
+}
+.ink-price__original {
+  font-size: var(--ink-text-body);
+  font-weight: 600;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+.ink-price__amount {
+  display: flex;
+  align-items: flex-start;
+  gap: 2px;
+  font-size: 44px;
+  font-weight: 700;
+  line-height: var(--ink-lh-tight);
+  letter-spacing: var(--ink-tracking-tight);
+}
+.ink-price__minor,
+.ink-price__currency {
+  font-size: 0.46em;
+  line-height: 1;
+  padding-top: 0.12em;
+}
+.ink-price[data-size='xs'] .ink-price__amount {
+  font-size: 22px;
+}
+.ink-price[data-size='sm'] .ink-price__amount {
+  font-size: 32px;
+}
+.ink-price[data-size='lg'] .ink-price__amount {
+  font-size: 64px;
+}
+.ink-price[data-size='xl'] .ink-price__amount {
+  font-size: 92px;
+}
+.ink-price[data-size='xs'] .ink-price__original,
+.ink-price[data-size='sm'] .ink-price__original {
+  font-size: var(--ink-text-small);
+}
+.ink-price__unit,
+.ink-price__note {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-small);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-mono);
+}
+.ink-price__note {
+  font-size: var(--ink-text-label);
+}
+.ink-price__original[hidden],
+.ink-price__currency[hidden],
+.ink-price__minor[hidden],
+.ink-price__unit[hidden],
+.ink-price__note[hidden] {
+  display: none;
+}
+.ink-price .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 /* ============================================================
  * Meter · discrete bounded measurement
  * ============================================================ */
@@ -2743,6 +3337,116 @@ e-diff {
 }
 
 /* ============================================================
+ * Event log · keyed, append-only alarm list
+ *
+ * Every cell keeps its grid column even when empty — hiding one
+ * would take it out of the grid and slide the rest of the row
+ * left, so the columns would stop lining up between rows.
+ * ============================================================ */
+.ink-event-log {
+  border: var(--ink-border);
+  background: var(--ink-bg);
+  color: var(--ink-fg);
+  font-family: var(--ink-sans);
+  box-sizing: border-box;
+}
+.ink-event-log__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ink-event-log__list[hidden],
+.ink-event-log__empty[hidden] {
+  display: none;
+}
+.ink-event-log__row {
+  display: grid;
+  grid-template-columns: 24px 9ch minmax(0, 12ch) minmax(0, 1fr) auto;
+  gap: var(--ink-space-2);
+  align-items: center;
+  padding: 6px var(--ink-space-3);
+  border-bottom: var(--ink-border-hair);
+  border-left: var(--ink-border-width-strong) solid transparent;
+}
+.ink-event-log__row:last-child {
+  border-bottom: 0;
+}
+.ink-event-log__row[data-severity='warning'] {
+  border-left-color: var(--ink-warning);
+}
+.ink-event-log__row[data-severity='error'] {
+  border-left-color: var(--ink-danger);
+}
+.ink-event-log__row[data-severity='critical'] {
+  border-left-color: var(--ink-danger);
+  background-image: var(--ink-hatch-error);
+  background-size: 6px 100%;
+  background-repeat: no-repeat;
+}
+.ink-event-log__cue {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: var(--ink-border-hair);
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-caption);
+  font-weight: 700;
+  box-sizing: border-box;
+}
+.ink-event-log__row[data-severity='error'] .ink-event-log__cue,
+.ink-event-log__row[data-severity='critical'] .ink-event-log__cue {
+  background: var(--ink-fg);
+  color: var(--ink-bg);
+}
+.ink-event-log__time {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-small);
+  font-variant-numeric: tabular-nums;
+}
+.ink-event-log__source {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-mono);
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ink-event-log__message {
+  font-size: var(--ink-text-small);
+  line-height: 1.35;
+}
+.ink-event-log__ack {
+  padding: 0 4px;
+  border: var(--ink-border-hair);
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-mono);
+}
+.ink-event-log__source:empty,
+.ink-event-log__ack:empty {
+  border: 0;
+  padding: 0;
+}
+.ink-event-log__row[data-acknowledged='true'] .ink-event-log__cue {
+  background: var(--ink-bg);
+  color: var(--ink-fg);
+}
+.ink-event-log__empty {
+  margin: 0;
+  padding: var(--ink-space-4);
+  text-align: center;
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-small);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-mono);
+  text-transform: uppercase;
+}
+/* ============================================================
  * Description list ÔÇó key/value pairs
  * ============================================================ */
 .ink-desc-list {
@@ -2936,6 +3640,49 @@ e-diff {
   text-align: center;
 }
 
+/* ============================================================
+ * Barcode · inline SVG linear symbology
+ * ============================================================ */
+.ink-barcode {
+  display: inline-block;
+  padding: var(--ink-space-2);
+  border: var(--ink-border);
+  background: var(--ink-bg);
+  box-sizing: border-box;
+}
+.ink-barcode__bars {
+  line-height: 0;
+}
+.ink-barcode svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  background: var(--ink-bg);
+}
+.ink-barcode__text {
+  padding-top: 4px;
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-small);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-mono);
+  text-align: center;
+}
+.ink-barcode__text[hidden] {
+  display: none;
+}
+.ink-barcode__empty,
+.ink-barcode__error {
+  min-width: 120px;
+  padding: var(--ink-space-3);
+  border: var(--ink-border-hair);
+  background-image: var(--ink-hatch-disabled);
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-small);
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--ink-fg);
+}
 /* ============================================================
  * Dialog · modal on the native <dialog> element
  * ============================================================ */

@@ -3,7 +3,17 @@
 
 export { ICONS, iconSvg, SVG_NS } from './core/icons';
 export type { IconName } from './core/icons';
-export type { EChangeDetail, CascaderOption, TreeNode, CalendarEvent } from './core/types';
+export type {
+  EChangeDetail,
+  CascaderOption,
+  TreeNode,
+  CalendarEvent,
+  CalendarEventStatus,
+  EventLogEntry,
+  EventLogSeverity,
+} from './core/types';
+export { formatMoney, formatUnitPrice, MONEY_PLACEHOLDER } from './core/format';
+export type { MoneyParts } from './core/format';
 
 // Components
 export { EIcon } from './components/icon/icon';
@@ -39,6 +49,11 @@ export { EBreadcrumb, EBreadcrumbItem } from './components/breadcrumb/breadcrumb
 export { EDropdown, EDropdownItem } from './components/dropdown/dropdown';
 export { EForm, EFormItem } from './components/form/form';
 export { EInputNumber } from './components/input-number/input-number';
+export { ERating } from './components/rating/rating';
+export { ESlider } from './components/slider/slider';
+export { EPinInput } from './components/pin-input/pin-input';
+export { ESignature } from './components/signature/signature';
+export { EKeypad } from './components/keypad/keypad';
 export { ERadioGroup, ERadio } from './components/radio-group/radio-group';
 export { ESegmented, ESegment } from './components/segmented/segmented';
 export { ECheckboxGroup, ECboxOption } from './components/checkbox-group/checkbox-group';
@@ -54,6 +69,7 @@ export { ESteps, EStep } from './components/steps/steps';
 export { ETabs, ETab } from './components/tabs/tabs';
 export { EAvatar, EAvatarGroup, EAvatarItem } from './components/avatar/avatar';
 export { ECalendar } from './components/calendar/calendar';
+export { EAgenda } from './components/agenda/agenda';
 export { EKaleido } from './components/kaleido/kaleido';
 export { ETag } from './components/tag/tag';
 export { EChip } from './components/chip/chip';
@@ -64,6 +80,7 @@ export { EResult } from './components/result/result';
 export { EList, EListItem } from './components/list/list';
 export { ETable } from './components/table/table';
 export { EStatistic } from './components/statistic/statistic';
+export { EPrice } from './components/price/price';
 export { EMeter } from './components/meter/meter';
 export { ESparkline } from './components/sparkline/sparkline';
 export { EStatusBoard } from './components/status-board/status-board';
@@ -73,12 +90,15 @@ export { ELastUpdated } from './components/last-updated/last-updated';
 export type { UpdateFreshness } from './components/last-updated/last-updated';
 export { EDiff } from './components/diff/diff';
 export { ETimeline, ETimelineItem } from './components/timeline/timeline';
+export { EEventLog } from './components/event-log/event-log';
 export { EDescriptionList, EDescItem } from './components/description-list/description-list';
 export { EAffix } from './components/affix/affix';
 export { EBackTop } from './components/back-top/back-top';
 export { EWatermark } from './components/watermark/watermark';
 export { EImage } from './components/image/image';
 export { EQrcode } from './components/qrcode/qrcode';
+export { EBarcode } from './components/barcode/barcode';
+export type { BarcodeFormat } from './components/barcode/barcode';
 export { EDialog } from './components/dialog/dialog';
 export type { DialogCloseReason } from './components/dialog/dialog';
 export { EAlert } from './components/alert/alert';

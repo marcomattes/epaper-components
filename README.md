@@ -16,7 +16,7 @@
 > **[Storybook](https://epaper-components.dev/storybook/)**
 
 EPaper is a component library of plain custom elements for user interfaces that
-run on electrophoretic (e-paper, e-ink) displays. It ships 95 registered elements, a three-layer
+run on electrophoretic (e-paper, e-ink) displays. It ships 104 registered elements, a three-layer
 CSS token system, strict TypeScript types and a Custom Elements Manifest. There
 is no framework dependency and no runtime dependency at all; components extend
 `HTMLElement` or a shared `BaseFormControl` base class and render into the light
@@ -360,8 +360,8 @@ Sizes as of the current 1.0.1 build:
 
 ## Subpath imports and bundle size
 
-Every one of the 70 component modules is shipped as a separate ES module under
-`@marcomattes/epaper-components/<tag>`, and the barrel entry registers all 95
+Every one of the 79 component modules is shipped as a separate ES module under
+`@marcomattes/epaper-components/<tag>`, and the barrel entry registers all 104
 of the elements they define. The `sideEffects` allowlist in `package.json`
 covers the component modules and the public CSS files, so importing a single
 subpath pulls in that component plus its shared core chunks and nothing else,
@@ -370,8 +370,8 @@ in Vite, Rollup, esbuild and webpack 5.
 Compound elements that a parent component registers alongside itself — such as
 `<e-form-item>` (registered by `form.ts`) or `<e-option>` (registered by
 `select.ts`) — do not get their own subpath; importing the parent module
-registers them too. `package.json` exposes 98 subpaths in total: the barrel,
-71 component entries covering all 95 tags between them, three core-helper
+registers them too. `package.json` exposes 107 subpaths in total: the barrel,
+80 component entries covering all 104 tags between them, three core-helper
 entries, 22 CSS/source-map entries and the Custom Elements Manifest.
 
 | Goal               | Import                                                           |
@@ -380,10 +380,10 @@ entries, 22 CSS/source-map entries and the Custom Elements Manifest.
 | Type imports only  | `import type { EButton } from '@marcomattes/epaper-components';` |
 | Whole library      | `import '@marcomattes/epaper-components';`                       |
 
-Bundling the full library through esbuild currently produces 36.17 KB brotli;
-`npm run size` enforces a 40 KB brotli budget on the barrel and separate budgets
-on `<e-button>` (6 KB, currently 909 B) and `<e-input>` (8 KB, currently
-1.78 KB). The CSS files are declared as having side effects, since they apply
+Bundling the full library through esbuild currently produces 50.21 KB brotli;
+`npm run size` enforces a 52 KB brotli budget on the barrel and separate budgets
+on `<e-button>` (6 KB, currently 1.6 KB) and `<e-input>` (8 KB, currently
+2.05 KB). The CSS files are declared as having side effects, since they apply
 globally, and are never tree-shaken.
 
 ## Forms
@@ -445,23 +445,24 @@ Form controls also expose the standard `value`, `validity`, `validationMessage`,
 Components communicate through `CustomEvent`s with an `e-` prefix, all of them
 bubbling, and a typed `detail` payload. The default is an `e-change` event
 carrying `{ value: T }`; the following contracts differ from that default and
-are stable API. There are nine distinct event names in total:
+are stable API. There are ten distinct event names in total:
 
-| Event      | Detail                                                  | Fired by                                                                      |
-| ---------- | ------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `e-change` | `{ value: string }`                                     | `e-input`, `e-textarea`, `e-select`, `e-date-picker`, `e-tree-select`, …      |
-| `e-change` | `{ value: string[] }`                                   | `e-cascader`, `e-checkbox-group`                                              |
-| `e-change` | `{ value: number }`                                     | `e-pagination`, `e-input-number`                                              |
-| `e-change` | `{ checked: boolean }`                                  | `e-checkbox`, `e-toggle`                                                      |
-| `e-change` | `{ files: File[] }`                                     | `e-upload`                                                                    |
-| `e-input`  | `{ value: string }`                                     | `e-input`, `e-textarea`, on every keystroke (before the committed `e-change`) |
-| `e-click`  | `{ originalEvent: MouseEvent }`                         | `e-button`                                                                    |
-| `e-select` | `{ index: number }`                                     | `e-dropdown`                                                                  |
-| `e-close`  | `{ value: string }`                                     | `e-tag`, when its close control is activated                                  |
-| `e-load`   | `{ value: 'src' \| 'fallback' \| 'placeholder' }`       | `e-image`, when a source finishes rendering                                   |
-| `e-sort`   | `{ key: string, direction: 'asc' \| 'desc' \| 'none' }` | `e-table`, on a header sort click (the component never reorders rows itself)  |
-| `e-submit` | `{ form: HTMLFormElement }`                             | `e-form` (the native submit is `preventDefault`-ed)                           |
-| `e-error`  | `{ error: Error, source: string }`                      | `e-cascader`, `e-tree-select` on malformed JSON attributes                    |
+| Event            | Detail                                                  | Fired by                                                                      |
+| ---------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `e-change`       | `{ value: string }`                                     | `e-input`, `e-textarea`, `e-select`, `e-date-picker`, `e-tree-select`, …      |
+| `e-change`       | `{ value: string[] }`                                   | `e-cascader`, `e-checkbox-group`                                              |
+| `e-change`       | `{ value: number }`                                     | `e-pagination`, `e-input-number`                                              |
+| `e-change`       | `{ checked: boolean }`                                  | `e-checkbox`, `e-toggle`                                                      |
+| `e-change`       | `{ files: File[] }`                                     | `e-upload`                                                                    |
+| `e-input`        | `{ value: string }`                                     | `e-input`, `e-textarea`, on every keystroke (before the committed `e-change`) |
+| `e-click`        | `{ originalEvent: MouseEvent }`                         | `e-button`                                                                    |
+| `e-select`       | `{ index: number }`                                     | `e-dropdown`                                                                  |
+| `e-close`        | `{ value: string }`                                     | `e-tag`, when its close control is activated                                  |
+| `e-load`         | `{ value: 'src' \| 'fallback' \| 'placeholder' }`       | `e-image`, when a source finishes rendering                                   |
+| `e-sort`         | `{ key: string, direction: 'asc' \| 'desc' \| 'none' }` | `e-table`, on a header sort click (the component never reorders rows itself)  |
+| `e-submit`       | `{ form: HTMLFormElement }`                             | `e-form` (the native submit is `preventDefault`-ed)                           |
+| `e-error`        | `{ error: Error, source: string }`                      | `e-cascader`, `e-tree-select` on malformed JSON attributes                    |
+| `e-month-change` | `{ value: string, year: number, month: number }`        | `e-calendar`, when the displayed month moves. `value` is `YYYY-MM`            |
 
 The complete per-component list, including slots and attributes, is generated
 into `dist/custom-elements.json`. For typed listeners the package exports an
@@ -489,7 +490,7 @@ in [THEMING.md](./THEMING.md).
 
 ## E-paper data display
 
-Six display components cover persistent dashboard states without animation or
+Seven display components cover persistent dashboard states without animation or
 color-only meaning:
 
 | Component         | Purpose                                                        |
@@ -500,10 +501,41 @@ color-only meaning:
 | `e-change-marker` | Compact current value with a cue only when it changed.         |
 | `e-last-updated`  | Relative update age with fresh, stale and expired states.      |
 | `e-diff`          | Persistent previous/current comparison without color reliance. |
+| `e-event-log`     | Keyed event/alarm list that inserts new rows in place.         |
 
 `e-last-updated` deliberately starts no timer. Update its `now` attribute from
 the application's existing refresh cycle, or call `refresh()` when a panel
 redraw is already planned.
+
+`e-event-log` is keyed by the `id` of each row. A new event is inserted as a
+single node and an existing row is patched in place, so a live alarm list costs
+a partial refresh of one row rather than a full-page flash — which is why it
+replaces the `e-timeline` / `e-list` / `e-table` improvisations that live logs
+used before.
+
+## Schedules, retail labels and kiosk input
+
+| Component     | Purpose                                                                              |
+| ------------- | ------------------------------------------------------------------------------------ |
+| `e-agenda`    | Day or week agenda on a proportional time axis, with the free stretches labelled.    |
+| `e-price`     | Retail price with split major/minor typography, strike-through original, base price. |
+| `e-barcode`   | EAN-13, EAN-8, UPC-A and Code 128 as 1-bit SVG, from a self-contained encoder.       |
+| `e-rating`    | Star or smiley rating with 48px targets and full keyboard control.                   |
+| `e-slider`    | Range slider with a wide grip, a printed readout and optional tick marks.            |
+| `e-pin-input` | Fixed-length code entry as digit boxes, with auto-advance and paste support.         |
+| `e-signature` | Signature pad on a canvas, submitted as a PNG `File`.                                |
+| `e-keypad`    | On-screen numeric keypad, optionally typing into the control named by `for`.         |
+
+`e-agenda` reads the same `{date, title, start?, end?, status?}` entries as
+`e-calendar` — an entry without `start` is an all-day entry — and its "now"
+marker is drawn only from the `now` attribute, so, like `e-last-updated`, it
+owns no timer. `e-calendar` fires `e-month-change` when the displayed month
+moves, which is the hook for loading that month's entries and writing them back
+to `events`.
+
+The five kiosk controls are all form-associated: they participate in `<form>`
+submission, `FormData`, reset and BFCache restore like every other control in
+the library.
 
 ## TypeScript and IDE integration
 

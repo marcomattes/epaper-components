@@ -15,3 +15,17 @@ export function parseYMD(s: string | null | undefined): Date | null {
   }
   return parsed;
 }
+
+/** Parse `HH:MM` (24-hour) into minutes since midnight; `null` when malformed. */
+export function parseHM(s: string | null | undefined): number | null {
+  if (!s || !/^\d{1,2}:\d{2}$/.test(s)) return null;
+  const [h, m] = s.split(':').map(Number) as [number, number];
+  if (h > 23 || m > 59) return null;
+  return h * 60 + m;
+}
+
+/** Inverse of {@link parseHM}: minutes since midnight back to `HH:MM`. */
+export const hm = (minutes: number): string => {
+  const clamped = Math.max(0, Math.min(24 * 60, Math.round(minutes)));
+  return `${pad2(Math.floor(clamped / 60))}:${pad2(clamped % 60)}`;
+};

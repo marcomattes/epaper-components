@@ -195,6 +195,18 @@ fills or two-color hatch patterns, never blended gradients.
 | `--ink-hatch-error`    | `repeating-linear-gradient(…)` | Error-state hatch overlay    |
 | `--ink-hatch-cover`    | `repeating-linear-gradient(…)` | Cover hatch overlay          |
 
+### Component-scoped properties
+
+`<e-agenda>` reads three custom properties that are not global tokens, because
+their values only mean something inside it. Each is declared on the
+component's own root, so overriding one there — or on an ancestor — is enough.
+
+| Token                  | Declared on          | Default | Description                                                                                                 |
+| ---------------------- | -------------------- | ------- | ----------------------------------------------------------------------------------------------------------- |
+| `--ink-agenda-track-h` | `.ink-agenda`        | `420px` | Height of one `<e-agenda>` day column. Entry blocks are positioned as percentages of it.                    |
+| `--ink-agenda-axis-w`  | `.ink-agenda`        | `60px`  | Width of the hour axis beside the columns.                                                                  |
+| `--ink-agenda-hours`   | `.ink-agenda__track` | `10`    | Number of visible hours, written by the component itself so the hour rules match the axis. Do not override. |
+
 ## Class names
 
 EPaper exposes stable class names you may target with CSS:
@@ -212,6 +224,15 @@ EPaper exposes stable class names you may target with CSS:
 | `.ink-cascader`     | `<e-cascader>` wrapper       |
 | `.ink-datepicker`   | `<e-date-picker>` wrapper    |
 | `.ink-tabs`         | `<e-tabs>` wrapper           |
+| `.ink-agenda`       | `<e-agenda>` wrapper         |
+| `.ink-event-log`    | `<e-event-log>` wrapper      |
+| `.ink-price`        | `<e-price>` wrapper          |
+| `.ink-barcode`      | `<e-barcode>` wrapper        |
+| `.ink-rating`       | `<e-rating>` wrapper         |
+| `.ink-slider`       | `<e-slider>` wrapper         |
+| `.ink-pin`          | `<e-pin-input>` wrapper      |
+| `.ink-signature`    | `<e-signature>` wrapper      |
+| `.ink-keypad`       | `<e-keypad>` wrapper         |
 
 These names are part of the public API. We will not rename them in a minor
 release.

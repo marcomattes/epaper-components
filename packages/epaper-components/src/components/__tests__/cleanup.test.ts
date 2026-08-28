@@ -26,6 +26,7 @@ beforeAll(async () => {
   await import('../popover/popover');
   await import('../collapse/collapse');
   await import('../tree/tree');
+  await import('../rating/rating');
 });
 
 describe('disconnect/reconnect behaviour', () => {
@@ -49,6 +50,13 @@ describe('disconnect/reconnect behaviour', () => {
     reconnect(segmented);
     segmented.querySelector<HTMLButtonElement>('[data-value="b"]')!.click();
     expect(segmented.getAttribute('value')).toBe('b');
+
+    const rating = document.createElement('e-rating');
+    rating.setAttribute('max', '5');
+    reconnect(rating);
+    rating.querySelector<HTMLButtonElement>('[data-value="3"]')!.click();
+    expect(rating.getAttribute('value')).toBe('3');
+    rating.remove();
 
     const menu = document.createElement('e-menu');
     menu.innerHTML = '<e-menu-item value="a" label="A"></e-menu-item>';

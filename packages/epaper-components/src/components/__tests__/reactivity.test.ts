@@ -20,6 +20,11 @@ beforeAll(async () => {
   await import('../calendar/calendar');
   await import('../cascader/cascader');
   await import('../date-picker/date-picker');
+  await import('../agenda/agenda');
+  await import('../event-log/event-log');
+  await import('../price/price');
+  await import('../barcode/barcode');
+  await import('../rating/rating');
 });
 
 // A modal <dialog> makes the rest of the document inert and holds a share of
@@ -592,5 +597,65 @@ describe('collection patching', () => {
     // Same title, same count — the chip is not rebuilt, so the node survives.
     expect(el.querySelector('[data-day="10"] .ink-calendar__event')).toBe(chip);
     expect(el.querySelector('[data-day="11"] .ink-calendar__event')!.textContent).toBe('Retro');
+  });
+
+  it('e-agenda reuses its block nodes when the entries change', () => {
+    const events = (title: string): string =>
+      JSON.stringify([{ date: '2026-08-28', start: '09:00', end: '10:00', title }]);
+    const el = mount<HTMLElement>(
+      `<e-agenda date="2026-08-28" hide-gaps events='${events('Standup')}'></e-agenda>`,
+    );
+    const block = el.querySelector<HTMLElement>('.ink-agenda__block')!;
+    el.setAttribute('events', events('Retro'));
+    // Same shape, new text: the element survives, only its label is patched.
+    expect(el.querySelector('.ink-agenda__block')).toBe(block);
+    expect(block.querySelector('.ink-agenda__block-label')!.textContent).toBe('Retro');
+    // The track itself is never rebuilt either.
+    const track = el.querySelector('.ink-agenda__track');
+    el.setAttribute('start-hour', '7');
+    expect(el.querySelector('.ink-agenda__track')).toBe(track);
+  });
+
+  it('e-agenda drops surplus blocks instead of rebuilding the track', () => {
+    const el = mount<HTMLElement>(
+      `<e-agenda date="2026-08-28" hide-gaps events='${JSON.stringify([
+        { date: '2026-08-28', start: '09:00', end: '10:00', title: 'A' },
+        { date: '2026-08-28', start: '11:00', end: '12:00', title: 'B' },
+      ])}'></e-agenda>`,
+    );
+    const first = el.querySelector<HTMLElement>('.ink-agenda__block')!;
+    el.setAttribute(
+      'events',
+      JSON.stringify([{ date: '2026-08-28', start: '09:00', end: '10:00', title: 'A' }]),
+    );
+    expect(el.querySelectorAll('.ink-agenda__block')).toHaveLength(1);
+    expect(el.querySelector('.ink-agenda__block')).toBe(first);
+  });
+
+  it('e-price patches its parts in place across attribute changes', () => {
+    const el = mount<HTMLElement>(`<e-price value="3.99" locale="de-DE"></e-price>`);
+    const major = el.querySelector('.ink-price__major')!;
+    el.setAttribute('value', '4.50');
+    expect(el.querySelector('.ink-price__major')).toBe(major);
+    expect(major.textContent).toBe('4');
+    expect(el.querySelector('.ink-price__minor')!.textContent).toBe(',50');
+  });
+
+  it('e-barcode re-encodes only when the value changes', () => {
+    const el = mount<HTMLElement>(`<e-barcode value="96385074" show-text></e-barcode>`);
+    const svg = el.querySelector('svg')!;
+    el.setAttribute('show-text', 'still-there');
+    // The symbol is untouched by an attribute that only affects the caption.
+    expect(el.querySelector('svg')).toBe(svg);
+    el.setAttribute('value', '4006381333931');
+    expect(el.querySelector('svg')).not.toBe(svg);
+  });
+
+  it('e-rating patches the symbols it already built', () => {
+    const el = mount<HTMLElement>(`<e-rating value="1" max="3"></e-rating>`);
+    const symbols = [...el.querySelectorAll('.ink-rating__symbol')];
+    el.setAttribute('value', '3');
+    expect([...el.querySelectorAll('.ink-rating__symbol')]).toEqual(symbols);
+    expect(symbols.map((s) => (s as HTMLElement).dataset['on'])).toEqual(['true', 'true', 'true']);
   });
 });

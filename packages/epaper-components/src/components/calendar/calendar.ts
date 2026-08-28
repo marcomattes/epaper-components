@@ -7,7 +7,7 @@ import {
   runCleanups,
 } from '../../core/dom';
 import { iconSvg } from '../../core/icons';
-import { parseYMD, ymd } from '../../core/date';
+import { pad2, parseYMD, ymd } from '../../core/date';
 import type { CalendarEvent } from '../../core/types';
 import { isCalendarEvents } from '../../core/data';
 
@@ -22,6 +22,7 @@ const CELL_COUNT = 42;
  * @attr {string} [events='[]'] - JSON-encoded array of `{date, title}` event objects.
  *
  * @fires {CustomEvent<{value: string}>} e-change - Fired when the user picks a day. `value` is `YYYY-MM-DD`.
+ * @fires {CustomEvent<{value: string, year: number, month: number}>} e-month-change - Fired when the displayed month changes, by the header steppers or by keyboard navigation crossing a month boundary. `value` is `YYYY-MM`, `month` is 1-based. Load that month's events and write them back to the `events` attribute.
  *
  * @example
  * <e-calendar value="2025-04-26" events='[{"date":"2025-04-30","title":"Release"}]'></e-calendar>
@@ -116,8 +117,7 @@ export class ECalendar extends HTMLElement {
         m = 0;
         y += 1;
       }
-      this._view = { y, m };
-      this._patchGrid();
+      this._setView(y, m);
       return;
     }
 
@@ -152,14 +152,32 @@ export class ECalendar extends HTMLElement {
       delta = e.key === 'Home' ? -weekday : 6 - weekday;
     }
     const target = new Date(this._view.y, this._view.m, day + delta);
-    this._view = { y: target.getFullYear(), m: target.getMonth() };
-    this._patchGrid();
+    this._setView(target.getFullYear(), target.getMonth());
     const next = this._cells.find(
       (candidate) => !candidate.disabled && Number(candidate.dataset['day']) === target.getDate(),
     );
     for (const candidate of this._cells) candidate.tabIndex = candidate === next ? 0 : -1;
     next?.focus();
   };
+
+  /**
+   * Move the displayed month and announce it. The announcement is what makes
+   * lazy event loading possible: a host that only holds one month of data
+   * fetches the next one when this fires and writes it back to `events`.
+   */
+  private _setView(y: number, m: number): void {
+    const changed = y !== this._view.y || m !== this._view.m;
+    this._view = { y, m };
+    this._patchGrid();
+    if (!changed) return;
+    const value = `${y}-${pad2(m + 1)}`;
+    this.dispatchEvent(
+      new CustomEvent('e-month-change', {
+        detail: { value, year: y, month: m + 1 },
+        bubbles: true,
+      }),
+    );
+  }
 
   private _svgEl(svg: string): Element | null {
     const tpl = document.createElement('template');

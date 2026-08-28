@@ -7,8 +7,68 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- `<e-agenda>`: day and week agenda on a real time axis. Entries are drawn as
+  blocks whose height is their actual duration, and the free time between two
+  of them is labelled ("Free until 14:00") instead of left blank, so a glance
+  at a panel answers "what is next and when am I free" without counting grid
+  lines. An entry without a `start` time is listed as an all-day entry above
+  the axis. Like `<e-last-updated>`, the component owns no timer: the "now"
+  marker is drawn only when the `now` attribute is set, and moves only when
+  the host rewrites it from an existing refresh cycle.
+- `CalendarEvent` gained optional `start`, `end` and `status` fields. The
+  addition is backwards compatible — `date` and `title` stay required, and
+  `<e-calendar>` ignores the new fields — so one dataset now feeds both the
+  month grid and the agenda.
+- `<e-calendar>` fires `e-month-change` (`{value: 'YYYY-MM', year, month}`)
+  when the displayed month moves, by the header steppers or by keyboard
+  navigation crossing a month boundary. Hosts that hold one month of data at a
+  time can load the next one and write it back to `events`.
+- `<e-event-log>`: data-driven, keyed event and alarm list. Rows are identified
+  by `id`, so a new event is inserted as a single node and an existing row is
+  patched in place rather than the whole list being re-rendered — the
+  difference between a partial refresh of one row and a full-page GC16 flash.
+  `max-items` bounds what is rendered without discarding what was handed in;
+  `appendEntries()`, `acknowledge(id)` and `clear()` drive it from script. It
+  replaces the `<e-timeline>` / `<e-list>` / `<e-table>` improvisations that
+  live logs used before.
+- `<e-price>`: retail price with the major unit set large and the minor unit
+  small and raised. Formatting goes through `Intl`, so the currency symbol
+  lands where the locale puts it; `original` renders a struck-through previous
+  price, `unit-price`/`unit` a base price, and `size` scales the block from a
+  1.5" shelf label to a 10" panel.
+- `<e-barcode>`: EAN-13, EAN-8, UPC-A and Code 128 rendered as inline SVG by a
+  self-contained encoder, built the same way as `<e-qrcode>` — zero runtime
+  dependencies, one white rect plus one dark path, `shape-rendering="crispEdges"`.
+  A missing check digit is computed, a wrong one is reported instead of printed.
+- `<e-rating>`: star or smiley rating, form-associated, with 48px touch targets
+  and full keyboard control (arrows, `Home`/`End`, digit keys). An unrated
+  control submits an empty value, so `required` behaves as it does natively.
+- `<e-slider>`: range slider with a 28×36 grip, a printed value readout and
+  optional tick marks. The first component to style `input[type='range']`, and
+  the readout is not decoration: a thumb position alone is unreadable on a
+  panel without sub-pixel rendering.
+- `<e-pin-input>`: fixed-length code entry as separate digit boxes with
+  auto-advance, `inputmode="numeric"`, a `masked` option and paste support.
+- `<e-signature>`: signature pad on a canvas. The result is submitted as a PNG
+  `File` and a restored file is drawn back onto the canvas; `clear()` wipes it
+  and `fallback-text` covers a browser without a 2D context.
+- `<e-keypad>`: on-screen numeric keypad for kiosk browsers with no operating
+  system keyboard. It is a form control in its own right and mirrors every key
+  into the control named by `for`.
+- `core/format.ts`: `formatMoney()` and `formatUnitPrice()`, which return the
+  formatted amount together with the parts a price display sets separately
+  (major, minor, decimal separator, symbol and which side it belongs on).
+- `core/date.ts`: `parseHM()` and `hm()` for `HH:MM` times.
+
 ### Changed
 
+- The barrel's size budget moved from 45 KB to 52 KB brotli. The nine
+  components above add 9.2 KB to it (40.97 KB → 50.21 KB), most of it the
+  self-contained barcode encoder's symbology tables. Nothing changes for a
+  consumer importing a single sub-path: `<e-button>` is still 1.6 KB and
+  `<e-input>` 2.05 KB.
 - The website's cover page (`/`) now carries the site's subject in prose
   instead of only in a masthead. It was roughly sixty words — a headline, a
   lede and three statistics — which left the FAQ as the only page that spelled

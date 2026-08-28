@@ -16,6 +16,7 @@ const coreEntries = {
   'core/icons': resolve(__dirname, 'src/core/icons.ts'),
   'core/types': resolve(__dirname, 'src/core/types.ts'),
   'core/date': resolve(__dirname, 'src/core/date.ts'),
+  'core/format': resolve(__dirname, 'src/core/format.ts'),
   'core/base-form-control': resolve(__dirname, 'src/core/base-form-control.ts'),
 };
 
