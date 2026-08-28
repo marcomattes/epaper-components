@@ -2153,16 +2153,35 @@ describe('e-signature', () => {
     expect(el.querySelector<HTMLButtonElement>('.ink-btn')!.disabled).toBe(true);
   });
 
-  it('accepts an image assigned through the property and drops it on resize', async () => {
+  it('paints an image assigned through the property, and drops it on resize', async () => {
     const el = mount<HTMLElement & { value: string; empty: boolean }>(
       `<e-signature></e-signature>`,
     );
-    el.value = PNG;
-    expect(el.value).toBe(PNG);
+    // A solid square, so "has the image landed on the canvas" is observable:
+    // the 1x1 transparent PNG used elsewhere is indistinguishable from a
+    // blank pad.
+    const source = document.createElement('canvas');
+    source.width = 8;
+    source.height = 8;
+    const sourceCtx = source.getContext('2d')!;
+    sourceCtx.fillStyle = '#000';
+    sourceCtx.fillRect(0, 0, 8, 8);
+    const solid = source.toDataURL('image/png');
+
+    el.value = solid;
+    expect(el.value).toBe(solid);
     expect(el.empty).toBe(false);
-    await settle();
+
+    // Decoding is asynchronous: poll until the pad actually carries ink,
+    // which is what proves the load handler ran rather than just being wired.
+    const ctx = canvasOf(el).getContext('2d')!;
+    const opaque = (): number => ctx.getImageData(2, 2, 1, 1).data[3];
+    for (let i = 0; i < 100 && opaque() === 0; i++) await settle();
+    expect(opaque()).toBeGreaterThan(0);
+
     el.setAttribute('width', '300');
     expect(el.value).toBe('');
+    expect(el.empty).toBe(true);
   });
 
   it('serializes to a File and restores one through parseFile', () => {
@@ -2175,6 +2194,11 @@ describe('e-signature', () => {
     expect(file.size).toBeGreaterThan(0);
     // A value that is not a data URL cannot be turned into a PNG.
     expect(control.serialize('https://example.test/x.png')).toBeNull();
+
+    // `parse` is the string half of the same contract: a restored data URL
+    // is its own in-memory value.
+    expect(control.parse(PNG)).toBe(PNG);
+    expect(control.parse('')).toBe('');
 
     const restored = new File([new Uint8Array([1, 2, 3])], 'x.png', { type: 'image/png' });
     (el as unknown as { formStateRestoreCallback(s: File): void }).formStateRestoreCallback(
