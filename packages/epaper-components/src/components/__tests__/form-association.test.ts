@@ -17,6 +17,7 @@ beforeAll(async () => {
   await import('../button/button');
   await import('../upload/upload');
   await import('../input-number/input-number');
+  await import('../form/form');
 });
 
 const mount = (html: string): HTMLFormElement => {
@@ -1165,5 +1166,150 @@ describe('disabled form controls', () => {
     q(wrap, '.ink-select__trigger').click();
     option.click();
     expect(valueOf(el)).toBe('a');
+  });
+});
+
+/* ===================================================================== *
+ * e-form / e-form-item — reporting a blocked submission
+ * ===================================================================== */
+
+describe('e-form validation reporting', () => {
+  // `e-button` keeps its inner <button type="button"> and calls
+  // requestSubmit() itself, so the host carries the submit intent.
+  const submitButton = (root: HTMLElement): HTMLElement =>
+    root.querySelector<HTMLElement>('e-button[type="submit"] button')!;
+
+  it('links hint and error to the control with aria-describedby', () => {
+    const wrap = mountFragment(
+      `<e-form><e-form-item label="Name" hint="As on your badge"><e-input></e-input></e-form-item></e-form>`,
+    );
+    const control = wrap.querySelector('e-input')!;
+    const hint = wrap.querySelector('.ink-hint')!;
+    expect(hint.id).not.toBe('');
+    expect(control.getAttribute('aria-describedby')).toBe(hint.id);
+  });
+
+  it('describes the control by both hint and error is impossible — the error replaces the hint', () => {
+    const wrap = mountFragment(
+      `<e-form><e-form-item label="Name" hint="h" error="Required"><e-input></e-input></e-form-item></e-form>`,
+    );
+    const control = wrap.querySelector('e-input')!;
+    const error = wrap.querySelector('.ink-error')!;
+    expect(wrap.querySelector('.ink-hint')).toBeNull();
+    expect(control.getAttribute('aria-describedby')).toBe(error.id);
+  });
+
+  it('never claims an author-set aria-describedby', () => {
+    const wrap = mountFragment(
+      `<e-form><e-form-item hint="h"><e-input aria-describedby="mine"></e-input></e-form-item></e-form>`,
+    );
+    expect(wrap.querySelector('e-input')!.getAttribute('aria-describedby')).toBe('mine');
+  });
+
+  it('drops the description again when hint and error both go away', () => {
+    const wrap = mountFragment(
+      `<e-form><e-form-item hint="h"><e-input></e-input></e-form-item></e-form>`,
+    );
+    const item = wrap.querySelector('e-form-item')!;
+    const control = wrap.querySelector('e-input')!;
+    expect(control.hasAttribute('aria-describedby')).toBe(true);
+    item.removeAttribute('hint');
+    expect(control.hasAttribute('aria-describedby')).toBe(false);
+  });
+
+  it('fires e-invalid once per blocked submission, listing the failing controls', async () => {
+    const wrap = mountFragment(
+      `<e-form>
+         <e-form-item label="A"><e-input name="a" required></e-input></e-form-item>
+         <e-form-item label="B"><e-input name="b" required></e-input></e-form-item>
+         <e-button type="submit">Go</e-button>
+       </e-form>`,
+    );
+    const form = wrap.querySelector('e-form')!;
+    const seen: Array<CustomEvent<{ controls: HTMLElement[] }>> = [];
+    form.addEventListener('e-invalid', (e) =>
+      seen.push(e as CustomEvent<{ controls: HTMLElement[] }>),
+    );
+    submitButton(wrap).click();
+    await settle();
+    expect(seen).toHaveLength(1);
+    expect(seen[0]!.detail.controls.map((c) => c.getAttribute('name'))).toEqual(['a', 'b']);
+  });
+
+  it('moves focus to the first failing control', async () => {
+    const wrap = mountFragment(
+      `<e-form>
+         <e-form-item label="A"><e-input name="a" required></e-input></e-form-item>
+         <e-button type="submit">Go</e-button>
+       </e-form>`,
+    );
+    submitButton(wrap).click();
+    await settle();
+    expect(document.activeElement?.closest('e-input')).toBe(wrap.querySelector('e-input'));
+  });
+
+  it('ends a blocked submission with focus inside the form', async () => {
+    const wrap = mountFragment(
+      `<e-form>
+         <e-form-item label="A"><e-input name="a" required></e-input></e-form-item>
+         <e-button type="submit">Go</e-button>
+       </e-form>`,
+    );
+    submitButton(wrap).click();
+    await settle();
+    // Who moved focus is the platform's business — the guarantee is that the
+    // user lands on the field that blocked them, not somewhere off-screen.
+    expect(wrap.querySelector('form')!.contains(document.activeElement)).toBe(true);
+  });
+
+  it('surfaces the control validation message as the item error, then clears it', async () => {
+    const wrap = mountFragment(
+      `<e-form>
+         <e-form-item label="A"><e-input name="a" required></e-input></e-form-item>
+         <e-button type="submit">Go</e-button>
+       </e-form>`,
+    );
+    submitButton(wrap).click();
+    await settle();
+    const error = wrap.querySelector('.ink-error');
+    expect(error).not.toBeNull();
+    expect(error!.textContent!.length).toBeGreaterThan(1);
+
+    const input = wrap.querySelector('e-input')!.querySelector('input')!;
+    input.value = 'filled';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+    await settle();
+    expect(wrap.querySelector('.ink-error')).toBeNull();
+  });
+
+  it('lets an author-set error outrank the validation message', async () => {
+    const wrap = mountFragment(
+      `<e-form>
+         <e-form-item label="A" error="Pick a shorter name"><e-input name="a" required></e-input></e-form-item>
+         <e-button type="submit">Go</e-button>
+       </e-form>`,
+    );
+    submitButton(wrap).click();
+    await settle();
+    expect(wrap.querySelector('.ink-error')!.textContent).toBe('! Pick a shorter name');
+  });
+
+  it('novalidate skips constraint validation entirely', async () => {
+    const wrap = mountFragment(
+      `<e-form novalidate>
+         <e-form-item label="A"><e-input name="a" required></e-input></e-form-item>
+         <e-button type="submit">Go</e-button>
+       </e-form>`,
+    );
+    const form = wrap.querySelector('e-form')!;
+    const invalid: Event[] = [];
+    const submits: Event[] = [];
+    form.addEventListener('e-invalid', (e) => invalid.push(e));
+    form.addEventListener('e-submit', (e) => submits.push(e));
+    submitButton(wrap).click();
+    await settle();
+    expect(invalid).toHaveLength(0);
+    expect(submits).toHaveLength(1);
   });
 });

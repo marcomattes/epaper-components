@@ -11,7 +11,7 @@ import { boolAttr, define, patchText, randId } from '../../core/dom';
  *
  * @attr {'inline'} [layout] - Set to `inline` to render fields on one line.
  * @attr {boolean} [novalidate] - Skips constraint validation, as on a native `<form novalidate>`.
- * @attr {boolean} [no-autofocus] - Keeps focus where it is when a submission is blocked.
+ * @attr {boolean} [no-autofocus] - Suppresses the focus move on a blocked submission. The browser still focuses a natively focusable control on its own.
  *
  * @fires {CustomEvent<{form: HTMLFormElement}>} e-submit - Fired when the inner form is submitted; the native submit is `preventDefault`-ed.
  * @fires {CustomEvent<{controls: HTMLElement[], form: HTMLFormElement}>} e-invalid - Fired once per blocked submission, listing the controls that failed constraint validation.
@@ -53,13 +53,28 @@ export class EForm extends HTMLElement {
   }
 
   /**
+   * True when `el` sits inside another form-associated element — the native
+   * `<input>` that `e-input` renders, for instance. The browser validates
+   * both, so without this `e-invalid` would report each field twice: once as
+   * the component and once as its own internals.
+   */
+  private _isInternal(el: HTMLElement): boolean {
+    for (let parent = el.parentElement; parent && parent !== this; parent = parent.parentElement) {
+      const ctor = customElements.get(parent.localName) as
+        (CustomElementConstructor & { formAssociated?: boolean }) | undefined;
+      if (ctor?.formAssociated) return true;
+    }
+    return false;
+  }
+
+  /**
    * Collect one validation pass. The browser fires `invalid` once per failing
    * control in the same task, so the batch is closed on a microtask and
    * reported as a single event rather than one per field.
    */
   private _onInvalid(event: Event): void {
     const target = event.target;
-    if (!(target instanceof HTMLElement)) return;
+    if (!(target instanceof HTMLElement) || this._isInternal(target)) return;
     this._invalid.push(target);
     if (this._invalidQueued) return;
     this._invalidQueued = true;
@@ -72,7 +87,12 @@ export class EForm extends HTMLElement {
         const item = control.closest('e-form-item');
         if (item instanceof EFormItem) item.showValidationMessage();
       }
-      if (!boolAttr(this, 'no-autofocus')) {
+      // The browser focuses the first invalid control itself when that control
+      // is natively focusable, so this only steps in where it left focus
+      // outside the form — a composite control whose validation anchor the
+      // platform cannot focus. Fighting the browser for focus it already
+      // placed would move the user somewhere they did not ask to go.
+      if (!boolAttr(this, 'no-autofocus') && !this._form.contains(document.activeElement)) {
         const first = controls[0];
         if (first && typeof first.focus === 'function') first.focus();
       }
@@ -179,7 +199,7 @@ export class EFormItem extends HTMLElement {
     this._syncLabel(root, label, required);
     this._syncHint(root, hint, error);
     this._syncError(root, error);
-    this._syncControlSemantics(label, required, error);
+    this._syncControlSemantics(label, required);
   }
 
   /** Create, update or drop the label element (and its required pill). */
@@ -259,11 +279,7 @@ export class EFormItem extends HTMLElement {
     this._errorEl.textContent = `! ${error}`;
   }
 
-  private _syncControlSemantics(
-    label: string | null,
-    required: boolean,
-    error: string | null,
-  ): void {
+  private _syncControlSemantics(label: string | null, required: boolean): void {
     const control =
       this._control?.querySelector<HTMLElement>(
         'e-input, e-textarea, e-select, e-checkbox, e-toggle, e-radio-group, e-checkbox-group, e-date-picker, e-time-picker, e-cascader, e-tree-select, e-input-number, e-upload',
@@ -298,7 +314,11 @@ export class EFormItem extends HTMLElement {
     }
 
     this._syncDescribedBy(control);
-    this._syncControlError(control, error);
+    // Only an author-set `error` is mirrored back onto the control. A message
+    // taken from the control's own validity must not be: it would land as a
+    // customError that outlives the violation it describes, so the field could
+    // never report itself valid again once the user fixed it.
+    this._syncControlError(control, this.getAttribute('error'));
   }
 
   /**

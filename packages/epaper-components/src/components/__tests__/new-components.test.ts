@@ -2,7 +2,7 @@
 // e-statistic, e-timeline, e-description-list, e-affix, e-back-top,
 // e-watermark, e-image, e-qrcode, e-status-pill.
 import { describe, it, expect, beforeAll } from 'vitest';
-import { registerIcon, hasIcon, iconSvg } from '../../core/icons';
+import { registerIcon, hasIcon, iconSvg, iconNames, ICONS } from '../../core/icons';
 
 beforeAll(async () => {
   await import('../statistic/statistic');
@@ -347,5 +347,13 @@ describe('registerIcon', () => {
 
   it('rejects an empty name', () => {
     expect(() => registerIcon('  ', 'M0 0h1')).toThrow(/must not be empty/);
+  });
+
+  it('lists built-ins alongside anything registered', () => {
+    registerIcon('listed-glyph', 'M1 1h2');
+    const names = iconNames();
+    expect(names).toContain('listed-glyph');
+    expect(names).toContain('check');
+    expect(names.length).toBeGreaterThan(Object.keys(ICONS).length);
   });
 });

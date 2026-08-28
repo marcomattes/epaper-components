@@ -92,6 +92,14 @@ describe('formatDate', () => {
   it('formats a valid date without throwing', () => {
     expect(formatDate(el('<span locale="en-US"></span>'), '2026-08-28')).not.toBe('');
   });
+
+  it('falls back to ISO rather than throwing on a malformed locale', () => {
+    // Intl rejects a malformed language tag outright; a display component must
+    // not take the page down over a typo in an attribute.
+    expect(formatDate(el('<span locale="not a locale"></span>'), '2026-08-28T00:00:00Z')).toBe(
+      '2026-08-28T00:00:00.000Z',
+    );
+  });
 });
 
 describe('formatRelativeTime', () => {
@@ -130,11 +138,27 @@ describe('weekdayLabels', () => {
   it('localizes', () => {
     expect(weekdayLabels(el('<span locale="de-DE"></span>'), 1, 'short')[0]).toContain('Mo');
   });
+
+  it('falls back to the English narrow set on a malformed locale', () => {
+    expect(weekdayLabels(el('<span locale="not a locale"></span>'))).toEqual([
+      'S',
+      'M',
+      'T',
+      'W',
+      'T',
+      'F',
+      'S',
+    ]);
+  });
 });
 
 describe('monthLabel', () => {
   it('localizes the month name', () => {
     expect(monthLabel(el('<span locale="de-DE"></span>'), 0, 2026)).toBe('Januar');
     expect(monthLabel(el('<span locale="en-US"></span>'), 0, 2026)).toBe('January');
+  });
+
+  it('falls back to the month number on a malformed locale', () => {
+    expect(monthLabel(el('<span locale="not a locale"></span>'), 0, 2026)).toBe('1');
   });
 });
