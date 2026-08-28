@@ -1560,6 +1560,22 @@ e-text {
   font-family: var(--ink-mono);
   cursor: default;
 }
+.ink-pagination__summary {
+  display: inline-flex;
+  align-items: center;
+  height: var(--ink-control-h-md);
+  padding: 0 10px;
+  border-left: var(--ink-border);
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-mono);
+  color: var(--ink-fg);
+  white-space: nowrap;
+}
+/* An author `display` beats `[hidden] { display: none }` from the UA sheet —
+   the same trap as `.ink-dialog__header[hidden]`. */
+.ink-pagination__summary[hidden] {
+  display: none;
+}
 
 /* ============================================================
  * Steps
@@ -2415,6 +2431,29 @@ e-table[sticky-header] .ink-table thead th {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+/* Threshold status. Deliberately mirrors `.ink-meter[data-band]`: border
+   shape rather than colour, so the state survives a greyscale panel. */
+.ink-statistic__status {
+  align-self: flex-start;
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-label);
+  text-transform: uppercase;
+  border: var(--ink-border);
+  padding: 2px 6px;
+}
+e-statistic[data-status='low'] .ink-statistic__status {
+  border-style: double;
+  border-width: var(--ink-border-width-strong);
+}
+e-statistic[data-status='normal'] .ink-statistic__status {
+  border-style: dashed;
+}
+e-statistic[data-status='high'] .ink-statistic__status {
+  background: var(--ink-fg);
+  color: var(--ink-bg);
 }
 
 /* ============================================================

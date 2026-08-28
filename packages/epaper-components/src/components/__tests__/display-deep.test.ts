@@ -5,6 +5,13 @@
 // Each block drives the full add -> change -> remove triad for every
 // observed attribute and asserts the resulting DOM at each step, plus the
 // clamping, fallback and escaping edge cases.
+//
+// The trailing "localization" block covers the `locale` attribute, the
+// per-instance label overrides and the threshold/month events across every
+// component that renders a word or a number of its own. The English defaults
+// those components ship with are pinned by `data-display.test.ts` and
+// `data-media-deep.test.ts`; what is asserted here is that declaring a locale
+// changes them and that nothing else does.
 import { describe, it, expect, beforeAll } from 'vitest';
 import { ICONS } from '../../core/icons';
 
@@ -20,6 +27,11 @@ beforeAll(async () => {
   await import('../title/title');
   await import('../meter/meter');
   await import('../status-board/status-board');
+  await import('../calendar/calendar');
+  await import('../change-marker/change-marker');
+  await import('../last-updated/last-updated');
+  await import('../pagination/pagination');
+  await import('../statistic/statistic');
 });
 
 const mount = <T extends HTMLElement = HTMLElement>(html: string): T => {
@@ -1968,5 +1980,468 @@ describe('e-status-board', () => {
     remount(el);
     expect(el.querySelectorAll('.ink-status-board')).toHaveLength(1);
     expect(el.querySelector('.ink-status-board')).toBe(section);
+  });
+});
+
+/* ===================================================================== *
+ * Localization · e-change-marker, e-last-updated, e-meter, e-statistic,
+ * e-pagination, e-calendar
+ * ===================================================================== */
+
+/** Collects every `detail` of `type` dispatched from `el`. */
+const collect = <T>(el: Element, type: string): T[] => {
+  const out: T[] = [];
+  el.addEventListener(type, (e) => out.push((e as CustomEvent<T>).detail));
+  return out;
+};
+
+/** `Intl` separates a percentage or a currency with a non-breaking space. */
+const nbsp = (s: string | null): string => (s ?? '').replace(/[\u00a0\u202f]/g, ' ');
+
+const key = (el: Element, k: string): void => {
+  el.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true }));
+};
+
+describe('e-change-marker · localization', () => {
+  const cue = (el: HTMLElement): string =>
+    el.querySelector<HTMLElement>('.ink-change-marker__cue')!.textContent!;
+
+  it('renders the direction word and the delta for the declared locale', () => {
+    const el = mount(
+      `<e-change-marker locale="de" label="Temperatur" previous="21.8" value="22.4" suffix=" °C" precision="1"></e-change-marker>`,
+    );
+    expect(el.querySelector('.ink-change-marker__value')!.textContent).toBe('22,4 °C');
+    expect(cue(el)).toBe('▲ Gestiegen um 0,6 °C');
+    expect(el.getAttribute('aria-label')).toBe('Temperatur: 22,4 °C; ▲ Gestiegen um 0,6 °C');
+  });
+
+  it('words a decrease and an unchanged value in the declared locale', () => {
+    const el = mount(`<e-change-marker locale="de" previous="10" value="8"></e-change-marker>`);
+    expect(cue(el)).toBe('▼ Gefallen um 2');
+
+    el.setAttribute('previous', '8');
+    expect(el.querySelector('.ink-change-marker')!.getAttribute('data-change')).toBe('unchanged');
+    expect(el.getAttribute('aria-label')).toBe('8; unverändert');
+  });
+
+  it('keeps the English wording and the raw delta without a locale', () => {
+    const el = mount(
+      `<e-change-marker previous="21.8" value="22.4" precision="1"></e-change-marker>`,
+    );
+    expect(cue(el)).toBe('▲ Increased by 0.6');
+
+    // No precision means no number formatting at all, localized or not — the
+    // raw float reaches the cue exactly as it did before v1.3.0.
+    el.removeAttribute('precision');
+    expect(cue(el)).toBe(`▲ Increased by ${22.4 - 21.8}`);
+    expect(cue(el)).toContain('0.59999999999');
+  });
+
+  it('re-renders when the locale attribute is added, changed and removed', () => {
+    const el = mount(`<e-change-marker previous="1" value="2" precision="1"></e-change-marker>`);
+    expect(cue(el)).toBe('▲ Increased by 1.0');
+    el.setAttribute('locale', 'de');
+    expect(cue(el)).toBe('▲ Gestiegen um 1,0');
+    el.setAttribute('locale', 'en');
+    expect(cue(el)).toBe('▲ Increased by 1.0');
+    el.removeAttribute('locale');
+    expect(cue(el)).toBe('▲ Increased by 1.0');
+  });
+});
+
+describe('e-last-updated · localization', () => {
+  const BASE = '2026-08-17T14:00:00Z';
+  const at = (offsetSeconds: number): string =>
+    new Date(Date.parse(BASE) + offsetSeconds * 1000).toISOString();
+  const relative = (el: HTMLElement): string =>
+    el.querySelector('.ink-last-updated__relative')!.textContent!;
+  const state = (el: HTMLElement): string =>
+    el.querySelector('.ink-last-updated__state')!.textContent!;
+
+  it('renders the age and the freshness word for the declared locale', () => {
+    const el = mount(
+      `<e-last-updated locale="de" label="Aktualisiert" datetime="${BASE}" now="${at(259200)}"></e-last-updated>`,
+    );
+    expect(relative(el)).toBe('vor 3 Tagen');
+    expect(state(el)).toBe('Abgelaufen');
+    expect(el.getAttribute('aria-label')).toBe('Aktualisiert: vor 3 Tagen; Abgelaufen');
+  });
+
+  it.each([
+    ['fresh', 100, 'Aktuell'],
+    ['stale', 400, 'Veraltet'],
+    ['expired', 4000, 'Abgelaufen'],
+  ])('words the %s state in German', (freshness, age, word) => {
+    const el = mount(
+      `<e-last-updated locale="de" datetime="${BASE}" now="${at(age)}"></e-last-updated>`,
+    );
+    expect(el.querySelector('.ink-last-updated')!.getAttribute('data-freshness')).toBe(freshness);
+    expect(state(el)).toBe(word);
+  });
+
+  it('reports an unparsable timestamp in the declared locale', () => {
+    const el = mount(`<e-last-updated locale="de" datetime="not-a-date"></e-last-updated>`);
+    expect(el.querySelector('.ink-last-updated')!.getAttribute('data-freshness')).toBe('invalid');
+    expect(state(el)).toBe('Ungültiges Datum');
+    expect(relative(el)).toBe('Ungültiges Datum');
+  });
+
+  it('keeps the pre-1.3 English wording when no locale is declared', () => {
+    // `Intl.RelativeTimeFormat` would say "yesterday" here; English is pinned
+    // to the hand-rolled table so shipped boards keep reading "1 day ago".
+    const el = mount(
+      `<e-last-updated datetime="${BASE}" now="${at(86400)}" stale-after="999999"></e-last-updated>`,
+    );
+    expect(relative(el)).toBe('1 day ago');
+    expect(state(el)).toBe('Fresh');
+
+    el.setAttribute('locale', 'de');
+    expect(relative(el)).toBe('gestern');
+    expect(state(el)).toBe('Aktuell');
+  });
+
+  it('lets the locale attribute override an inherited lang', () => {
+    const host = mount(
+      `<div lang="de"><e-last-updated datetime="${BASE}" now="${at(259200)}"></e-last-updated></div>`,
+    );
+    const inherited = host.querySelector<HTMLElement>('e-last-updated')!;
+    expect(relative(inherited)).toBe('vor 3 Tagen');
+
+    inherited.setAttribute('locale', 'en');
+    expect(relative(inherited)).toBe('3 days ago');
+  });
+});
+
+describe('e-meter · localization and band events', () => {
+  const band = (el: HTMLElement): string => el.querySelector('.ink-meter__band')!.textContent!;
+
+  it('words the bands and the reading for the declared locale', () => {
+    const el = mount(`<e-meter locale="de" value="7.5" max="10" low="8" unit=" l"></e-meter>`);
+    expect(el.querySelector('.ink-meter')!.getAttribute('data-band')).toBe('low');
+    expect(band(el)).toBe('Niedrig');
+    expect(el.querySelector('.ink-meter__reading')!.textContent).toBe('7,5 l');
+    expect(el.getAttribute('aria-valuetext')).toBe('7,5 l');
+    // The numeric ARIA values stay machine-readable, not localized.
+    expect(el.getAttribute('aria-valuenow')).toBe('7.5');
+  });
+
+  it.each([
+    ['low', '5', 'Niedrig'],
+    ['normal', '50', 'Im Bereich'],
+    ['high', '95', 'Hoch'],
+  ])('words the %s band in German', (expected, value, word) => {
+    const el = mount(`<e-meter locale="de" value="${value}" low="20" high="90"></e-meter>`);
+    expect(el.querySelector('.ink-meter')!.getAttribute('data-band')).toBe(expected);
+    expect(band(el)).toBe(word);
+  });
+
+  it('fires e-change only when the value crosses into another band', () => {
+    const el = mount(`<e-meter value="50" low="20" high="90"></e-meter>`);
+    const details = collect<{ value: number; band: string }>(el, 'e-change');
+    // Nothing is announced for the initial render.
+    expect(details).toEqual([]);
+
+    el.setAttribute('value', '40');
+    expect(details).toEqual([]);
+
+    el.setAttribute('value', '10');
+    expect(details).toEqual([{ value: 10, band: 'low' }]);
+
+    el.setAttribute('value', '15');
+    expect(details).toHaveLength(1);
+
+    el.setAttribute('value', '95');
+    expect(details).toEqual([
+      { value: 10, band: 'low' },
+      { value: 95, band: 'high' },
+    ]);
+
+    // A moved threshold changes the band just as a moved value does.
+    el.setAttribute('high', '99');
+    expect(details[2]).toEqual({ value: 95, band: 'normal' });
+  });
+
+  it('reports the clamped value in the event, and bubbles', () => {
+    const el = mount(`<e-meter value="50" max="100" high="90"></e-meter>`);
+    const details = collect<{ value: number; band: string }>(el.parentElement!, 'e-change');
+    el.setAttribute('value', '150');
+    expect(details).toEqual([{ value: 100, band: 'high' }]);
+  });
+
+  it('keeps the English band words and the plain reading without a locale', () => {
+    const el = mount(`<e-meter value="1234" max="2000" unit=" W"></e-meter>`);
+    expect(band(el)).toBe('In range');
+    expect(el.querySelector('.ink-meter__reading')!.textContent).toBe('1234 W');
+  });
+});
+
+describe('e-statistic · number formats and thresholds', () => {
+  const part = (el: HTMLElement, name: string): HTMLElement =>
+    el.querySelector<HTMLElement>(`.ink-statistic__${name}`)!;
+
+  it('renders a currency amount for the declared locale', () => {
+    const el = mount(
+      `<e-statistic locale="de" label="Umsatz" value="1299" currency="EUR"></e-statistic>`,
+    );
+    expect(nbsp(part(el, 'value').textContent)).toBe('1.299,00 €');
+  });
+
+  it('renders a percentage, a grouped number and a precision', () => {
+    expect(mount(`<e-statistic value="0.42" percent></e-statistic>`).textContent).toContain('42%');
+    expect(
+      nbsp(mount(`<e-statistic locale="de" value="0.42" percent></e-statistic>`).textContent),
+    ).toContain('42 %');
+    expect(
+      part(mount(`<e-statistic value="12480" grouping></e-statistic>`), 'value').textContent,
+    ).toBe('12,480');
+    expect(
+      part(
+        mount(`<e-statistic locale="de" value="12480" grouping precision="2"></e-statistic>`),
+        'value',
+      ).textContent,
+    ).toBe('12.480,00');
+  });
+
+  it('leaves the value untouched when no formatting attribute is present', () => {
+    const el = mount(`<e-statistic value="12480"></e-statistic>`);
+    expect(part(el, 'value').textContent).toBe('12480');
+    expect(el.hasAttribute('data-status')).toBe(false);
+    expect(part(el, 'status').hasAttribute('hidden')).toBe(true);
+
+    // A non-numeric value is passed through even with a format requested.
+    el.setAttribute('currency', 'EUR');
+    el.setAttribute('value', 'N/A');
+    expect(part(el, 'value').textContent).toBe('N/A');
+  });
+
+  it.each([
+    ['low', '5', 'Low'],
+    ['normal', '20', 'In range'],
+    ['high', '50', 'High'],
+  ])('reports data-status=%s against the thresholds', (status, value, word) => {
+    const el = mount(`<e-statistic value="${value}" low="10" high="40"></e-statistic>`);
+    expect(el.getAttribute('data-status')).toBe(status);
+    expect(part(el, 'status').textContent).toBe(word);
+    expect(part(el, 'status').hasAttribute('hidden')).toBe(false);
+  });
+
+  it('words the threshold state in the declared locale and follows the value', () => {
+    const el = mount(`<e-statistic locale="de" value="5" low="10" high="40"></e-statistic>`);
+    expect(part(el, 'status').textContent).toBe('Niedrig');
+
+    el.setAttribute('value', '20');
+    expect(el.getAttribute('data-status')).toBe('normal');
+    expect(part(el, 'status').textContent).toBe('Im Bereich');
+
+    el.setAttribute('value', '99');
+    expect(el.getAttribute('data-status')).toBe('high');
+    expect(part(el, 'status').textContent).toBe('Hoch');
+
+    el.removeAttribute('low');
+    el.removeAttribute('high');
+    expect(el.hasAttribute('data-status')).toBe(false);
+    expect(part(el, 'status').hasAttribute('hidden')).toBe(true);
+  });
+
+  it('lets an explicit status override the thresholds and shows unknown ones verbatim', () => {
+    const el = mount(`<e-statistic value="5" low="10" status="high"></e-statistic>`);
+    expect(el.getAttribute('data-status')).toBe('high');
+    expect(part(el, 'status').textContent).toBe('High');
+
+    el.setAttribute('status', 'critical');
+    expect(el.getAttribute('data-status')).toBe('critical');
+    expect(part(el, 'status').textContent).toBe('critical');
+
+    el.removeAttribute('status');
+    expect(el.getAttribute('data-status')).toBe('low');
+  });
+
+  it('ignores thresholds when the value is not numeric', () => {
+    const el = mount(`<e-statistic value="N/A" low="10" high="40"></e-statistic>`);
+    expect(el.hasAttribute('data-status')).toBe(false);
+  });
+
+  it('words the trend for the declared locale', () => {
+    const el = mount(`<e-statistic locale="de" value="1" trend="up" delta="2"></e-statistic>`);
+    expect(el.querySelector('.sr-only')!.textContent).toBe('gestiegen um');
+    el.setAttribute('trend', 'down');
+    expect(el.querySelector('.sr-only')!.textContent).toBe('gefallen um');
+    el.removeAttribute('locale');
+    expect(el.querySelector('.sr-only')!.textContent).toBe('decreased by');
+  });
+});
+
+describe('e-pagination · localization and keyboard', () => {
+  const prev = (el: HTMLElement): HTMLButtonElement =>
+    el.querySelectorAll<HTMLButtonElement>('.ink-pagination__cell')[0]!;
+  const summary = (el: HTMLElement): HTMLElement =>
+    el.querySelector<HTMLElement>('.ink-pagination__summary')!;
+  const next = (el: HTMLElement): HTMLButtonElement => {
+    const cells = el.querySelectorAll<HTMLButtonElement>('.ink-pagination__cell');
+    return cells[cells.length - 1]!;
+  };
+
+  it('names the controls in the declared locale', () => {
+    const el = mount(`<e-pagination locale="de" total="5" current="3"></e-pagination>`);
+    expect(prev(el).getAttribute('aria-label')).toBe('Zurück');
+    expect(next(el).getAttribute('aria-label')).toBe('Weiter');
+
+    el.removeAttribute('locale');
+    expect(prev(el).getAttribute('aria-label')).toBe('Previous');
+    expect(next(el).getAttribute('aria-label')).toBe('Next');
+  });
+
+  it('lets prev-label and next-label override the locale table', () => {
+    const el = mount(
+      `<e-pagination locale="de" total="5" current="3" prev-label="Vorherige Seite"></e-pagination>`,
+    );
+    expect(prev(el).getAttribute('aria-label')).toBe('Vorherige Seite');
+    expect(next(el).getAttribute('aria-label')).toBe('Weiter');
+
+    el.setAttribute('next-label', 'Nächste Seite');
+    expect(next(el).getAttribute('aria-label')).toBe('Nächste Seite');
+
+    // An empty override falls back to the table rather than blanking the name.
+    el.setAttribute('prev-label', '');
+    expect(prev(el).getAttribute('aria-label')).toBe('Zurück');
+  });
+
+  it('renders the page summary only when asked, in the declared locale', () => {
+    const el = mount(`<e-pagination total="42" current="3"></e-pagination>`);
+    expect(summary(el).hasAttribute('hidden')).toBe(true);
+    expect(summary(el).textContent).toBe('');
+    // The summary is not a pager cell and must not join the cell rhythm.
+    expect(summary(el).classList.contains('ink-pagination__cell')).toBe(false);
+
+    el.setAttribute('show-summary', '');
+    expect(summary(el).hasAttribute('hidden')).toBe(false);
+    expect(summary(el).textContent).toBe('Page 3 of 42');
+
+    el.setAttribute('locale', 'de');
+    expect(summary(el).textContent).toBe('Seite 3 von 42');
+
+    el.setAttribute('current', '4');
+    expect(summary(el).textContent).toBe('Seite 4 von 42');
+
+    el.removeAttribute('show-summary');
+    expect(summary(el).hasAttribute('hidden')).toBe(true);
+  });
+
+  it('moves focus along the pager with the arrow keys without changing the page', () => {
+    const el = mount(`<e-pagination total="5" current="3"></e-pagination>`);
+    const details = collect<{ value: number }>(el, 'e-change');
+    const page = (p: number): HTMLButtonElement =>
+      [...el.querySelectorAll<HTMLButtonElement>('button[data-page]')].find(
+        (b) => b.textContent === String(p),
+      )!;
+
+    page(3).focus();
+    key(page(3), 'ArrowRight');
+    expect(document.activeElement).toBe(page(4));
+    key(page(4), 'ArrowLeft');
+    expect(document.activeElement).toBe(page(3));
+    expect(details).toEqual([]);
+    expect(el.getAttribute('current')).toBe('3');
+  });
+
+  it('stops at the ends of the pager and ignores other keys', () => {
+    const el = mount(`<e-pagination total="3" current="1"></e-pagination>`);
+    const first = el.querySelector<HTMLButtonElement>('button[data-page="1"]')!;
+    first.focus();
+    // Prev is disabled on page 1, so there is nothing to the left.
+    key(first, 'ArrowLeft');
+    expect(document.activeElement).toBe(first);
+    key(first, 'ArrowUp');
+    expect(document.activeElement).toBe(first);
+    key(el.querySelector('nav')!, 'ArrowRight');
+    expect(document.activeElement).toBe(first);
+  });
+});
+
+describe('e-calendar · localization and month events', () => {
+  const dow = (el: HTMLElement): string[] =>
+    [...el.querySelectorAll('.ink-calendar__dow')].map((d) => d.textContent!);
+  const cells = (el: HTMLElement): HTMLButtonElement[] => [
+    ...el.querySelectorAll<HTMLButtonElement>('button.ink-calendar__cell'),
+  ];
+  const shortMonth = (y: number, m: number, locale: string): string =>
+    new Intl.DateTimeFormat(locale, { month: 'short' }).format(new Date(y, m, 1));
+
+  it('names the weekdays and the month for the declared locale', () => {
+    const el = mount(`<e-calendar locale="de" value="2026-01-15"></e-calendar>`);
+    expect(dow(el)).toEqual(['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa']);
+    expect(el.querySelector('.ink-calendar__title')!.textContent).toBe('Januar');
+    expect(el.querySelector('[data-day="15"]')!.getAttribute('aria-label')).toBe(
+      new Intl.DateTimeFormat('de', {}).format(new Date(2026, 0, 15)),
+    );
+  });
+
+  it('rotates the grid to a Monday-first week and back', () => {
+    // 1 April 2026 is a Wednesday: the third column Sunday-first, the second
+    // column Monday-first. The grid stays six rows of seven.
+    const el = mount(`<e-calendar value="2026-04-15" week-start="1"></e-calendar>`);
+    expect(cells(el)).toHaveLength(42);
+    expect(dow(el)).toEqual(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
+    expect(cells(el)[2]!.dataset['day']).toBe('1');
+    expect(cells(el)[1]!.disabled).toBe(true);
+
+    el.setAttribute('week-start', '0');
+    expect(dow(el)).toEqual(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
+    expect(cells(el)[3]!.dataset['day']).toBe('1');
+
+    // Out-of-range values fall back into 0..6 rather than skewing the grid.
+    el.setAttribute('week-start', '99');
+    expect(dow(el)).toHaveLength(7);
+    expect(cells(el)).toHaveLength(42);
+  });
+
+  it('templates the eyebrow and keeps the shipped default', () => {
+    const el = mount(`<e-calendar value="2026-04-15"></e-calendar>`);
+    const eyebrow = el.querySelector('.ink-calendar__title-eyebrow')!;
+    expect(eyebrow.textContent).toBe('CALENDAR · 2026');
+
+    el.setAttribute('eyebrow', 'KALENDER · {year}');
+    expect(eyebrow.textContent).toBe('KALENDER · 2026');
+
+    el.setAttribute('locale', 'de');
+    el.setAttribute('eyebrow', '{month} {year}');
+    expect(eyebrow.textContent).toBe(`${shortMonth(2026, 3, 'de')} 2026`);
+
+    el.removeAttribute('eyebrow');
+    expect(eyebrow.textContent).toBe('CALENDAR · 2026');
+  });
+
+  it('fires e-month-change when the header buttons move the view', () => {
+    const el = mount(`<e-calendar value="2026-01-15"></e-calendar>`);
+    const details = collect<{ year: number; month: number }>(el, 'e-month-change');
+
+    el.querySelector<HTMLButtonElement>('[data-step="-1"]')!.click();
+    expect(details).toEqual([{ year: 2025, month: 11 }]);
+    // The grid is already repainted when the host hears about the month.
+    expect(el.querySelector('.ink-calendar__title')!.textContent).toBe('December');
+
+    el.querySelector<HTMLButtonElement>('[data-step="1"]')!.click();
+    expect(details[1]).toEqual({ year: 2026, month: 0 });
+  });
+
+  it('fires e-month-change when the arrow keys cross a month boundary', () => {
+    const el = mount(`<e-calendar value="2026-04-01"></e-calendar>`);
+    const details = collect<{ year: number; month: number }>(el, 'e-month-change');
+    const cellFor = (day: number): HTMLButtonElement =>
+      cells(el).find((c) => c.dataset['day'] === String(day))!;
+
+    key(cellFor(1), 'ArrowLeft');
+    expect(details).toEqual([{ year: 2026, month: 2 }]);
+
+    // Moving inside the month announces nothing.
+    key(cellFor(31), 'ArrowUp');
+    expect(details).toHaveLength(1);
+  });
+
+  it('does not localize the grid when no locale is declared', () => {
+    const el = mount(`<e-calendar value="2026-04-15"></e-calendar>`);
+    expect(dow(el)).toEqual(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
+    expect(el.querySelector('.ink-calendar__title')!.textContent).toBe('April');
+    expect(cells(el)[3]!.dataset['day']).toBe('1');
   });
 });

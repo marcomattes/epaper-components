@@ -1,5 +1,14 @@
-import { addCleanup, define, intAttr, patchAttr, patchBoolAttr, runCleanups } from '../../core/dom';
+import {
+  addCleanup,
+  define,
+  intAttr,
+  patchAttr,
+  patchBoolAttr,
+  patchText,
+  runCleanups,
+} from '../../core/dom';
 import { iconSvg } from '../../core/icons';
+import { label, t } from '../../core/i18n';
 
 interface PageCell {
   el: HTMLElement;
@@ -10,22 +19,41 @@ interface PageCell {
  * @summary Page navigator with previous/next buttons and ellipsized page numbers.
  * @since v1.0.1
  *
+ * The two control labels resolve per instance first (`prev-label` /
+ * `next-label`), then from the locale string table, so a German pager reads
+ * "Zurück" / "Weiter" without a wrapper component.
+ *
  * @attr {number} [current=1] - Current page (1-indexed). Reflected on user navigation.
  * @attr {number} [total=1] - Total number of pages.
  * @attr {number} [sibling-count=1] - Number of sibling pages shown around the current page.
+ * @attr {string} [prev-label] - Accessible name of the previous-page button, overriding the locale table. (since v1.3.0)
+ * @attr {string} [next-label] - Accessible name of the next-page button, overriding the locale table. (since v1.3.0)
+ * @attr {boolean} [show-summary] - Appends a "Page X of Y" summary after the pager. (since v1.3.0)
+ * @attr {string} [locale] - BCP-47 tag for the control labels and the summary. Falls back to the nearest `lang`, then the document language. (since v1.3.0)
  *
  * @fires {CustomEvent<{value: number}>} e-change - Fired when the user navigates to a different page. `value` is the new 1-indexed page.
  *
  * @example
  * <e-pagination current="3" total="42" sibling-count="1"></e-pagination>
+ * @example
+ * <e-pagination locale="de" current="3" total="42" show-summary></e-pagination>
  */
 export class EPagination extends HTMLElement {
-  static readonly observedAttributes = ['current', 'total', 'sibling-count'];
+  static readonly observedAttributes = [
+    'current',
+    'total',
+    'sibling-count',
+    'prev-label',
+    'next-label',
+    'show-summary',
+    'locale',
+  ];
 
   private _wired = false;
   private _nav: HTMLElement | null = null;
   private _prevBtn: HTMLButtonElement | null = null;
   private _nextBtn: HTMLButtonElement | null = null;
+  private _summary: HTMLElement | null = null;
   private _cells: PageCell[] = [];
 
   connectedCallback() {
@@ -34,7 +62,9 @@ export class EPagination extends HTMLElement {
       this._build();
     }
     this.addEventListener('click', this._onClick);
+    this.addEventListener('keydown', this._onKeydown);
     addCleanup(this, () => this.removeEventListener('click', this._onClick));
+    addCleanup(this, () => this.removeEventListener('keydown', this._onKeydown));
   }
 
   disconnectedCallback() {
@@ -53,6 +83,26 @@ export class EPagination extends HTMLElement {
     if (p < 1 || p > total || p === current) return;
     this.setAttribute('current', String(p));
     this.dispatchEvent(new CustomEvent('e-change', { detail: { value: p }, bubbles: true }));
+  };
+
+  /**
+   * Roving arrow-key movement along the pager. Focus only — the page changes
+   * on Enter/Space, which the native buttons already handle, so an arrow key
+   * never triggers an e-paper repaint of the content behind the pager.
+   */
+  private readonly _onKeydown = (e: KeyboardEvent): void => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    const from = (e.target as Element).closest<HTMLButtonElement>('button[data-page]');
+    if (!from || !this.contains(from)) return;
+    const stops = [
+      ...this.querySelectorAll<HTMLButtonElement>('button[data-page]:not([disabled])'),
+    ];
+    const index = stops.indexOf(from);
+    if (index < 0) return;
+    const next = stops[index + (e.key === 'ArrowRight' ? 1 : -1)];
+    if (!next) return;
+    e.preventDefault();
+    next.focus();
   };
 
   private _pageList(): (number | '…')[] {
@@ -92,7 +142,7 @@ export class EPagination extends HTMLElement {
     prev.type = 'button';
     prev.className = 'ink-pagination__cell';
     prev.dataset['page'] = String(current - 1);
-    prev.setAttribute('aria-label', 'Previous');
+    prev.setAttribute('aria-label', label(this, 'prev-label', 'previous'));
     prev.disabled = current <= 1;
     const prevIcon = this._svgFromString(iconSvg('chevL', 16));
     if (prevIcon) prev.appendChild(prevIcon);
@@ -107,14 +157,29 @@ export class EPagination extends HTMLElement {
     next.type = 'button';
     next.className = 'ink-pagination__cell';
     next.dataset['page'] = String(current + 1);
-    next.setAttribute('aria-label', 'Next');
+    next.setAttribute('aria-label', label(this, 'next-label', 'next'));
     next.disabled = current >= total;
     const nextIcon = this._svgFromString(iconSvg('chevR', 16));
     if (nextIcon) next.appendChild(nextIcon);
     this._nextBtn = next;
     nav.appendChild(next);
 
+    // Deliberately not a `__cell`: the summary is prose, not a control, and
+    // must stay out of the cell border rhythm and the arrow-key ring.
+    const summary = document.createElement('span');
+    summary.className = 'ink-pagination__summary';
+    this._summary = summary;
+    nav.appendChild(summary);
+    this._syncSummary(current, total);
+
     this.replaceChildren(nav);
+  }
+
+  private _syncSummary(current: number, total: number): void {
+    if (!this._summary) return;
+    const show = this.hasAttribute('show-summary');
+    patchText(this._summary, show ? t(this, 'pageOf', { page: current, total }) : '');
+    patchAttr(this._summary, 'hidden', show ? null : '');
   }
 
   private _buildCells(parent: HTMLElement, current: number): void {
@@ -151,9 +216,12 @@ export class EPagination extends HTMLElement {
 
     // Prev/Next
     this._prevBtn.dataset['page'] = String(current - 1);
+    patchAttr(this._prevBtn, 'aria-label', label(this, 'prev-label', 'previous'));
     patchBoolAttr(this._prevBtn, 'disabled', current <= 1);
     this._nextBtn.dataset['page'] = String(current + 1);
+    patchAttr(this._nextBtn, 'aria-label', label(this, 'next-label', 'next'));
     patchBoolAttr(this._nextBtn, 'disabled', current >= total);
+    this._syncSummary(current, total);
 
     // Check if the page structure changed (total or sibling-count changed)
     const newPages = this._pageList();

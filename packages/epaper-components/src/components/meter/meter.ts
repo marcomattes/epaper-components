@@ -1,11 +1,14 @@
 import { define, intAttr, numAttr, patchAttr, patchBoolAttr, patchText } from '../../core/dom';
+import { formatNumber } from '../../core/format';
+import { t, type LocaleStrings } from '../../core/i18n';
 
 type MeterBand = 'low' | 'normal' | 'high';
 
-const BAND_LABEL: Record<MeterBand, string> = {
-  low: 'Low',
-  high: 'High',
-  normal: 'In range',
+/** Locale-table key per band. */
+const BAND_KEY: Record<MeterBand, keyof LocaleStrings> = {
+  low: 'bandLow',
+  high: 'bandHigh',
+  normal: 'bandNormal',
 };
 
 /**
@@ -13,7 +16,11 @@ const BAND_LABEL: Record<MeterBand, string> = {
  * @since v1.1.0
  *
  * Unlike progress, a meter represents a measurement inside a known range.
- * Threshold bands use labels and hatch patterns rather than color alone.
+ * Threshold bands use labels and hatch patterns rather than color alone, and
+ * the band words come from the locale string table.
+ *
+ * Crossing a threshold fires `e-change`, so a host can raise an alarm without
+ * re-deriving the band from `value` on every repaint.
  *
  * @attr {number} [value=0] - Current measurement.
  * @attr {number} [min=0] - Lower bound.
@@ -24,9 +31,14 @@ const BAND_LABEL: Record<MeterBand, string> = {
  * @attr {string} [label] - Visible and accessible measurement label.
  * @attr {string} [unit] - Unit appended to the visible and accessible value.
  * @attr {boolean} [hide-value] - Hides the visible value while retaining meter semantics.
+ * @attr {string} [locale] - BCP-47 tag for the band words and the reading. Falls back to the nearest `lang`, then the document language. (since v1.3.0)
+ *
+ * @fires {CustomEvent<{value: number, band: 'low'|'normal'|'high'}>} e-change - Fired when the clamped value moves into a different threshold band. Never fired for the initial render. (since v1.3.0)
  *
  * @example
  * <e-meter label="Battery" value="72" low="20" high="90" unit="%"></e-meter>
+ * @example
+ * <e-meter locale="de" label="Füllstand" value="12" low="20" unit=" l"></e-meter>
  */
 export class EMeter extends HTMLElement {
   static readonly observedAttributes = [
@@ -39,6 +51,7 @@ export class EMeter extends HTMLElement {
     'label',
     'unit',
     'hide-value',
+    'locale',
   ];
 
   private _wired = false;
@@ -48,6 +61,8 @@ export class EMeter extends HTMLElement {
   private readonly _segments: HTMLElement[] = [];
   private _valueEl: HTMLElement | null = null;
   private _bandEl: HTMLElement | null = null;
+  /** Band of the previous patch; `null` until the first render has run. */
+  private _lastBand: MeterBand | null = null;
 
   connectedCallback() {
     if (this._wired) return;
@@ -110,7 +125,9 @@ export class EMeter extends HTMLElement {
     const active = ratio <= 0 ? 0 : Math.max(1, Math.round(ratio * count));
     const label = this.getAttribute('label') || '';
     const unit = this.getAttribute('unit') || '';
-    const reading = `${value}${unit}`;
+    // Grouping stays off: the reading is a short inline figure, and switching
+    // it on would re-render every four-digit meter already in the field.
+    const reading = `${formatNumber(this, value, { grouping: false })}${unit}`;
     const band = this._band(value);
 
     patchAttr(this, 'role', 'meter');
@@ -124,11 +141,19 @@ export class EMeter extends HTMLElement {
     patchAttr(this._labelEl, 'hidden', label ? null : '');
     patchText(this._valueEl, reading);
     patchAttr(this._valueEl, 'hidden', this.hasAttribute('hide-value') ? '' : null);
-    patchText(this._bandEl, BAND_LABEL[band]);
+    patchText(this._bandEl, t(this, BAND_KEY[band]));
 
     this._syncSegments(count);
     for (let i = 0; i < this._segments.length; i++) {
       patchBoolAttr(this._segments[i], 'data-on', i < active);
+    }
+
+    // Announce after the DOM is settled, so a listener that reads the meter
+    // back sees the band it was just told about.
+    const previous = this._lastBand;
+    this._lastBand = band;
+    if (previous !== null && previous !== band) {
+      this.dispatchEvent(new CustomEvent('e-change', { detail: { value, band }, bubbles: true }));
     }
   }
 }

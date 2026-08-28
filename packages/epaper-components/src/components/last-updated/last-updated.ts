@@ -1,4 +1,6 @@
 import { define, numAttr, patchAttr, patchText } from '../../core/dom';
+import { formatRelativeTime, resolveLocale } from '../../core/format';
+import { t } from '../../core/i18n';
 
 export type UpdateFreshness = 'fresh' | 'stale' | 'expired' | 'invalid';
 
@@ -8,6 +10,15 @@ const parseTime = (raw: string | null, fallback: number): number => {
   return Number.isFinite(parsed) ? parsed : Number.NaN;
 };
 
+/**
+ * The English wording this component has rendered since v1.1.0.
+ *
+ * `Intl.RelativeTimeFormat` words the same instants differently — "now"
+ * instead of "just now", "yesterday" instead of "1 day ago", and it rounds
+ * (119 s becomes "2 minutes ago") where this floors. Those exact strings are
+ * on screens today and asserted by the shipped test suites, so English keeps
+ * this table and every other locale goes through `Intl`.
+ */
 const relativeAge = (ageSeconds: number): string => {
   const future = ageSeconds < 0;
   const absolute = Math.abs(ageSeconds);
@@ -45,12 +56,16 @@ const formatAbsolute = (timestamp: number, locale: string): string => {
   }
 };
 
-const FRESHNESS_META: Record<UpdateFreshness, { symbol: string; label: string }> = {
-  fresh: { symbol: '✓', label: 'Fresh' },
-  stale: { symbol: '!', label: 'Stale' },
-  expired: { symbol: '×', label: 'Expired' },
-  invalid: { symbol: '?', label: 'Unknown' },
+/** Cue glyphs per freshness state. The words come from the locale table. */
+const FRESHNESS_SYMBOL: Record<UpdateFreshness, string> = {
+  fresh: '✓',
+  stale: '!',
+  expired: '×',
+  invalid: '?',
 };
+
+/** Locale-table keys for the three states the table covers. */
+const FRESHNESS_KEY = { fresh: 'fresh', stale: 'stale', expired: 'expired' } as const;
 
 /**
  * @summary Timestamp with explicit age and freshness state.
@@ -60,16 +75,22 @@ const FRESHNESS_META: Record<UpdateFreshness, { symbol: string; label: string }>
  * attribute from their existing refresh cycle or call `refresh()` when a
  * redraw is already planned, avoiding background e-paper refreshes.
  *
+ * Freshness words come from the locale string table and the relative age from
+ * `Intl.RelativeTimeFormat`, so a German board reads "vor 3 Tagen · Veraltet".
+ * English deployments keep the v1.1.0 wording verbatim — see `relativeAge`.
+ *
  * @attr {string} datetime - ISO timestamp of the last successful update.
  * @attr {string} [now] - Optional ISO timestamp used as the comparison clock.
  * @attr {number} [stale-after=300] - Age in seconds after which the value is stale.
  * @attr {number} [expired-after=3600] - Age in seconds after which the value is expired.
  * @attr {string} [label='Updated'] - Visible and accessible timestamp label.
- * @attr {string} [locale='en'] - Locale used for the optional absolute timestamp.
+ * @attr {string} [locale='en'] - Locale for the relative age, the freshness words and the optional absolute timestamp. Falls back to the nearest `lang`, then the document language; only the absolute timestamp still defaults to `en`.
  * @attr {boolean} [show-absolute] - Displays the absolute timestamp below the relative age.
  *
  * @example
  * <e-last-updated datetime="2026-08-17T14:00:00Z" stale-after="600"></e-last-updated>
+ * @example
+ * <e-last-updated locale="de" datetime="2026-08-17T14:00:00Z"></e-last-updated>
  */
 export class ELastUpdated extends HTMLElement {
   static readonly observedAttributes = [
@@ -115,6 +136,30 @@ export class ELastUpdated extends HTMLElement {
     if (this._wired) this.refresh();
   }
 
+  /**
+   * True when nothing on the page asked for a language other than English.
+   * Gate for the two strings whose English wording predates the locale table
+   * (`relativeAge` and the "Unknown" freshness state); everything else is
+   * translated unconditionally because the table matches the old wording.
+   */
+  private _english(): boolean {
+    const locale = resolveLocale(this);
+    return !locale || locale.toLowerCase().split('-')[0] === 'en';
+  }
+
+  /** Relative age, localized unless the page is English. */
+  private _relative(timestamp: number, now: number, age: number): string {
+    return this._english()
+      ? relativeAge(age)
+      : formatRelativeTime(this, new Date(timestamp), new Date(now));
+  }
+
+  /** Visible word for a freshness state. */
+  private _freshnessLabel(freshness: UpdateFreshness): string {
+    if (freshness === 'invalid') return this._english() ? 'Unknown' : t(this, 'invalidDate');
+    return t(this, FRESHNESS_KEY[freshness]);
+  }
+
   /** Recomputes the relative age against `now` or the current system time. */
   refresh(): void {
     if (
@@ -137,20 +182,24 @@ export class ELastUpdated extends HTMLElement {
     const freshness: UpdateFreshness = valid
       ? computeFreshness(age, staleAfter, expiredAfter)
       : 'invalid';
-    const relative = valid ? relativeAge(age) : 'Unknown time';
+    const stateLabel = this._freshnessLabel(freshness);
+    // Without a parseable timestamp there is no age to word; English keeps its
+    // "Unknown time", other locales repeat the state word.
+    const unknown = this._english() ? 'Unknown time' : stateLabel;
+    const relative = valid ? this._relative(timestamp, now, age) : unknown;
     const absolute =
       valid && this.hasAttribute('show-absolute')
         ? formatAbsolute(timestamp, this.getAttribute('locale') || 'en')
         : '';
 
     patchAttr(this, 'role', 'group');
-    patchAttr(this, 'aria-label', `${label}: ${relative}; ${FRESHNESS_META[freshness].label}`);
+    patchAttr(this, 'aria-label', `${label}: ${relative}; ${stateLabel}`);
     patchAttr(this._root, 'data-freshness', freshness);
-    patchText(this._cueEl, FRESHNESS_META[freshness].symbol);
+    patchText(this._cueEl, FRESHNESS_SYMBOL[freshness]);
     patchText(this._labelEl, label);
     patchText(this._relativeEl, relative);
     patchAttr(this._relativeEl, 'datetime', valid && raw ? raw : null);
-    patchText(this._stateEl, FRESHNESS_META[freshness].label);
+    patchText(this._stateEl, stateLabel);
     patchText(this._absoluteEl, absolute);
     patchAttr(this._absoluteEl, 'datetime', valid && raw ? raw : null);
     patchAttr(this._absoluteEl, 'hidden', absolute ? null : '');

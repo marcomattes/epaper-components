@@ -1,33 +1,46 @@
 import {
   addCleanup,
   define,
+  intAttr,
   patchAttr,
   patchBoolAttr,
   patchText,
   runCleanups,
 } from '../../core/dom';
 import { iconSvg } from '../../core/icons';
+import { formatDate, monthLabel, weekdayLabels } from '../../core/format';
 import { parseYMD, ymd } from '../../core/date';
 import type { CalendarEvent } from '../../core/types';
 import { isCalendarEvents } from '../../core/data';
 
-const DOW_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAYS_PER_WEEK = 7;
 const CELL_COUNT = 42;
 
 /**
  * @summary Month-grid calendar with selectable day cells and inline event chips.
  * @since v1.0.1
  *
+ * The grid is always six weeks of seven days; `week-start` only rotates which
+ * weekday sits in the first column, which is the difference between a US and
+ * a European wall calendar. Weekday and month names come from `Intl` for the
+ * resolved locale.
+ *
  * @attr {string} [value] - Currently selected day in `YYYY-MM-DD` format.
  * @attr {string} [events='[]'] - JSON-encoded array of `{date, title}` event objects.
+ * @attr {number} [week-start=0] - First column's weekday: 0 = Sunday, 1 = Monday. (since v1.3.0)
+ * @attr {string} [eyebrow='CALENDAR · {year}'] - Template above the month name. `{month}` inserts the short localized month, `{year}` the year. (since v1.3.0)
+ * @attr {string} [locale] - BCP-47 tag for the weekday, month and day-cell names. Falls back to the nearest `lang`, then the document language. (since v1.3.0)
  *
  * @fires {CustomEvent<{value: string}>} e-change - Fired when the user picks a day. `value` is `YYYY-MM-DD`.
+ * @fires {CustomEvent<{year: number, month: number}>} e-month-change - Fired after the visible month moved, by the header buttons or by arrow keys crossing a boundary. `month` is zero-based, like `Date#getMonth`. (since v1.3.0)
  *
  * @example
  * <e-calendar value="2025-04-26" events='[{"date":"2025-04-30","title":"Release"}]'></e-calendar>
+ * @example
+ * <e-calendar locale="de" week-start="1" eyebrow="KALENDER · {year}"></e-calendar>
  */
 export class ECalendar extends HTMLElement {
-  static readonly observedAttributes = ['value', 'events'];
+  static readonly observedAttributes = ['value', 'events', 'week-start', 'eyebrow', 'locale'];
 
   private _wired = false;
   private _view = { y: 2026, m: 0 };
@@ -38,6 +51,7 @@ export class ECalendar extends HTMLElement {
   /* DOM references */
   private _titleEyebrow: HTMLElement | null = null;
   private _titleEl: HTMLElement | null = null;
+  private _dowEls: HTMLElement[] = [];
   private _cells: HTMLButtonElement[] = [];
   private _dayNums: HTMLElement[] = [];
   private _eventContainers: HTMLElement[] = [];
@@ -71,12 +85,16 @@ export class ECalendar extends HTMLElement {
     if (!this._wired) return;
     if (name === 'events') {
       this._parseEvents();
-      this._patchGrid();
     } else if (name === 'value') {
       const rawValue = this.getAttribute('value') || '';
       this._value = parseYMD(rawValue) ? rawValue : '';
-      this._patchGrid();
     }
+    this._patchGrid();
+  }
+
+  /** First column's weekday, 0 = Sunday. */
+  private _weekStart(): number {
+    return Math.max(0, Math.min(6, intAttr(this, 'week-start', 0)));
   }
 
   private _parseEvents(): void {
@@ -116,8 +134,7 @@ export class ECalendar extends HTMLElement {
         m = 0;
         y += 1;
       }
-      this._view = { y, m };
-      this._patchGrid();
+      this._setView(y, m);
       return;
     }
 
@@ -152,14 +169,28 @@ export class ECalendar extends HTMLElement {
       delta = e.key === 'Home' ? -weekday : 6 - weekday;
     }
     const target = new Date(this._view.y, this._view.m, day + delta);
-    this._view = { y: target.getFullYear(), m: target.getMonth() };
-    this._patchGrid();
+    this._setView(target.getFullYear(), target.getMonth());
     const next = this._cells.find(
       (candidate) => !candidate.disabled && Number(candidate.dataset['day']) === target.getDate(),
     );
     for (const candidate of this._cells) candidate.tabIndex = candidate === next ? 0 : -1;
     next?.focus();
   };
+
+  /**
+   * Moves the visible month, repaints, and only then announces the change —
+   * a host reloading that month's events reads a grid that already matches
+   * the event detail.
+   */
+  private _setView(y: number, m: number): void {
+    const moved = this._view.y !== y || this._view.m !== m;
+    this._view = { y, m };
+    this._patchGrid();
+    if (!moved) return;
+    this.dispatchEvent(
+      new CustomEvent('e-month-change', { detail: { year: y, month: m }, bubbles: true }),
+    );
+  }
 
   private _svgEl(svg: string): Element | null {
     const tpl = document.createElement('template');
@@ -214,12 +245,13 @@ export class ECalendar extends HTMLElement {
     const headerRow = document.createElement('div');
     headerRow.className = 'ink-calendar__row';
     headerRow.setAttribute('role', 'row');
-    for (const d of DOW_LABELS) {
+    this._dowEls = [];
+    for (let i = 0; i < DAYS_PER_WEEK; i++) {
       const dow = document.createElement('div');
       dow.className = 'ink-calendar__dow';
       dow.setAttribute('role', 'columnheader');
-      dow.textContent = d;
       headerRow.appendChild(dow);
+      this._dowEls.push(dow);
     }
     grid.appendChild(headerRow);
 
@@ -227,11 +259,11 @@ export class ECalendar extends HTMLElement {
     this._dayNums = [];
     this._eventContainers = [];
 
-    for (let row = 0; row < CELL_COUNT / DOW_LABELS.length; row++) {
+    for (let row = 0; row < CELL_COUNT / DAYS_PER_WEEK; row++) {
       const weekRow = document.createElement('div');
       weekRow.className = 'ink-calendar__row';
       weekRow.setAttribute('role', 'row');
-      for (const _dow of DOW_LABELS) {
+      for (let col = 0; col < DAYS_PER_WEEK; col++) {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'ink-calendar__cell';
@@ -258,17 +290,35 @@ export class ECalendar extends HTMLElement {
     this.replaceChildren(root);
   }
 
+  /**
+   * Eyebrow text above the month name. The default keeps the wording the
+   * component shipped with; a template replaces it wholesale so a German
+   * board can read "KALENDER · 2026" without a fork.
+   */
+  private _eyebrow(y: number, m: number): string {
+    const template = this.getAttribute('eyebrow');
+    if (template == null) return `CALENDAR · ${y}`;
+    return template
+      .replace(/\{month\}/g, monthLabel(this, m, y, 'short'))
+      .replace(/\{year\}/g, String(y));
+  }
+
   private _patchGrid(): void {
     const { y, m } = this._view;
+    const weekStart = this._weekStart();
 
     /* Titles */
-    const locale = this.lang || document.documentElement.lang || undefined;
-    const monthName = new Date(y, m, 1).toLocaleString(locale, { month: 'long' });
-    if (this._titleEyebrow) patchText(this._titleEyebrow, `CALENDAR · ${y}`);
-    if (this._titleEl) patchText(this._titleEl, monthName);
+    if (this._titleEyebrow) patchText(this._titleEyebrow, this._eyebrow(y, m));
+    if (this._titleEl) patchText(this._titleEl, monthLabel(this, m, y, 'long'));
+
+    /* Column headers */
+    const dowLabels = weekdayLabels(this, weekStart, 'short');
+    for (let i = 0; i < this._dowEls.length; i++) {
+      patchText(this._dowEls[i], dowLabels[i] ?? '');
+    }
 
     /* Cells */
-    const firstDow = new Date(y, m, 1).getDay();
+    const firstDow = (new Date(y, m, 1).getDay() - weekStart + DAYS_PER_WEEK) % DAYS_PER_WEEK;
     const daysInMonth = new Date(y, m + 1, 0).getDate();
     const sel = parseYMD(this._value);
     const today = new Date();
@@ -301,7 +351,7 @@ export class ECalendar extends HTMLElement {
         const isToday =
           today.getFullYear() === y && today.getMonth() === m && today.getDate() === d;
         patchAttr(btn, 'data-today', String(isToday));
-        patchAttr(btn, 'aria-label', new Date(y, m, d).toLocaleDateString(locale));
+        patchAttr(btn, 'aria-label', formatDate(this, new Date(y, m, d), {}));
 
         /* Events — O(1) lookup from memoized map */
         const key = ymd(new Date(y, m, d));
