@@ -711,6 +711,23 @@ describe('cloneItemBody', () => {
 });
 
 describe('observeItems', () => {
+  /**
+   * Common shape most tests below need: a host with one plain child item,
+   * wired to `observeItems` with the given options, plus a call counter.
+   * Tests that need extra structure (a descendant node, an "output" child)
+   * build that themselves rather than growing this helper with flags.
+   */
+  const watchItem = (
+    options?: Parameters<typeof observeItems>[2],
+  ): { host: HTMLDivElement; item: HTMLDivElement; calls: { count: number } } => {
+    const host = document.createElement('div');
+    const item = document.createElement('div');
+    host.appendChild(item);
+    const calls = { count: 0 };
+    observeItems(host, () => calls.count++, options);
+    return { host, item, calls };
+  };
+
   it('syncs once for a childList change and coalesces a burst into one call', async () => {
     const host = document.createElement('div');
     let calls = 0;
@@ -724,33 +741,24 @@ describe('observeItems', () => {
   });
 
   it('ignores an attribute change when no attributeFilter is given', async () => {
-    const host = document.createElement('div');
-    const child = document.createElement('span');
-    host.appendChild(child);
-    let calls = 0;
-    observeItems(host, () => {
-      calls++;
-    });
-    child.setAttribute('data-x', 'y');
+    const { host, item, calls } = watchItem();
+
+    item.setAttribute('data-x', 'y');
     await flush();
-    expect(calls).toBe(0);
+    expect(calls.count).toBe(0);
     host.remove();
   });
 
   it('honours a named attributeFilter and ignores attributes outside it', async () => {
-    const host = document.createElement('div');
-    const item = document.createElement('div');
-    host.appendChild(item);
-    let calls = 0;
-    observeItems(host, () => calls++, { attributeFilter: ['term'] });
+    const { host, item, calls } = watchItem({ attributeFilter: ['term'] });
 
     item.setAttribute('data-other', 'x');
     await flush();
-    expect(calls).toBe(0);
+    expect(calls.count).toBe(0);
 
     item.setAttribute('term', 'x');
     await flush();
-    expect(calls).toBe(1);
+    expect(calls.count).toBe(1);
     host.remove();
   });
 
@@ -853,20 +861,16 @@ describe('observeItems', () => {
   });
 
   it('stops syncing once disconnected through runCleanups', async () => {
-    const host = document.createElement('div');
-    const item = document.createElement('div');
-    host.appendChild(item);
-    let calls = 0;
-    observeItems(host, () => calls++, { attributeFilter: ['term'] });
+    const { host, item, calls } = watchItem({ attributeFilter: ['term'] });
 
     item.setAttribute('term', 'a');
     await flush();
-    expect(calls).toBe(1);
+    expect(calls.count).toBe(1);
 
     runCleanups(host);
     item.setAttribute('term', 'b');
     await flush();
-    expect(calls).toBe(1);
+    expect(calls.count).toBe(1);
     host.remove();
   });
 });
