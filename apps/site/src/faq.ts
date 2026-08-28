@@ -297,3 +297,71 @@ return <e-input ref={ref} label="Name" />;`,
 export function faqItems(): FaqItem[] {
   return FAQ.flatMap((group) => group.items);
 }
+
+/**
+ * Fragment id for a question or a group title, so an answer can be linked to
+ * directly.
+ *
+ * Exported from here rather than from `content.ts` because the cover links
+ * into this page by anchor and the markdown twin has to produce the same id.
+ * One implementation, or the two drift and the deep links rot silently.
+ */
+export function faqId(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]{1,300}/g, '-')
+    .replace(/^-{1,300}/, '')
+    .replace(/-{1,300}$/, '')
+    .slice(0, 60);
+}
+
+/**
+ * The handful of questions the cover surfaces.
+ *
+ * Keyed by the exact question text so {@link homeQuestions} can fail the build
+ * if one is reworded here and not there — a cover linking to `/faq/#…` that no
+ * longer exists is a dead anchor no test would otherwise catch.
+ *
+ * The teaser is written for the cover, not copied from the answer. Reprinting
+ * the FAQ's paragraphs would put the same text on two indexed URLs, which is
+ * the thing this page is trying to stop doing.
+ */
+const HOME_QUESTIONS: Array<{ q: string; teaser: string }> = [
+  {
+    q: 'What is EPaper?',
+    teaser:
+      'An MIT-licensed set of 71 web components for e-paper and e-ink displays, published as `@marcomattes/epaper-components`.',
+  },
+  {
+    q: 'Do I need an e-paper display to use this?',
+    teaser:
+      'No. The components render on any screen — the e-ink rules just produce a stark, print-like interface.',
+  },
+  {
+    q: 'Do I need a build step or a framework?',
+    teaser:
+      'No. The elements register on import and upgrade tags already in the document, so one `<script type="module">` is enough.',
+  },
+  {
+    q: 'How big is it?',
+    teaser: 'About 40 KB gzipped for all 71 components; a single component is far smaller.',
+  },
+];
+
+export interface HomeQuestion {
+  q: string;
+  teaser: string;
+  /** Fragment id of the full answer on `/faq/`. */
+  anchor: string;
+}
+
+/** The cover's question list, with every anchor checked against the real FAQ. */
+export function homeQuestions(): HomeQuestion[] {
+  const known = new Set(faqItems().map((item) => item.q));
+  return HOME_QUESTIONS.map((entry) => {
+    if (!known.has(entry.q)) {
+      throw new Error(`faq: cover question "${entry.q}" is not in FAQ`);
+    }
+    return { q: entry.q, teaser: entry.teaser, anchor: faqId(entry.q) };
+  });
+}

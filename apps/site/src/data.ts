@@ -173,6 +173,60 @@ export const FEATURES: FeatureCard[] = [
   },
 ];
 
+/* --------------------------------------------------------------------- *
+ * Cover page — the copy below the fold
+ * --------------------------------------------------------------------- */
+
+/**
+ * The cover's opening prose.
+ *
+ * Lives here rather than inline in `content.ts` because `seo.ts` renders the
+ * same paragraphs into `/index.md` and `llms.txt`. The HTML page and its
+ * markdown twin must not be able to disagree about what the project is — that
+ * is the copy an answer engine quotes.
+ *
+ * Written answer-first, in the vocabulary people actually search with: "e-ink
+ * web components", both spellings of e-ink, and the concrete tag names. The
+ * first sentence has to stand alone as the answer to "what is this".
+ */
+export const HOME_INTRO: string[] = [
+  'EPaper is an open-source library of e-ink web components: 71 vanilla custom elements built for electrophoretic (e-ink, also spelled eink) panels rather than backlit screens. Every element is plain HTML — `<e-button>`, `<e-table>`, `<e-date-picker>` — so an e-paper dashboard, an electronic shelf label or a meeting-room display is written the way a web page is written, with no framework and no build plugin.',
+  'Web components suit e-ink precisely because the platform does the work. A custom element owns the DOM it renders, so it can patch a single text node when a value changes instead of rebuilding a subtree — and on an e-paper panel the size of that change *is* the cost of the refresh. Every component here is written to that constraint, and the ones that take input participate in `<form>` natively through `ElementInternals`.',
+  'None of it requires an e-ink device. The components render normally on any screen; the constraints the medium imposes — no animation, no hover, high contrast — simply produce a stark, print-like interface that also suits kiosks, embedded panels and low-distraction reading UIs.',
+];
+
+export interface EinkConstraint {
+  term: string;
+  def: string;
+}
+
+/**
+ * The four rules that make a component e-ink-ready.
+ *
+ * A deliberately shorter list than {@link FEATURES}: the cover states the
+ * medium's constraints, page 2 states the library's design principles. Both
+ * are true, but a cover that reprints the feature grid gives a reader — and a
+ * crawler — no reason to treat the two pages as different documents.
+ */
+export const EINK_CONSTRAINTS: EinkConstraint[] = [
+  {
+    term: 'No animations, no transitions',
+    def: 'An e-paper controller redraws in discrete waveform cycles, not frames. A 300 ms fade is not a gradient on e-ink — it is a few dozen full-region refreshes queued faster than the panel can drain them. `base.css` resets both globally inside `.ink-page`.',
+  },
+  {
+    term: 'No `:hover` states',
+    def: 'E-ink devices are touch- or button-driven and have no pointer, so anything hidden behind `:hover` is unreachable. State is carried by `:focus-visible`, `[aria-selected]`, `[aria-checked]` and `[data-active]` instead.',
+  },
+  {
+    term: 'Surgical DOM updates',
+    def: 'Components patch text nodes and attributes in place and compare before writing, keeping the damaged rectangle small enough for the controller to pick a fast partial refresh over a full GC16 flash. See [how partial refresh works](/guides/partial-refresh/).',
+  },
+  {
+    term: 'No Shadow DOM',
+    def: 'Light DOM only, themed through one layer of CSS custom properties, so a panel vendor can restyle the whole set without touching JavaScript — and so a crawler reads the text without traversing a shadow root.',
+  },
+];
+
 export interface RoadmapItem {
   time: string;
   title: string;

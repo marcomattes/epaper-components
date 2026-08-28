@@ -7,6 +7,24 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+
+- The website's cover page (`/`) now carries the site's subject in prose
+  instead of only in a masthead. It was roughly sixty words — a headline, a
+  lede and three statistics — which left the FAQ as the only page that spelled
+  "e-ink" next to "web components" in body text, and search results reflected
+  that. The cover keeps the same first screen and continues below the fold
+  with what EPaper is, the four constraints that make a component e-ink-ready,
+  the install snippets, the component categories, the guides and four question
+  teasers, each block linking to the page that covers it in full rather than
+  restating it. Title, `<h1>` and description now name e-ink as well as
+  e-paper.
+- The cover's structured data gained a `SoftwareApplication` node (what to
+  install, and that it is free) and an `ItemList` of the site's sections,
+  alongside the `SoftwareSourceCode` node every page already carried.
+- `/index.md` and `llms.txt` mirror the expanded cover copy, so the markdown
+  alternate an answer engine reads is no longer thinner than the HTML page.
+
 ## [1.2.0] — 2026-08-25
 
 ### Added
