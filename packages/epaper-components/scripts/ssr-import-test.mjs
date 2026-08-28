@@ -31,7 +31,8 @@ if (!fs.existsSync(distDir)) {
 const results = [];
 function record(name, pass, detail) {
   results.push({ name, pass });
-  console.log(`[${pass ? 'PASS' : 'FAIL'}] ${name}${detail ? ` — ${detail}` : ''}`);
+  const suffix = detail ? ` — ${detail}` : '';
+  console.log(`[${pass ? 'PASS' : 'FAIL'}] ${name}${suffix}`);
 }
 
 // A DOM global that exists here would mean the environment is not the bare
