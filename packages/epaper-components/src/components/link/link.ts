@@ -47,8 +47,11 @@ export class ELink extends HTMLElement {
     patchAttr(this._a, 'href', this.getAttribute('href') || '#');
     const target = this.getAttribute('target');
     patchAttr(this._a, 'target', target || null);
+    // An author-set `rel` wins; failing that, only `target="_blank"` needs the
+    // noopener/noreferrer pair.
     const rel = this.getAttribute('rel');
-    patchAttr(this._a, 'rel', rel?.trim() ? rel : target === '_blank' ? BLANK_REL : null);
+    const fallback = target === '_blank' ? BLANK_REL : null;
+    patchAttr(this._a, 'rel', rel?.trim() ? rel : fallback);
     patchBoolAttr(this._a, 'data-external', boolAttr(this, 'external'));
   }
 }
