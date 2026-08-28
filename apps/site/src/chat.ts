@@ -88,7 +88,7 @@ export const CHAT_REPLIES: ChatReply[] = [
     html: `<p class="site-chat__p">A complete page needs one import and plain HTML —
         no framework, no build plugin:</p>
       <pre class="site-code">${esc(CODE_SAMPLE)}</pre>
-      <div class="site-chat__tags"><e-tag>vanilla</e-tag><e-tag>no Shadow DOM</e-tag><e-tag>40 KB</e-tag></div>`,
+      <div class="site-chat__tags"><e-tag>vanilla</e-tag><e-tag>no Shadow DOM</e-tag><e-tag>58 KB brotli</e-tag></div>`,
   },
 ];
 
