@@ -1,0 +1,32 @@
+/* Storybook-only chrome, not part of the shipped library styles.
+ *
+ * addon-docs renders `parameters.docs.subtitle` inside a bare `<h2
+ * class="sbdocs-subtitle sb-unstyled">`. Every autodoc'd component sets that
+ * subtitle to "Since vX.Y.Z", so left unstyled it reads as a second title
+ * rather than a version marker. Restyle it as an e-paper tag (the same look
+ * as `.ink-tag`) so it visually reads as one line per doc page, not a
+ * component-specific version scheme.
+ */
+/* addon-docs injects the default Subtitle look (20px h2, a bottom-only
+ * divider border, fixed line-height) via a runtime <style> tag that lands
+ * after this stylesheet in the cascade, so it wins per-property on anything
+ * left un-`!important`-ed here — including individual longhands like
+ * `border-bottom` even though this rule sets the `border` shorthand. Without
+ * `!important` the two rules blend into an open-bottomed box with oversized
+ * text that reads as "cut off" rather than a tag. */
+.sbdocs-subtitle {
+  display: inline-flex !important;
+  align-items: center !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 0 24px !important;
+  padding: 2px 8px !important;
+  border: var(--ink-border, 1px solid currentColor) !important;
+  font-family: var(--ink-mono, ui-monospace, monospace) !important;
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: var(--ink-fg, currentColor) !important;
+}

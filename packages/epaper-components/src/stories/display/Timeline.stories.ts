@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nVertical event list with a hairline rail and bullet markers. Use for activity feeds, audit logs or order tracking. Static layout — no animations.',
+          'Vertical event list with a hairline rail and bullet markers. Use for activity feeds, audit logs or order tracking. Static layout — no animations.',
       },
     },
   },

@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nEmpty-state placeholder with icon, title, optional description and an action slot. Use as the body of a list, table or section that has no content yet.',
+          'Empty-state placeholder with icon, title, optional description and an action slot. Use as the body of a list, table or section that has no content yet.',
       },
     },
   },

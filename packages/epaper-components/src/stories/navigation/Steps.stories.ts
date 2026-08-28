@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nSequential progress indicator for multi-step flows such as onboarding, checkout or wizards. Renders horizontally by default; switch to `vertical` for tall sidebars.',
+          'Sequential progress indicator for multi-step flows such as onboarding, checkout or wizards. Renders horizontally by default; switch to `vertical` for tall sidebars.',
       },
     },
   },

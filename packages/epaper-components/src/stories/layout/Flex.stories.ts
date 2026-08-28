@@ -11,9 +11,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nOne-dimensional flexbox container. Exposes attributes for `direction`, `wrap`, `gap`, `justify` and `align` so layout stays declarative — no ad-hoc inline styles.',
+          'One-dimensional flexbox container. Exposes attributes for `direction`, `wrap`, `gap`, `justify` and `align` so layout stays declarative — no ad-hoc inline styles.',
       },
     },
   },

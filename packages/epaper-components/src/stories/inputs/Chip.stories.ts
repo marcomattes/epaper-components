@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nSelectable label for filters or quick choices. Toggles `selected` on click and fires `e-change`. Distinct from `<e-tag>` (removable label) and `<e-badge>` (decorative).',
+          'Selectable label for filters or quick choices. Toggles `selected` on click and fires `e-change`. Distinct from `<e-tag>` (removable label) and `<e-badge>` (decorative).',
       },
     },
   },

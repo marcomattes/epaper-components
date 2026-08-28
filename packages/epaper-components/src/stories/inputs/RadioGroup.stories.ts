@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nSingle-select control rendered as a list of radio options. Use when the user needs to see all available choices at once.',
+          'Single-select control rendered as a list of radio options. Use when the user needs to see all available choices at once.',
       },
     },
   },

@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.3.0',
       description: {
         component:
-          '**Version:** v1.3.0\n\nEAN-13, EAN-8, UPC-A and Code 128 rendered as inline SVG by a self-contained encoder — the same construction as `<e-qrcode>`: zero runtime dependencies, one white rect plus one dark path, `shape-rendering="crispEdges"`. A missing check digit is computed; a wrong one is reported.',
+          'EAN-13, EAN-8, UPC-A and Code 128 rendered as inline SVG by a self-contained encoder — the same construction as `<e-qrcode>`: zero runtime dependencies, one white rect plus one dark path, `shape-rendering="crispEdges"`. A missing check digit is computed; a wrong one is reported.',
       },
     },
   },

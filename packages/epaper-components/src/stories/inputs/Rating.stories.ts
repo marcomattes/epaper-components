@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.3.0',
       description: {
         component:
-          '**Version:** v1.3.0\n\nStar or smiley rating with 48px touch targets and full keyboard control (arrows, `Home`/`End`, digit keys). Form-associated: an unrated control submits an empty value, so `required` behaves like it does on a native control.',
+          'Star or smiley rating with 48px touch targets and full keyboard control (arrows, `Home`/`End`, digit keys). Form-associated: an unrated control submits an empty value, so `required` behaves like it does on a native control.',
       },
     },
   },

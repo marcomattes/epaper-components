@@ -9,9 +9,10 @@ const meta: Meta = {
   parameters: {
     layout: 'fullscreen',
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nPage chrome scaffold composed of optional `<e-header>`, `<e-sider>`, `<e-content>` and `<e-footer>` regions. Provides the top-level frame for application screens.',
+          'Page chrome scaffold composed of optional `<e-header>`, `<e-sider>`, `<e-content>` and `<e-footer>` regions. Provides the top-level frame for application screens.',
       },
     },
   },

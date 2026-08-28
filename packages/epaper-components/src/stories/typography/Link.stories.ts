@@ -7,9 +7,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nInline anchor styled with the system’s underline + ink-fg colour. Set `underline` when you need to force a visible underline outside flowing prose.',
+          'Inline anchor styled with the system’s underline + ink-fg colour. Set `underline` when you need to force a visible underline outside flowing prose.',
       },
     },
   },

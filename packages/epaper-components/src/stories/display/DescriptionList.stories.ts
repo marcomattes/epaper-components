@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nSemantic key/value list rendered with a `<dl>`. Prefer this over a raw `<dl>` when you want consistent layout, optional borders and a multi-column grid.',
+          'Semantic key/value list rendered with a `<dl>`. Prefer this over a raw `<dl>` when you want consistent layout, optional borders and a multi-column grid.',
       },
     },
   },

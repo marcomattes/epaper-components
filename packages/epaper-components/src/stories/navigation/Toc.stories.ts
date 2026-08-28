@@ -7,9 +7,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.3.0',
       description: {
         component:
-          "**Version:** v1.3.0\n\nAuto-generated table of contents. Scans a document's headings and mirrors them into an `<e-anchor>` it builds itself — no hand-written `<e-anchor-item>` list required.",
+          "Auto-generated table of contents. Scans a document's headings and mirrors them into an `<e-anchor>` it builds itself — no hand-written `<e-anchor-item>` list required.",
       },
     },
   },

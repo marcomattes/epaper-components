@@ -6,6 +6,9 @@ import { html } from 'lit';
 import '../../../packages/epaper-components/src/styles/tokens.css';
 import '../../../packages/epaper-components/src/styles/base.css';
 import '../../../packages/epaper-components/src/styles/components.css';
+// Storybook-only chrome (restyles addon-docs' Subtitle block) — not shipped
+// with the library.
+import './docs.css';
 
 // Side-effect import: registers every `e-*` custom element once for all stories.
 import '../../../packages/epaper-components/src/index';

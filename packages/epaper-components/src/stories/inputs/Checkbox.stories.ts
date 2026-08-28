@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nSingle binary on/off control with a flat ink check. Pair with a label or compose multiple instances inside a CheckboxGroup.',
+          'Single binary on/off control with a flat ink check. Pair with a label or compose multiple instances inside a CheckboxGroup.',
       },
     },
   },

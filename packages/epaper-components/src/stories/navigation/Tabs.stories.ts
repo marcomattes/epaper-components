@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nSwitcher between sibling content panes with an underline-style active indicator. Implements WAI-ARIA tabs pattern with full keyboard support (← → Home End).',
+          'Switcher between sibling content panes with an underline-style active indicator. Implements WAI-ARIA tabs pattern with full keyboard support (← → Home End).',
       },
     },
   },

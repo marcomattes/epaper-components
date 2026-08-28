@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.3.0',
       description: {
         component:
-          '**Version:** v1.3.0\n\nRange slider with a 28×36 grip, a printed value readout and optional tick marks. The value is always printed next to the track: a thumb position alone is not readable on a panel without sub-pixel rendering.',
+          'Range slider with a 28×36 grip, a printed value readout and optional tick marks. The value is always printed next to the track: a thumb position alone is not readable on a panel without sub-pixel rendering.',
       },
     },
   },

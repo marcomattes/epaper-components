@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nInline confirmation bubble anchored to the control that triggers it. A lighter alternative to `<e-dialog>` for a single destructive action: no backdrop, no full-panel refresh, just a small dirty rectangle next to the button. Undo is expensive on e-paper, which makes confirming worth more than it is on desktop — but a full modal flash for a one-line question is not.',
+          'Inline confirmation bubble anchored to the control that triggers it. A lighter alternative to `<e-dialog>` for a single destructive action: no backdrop, no full-panel refresh, just a small dirty rectangle next to the button. Undo is expensive on e-paper, which makes confirming worth more than it is on desktop — but a full modal flash for a one-line question is not.',
       },
     },
   },

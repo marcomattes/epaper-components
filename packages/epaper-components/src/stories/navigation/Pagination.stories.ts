@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nPage-list control for paged data sets. Provides previous/next buttons, direct page jumps and an ellipsis when the page count exceeds the visible window.',
+          'Page-list control for paged data sets. Provides previous/next buttons, direct page jumps and an ellipsis when the page count exceeds the visible window.',
       },
     },
   },

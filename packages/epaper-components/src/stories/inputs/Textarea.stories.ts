@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nMulti-line text field for longer-form input such as comments, descriptions or messages. Shares the Input visual treatment.',
+          'Multi-line text field for longer-form input such as comments, descriptions or messages. Shares the Input visual treatment.',
       },
     },
   },

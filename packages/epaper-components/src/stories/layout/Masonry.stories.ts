@@ -18,9 +18,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nPinterest-style multi-column layout that packs items of varying heights without leaving gaps. Configurable column count and inter-item spacing.',
+          'Pinterest-style multi-column layout that packs items of varying heights without leaving gaps. Configurable column count and inter-item spacing.',
       },
     },
   },

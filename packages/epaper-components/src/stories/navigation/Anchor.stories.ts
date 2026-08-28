@@ -7,9 +7,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nIn-page navigation that highlights the section currently in view as the user scrolls. Useful for long documentation or article pages.',
+          'In-page navigation that highlights the section currently in view as the user scrolls. Useful for long documentation or article pages.',
       },
     },
   },

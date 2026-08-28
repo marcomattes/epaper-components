@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nKPI block: large numeric value with label and an optional trend marker. The trend glyph is static (no animation) so it does not provoke an e-paper full refresh.',
+          'KPI block: large numeric value with label and an optional trend marker. The trend glyph is static (no animation) so it does not provoke an e-paper full refresh.',
       },
     },
   },

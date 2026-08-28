@@ -17,9 +17,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.1.0',
       description: {
         component:
-          '**Version:** v1.1.0\n\nStable keyed KPI matrix. Replacing `data` patches existing cells in place when their keys are unchanged, keeping redraws local.',
+          'Stable keyed KPI matrix. Replacing `data` patches existing cells in place when their keys are unchanged, keeping redraws local.',
       },
     },
   },

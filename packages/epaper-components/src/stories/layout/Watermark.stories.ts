@@ -6,9 +6,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nTiled SVG watermark layered behind slotted content. Designed for print-style "DRAFT" / "CONFIDENTIAL" labels on e-paper layouts.',
+          'Tiled SVG watermark layered behind slotted content. Designed for print-style "DRAFT" / "CONFIDENTIAL" labels on e-paper layouts.',
       },
     },
   },

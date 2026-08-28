@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nFile upload control with both click-to-browse and drag-and-drop targets, plus an inline file list. Restrict file types via the `accept` attribute and toggle `multiple` for batch uploads.',
+          'File upload control with both click-to-browse and drag-and-drop targets, plus an inline file list. Restrict file types via the `accept` attribute and toggle `multiple` for batch uploads.',
       },
     },
   },

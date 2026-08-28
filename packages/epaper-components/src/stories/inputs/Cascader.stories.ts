@@ -41,9 +41,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nTiered select that drills into multi-level options column-by-column (e.g. country → region → city). The committed value is the full path joined with commas.',
+          'Tiered select that drills into multi-level options column-by-column (e.g. country → region → city). The committed value is the full path joined with commas.',
       },
     },
   },

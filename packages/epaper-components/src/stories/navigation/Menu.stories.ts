@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nNavigation container with vertical or horizontal layout. Items support icons, badges and one level of nested children. The active item is reflected through `aria-current="page"`.',
+          'Navigation container with vertical or horizontal layout. Items support icons, badges and one level of nested children. The active item is reflected through `aria-current="page"`.',
       },
     },
   },

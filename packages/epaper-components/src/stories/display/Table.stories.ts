@@ -20,9 +20,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nData grid with header, optional sort and row selection. Sort is **static**: clicking a header cycles `none → asc → desc → none` and emits `e-sort` — owners decide whether to re-sort or re-fetch.',
+          'Data grid with header, optional sort and row selection. Sort is **static**: clicking a header cycles `none → asc → desc → none` and emits `e-sort` — owners decide whether to re-sort or re-fetch.',
       },
     },
   },

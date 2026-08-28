@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nCard variant with a leading hero region — either an image URL or the built-in diagonal `hatch` cover for editorial layouts. Pairs well with Ribbon for featured items.',
+          'Card variant with a leading hero region — either an image URL or the built-in diagonal `hatch` cover for editorial layouts. Pairs well with Ribbon for featured items.',
       },
     },
   },

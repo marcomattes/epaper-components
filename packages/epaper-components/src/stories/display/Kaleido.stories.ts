@@ -6,9 +6,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nShowcase swatch for the five Kaleido accent colors (red, orange, yellow, green, blue). These are the **only** fills permitted in the system and are reserved for state — destructive, warning, attention, success, link/info.',
+          'Showcase swatch for the five Kaleido accent colors (red, orange, yellow, green, blue). These are the **only** fills permitted in the system and are reserved for state — destructive, warning, attention, success, link/info.',
       },
     },
   },

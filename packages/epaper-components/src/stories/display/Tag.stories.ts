@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nSmall inline label, optionally removable. Use to mark categories or filters that the user can dismiss. Distinct from `<e-badge>`, which is purely decorative.',
+          'Small inline label, optionally removable. Use to mark categories or filters that the user can dismiss. Distinct from `<e-badge>`, which is purely decorative.',
       },
     },
   },

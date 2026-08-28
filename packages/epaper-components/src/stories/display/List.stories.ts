@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nStructured list with optional header / footer slots and slot-driven `<e-list-item>` rows. Use this instead of a native `<ul>` when you need leading / trailing content per row.',
+          'Structured list with optional header / footer slots and slot-driven `<e-list-item>` rows. Use this instead of a native `<ul>` when you need leading / trailing content per row.',
       },
     },
   },

@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.1.0',
       description: {
         component:
-          '**Version:** v1.1.0\n\nRelative update age with fresh, stale and expired states. It owns no timer: set `now` from the application refresh cycle or call `refresh()` explicitly.',
+          'Relative update age with fresh, stale and expired states. It owns no timer: set `now` from the application refresh cycle or call `refresh()` explicitly.',
       },
     },
   },

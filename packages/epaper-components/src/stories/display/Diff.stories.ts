@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.1.0',
       description: {
         component:
-          '**Version:** v1.1.0\n\nPersistent previous/current comparison. Both values remain visible and the current state receives a patterned cue when changed.',
+          'Persistent previous/current comparison. Both values remain visible and the current state receives a patterned cue when changed.',
       },
     },
   },

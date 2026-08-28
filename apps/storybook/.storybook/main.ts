@@ -1,3 +1,4 @@
+import remarkGfm from 'remark-gfm';
 import type { StorybookConfig } from '@storybook/web-components-vite';
 
 // Stories live in packages/epaper-components/src/stories — co-located with
@@ -9,7 +10,23 @@ const config: StorybookConfig = {
     '../../../packages/epaper-components/src/stories/**/*.mdx',
   ],
   framework: '@storybook/web-components-vite',
-  addons: ['@storybook/addon-a11y', '@storybook/addon-docs', '@storybook/addon-vitest'],
+  addons: [
+    '@storybook/addon-a11y',
+    // GFM tables and strikethrough aren't enabled by default in addon-docs'
+    // MDX compiler — without this, `| a | b |` tables in .mdx files render
+    // as a flat run of text instead of an actual <table>.
+    {
+      name: '@storybook/addon-docs',
+      options: {
+        mdxPluginOptions: {
+          mdxCompileOptions: {
+            remarkPlugins: [remarkGfm],
+          },
+        },
+      },
+    },
+    '@storybook/addon-vitest',
+  ],
   // No `docs.autodocs` — it was removed in Storybook 8; stories opt in with
   // `tags: ['autodocs']` instead, which every story in src/stories already does.
   async viteFinal(config) {

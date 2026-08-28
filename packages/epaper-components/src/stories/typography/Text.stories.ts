@@ -7,9 +7,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nBody-text element bound to the system type scale. Pick a `kind` (`body`, `prose`, `small`, `mono`, `label`) to map onto the matching `--ink-text-*` token and line-height.',
+          'Body-text element bound to the system type scale. Pick a `kind` (`body`, `prose`, `small`, `mono`, `label`) to map onto the matching `--ink-text-*` token and line-height.',
       },
     },
   },

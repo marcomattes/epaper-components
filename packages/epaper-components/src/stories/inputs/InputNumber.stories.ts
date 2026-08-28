@@ -7,9 +7,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nNumeric input with stepper buttons. Supports `min`, `max` and `step` constraints and clamps the value on commit.',
+          'Numeric input with stepper buttons. Supports `min`, `max` and `step` constraints and clamps the value on commit.',
       },
     },
   },

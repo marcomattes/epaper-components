@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.1.0',
       description: {
         component:
-          '**Version:** v1.1.0\n\nCompact current value with a persistent text-and-pattern cue only when it differs from `previous`.',
+          'Compact current value with a persistent text-and-pattern cue only when it differs from `previous`.',
       },
     },
   },

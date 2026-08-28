@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.1.0',
       description: {
         component:
-          '**Version:** v1.1.0\n\nMonochrome SVG mini-chart. The first-to-last trend is repeated as a glyph and readable text, and updates replace only the polyline coordinates.',
+          'Monochrome SVG mini-chart. The first-to-last trend is repeated as a glyph and readable text, and updates replace only the polyline coordinates.',
       },
     },
   },
