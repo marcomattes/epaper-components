@@ -296,6 +296,304 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
   { date: '2026-04-30', title: 'Design review' },
 ];
 
+/* --------------------------------------------------------------------- *
+ * Showcase — office-climate dashboard
+ * --------------------------------------------------------------------- */
+
+export interface DashSensor {
+  key: string;
+  label: string;
+  value: string;
+  status: 'ok' | 'warning' | 'critical' | 'offline' | 'neutral';
+  detail?: string;
+}
+
+export interface DashReading {
+  /** ISO timestamp of the reading — drives `<e-last-updated>`. */
+  at: string;
+  temperature: number;
+  temperatureDelta: number;
+  temperatureTrend: 'up' | 'down' | 'flat';
+  co2: number;
+  humidity: number;
+  battery: number;
+  /** CO₂ series for the sparkline, oldest first. */
+  co2Series: number[];
+  sensors: DashSensor[];
+}
+
+/**
+ * The "Simulate reading" button cycles through these. Three fixed frames
+ * rather than random numbers, so every visitor sees the same story: morning
+ * calm, a full meeting room, then the ventilation catching up.
+ */
+export const DASH_READINGS: DashReading[] = [
+  {
+    at: '2026-08-28T06:55:00Z',
+    temperature: 21.4,
+    temperatureDelta: 0.6,
+    temperatureTrend: 'up',
+    co2: 618,
+    humidity: 44,
+    battery: 72,
+    co2Series: [430, 465, 510, 575, 640, 660, 605, 590, 618],
+    sensors: [
+      { key: 'lobby', label: 'Lobby', value: 'OK', status: 'ok', detail: '21.4 °C' },
+      {
+        key: 'meeting',
+        label: 'Meeting room',
+        value: '780 ppm',
+        status: 'warning',
+        detail: 'Ventilate soon',
+      },
+      { key: 'server', label: 'Server room', value: 'OK', status: 'ok', detail: '19.8 °C' },
+      {
+        key: 'roof',
+        label: 'Roof node',
+        value: 'Offline',
+        status: 'offline',
+        detail: 'Last seen 06:12',
+      },
+    ],
+  },
+  {
+    at: '2026-08-28T07:10:00Z',
+    temperature: 22.1,
+    temperatureDelta: 0.7,
+    temperatureTrend: 'up',
+    co2: 905,
+    humidity: 47,
+    battery: 71,
+    co2Series: [465, 510, 575, 640, 660, 605, 590, 618, 905],
+    sensors: [
+      { key: 'lobby', label: 'Lobby', value: 'OK', status: 'ok', detail: '22.1 °C' },
+      {
+        key: 'meeting',
+        label: 'Meeting room',
+        value: '1180 ppm',
+        status: 'critical',
+        detail: 'Open a window',
+      },
+      { key: 'server', label: 'Server room', value: 'OK', status: 'ok', detail: '19.9 °C' },
+      {
+        key: 'roof',
+        label: 'Roof node',
+        value: 'Offline',
+        status: 'offline',
+        detail: 'Last seen 06:12',
+      },
+    ],
+  },
+  {
+    at: '2026-08-28T07:25:00Z',
+    temperature: 21.8,
+    temperatureDelta: 0.3,
+    temperatureTrend: 'down',
+    co2: 640,
+    humidity: 45,
+    battery: 71,
+    co2Series: [510, 575, 640, 660, 605, 590, 618, 905, 640],
+    sensors: [
+      { key: 'lobby', label: 'Lobby', value: 'OK', status: 'ok', detail: '21.8 °C' },
+      {
+        key: 'meeting',
+        label: 'Meeting room',
+        value: '690 ppm',
+        status: 'ok',
+        detail: 'Back in range',
+      },
+      { key: 'server', label: 'Server room', value: 'OK', status: 'ok', detail: '19.9 °C' },
+      { key: 'roof', label: 'Roof node', value: 'OK', status: 'ok', detail: 'Reconnected 07:18' },
+    ],
+  },
+];
+
+/* --------------------------------------------------------------------- *
+ * Showcase — electronic shelf label
+ * --------------------------------------------------------------------- */
+
+export interface ShelfProduct {
+  /** Segment value in the product picker. */
+  id: string;
+  name: string;
+  /** Pack size line under the name. */
+  detail: string;
+  /** Current price in euros. */
+  price: number;
+  /** Previous price — the change marker turns a price drop into a cue. */
+  prevPrice: number;
+  /** Reference price line, e.g. "€ 12.90 / kg". */
+  perUnit: string;
+  /** Exactly two label tags, patched in place on product switch. */
+  tags: [string, string];
+  sku: string;
+  /** Encoded in the QR code. */
+  url: string;
+}
+
+export const SHELF_PRODUCTS: ShelfProduct[] = [
+  {
+    id: 'espresso',
+    name: 'Espresso Beans',
+    detail: 'Whole beans · 1 kg',
+    price: 12.9,
+    prevPrice: 14.5,
+    perUnit: '€ 12.90 / kg',
+    tags: ['Arabica', 'Fair trade'],
+    sku: 'EP-1041',
+    url: 'https://epaper-components.dev/showcase/?sku=EP-1041',
+  },
+  {
+    id: 'oat-milk',
+    name: 'Oat Milk Barista',
+    detail: 'UHT · 1 L',
+    price: 2.19,
+    prevPrice: 1.99,
+    perUnit: '€ 2.19 / L',
+    tags: ['Vegan', 'Organic'],
+    sku: 'EP-2087',
+    url: 'https://epaper-components.dev/showcase/?sku=EP-2087',
+  },
+  {
+    id: 'chocolate',
+    name: 'Dark Chocolate 85%',
+    detail: 'Bar · 100 g',
+    price: 2.49,
+    prevPrice: 2.49,
+    perUnit: '€ 24.90 / kg',
+    tags: ['Single origin', 'Bio'],
+    sku: 'EP-3123',
+    url: 'https://epaper-components.dev/showcase/?sku=EP-3123',
+  },
+];
+
+/* --------------------------------------------------------------------- *
+ * Showcase — meeting-room door sign
+ * --------------------------------------------------------------------- */
+
+export interface RoomAgendaEntry {
+  time: string;
+  title: string;
+  detail: string;
+}
+
+/** The day's agenda — rendered once; only the item variants get patched. */
+export const ROOM_AGENDA: RoomAgendaEntry[] = [
+  { time: '09:00', title: 'Stand-up', detail: 'Core team · 15 min' },
+  { time: '11:00', title: 'Design review', detail: 'EPaper V1.3 tokens' },
+  { time: '13:00', title: 'Customer call', detail: 'Kaleido rollout' },
+  { time: '16:00', title: 'Retro', detail: 'Sprint 42' },
+];
+
+export interface RoomSlot {
+  /** Segment value: the simulated wall-clock time. */
+  id: string;
+  status: 'free' | 'occupied';
+  /** Second line under the room name. */
+  sub: string;
+  /** Timeline marker variant per agenda entry, same order as ROOM_AGENDA. */
+  agenda: Array<'done' | 'default' | 'pending'>;
+}
+
+export const ROOM_SLOTS: RoomSlot[] = [
+  {
+    id: '08:30',
+    status: 'free',
+    sub: 'Next: Stand-up at 09:00',
+    agenda: ['pending', 'pending', 'pending', 'pending'],
+  },
+  {
+    id: '09:05',
+    status: 'occupied',
+    sub: 'Stand-up · until 09:15',
+    agenda: ['default', 'pending', 'pending', 'pending'],
+  },
+  {
+    id: '12:00',
+    status: 'free',
+    sub: 'Next: Customer call at 13:00',
+    agenda: ['done', 'done', 'pending', 'pending'],
+  },
+  {
+    id: '16:10',
+    status: 'occupied',
+    sub: 'Retro · until 17:00',
+    agenda: ['done', 'done', 'done', 'default'],
+  },
+];
+
+/* --------------------------------------------------------------------- *
+ * Showcase — parcel tracking
+ * --------------------------------------------------------------------- */
+
+/** The four steps of the shipment, rendered once into `<e-steps>`. */
+export const TRACKING_STEPS: Array<{ title: string; desc: string }> = [
+  { title: 'Ordered', desc: '28 Aug, 09:12' },
+  { title: 'Packed', desc: 'Fulfillment Leipzig' },
+  { title: 'In transit', desc: 'DHL · 00340 4344 71' },
+  { title: 'Delivered', desc: 'Against signature' },
+];
+
+export interface TrackingStage {
+  /** 0-based index into TRACKING_STEPS — the `current` of `<e-steps>`. */
+  step: number;
+  location: string;
+  /** Estimated delivery date; `etaPrev` drives the change cue when it moves. */
+  eta: string;
+  etaPrev?: string;
+  /** Route progress 0..100. */
+  progress: number;
+  delivered?: boolean;
+}
+
+/** "Advance shipment" cycles through these frames. */
+export const TRACKING_STAGES: TrackingStage[] = [
+  { step: 0, location: 'Web shop checkout', eta: '3 Sep', progress: 5 },
+  { step: 1, location: 'Fulfillment center Leipzig', eta: '3 Sep', progress: 25 },
+  { step: 2, location: 'Parcel hub Hannover', eta: '2 Sep', etaPrev: '3 Sep', progress: 70 },
+  {
+    step: 3,
+    location: 'Delivered · front desk',
+    eta: '2 Sep',
+    etaPrev: '3 Sep',
+    progress: 100,
+    delivered: true,
+  },
+];
+
+/* --------------------------------------------------------------------- *
+ * Showcase — e-reader page
+ * --------------------------------------------------------------------- */
+
+export interface ReaderPage {
+  chapter: string;
+  /** Public-domain excerpt (Lewis Carroll, Alice's Adventures in Wonderland, 1865). */
+  text: string;
+}
+
+export const READER_PAGES: ReaderPage[] = [
+  {
+    chapter: 'Chapter I · Down the Rabbit-Hole',
+    text: 'Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do: once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it, “and what is the use of a book,” thought Alice, “without pictures or conversations?”',
+  },
+  {
+    chapter: 'Chapter I · Down the Rabbit-Hole',
+    text: 'Down, down, down. Would the fall never come to an end? “I wonder how many miles I’ve fallen by this time?” she said aloud. “I must be getting somewhere near the centre of the earth.”',
+  },
+  {
+    chapter: 'Chapter II · The Pool of Tears',
+    text: '“Curiouser and curiouser!” cried Alice (she was so much surprised, that for the moment she quite forgot how to speak good English); “now I’m opening out like the largest telescope that ever was! Good-bye, feet!”',
+  },
+  {
+    chapter: 'Chapter VI · Pig and Pepper',
+    text: '“But I don’t want to go among mad people,” Alice remarked. “Oh, you can’t help that,” said the Cat: “we’re all mad here. I’m mad. You’re mad.” “How do you know I’m mad?” said Alice. “You must be,” said the Cat, “or you wouldn’t have come here.”',
+  },
+  {
+    chapter: 'Chapter XII · Alice’s Evidence',
+    text: '“Sentence first — verdict afterwards,” said the Queen. “Stuff and nonsense!” said Alice loudly. “The idea of having the sentence first!” At this the whole pack rose up into the air, and came flying down upon her.',
+  },
+];
+
 export const INSTALL_SNIPPETS = {
   npm: 'npm install @marcomattes/epaper-components',
   pnpm: 'pnpm add @marcomattes/epaper-components',

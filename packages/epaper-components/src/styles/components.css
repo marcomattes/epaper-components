@@ -1685,7 +1685,13 @@ e-text {
 }
 .ink-calendar__row {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  /* minmax(0, 1fr), not bare 1fr: a bare 1fr floors each column at its
+     content's min-content width, so a nowrap event label ("Accessibility
+     review") widens its column and, because every week is its own grid,
+     knocks the rows out of alignment on narrow panels. Clamping the floor
+     to 0 keeps all seven columns equal; the event pill's own
+     overflow/ellipsis then truncates the label instead. */
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 .ink-calendar__dow {
   padding: 8px 10px;

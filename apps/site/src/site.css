@@ -525,6 +525,338 @@ body {
   overflow-x: auto;
 }
 
+/* ---------- Showcase: scripted AI chat (page 4) ---------- */
+.site-chat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-4);
+}
+.site-chat__log {
+  border: var(--ink-border);
+  padding: var(--ink-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-4);
+  max-height: 430px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.site-chat__msg {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ink-space-3);
+}
+/* The visitor's bubbles sit on the right, inverted — a 1-bit-safe cue that
+   needs no color to tell the two speakers apart. */
+.site-chat__msg--user {
+  flex-direction: row-reverse;
+}
+.site-chat__bubble {
+  border: var(--ink-border);
+  padding: 10px 14px;
+  max-width: 58ch;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-2);
+}
+.site-chat__msg--user .site-chat__bubble {
+  background: var(--ink-bg-inverted);
+  color: var(--ink-fg-inverted);
+}
+.site-chat__meta {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin: 0;
+  opacity: 0.75;
+}
+.site-chat__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-3);
+  min-width: 0;
+}
+.site-chat__p {
+  font-size: var(--ink-text-body);
+  line-height: 1.5;
+  margin: 0;
+}
+.site-chat__p code {
+  font-family: var(--ink-mono);
+  font-size: 0.85em;
+}
+.site-chat__tags,
+.site-chat__suggest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ink-space-2);
+}
+.site-chat__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: var(--ink-space-2);
+}
+.site-chat__composer {
+  display: flex;
+  gap: var(--ink-space-3);
+  align-items: flex-end;
+}
+.site-chat__composer e-input {
+  flex: 1;
+  min-width: 0;
+}
+/* Rich replies scroll inside their bubble rather than widening the page. */
+.site-chat__body e-table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.site-chat__body .ink-table {
+  min-width: 380px;
+}
+
+/* ---------- Showcase: dashboard (page 4) ---------- */
+.site-dash {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-4);
+}
+.site-dash__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--ink-space-3);
+  flex-wrap: wrap;
+}
+.site-dash__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: var(--ink-space-3);
+}
+/* The CO₂ change marker sits between two e-statistic cards — give it the
+   same frame so the row reads as one set of tiles. */
+.site-dash__stats e-change-marker {
+  border: var(--ink-border);
+  padding: var(--ink-space-4) var(--ink-space-5);
+  box-sizing: border-box;
+}
+.site-dash__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: var(--ink-space-3);
+}
+.site-dash__panel {
+  border: var(--ink-border);
+  padding: var(--ink-space-3) var(--ink-space-4);
+}
+
+/* ---------- Showcase: shelf label (page 4) ---------- */
+.site-shelf {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-4);
+  align-items: flex-start;
+}
+/* The "device": a strong frame at roughly ESL proportions. */
+.site-shelf__device {
+  border: var(--ink-border-strong);
+  padding: var(--ink-space-4) var(--ink-space-5);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: var(--ink-space-5);
+  align-items: center;
+  width: 100%;
+  max-width: 720px;
+  box-sizing: border-box;
+}
+.site-shelf__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-2);
+  min-width: 0;
+}
+.site-shelf__name {
+  font-family: var(--ink-serif);
+  font-size: 26px;
+  line-height: 1.1;
+  margin: 0;
+}
+.site-shelf__detail {
+  font-size: var(--ink-text-body);
+  margin: 0;
+}
+.site-shelf__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ink-space-2);
+}
+.site-shelf__sku {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-caption);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0;
+  opacity: 0.8;
+}
+.site-shelf__price {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-2);
+  align-items: flex-end;
+  text-align: right;
+}
+.site-shelf__price .ink-change-marker {
+  justify-items: end;
+}
+.site-shelf__price .ink-change-marker__value {
+  font-size: 40px;
+  line-height: 1;
+}
+.site-shelf__unit {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-small);
+  margin: 0;
+}
+.site-shelf__qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ink-space-1);
+}
+.site-shelf__scan {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-caption);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0;
+}
+.site-shelf__note {
+  font-family: var(--ink-serif);
+  font-size: var(--ink-text-body);
+  line-height: 1.5;
+  max-width: 68ch;
+  margin: 0;
+}
+
+/* ---------- Showcase: room sign (page 4) ---------- */
+.site-room {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-4);
+  align-items: flex-start;
+}
+.site-room__device {
+  border: var(--ink-border-strong);
+  padding: var(--ink-space-4) var(--ink-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-4);
+  width: 100%;
+  max-width: 560px;
+  box-sizing: border-box;
+}
+.site-room__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--ink-space-4);
+  border-bottom: var(--ink-border);
+  padding-bottom: var(--ink-space-3);
+}
+.site-room__name {
+  font-family: var(--ink-serif);
+  font-size: 26px;
+  line-height: 1.1;
+  margin: 0;
+}
+.site-room__sub {
+  font-size: var(--ink-text-body);
+  margin: var(--ink-space-1) 0 0;
+}
+/* The status pill: outlined when free, inverted when occupied — the state
+   is readable without color, from across a hallway. */
+.site-room__pill {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-small);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border: var(--ink-border-strong);
+  padding: 6px 14px;
+  margin: 0;
+  white-space: nowrap;
+}
+.site-room__pill[data-status='occupied'] {
+  background: var(--ink-bg-inverted);
+  color: var(--ink-fg-inverted);
+}
+.site-room__foot {
+  display: flex;
+  align-items: center;
+  gap: var(--ink-space-4);
+  border-top: var(--ink-border);
+  padding-top: var(--ink-space-3);
+}
+.site-room__hint {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-caption);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* ---------- Showcase: parcel tracking (page 4) ---------- */
+.site-track {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-4);
+  align-items: flex-start;
+  max-width: 720px;
+}
+.site-track__head {
+  width: 100%;
+}
+.site-track e-description-list,
+.site-track e-progress {
+  width: 100%;
+}
+
+/* ---------- Showcase: e-reader (page 4) ---------- */
+.site-reader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-4);
+  align-items: flex-start;
+}
+.site-reader__device {
+  border: var(--ink-border-strong);
+  padding: var(--ink-space-5) var(--ink-space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-4);
+  width: 100%;
+  max-width: 560px;
+  box-sizing: border-box;
+}
+.site-reader__chapter {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin: 0;
+}
+.site-reader__text {
+  font-family: var(--ink-serif);
+  font-size: var(--ink-text-prose);
+  line-height: 1.6;
+  margin: 0;
+  /* A fixed floor keeps the footer from jumping between short and long
+     pages — an e-reader's chrome never moves. */
+  min-height: 9.6em;
+}
+
 /* ---------- Footer (page 6) ---------- */
 .site-foot {
   border-top: var(--ink-border-strong);
@@ -661,6 +993,39 @@ e-site-pager {
   /* 18px of panel padding on each side is a lot of a 375px screen. */
   .site-section .ink-tabs__panel {
     padding: 12px;
+  }
+
+  /* Chat bubbles take the full log width; the composer stacks. */
+  .site-chat__bubble {
+    max-width: 100%;
+  }
+  .site-chat__composer {
+    flex-wrap: wrap;
+  }
+  .site-chat__composer e-input {
+    flex: 1 1 100%;
+  }
+
+  /* The shelf label stacks its three columns into a card. */
+  .site-shelf__device {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--ink-space-4);
+  }
+
+  /* Room sign and reader devices lose their side padding headroom. The
+     tracking steps already stack via the 900px .ink-steps rule above. */
+  .site-room__head {
+    flex-direction: column;
+  }
+  .site-reader__device {
+    padding: var(--ink-space-4);
+  }
+  .site-shelf__price {
+    align-items: flex-start;
+    text-align: left;
+  }
+  .site-shelf__price .ink-change-marker {
+    justify-items: start;
   }
 
   /* The footbar carries prev/next, the folio and the attribution, which is

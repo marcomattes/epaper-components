@@ -25,6 +25,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - `/index.md` and `llms.txt` mirror the expanded cover copy, so the markdown
   alternate an answer engine reads is no longer thinner than the HTML page.
 
+### Fixed
+
+- `<e-calendar>`: on narrow containers the week grid lost its column
+  alignment — a bare `1fr` column floors at the content's min-content
+  width, so a long `white-space: nowrap` event label widened its column
+  and, because every week row is its own grid, rows stopped lining up.
+  Columns now use `minmax(0, 1fr)`, keeping all seven equal at every
+  width; long event labels truncate with an ellipsis instead.
+
 ## [1.2.0] — 2026-08-25
 
 ### Added

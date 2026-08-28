@@ -12,7 +12,22 @@ import './site.css';
 // Side-effect import: registers <e-site-pager> via its own define() call.
 import './pager';
 import { esc } from '../../../packages/epaper-components/src/core/dom';
-import { type ComponentCategory } from './data';
+import {
+  DASH_READINGS,
+  READER_PAGES,
+  ROOM_SLOTS,
+  SHELF_PRODUCTS,
+  TRACKING_STAGES,
+  type ComponentCategory,
+} from './data';
+import {
+  chatFallbackHtml,
+  chatMessageHtml,
+  chatPendingHtml,
+  chatTimeNow,
+  CHAT_REPLIES,
+  matchChatReply,
+} from './chat';
 
 const $ = <T extends HTMLElement = HTMLElement>(sel: string): T | null =>
   document.querySelector(sel);
@@ -106,8 +121,9 @@ function wireComponentFilter(): void {
  * Page 4 — showcase form
  * --------------------------------------------------------------------- */
 function wireShowcase(): void {
-  // The form is re-mounted every time the user switches tabs (e-tabs replaces
-  // its panel innerHTML on activate), so the listener lives on the container.
+  // e-tabs re-parents the panel content on connect but keeps node identity,
+  // so the ids below resolve to the same elements the build emitted. The
+  // form listener still lives on the container: e-submit bubbles.
   const tabs = $('#showcase-tabs');
   const result = $('#showcase-form-result');
   if (!tabs) return;
@@ -120,6 +136,220 @@ function wireShowcase(): void {
     result.innerHTML = `<e-result status="success"
         title="Thanks, ${esc(name)}"
         description="Your form was captured locally."></e-result>`;
+  });
+
+  wireChat();
+  wireDashboard();
+  wireShelf();
+  wireRoom();
+  wireTracking();
+  wireReader();
+}
+
+/* ---------- Scripted AI chat ---------- */
+function wireChat(): void {
+  const panel = $('#showcase-chat');
+  const log = $('#chat-log');
+  const form = $<HTMLFormElement>('#chat-form');
+  const input = $<HTMLElement & { value: string }>('#chat-input');
+  if (!panel || !log || !form) return;
+
+  let busy = false;
+
+  const ask = (question: string): void => {
+    const q = question.trim();
+    if (!q || busy) return;
+    busy = true;
+    // The visitor's text goes in via textContent, never through the HTML
+    // parser — esc() would be correct too, but this leaves no taint path
+    // for CodeQL (js/xss-through-dom) to flag.
+    log.insertAdjacentHTML(
+      'beforeend',
+      chatMessageHtml('user', chatTimeNow(), `<p class="site-chat__p"></p>`),
+    );
+    const userP = log.lastElementChild?.querySelector('.site-chat__p');
+    if (userP) userP.textContent = q;
+    log.insertAdjacentHTML('beforeend', chatPendingHtml(chatTimeNow()));
+    log.scrollTop = log.scrollHeight;
+
+    // One discrete swap, not a typing animation: the skeleton bubble becomes
+    // the canned reply the way real content arrives on an e-paper panel.
+    const reply = matchChatReply(q);
+    window.setTimeout(() => {
+      const pending = log.querySelector<HTMLElement>('[data-chat-pending]');
+      if (pending) {
+        const body = pending.querySelector('.site-chat__body');
+        if (body) body.innerHTML = reply ? reply.html : chatFallbackHtml();
+        pending.removeAttribute('data-chat-pending');
+      }
+      log.scrollTop = log.scrollHeight;
+      busy = false;
+    }, 650);
+  };
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const value = input?.value ?? '';
+    if (input) input.value = '';
+    ask(value);
+  });
+
+  // Suggestion chips — both the fixed row and the ones a fallback reply
+  // re-offers inside the transcript, hence delegation on the panel.
+  panel.addEventListener('e-change', (e) => {
+    const chip = (e.target as Element).closest<HTMLElement>('e-chip[data-chat-ask]');
+    if (!chip) return;
+    chip.removeAttribute('selected');
+    const key = chip.dataset['chatAsk'] ?? '';
+    const scripted = CHAT_REPLIES.find((r) => r.key === key);
+    ask(scripted ? scripted.question : key);
+  });
+}
+
+/* ---------- Office-climate dashboard ---------- */
+function wireDashboard(): void {
+  const refresh = $('#dash-refresh');
+  if (!refresh) return;
+
+  let index = 0;
+  refresh.addEventListener('e-click', () => {
+    const prev = DASH_READINGS[index % DASH_READINGS.length];
+    index += 1;
+    const r = DASH_READINGS[index % DASH_READINGS.length];
+    if (!prev || !r) return;
+
+    const temp = $('#dash-temp');
+    temp?.setAttribute('value', String(r.temperature));
+    temp?.setAttribute('trend', r.temperatureTrend);
+    temp?.setAttribute('delta', String(r.temperatureDelta));
+
+    const co2 = $('#dash-co2');
+    co2?.setAttribute('previous', String(prev.co2));
+    co2?.setAttribute('value', String(r.co2));
+
+    $('#dash-hum')?.setAttribute('value', String(r.humidity));
+    $('#dash-spark')?.setAttribute('values', JSON.stringify(r.co2Series));
+    $('#dash-batt')?.setAttribute('value', String(r.battery));
+    $('#dash-board')?.setAttribute('data', JSON.stringify(r.sensors));
+
+    // From here on the age tracks the visitor's clock, not the build's.
+    const updated = $('#dash-updated');
+    updated?.removeAttribute('now');
+    updated?.setAttribute('datetime', new Date().toISOString());
+  });
+}
+
+/* ---------- Electronic shelf label ---------- */
+function wireShelf(): void {
+  const pick = $('#shelf-pick');
+  if (!pick) return;
+
+  pick.addEventListener('e-change', (e) => {
+    const id = (e as CustomEvent<{ value: string }>).detail.value;
+    const p = SHELF_PRODUCTS.find((s) => s.id === id);
+    if (!p) return;
+
+    const fields: Record<string, string> = {
+      name: p.name,
+      detail: p.detail,
+      sku: p.sku,
+      perUnit: p.perUnit,
+    };
+    for (const [key, text] of Object.entries(fields)) {
+      const el = document.querySelector(`[data-shelf="${key}"]`);
+      if (el && el.textContent !== text) el.textContent = text;
+    }
+
+    // e-tag wraps its text in an inner .ink-tag span — patch that, in place.
+    const tagEls = document.querySelectorAll('#shelf-tags e-tag .ink-tag');
+    tagEls.forEach((el, i) => {
+      const text = p.tags[i];
+      if (text !== undefined && el.textContent !== text) el.textContent = text;
+    });
+
+    const price = $('#shelf-price');
+    price?.setAttribute('previous', p.prevPrice.toFixed(2));
+    price?.setAttribute('value', p.price.toFixed(2));
+
+    $('#shelf-qr')?.setAttribute('value', p.url);
+  });
+}
+
+/* ---------- Meeting-room door sign ---------- */
+function wireRoom(): void {
+  const clock = $('#room-clock');
+  if (!clock) return;
+
+  clock.addEventListener('e-change', (e) => {
+    const id = (e as CustomEvent<{ value: string }>).detail.value;
+    const slot = ROOM_SLOTS.find((s) => s.id === id);
+    if (!slot) return;
+
+    const pill = $('#room-status');
+    if (pill) {
+      if (pill.textContent !== slot.status) pill.textContent = slot.status;
+      if (pill.dataset['status'] !== slot.status) pill.dataset['status'] = slot.status;
+    }
+    const sub = document.querySelector('[data-room="sub"]');
+    if (sub && sub.textContent !== slot.sub) sub.textContent = slot.sub;
+
+    // The timeline renders its items once; the marker variant lives as a
+    // data attribute on each row, so a tick only repaints the markers.
+    const rows = document.querySelectorAll<HTMLElement>('#room-agenda .ink-timeline__item');
+    rows.forEach((row, i) => {
+      const variant = slot.agenda[i];
+      if (variant && row.dataset['variant'] !== variant) row.dataset['variant'] = variant;
+    });
+  });
+}
+
+/* ---------- Parcel tracking ---------- */
+function wireTracking(): void {
+  const advance = $('#track-advance');
+  if (!advance) return;
+
+  let index = 0;
+  advance.addEventListener('e-click', () => {
+    index = (index + 1) % TRACKING_STAGES.length;
+    const stage = TRACKING_STAGES[index];
+    if (!stage) return;
+
+    $('#track-steps')?.setAttribute('current', String(stage.step));
+
+    const location = $('#track-location');
+    if (location && location.textContent !== stage.location) {
+      location.textContent = stage.location;
+    }
+
+    const eta = $('#track-eta');
+    if (stage.etaPrev) eta?.setAttribute('previous', stage.etaPrev);
+    else eta?.removeAttribute('previous');
+    eta?.setAttribute('value', stage.eta);
+
+    $('#track-progress')?.setAttribute('value', String(stage.progress));
+
+    const result = $('#track-result');
+    if (result) result.hidden = !stage.delivered;
+  });
+}
+
+/* ---------- E-reader page ---------- */
+function wireReader(): void {
+  const pager = $('#reader-pager');
+  if (!pager) return;
+
+  pager.addEventListener('e-change', (e) => {
+    const current = (e as CustomEvent<{ value: number }>).detail.value;
+    const page = READER_PAGES[current - 1];
+    if (!page) return;
+
+    const chapter = document.querySelector('[data-reader="chapter"]');
+    if (chapter && chapter.textContent !== page.chapter) chapter.textContent = page.chapter;
+    const text = document.querySelector('[data-reader="text"]');
+    if (text && text.textContent !== page.text) text.textContent = page.text;
+
+    const percent = Math.round((current / READER_PAGES.length) * 100);
+    $('#reader-progress')?.setAttribute('value', String(percent));
   });
 }
 
