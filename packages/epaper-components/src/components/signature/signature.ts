@@ -77,6 +77,12 @@ export class ESignature extends BaseFormControl {
   private _restored: File | null = null;
   private _restoredUrl = '';
 
+  disconnectedCallback() {
+    // A BFCache-restored file holds a blob URL alive for the page's whole
+    // lifetime otherwise — nothing else revokes it once the element is gone.
+    this._dropRestored();
+  }
+
   connectedCallback() {
     if (this._wired) return;
     this._wired = true;
@@ -137,6 +143,11 @@ export class ESignature extends BaseFormControl {
       this._paintSurface();
       // Resizing the backing store wipes it — the held value goes with it.
       if (this._dirty) this._setValue('', false);
+      return;
+    }
+    if (name === 'pen-width') {
+      // Re-applies ctx.lineWidth only — no resize, so the drawn strokes stay.
+      this._paintSurface();
       return;
     }
     if (name === 'label' || name === 'hint' || name === 'clear-label' || name === 'fallback-text') {
@@ -343,9 +354,17 @@ export class ESignature extends BaseFormControl {
   }
 
   private _syncEnabled(): void {
-    if (!this._clearBtn) return;
+    if (!this._clearBtn || !this._canvas) return;
     const interactive = this._interactive();
     this._clearBtn.disabled = !interactive;
+    // Disabled gets the same hatch every other control carries (components.css's
+    // aria-disabled hatch list); readonly still shows a signature, so it gets a
+    // distinct border cue instead of hatching over the drawn ink.
+    patchAttr(
+      this._canvas,
+      'aria-disabled',
+      this.hasAttribute('disabled') || this._formDisabled ? 'true' : null,
+    );
     patchAttr(this, 'data-readonly', boolAttr(this, 'readonly') ? 'true' : null);
   }
 
