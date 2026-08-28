@@ -161,6 +161,16 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   alongside the `SoftwareSourceCode` node every page already carried.
 - `/index.md` and `llms.txt` mirror the expanded cover copy, so the markdown
   alternate an answer engine reads is no longer thinner than the HTML page.
+- `observeItems()` drains the records a sync itself produced after that sync
+  runs rather than before it, so a sync that writes onto an authored carrier
+  can no longer schedule itself again. `isOutput` is what keeps an
+  output-only batch from scheduling a sync in the first place; it was never
+  what made a sync loop-proof, though the comment said so.
+- `observeItems()`'s `attributeFilter` accepts `true` for "every attribute in
+  the subtree". `<e-timeline>` and `<e-description-list>` use it, so editing
+  an `href` or `src` inside an item's slotted markup now re-renders it.
+  **Behaviour change:** those two components previously ignored such an edit,
+  contrary to what their carrier documentation promised.
 
 ### Fixed
 
@@ -184,6 +194,43 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   and, because every week row is its own grid, rows stopped lining up.
   Columns now use `minmax(0, 1fr)`, keeping all seven equal at every
   width; long event labels truncate with an ellipsis instead.
+- `<e-table>` disambiguated a duplicate row key to `<key>#<index>` without
+  checking that form against the keys already taken, so data keyed
+  `["a", "a#2", "a"]` put two rows on one `<tr>`: the table rendered a row
+  short and the middle row's data was lost.
+- `formatDate()` read a date-only `YYYY-MM-DD` string with the `Date`
+  constructor, which parses it as UTC midnight while `Intl` renders in the
+  viewer's zone — west of UTC the day before. It now goes through `parseYMD`,
+  which builds a local date. Reachable from `<e-table>`'s `format: 'date'`
+  columns, which pass cell strings straight through. **Behaviour change:** a
+  page west of UTC that shows date-only strings will render them one day
+  later than it did, which is the correct day.
+- `<e-signature>`: `pen-width` was observed and documented but never
+  re-applied to the canvas context, so changing it after mount did nothing. A
+  disabled pad also had no cue of its own — invisible on a greyscale panel —
+  and now carries the hatch every other control uses, while `readonly` gets a
+  dashed border so the cue does not sit over the captured ink. A restored
+  file's object URL is revoked when the element is removed.
+- `<e-agenda>` rewrote each block's class on every render, so every `now` tick
+  queued an attribute mutation for every block in every track when only the
+  marker had moved.
+- `<e-statistic>` read `percent` and `grouping` with `hasAttribute`, so
+  `percent="false"` switched percent mode on. **Behaviour change:** both now
+  follow the `boolAttr` convention and `="false"` turns the mode off.
+- Eleven components wrote English straight into rendered output, three of them
+  against string-table keys that already existed and were unused. Most of it
+  was invisible from a diff because only the accessible name was localised and
+  the visible text was not: `<e-barcode>` painted its error states in English
+  in every locale, and a German board read "▲ Gestiegen um 0,6 from 21,8".
+  `<e-slider>` now formats its value and scale through `formatNumber`, so a
+  fractional `step` prints "0,5" rather than "0.5" on a German page. The
+  English defaults are unchanged.
+- `<e-status-pill>`'s built-in vocabulary moved into the string table, so
+  `setLocaleStrings()` can translate it. The per-instance `statuses` and
+  `label` overrides still merge over it unchanged.
+- `<e-qrcode>` built its error state by concatenating markup. Both
+  interpolations were escaped, so it was not injectable, but the sink is gone:
+  it is built with DOM APIs and `textContent`, like `<e-barcode>`.
 
 ## [1.2.0] — 2026-08-25
 
