@@ -37,6 +37,7 @@ beforeAll(async () => {
     import('../meter/meter'),
     import('../sparkline/sparkline'),
     import('../status-board/status-board'),
+    import('../status-pill/status-pill'),
     import('../change-marker/change-marker'),
     import('../last-updated/last-updated'),
     import('../diff/diff'),
@@ -241,6 +242,16 @@ const scenarios: RefreshScenario[] = [
         '[{"key":"queue","label":"Queue","value":9,"status":"ok"},{"key":"workers","label":"Workers","value":8,"status":"ok"}]',
       ),
     budget: { mutations: 8, elementChurn: 0, dirtyAreaRatio: 0.6 },
+  },
+  {
+    // A door sign repaints this on every poll, so it belongs to the same
+    // budget as the other live-value components rather than being trusted
+    // to stay surgical on inspection alone.
+    name: 'status-pill status change',
+    html: `<e-status-pill statuses='{"free":{"symbol":"○","label":"Frei"},"busy":{"symbol":"●","label":"Belegt"}}' status="free"></e-status-pill>`,
+    selector: 'e-status-pill',
+    action: (host) => host.setAttribute('status', 'busy'),
+    budget: { mutations: 4, elementChurn: 0, dirtyAreaRatio: 1, retainedNodeRatio: 1 },
   },
   {
     name: 'change-marker value update',

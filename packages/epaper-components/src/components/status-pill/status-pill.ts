@@ -58,11 +58,17 @@ function metaFrom(raw: string | null): Record<string, StatusPillMeta> {
  * Meaning is never carried by colour alone: every state renders a symbol and
  * a word, which is what makes it readable on a greyscale panel.
  *
+ * The label resolves in this order: the `label` attribute, then the element's
+ * own text content, then the vocabulary entry. Text children are honoured
+ * rather than discarded, matching how `e-badge` and `e-tag` treat theirs.
+ *
  * @attr {string} [status='neutral'] - Status key. One of the built-in `ok`/`warning`/`critical`/`offline`/`neutral`, or any key declared in `statuses`.
  * @attr {string} [statuses] - JSON map of status keys to `{symbol, label}`, merged over the built-ins.
  * @attr {string} [label] - Overrides the label text for the current status.
  * @attr {'sm'|'md'|'lg'} [size='md'] - Type scale. `lg` reads across a room.
  * @attr {boolean} [announce] - Exposes the pill as a polite live region so a status change is announced.
+ *
+ * @slot - Optional text label, used when no `label` attribute is set.
  *
  * @example
  * <e-status-pill status="ok" label="Frei"></e-status-pill>
@@ -79,10 +85,15 @@ export class EStatusPill extends HTMLElement {
   private _root: HTMLElement | null = null;
   private _symbol: HTMLElement | null = null;
   private _label: HTMLElement | null = null;
+  private _authored = '';
 
   connectedCallback() {
     if (this._wired) return;
     this._wired = true;
+    // Authored text is the label unless an attribute overrides it. Reading it
+    // before the render is what keeps `<e-status-pill>Belegt</e-status-pill>`
+    // from silently disappearing into `replaceChildren` below.
+    this._authored = (this.textContent ?? '').trim();
     // Built with the DOM API rather than an innerHTML template: no
     // author-controlled string is interpolated, and the nodes are the ones
     // every later update patches in place.
@@ -110,7 +121,7 @@ export class EStatusPill extends HTMLElement {
     const meta = metaFrom(this.getAttribute('statuses'));
     const status = this.getAttribute('status') || 'neutral';
     const cue = meta[status] ?? BUILT_IN['neutral']!;
-    const text = this.getAttribute('label') || cue.label;
+    const text = this.getAttribute('label') || this._authored || cue.label;
     const size = this.getAttribute('size');
 
     patchAttr(this._root, 'data-status', status);

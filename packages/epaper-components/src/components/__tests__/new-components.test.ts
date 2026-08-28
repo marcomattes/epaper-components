@@ -230,6 +230,16 @@ describe('e-status-pill', () => {
     expect(el.querySelector('.ink-status-pill__label')!.textContent).toBe('Neutral');
   });
 
+  it('uses authored text as the label instead of discarding it', () => {
+    const el = mount(`<e-status-pill status="ok">Belegt</e-status-pill>`);
+    expect(el.querySelector('.ink-status-pill__label')!.textContent).toBe('Belegt');
+  });
+
+  it('lets the label attribute win over authored text', () => {
+    const el = mount(`<e-status-pill status="ok" label="Frei">Belegt</e-status-pill>`);
+    expect(el.querySelector('.ink-status-pill__label')!.textContent).toBe('Frei');
+  });
+
   it('lets label override the vocabulary text', () => {
     const el = mount(`<e-status-pill status="ok" label="Frei"></e-status-pill>`);
     expect(el.querySelector('.ink-status-pill__label')!.textContent).toBe('Frei');
