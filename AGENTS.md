@@ -11,7 +11,7 @@ repo root (a one-line `@AGENTS.md` import) — edit this file, not that one.
 
 ## TL;DR
 
-This is **EPaper**, a vanilla web component library (70 source files, 95 registered Custom Elements)
+This is **EPaper**, a vanilla web component library (71 source files, 96 registered Custom Elements)
 optimized for e-paper displays. It is **not Lit-based** — Lit is only a
 Storybook devDependency. Components extend `HTMLElement` directly or
 `BaseFormControl<T>` for form controls. Light DOM only, no Shadow DOM.
@@ -29,7 +29,7 @@ to validate the published artifact).
 ```
 packages/epaper-components/  the library — the only npm-published package
   src/
-    components/         70 components, each in its own <name>/ folder as
+    components/         71 components, each in its own <name>/ folder as
                         <name>.ts (ending with `define('e-tag', Class)`) +
                         README.md (auto-generated, don't edit by hand)
       __tests__/        7 suites (cleanup, form-association, reactivity, security,

@@ -16,7 +16,7 @@
 > **[Storybook](https://epaper-components.dev/storybook/)**
 
 EPaper is a component library of plain custom elements for user interfaces that
-run on electrophoretic (e-paper, e-ink) displays. It ships 95 registered elements, a three-layer
+run on electrophoretic (e-paper, e-ink) displays. It ships 96 registered elements, a three-layer
 CSS token system, strict TypeScript types and a Custom Elements Manifest. There
 is no framework dependency and no runtime dependency at all; components extend
 `HTMLElement` or a shared `BaseFormControl` base class and render into the light
@@ -361,7 +361,7 @@ Sizes as of the current 1.0.1 build:
 ## Subpath imports and bundle size
 
 Every one of the 70 component modules is shipped as a separate ES module under
-`@marcomattes/epaper-components/<tag>`, and the barrel entry registers all 95
+`@marcomattes/epaper-components/<tag>`, and the barrel entry registers all 96
 of the elements they define. The `sideEffects` allowlist in `package.json`
 covers the component modules and the public CSS files, so importing a single
 subpath pulls in that component plus its shared core chunks and nothing else,
