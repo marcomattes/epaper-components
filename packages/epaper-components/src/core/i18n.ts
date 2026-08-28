@@ -68,6 +68,11 @@ export interface LocaleStrings {
   clear: string;
   backspace: string;
   decimalSeparator: string;
+  /** `e-redline`; `{changed}` and `{total}` are substituted. */
+  redlineSummary: string;
+  redlineNoChanges: string;
+  redlineChangesOnly: string;
+  redlineShowAll: string;
 }
 
 const EN: LocaleStrings = {
@@ -111,6 +116,10 @@ const EN: LocaleStrings = {
   clear: 'Clear',
   backspace: 'Backspace',
   decimalSeparator: 'Decimal separator',
+  redlineSummary: '{changed} of {total} paragraphs changed',
+  redlineNoChanges: 'No changes',
+  redlineChangesOnly: 'Changes only',
+  redlineShowAll: 'Show all',
 };
 
 const DE: LocaleStrings = {
@@ -154,6 +163,10 @@ const DE: LocaleStrings = {
   clear: 'Löschen',
   backspace: 'Rücktaste',
   decimalSeparator: 'Dezimaltrennzeichen',
+  redlineSummary: '{changed} von {total} Absätzen geändert',
+  redlineNoChanges: 'Keine Änderungen',
+  redlineChangesOnly: 'Nur Änderungen',
+  redlineShowAll: 'Alle anzeigen',
 };
 
 const REGISTRY = new Map<string, LocaleStrings>([

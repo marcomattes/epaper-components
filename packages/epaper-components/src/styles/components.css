@@ -607,6 +607,78 @@ e-checkbox-group [role='group'][aria-disabled='true'] {
   text-decoration: none;
 }
 
+/* `<e-prose>` is a class carrier only — the rules below style whatever
+   document markup an author slots in, so nothing here needs a JS renderer. */
+e-prose {
+  display: block;
+}
+.ink-prose {
+  max-width: 68ch;
+  font-family: var(--ink-serif);
+  font-size: var(--ink-text-prose);
+  line-height: var(--ink-lh-prose);
+}
+.ink-prose > :first-child {
+  margin-top: 0;
+}
+.ink-prose > :last-child {
+  margin-bottom: 0;
+}
+.ink-prose h2 {
+  margin: var(--ink-space-6) 0 var(--ink-space-3);
+  font-family: var(--ink-serif);
+  font-size: var(--ink-text-h3);
+  font-weight: 700;
+  line-height: var(--ink-lh-tight);
+  letter-spacing: -0.005em;
+}
+.ink-prose p {
+  margin: 0 0 var(--ink-space-4);
+}
+.ink-prose ul,
+.ink-prose ol {
+  margin: 0 0 var(--ink-space-4);
+  padding-left: var(--ink-space-5);
+}
+.ink-prose li + li {
+  margin-top: var(--ink-space-1);
+}
+.ink-prose blockquote {
+  margin: 0 0 var(--ink-space-4);
+  padding-left: var(--ink-space-4);
+  border-left: var(--ink-border-strong);
+  font-style: italic;
+}
+.ink-prose figure {
+  margin: var(--ink-space-5) 0;
+}
+.ink-prose figure img {
+  display: block;
+  max-width: 100%;
+}
+.ink-prose figcaption {
+  margin-top: var(--ink-space-2);
+  font-family: var(--ink-sans);
+  font-size: var(--ink-text-caption);
+  text-align: center;
+}
+.ink-prose table {
+  width: 100%;
+  margin: 0 0 var(--ink-space-4);
+  border-collapse: collapse;
+  font-family: var(--ink-sans);
+  font-size: var(--ink-text-small);
+}
+.ink-prose th,
+.ink-prose td {
+  padding: var(--ink-space-2) var(--ink-space-3);
+  border: var(--ink-border-hair);
+  text-align: left;
+}
+.ink-prose th {
+  font-weight: 700;
+}
+
 /* ============================================================
  * Divider
  * ============================================================ */
@@ -936,6 +1008,13 @@ e-text {
 .ink-anchor__link[aria-current='true'] {
   background: var(--ink-fg);
   color: var(--ink-bg);
+}
+
+/* `<e-toc>` renders itself as an `<e-anchor>` (see its class doc) and adds
+   no markup of its own, so `.ink-anchor` above already covers it — the only
+   thing missing is block-level layout on the host. */
+e-toc {
+  display: block;
 }
 
 /* ============================================================
@@ -3682,6 +3761,70 @@ e-diff {
   .ink-diff__cue {
     writing-mode: horizontal-tb;
   }
+}
+
+/* ============================================================
+ * Redline · word-level text diff
+ * ============================================================ */
+e-redline {
+  display: block;
+}
+.ink-redline {
+  border: var(--ink-border);
+  background: var(--ink-bg);
+  color: var(--ink-fg);
+  font-family: var(--ink-sans);
+}
+.ink-redline__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ink-space-3);
+  padding: var(--ink-space-3) var(--ink-space-4);
+  border-bottom: var(--ink-border);
+}
+.ink-redline__summary {
+  margin: 0;
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-label);
+  text-transform: uppercase;
+}
+.ink-redline__toggle {
+  flex-shrink: 0;
+  min-height: var(--ink-control-h-sm);
+  padding: 0 var(--ink-space-3);
+  border: var(--ink-border);
+  background: var(--ink-bg);
+  color: var(--ink-fg);
+  font-family: var(--ink-sans);
+  font-size: var(--ink-text-small);
+  font-weight: 700;
+}
+.ink-redline__toggle[aria-pressed='true'] {
+  background: var(--ink-fg);
+  color: var(--ink-bg);
+}
+.ink-redline__body {
+  padding: var(--ink-space-4);
+}
+.ink-redline__row {
+  margin: 0 0 var(--ink-space-4);
+  font-family: var(--ink-serif);
+  font-size: var(--ink-text-prose);
+  line-height: var(--ink-lh-prose);
+}
+.ink-redline__row:last-child {
+  margin-bottom: 0;
+}
+.ink-redline__row ins {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+.ink-redline__row del {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
 }
 
 /* ============================================================

@@ -42,6 +42,16 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `target`/`rel`/`external` on `<e-link>`, `ordered` on `<e-list>`, a
   configurable `threshold` on `<e-sparkline>`, and `variant`/`size` on
   `<e-badge>`, `placement`/`inverted` on `<e-ribbon>`.
+- `<e-prose>`, `<e-redline>` and `<e-toc>` round out the publishing core.
+  `<e-prose>` is a pure class carrier — it styles slotted `<h2>`/`<p>`/
+  `<ul>`/`<ol>`/`<blockquote>`/`<figure>`/`<table>` markup through
+  `components.css`, so a document body needs no JS renderer of its own.
+  `<e-redline>` renders a word-level diff between two text versions with
+  `<ins>`/`<del>`, a changed-paragraph summary and a "changes only" view.
+  `<e-toc>` scans a document's headings, assigns them the same auto-id
+  `<e-title>` derives (now shared as `core/slug.ts`), and mirrors them into
+  an `<e-anchor>` it builds and keeps reactive to headings added, removed or
+  retitled after mount.
 
 ### Changed
 

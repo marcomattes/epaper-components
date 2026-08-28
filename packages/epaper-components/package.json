@@ -263,6 +263,10 @@
       "types": "./dist/components/progress.d.ts",
       "import": "./dist/components/progress.js"
     },
+    "./prose": {
+      "types": "./dist/components/prose.d.ts",
+      "import": "./dist/components/prose.js"
+    },
     "./radio-group": {
       "types": "./dist/components/radio-group.d.ts",
       "import": "./dist/components/radio-group.js"
@@ -270,6 +274,10 @@
     "./rating": {
       "types": "./dist/components/rating.d.ts",
       "import": "./dist/components/rating.js"
+    },
+    "./redline": {
+      "types": "./dist/components/redline.d.ts",
+      "import": "./dist/components/redline.js"
     },
     "./ribbon": {
       "types": "./dist/components/ribbon.d.ts",
@@ -358,6 +366,10 @@
     "./title": {
       "types": "./dist/components/title.d.ts",
       "import": "./dist/components/title.js"
+    },
+    "./toc": {
+      "types": "./dist/components/toc.d.ts",
+      "import": "./dist/components/toc.js"
     },
     "./toggle": {
       "types": "./dist/components/toggle.d.ts",

@@ -14,6 +14,7 @@ beforeAll(async () => {
   await import('../tabs/tabs');
   await import('../time-picker/time-picker');
   await import('../anchor/anchor');
+  await import('../toc/toc');
   await import('../splitter/splitter');
   await import('../calendar/calendar');
   await import('../segmented/segmented');
@@ -372,6 +373,23 @@ describe('global listener cleanup', () => {
       window.addEventListener = origAdd;
       window.removeEventListener = origRemove;
     }
+  });
+
+  it('e-toc stops observing its scan root after disconnect', async () => {
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `<e-toc for="cleanup-toc-scope"></e-toc><div id="cleanup-toc-scope"><h2>One</h2></div>`;
+    document.body.appendChild(wrap);
+    const toc = wrap.querySelector('e-toc')!;
+    const scope = wrap.querySelector('#cleanup-toc-scope')!;
+    expect(toc.querySelectorAll('e-anchor-item')).toHaveLength(1);
+
+    toc.remove();
+    const h2 = document.createElement('h2');
+    h2.textContent = 'Two';
+    scope.appendChild(h2);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(toc.querySelectorAll('e-anchor-item')).toHaveLength(1);
+    wrap.remove();
   });
 
   it('e-splitter removes its window mouse listeners on disconnect', () => {

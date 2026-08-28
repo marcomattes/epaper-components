@@ -17,6 +17,9 @@ beforeAll(async () => {
   await import('../status-board/status-board');
   await import('../badge/badge');
   await import('../ribbon/ribbon');
+  await import('../prose/prose');
+  await import('../redline/redline');
+  await import('../toc/toc');
 });
 
 const mount = <T extends HTMLElement = HTMLElement>(html: string): T => {
@@ -355,5 +358,121 @@ describe('registerIcon', () => {
     expect(names).toContain('listed-glyph');
     expect(names).toContain('check');
     expect(names.length).toBeGreaterThan(Object.keys(ICONS).length);
+  });
+});
+
+const flush = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
+
+describe('e-prose', () => {
+  it('adds the ink-prose class and leaves slotted markup untouched', () => {
+    const el = mount(`<e-prose><h2>Title</h2><p>Body</p></e-prose>`);
+    expect(el.classList.contains('ink-prose')).toBe(true);
+    expect(el.querySelector('h2')!.textContent).toBe('Title');
+    expect(el.querySelector('p')!.textContent).toBe('Body');
+  });
+});
+
+describe('e-redline', () => {
+  it('marks an unchanged paragraph and reports no changes', () => {
+    const el = mount(`<e-redline before="Same text." after="Same text."></e-redline>`);
+    expect(el.querySelector('.ink-redline__row')!.getAttribute('data-changed')).toBe('false');
+    expect(el.querySelector('.ink-redline__summary')!.textContent).toBe('No changes');
+  });
+
+  it('renders a coalesced word-level diff for a changed paragraph', () => {
+    const el = mount(
+      `<e-redline before="The quick brown fox" after="The quick red fox"></e-redline>`,
+    );
+    const row = el.querySelector('.ink-redline__row')!;
+    expect(row.getAttribute('data-changed')).toBe('true');
+    expect(row.querySelector('del')!.textContent).toBe('brown');
+    expect(row.querySelector('ins')!.textContent).toBe('red');
+  });
+
+  it('never interprets before/after text as markup', () => {
+    const el = mount(
+      `<e-redline before="<img src=x onerror=alert(1)>" after="<script>alert(1)</script>"></e-redline>`,
+    );
+    expect(el.querySelector('img')).toBeNull();
+    expect(el.querySelector('script')).toBeNull();
+  });
+
+  it('toggles changes-only view from the built-in button and fires e-change', () => {
+    const el = mount(`<e-redline before="One.
+
+Two." after="One!
+
+Two."></e-redline>`);
+    let detail: { value: boolean } | undefined;
+    el.addEventListener('e-change', (e) => {
+      detail = (e as CustomEvent<{ value: boolean }>).detail;
+    });
+    el.querySelector<HTMLButtonElement>('.ink-redline__toggle')!.click();
+    expect(el.hasAttribute('changes-only')).toBe(true);
+    expect(detail).toEqual({ value: true });
+    const rows = [...el.querySelectorAll<HTMLElement>('.ink-redline__row')];
+    const changed = rows.filter((r) => r.getAttribute('data-changed') === 'true');
+    const unchanged = rows.filter((r) => r.getAttribute('data-changed') === 'false');
+    expect(changed.every((r) => !r.hidden)).toBe(true);
+    expect(unchanged.every((r) => r.hidden)).toBe(true);
+  });
+});
+
+describe('e-toc', () => {
+  it('scans headings in its "for" target and mirrors them into e-anchor-item', () => {
+    const el = mount(`
+      <div>
+        <e-toc for="toc-scope-1" min-level="2" max-level="3"></e-toc>
+        <div id="toc-scope-1">
+          <h2>Intro</h2>
+          <h3>Details</h3>
+        </div>
+      </div>
+    `);
+    const toc = el.querySelector('e-toc')!;
+    expect(toc.querySelector('e-anchor')).not.toBeNull();
+    const items = toc.querySelectorAll('e-anchor-item');
+    expect(items).toHaveLength(2);
+    expect(items[0]!.getAttribute('href')).toBe('#intro');
+    expect(items[0]!.getAttribute('depth')).toBe('0');
+    expect(items[1]!.getAttribute('depth')).toBe('1');
+  });
+
+  it('keeps an author-set heading id instead of overwriting it', () => {
+    const el = mount(`
+      <div>
+        <e-toc for="toc-scope-2"></e-toc>
+        <div id="toc-scope-2"><h2 id="custom">Custom</h2></div>
+      </div>
+    `);
+    const item = el.querySelector('e-toc e-anchor-item')!;
+    expect(item.getAttribute('href')).toBe('#custom');
+  });
+
+  it('renders no items when "for" points at nothing', () => {
+    const el = mount(`<e-toc for="does-not-exist"></e-toc>`);
+    expect(el.querySelectorAll('e-anchor-item')).toHaveLength(0);
+  });
+
+  it('updates reactively when a heading is added, then removed', async () => {
+    const el = mount(`
+      <div>
+        <e-toc for="toc-scope-3"></e-toc>
+        <div id="toc-scope-3"><h2>First</h2></div>
+      </div>
+    `);
+    const toc = el.querySelector('e-toc')!;
+    const scope = el.querySelector('#toc-scope-3')!;
+    expect(toc.querySelectorAll('e-anchor-item')).toHaveLength(1);
+
+    const h2 = document.createElement('h2');
+    h2.textContent = 'Second';
+    scope.appendChild(h2);
+    await flush();
+    expect(toc.querySelectorAll('e-anchor-item')).toHaveLength(2);
+
+    h2.remove();
+    await flush();
+    expect(toc.querySelectorAll('e-anchor-item')).toHaveLength(1);
   });
 });
