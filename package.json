@@ -66,6 +66,7 @@
     "@storybook/addon-a11y": "10.5.10",
     "@storybook/addon-docs": "10.5.10",
     "@storybook/addon-vitest": "10.5.10",
+    "@storybook/web-components": "10.5.10",
     "@storybook/web-components-vite": "10.5.10",
     "@vitest/browser": "4.1.11",
     "@vitest/browser-playwright": "4.1.11",
