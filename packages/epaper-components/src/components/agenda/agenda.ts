@@ -19,6 +19,12 @@ interface AgendaBlock {
   status: CalendarEventStatus | null;
 }
 
+/** One rendered column: the `YYYY-MM-DD` key and the day it was derived from. */
+interface AgendaColumn {
+  key: string;
+  day: Date;
+}
+
 /** Shared so `Intl` can cache the formatter — a new literal per call cannot. */
 const RANGE_START: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
 const RANGE_END: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' };
@@ -150,16 +156,21 @@ export class EAgenda extends HTMLElement {
     return { start: startHour * 60, end: endHour * 60 };
   }
 
-  /** Dates rendered as columns: one for the day view, seven for the week. */
-  private _columns(): string[] {
+  /**
+   * Dates rendered as columns: one for the day view, seven for the week. Each
+   * carries its own `Date`, so no render path has to parse the key back — or
+   * carry a fallback for a key that cannot be parsed.
+   */
+  private _columns(): AgendaColumn[] {
     const anchor = parseYMD(this.getAttribute('date')) ?? new Date();
-    if (this.getAttribute('view') !== 'week') return [ymd(anchor)];
+    if (this.getAttribute('view') !== 'week') return [{ key: ymd(anchor), day: anchor }];
     const weekStart = ((intAttr(this, 'week-start', 1) % WEEK_DAYS) + WEEK_DAYS) % WEEK_DAYS;
     const offset = (anchor.getDay() - weekStart + WEEK_DAYS) % WEEK_DAYS;
     const first = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() - offset);
-    return Array.from({ length: WEEK_DAYS }, (_unused, index) =>
-      ymd(new Date(first.getFullYear(), first.getMonth(), first.getDate() + index)),
-    );
+    return Array.from({ length: WEEK_DAYS }, (_unused, index) => {
+      const day = new Date(first.getFullYear(), first.getMonth(), first.getDate() + index);
+      return { key: ymd(day), day };
+    });
   }
 
   /** All-day entries of one column, in input order. */
@@ -290,11 +301,10 @@ export class EAgenda extends HTMLElement {
     this._syncCount(this._heads, columns.length, 'div', 'ink-agenda__col-head');
     this._syncCount(this._tracks, columns.length, 'div', 'ink-agenda__track');
 
-    columns.forEach((key, index) => {
+    columns.forEach(({ key, day }, index) => {
       const headCell = this._heads!.children[index] as HTMLElement;
-      const day = parseYMD(key);
       patchAttr(headCell, 'hidden', week ? null : '');
-      patchText(headCell, day ? this._columnHeading(day) : key);
+      patchText(headCell, this._columnHeading(day));
       patchAttr(headCell, 'data-today', now?.date === key ? 'true' : null);
 
       const track = this._tracks!.children[index] as HTMLElement;
@@ -304,7 +314,7 @@ export class EAgenda extends HTMLElement {
       track.style.setProperty('--ink-agenda-hours', String(Math.max(1, (end - start) / 60)));
       patchAttr(track, 'data-date', key);
       patchAttr(track, 'role', 'list');
-      patchAttr(track, 'aria-label', day ? formatDate(this, day, { dateStyle: 'full' }) : key);
+      patchAttr(track, 'aria-label', formatDate(this, day, { dateStyle: 'full' }));
       this._renderTrack(track, this._blocksFor(key));
       this._renderNow(track, now, key, columns.length === 1);
     });
@@ -314,15 +324,11 @@ export class EAgenda extends HTMLElement {
     return `${formatDate(this, day, { weekday: 'short' })} ${day.getDate()}`;
   }
 
-  private _renderHead(columns: string[], week: boolean): void {
+  private _renderHead(columns: AgendaColumn[], week: boolean): void {
     if (!this._eyebrow || !this._title) return;
-    const first = parseYMD(columns[0]);
-    const last = parseYMD(columns.at(-1));
+    const first = columns[0]!.day;
+    const last = columns.at(-1)!.day;
     patchText(this._eyebrow, t(this, week ? 'agendaWeek' : 'agendaDay'));
-    if (!first || !last) {
-      patchText(this._title, columns.join(' – '));
-      return;
-    }
     patchText(
       this._title,
       week
@@ -331,19 +337,18 @@ export class EAgenda extends HTMLElement {
     );
   }
 
-  private _renderAllDay(columns: string[], week: boolean): void {
+  private _renderAllDay(columns: AgendaColumn[], week: boolean): void {
     if (!this._allDay || !this._allDayLabel || !this._allDayList) return;
-    const entries: Array<{ key: string; event: CalendarEvent }> = [];
-    for (const key of columns) {
-      for (const event of this._allDayFor(key)) entries.push({ key, event });
+    const entries: Array<{ day: Date; event: CalendarEvent }> = [];
+    for (const { key, day } of columns) {
+      for (const event of this._allDayFor(key)) entries.push({ day, event });
     }
     patchAttr(this._allDay, 'hidden', entries.length ? null : '');
     patchText(this._allDayLabel, label(this, 'all-day-label', 'allDay'));
     this._syncCount(this._allDayList, entries.length, 'li', 'ink-agenda__all-day-item');
     entries.forEach((entry, index) => {
       const item = this._allDayList!.children[index] as HTMLElement;
-      const day = week ? parseYMD(entry.key) : null;
-      const prefix = day ? `${formatDate(this, day, { weekday: 'short' })} · ` : '';
+      const prefix = week ? `${formatDate(this, entry.day, { weekday: 'short' })} · ` : '';
       patchText(item, `${prefix}${entry.event.title}`);
       patchAttr(item, 'data-status', readStatus(entry.event.status));
     });

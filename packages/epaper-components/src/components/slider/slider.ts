@@ -178,9 +178,13 @@ export class ESlider extends BaseFormControl<number> {
     return Math.max(min, Math.min(max, v));
   }
 
+  // The refs below are assigned together in `connectedCallback`, and the two
+  // entry points that reach these helpers — that callback and
+  // `attributeChangedCallback`, which returns early without an `<input>` —
+  // have already proved them. Re-checking each one here only adds branches
+  // that can never be taken.
   private _read(type: 'e-input' | 'e-change'): void {
-    if (!this._input) return;
-    const next = Number(this._input.value);
+    const next = Number(this._input!.value);
     this._value = next;
     this.internals.setFormValue(this.serialize(next));
     this._syncReadout();
@@ -188,24 +192,23 @@ export class ESlider extends BaseFormControl<number> {
   }
 
   private _syncRange(): void {
-    if (!this._input) return;
+    const input = this._input!;
     const { min, max, step } = this._bounds();
-    this._input.min = String(min);
-    this._input.max = String(max);
-    this._input.step = String(step);
-    this._input.disabled = this.hasAttribute('disabled') || this._formDisabled;
+    input.min = String(min);
+    input.max = String(max);
+    input.step = String(step);
+    input.disabled = this.hasAttribute('disabled') || this._formDisabled;
   }
 
   private _syncTexts(): void {
-    if (!this._labelEl || !this._hintEl || !this._input) return;
     const label = this.getAttribute('label') || '';
-    patchText(this._labelEl, label);
-    patchAttr(this._labelEl, 'hidden', label ? null : '');
+    patchText(this._labelEl!, label);
+    patchAttr(this._labelEl!, 'hidden', label ? null : '');
     const hint = this.getAttribute('hint') || '';
-    patchText(this._hintEl, hint);
-    patchAttr(this._hintEl, 'hidden', hint ? null : '');
+    patchText(this._hintEl!, hint);
+    patchAttr(this._hintEl!, 'hidden', hint ? null : '');
     patchAttr(
-      this._input,
+      this._input!,
       'aria-label',
       label ? null : this.getAttribute('aria-label') || t(this, 'slider'),
     );
@@ -213,20 +216,20 @@ export class ESlider extends BaseFormControl<number> {
 
   /** One tick element per interval boundary, positioned as a percentage. */
   private _syncTicks(): void {
-    if (!this._ticksEl) return;
+    const ticks = this._ticksEl!;
     const intervals = Math.min(MAX_TICKS - 1, Math.max(0, intAttr(this, 'ticks', 0)));
     const count = intervals >= 2 ? intervals + 1 : 0;
-    while (this._ticksEl.children.length > count) this._ticksEl.lastElementChild!.remove();
-    while (this._ticksEl.children.length < count) {
+    while (ticks.children.length > count) ticks.lastElementChild!.remove();
+    while (ticks.children.length < count) {
       const tick = document.createElement('span');
       tick.className = 'ink-slider__tick';
-      this._ticksEl.appendChild(tick);
+      ticks.appendChild(tick);
     }
     for (let index = 0; index < count; index++) {
-      const tick = this._ticksEl.children[index] as HTMLElement;
+      const tick = ticks.children[index] as HTMLElement;
       tick.style.left = `${(index / intervals) * 100}%`;
     }
-    patchAttr(this._ticksEl, 'hidden', count ? null : '');
+    patchAttr(ticks, 'hidden', count ? null : '');
   }
 
   private _syncReadout(): void {

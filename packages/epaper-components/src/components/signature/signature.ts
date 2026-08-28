@@ -317,29 +317,28 @@ export class ESignature extends BaseFormControl {
     this._ctx.strokeStyle = '#000';
   }
 
+  // Same two wired entry points as the rest of the sync helpers, so the refs
+  // this touches are always in place.
   private _syncTexts(): void {
-    if (!this._labelEl || !this._hintEl || !this._clearBtn || !this._canvas || !this._fallback) {
-      return;
-    }
     const label = this.getAttribute('label') || '';
-    patchText(this._labelEl, label);
-    patchAttr(this._labelEl, 'hidden', label ? null : '');
+    patchText(this._labelEl!, label);
+    patchAttr(this._labelEl!, 'hidden', label ? null : '');
     const hint = this.getAttribute('hint') || '';
-    patchText(this._hintEl, hint);
-    patchAttr(this._hintEl, 'hidden', hint ? null : '');
-    patchText(this._clearBtn, i18nLabel(this, 'clear-label', 'clear'));
-    patchAttr(this._canvas, 'role', 'img');
+    patchText(this._hintEl!, hint);
+    patchAttr(this._hintEl!, 'hidden', hint ? null : '');
+    patchText(this._clearBtn!, i18nLabel(this, 'clear-label', 'clear'));
+    patchAttr(this._canvas!, 'role', 'img');
     patchAttr(
-      this._canvas,
+      this._canvas!,
       'aria-label',
       label || this.getAttribute('aria-label') || t(this, 'signaturePad'),
     );
 
     const fallback = i18nLabel(this, 'fallback-text', 'signatureUnavailable');
-    patchText(this._fallback, fallback);
+    patchText(this._fallback!, fallback);
     const usable = !!this._ctx;
-    patchAttr(this._fallback, 'hidden', usable ? '' : null);
-    patchAttr(this._canvas, 'hidden', usable ? null : '');
+    patchAttr(this._fallback!, 'hidden', usable ? '' : null);
+    patchAttr(this._canvas!, 'hidden', usable ? null : '');
     this._syncEnabled();
   }
 

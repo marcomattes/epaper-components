@@ -27,6 +27,14 @@ beforeAll(async () => {
   await import('../collapse/collapse');
   await import('../tree/tree');
   await import('../rating/rating');
+  await import('../agenda/agenda');
+  await import('../barcode/barcode');
+  await import('../event-log/event-log');
+  await import('../keypad/keypad');
+  await import('../pin-input/pin-input');
+  await import('../price/price');
+  await import('../signature/signature');
+  await import('../slider/slider');
 });
 
 describe('disconnect/reconnect behaviour', () => {
@@ -501,5 +509,50 @@ describe('global listener cleanup', () => {
 
     el.querySelector<HTMLElement>('[data-value="a"]')!.click();
     expect(el.getAttribute('value')).toBe('a');
+  });
+});
+
+/**
+ * The kiosk components attach no global listeners, so they have no
+ * `disconnectedCallback` at all: their whole teardown contract is that
+ * `connectedCallback` bails on `_wired`. Moving one in the DOM therefore has
+ * to reuse the markup it already built — a rebuild would throw away rendered
+ * rows, a drawn signature or a typed PIN, and on an e-paper panel it would
+ * repaint the full frame instead of a dirty rectangle.
+ */
+describe('build-once components survive a move in the DOM', () => {
+  const cases: Array<[string, string, string]> = [
+    [
+      'e-agenda',
+      '<e-agenda data=\'[{"date":"2026-03-02","start":"09:00","end":"10:00","title":"Standup"}]\'></e-agenda>',
+      '.ink-agenda',
+    ],
+    ['e-barcode', '<e-barcode value="4006381333931"></e-barcode>', '.ink-barcode'],
+    [
+      'e-event-log',
+      '<e-event-log data=\'[{"id":"a","ts":"2026-03-02T08:00:00Z","severity":"info","source":"plc","message":"Up"}]\'></e-event-log>',
+      '.ink-event-log',
+    ],
+    ['e-keypad', '<e-keypad value="42"></e-keypad>', '.ink-keypad'],
+    ['e-pin-input', '<e-pin-input length="4" value="1234"></e-pin-input>', '.ink-pin'],
+    ['e-price', '<e-price value="3.99"></e-price>', '.ink-price'],
+    ['e-signature', '<e-signature></e-signature>', '.ink-signature'],
+    ['e-slider', '<e-slider min="0" max="10" value="4"></e-slider>', '.ink-slider'],
+  ];
+
+  it.each(cases)('%s reuses the DOM it built', (_name, html, selector) => {
+    const host = document.createElement('div');
+    host.innerHTML = html;
+    document.body.appendChild(host);
+    const element = host.firstElementChild as HTMLElement;
+    const built = element.querySelector(selector);
+    expect(built).not.toBeNull();
+
+    element.remove();
+    host.appendChild(element);
+
+    expect(element.querySelector(selector)).toBe(built);
+    expect(element.querySelectorAll(selector)).toHaveLength(1);
+    host.remove();
   });
 });

@@ -117,8 +117,9 @@ export class EPrice extends HTMLElement {
   }
 
   private _render(): void {
-    if (!this._root || !this._original || !this._amount || !this._currency) return;
-    if (!this._major || !this._minor || !this._a11y || !this._unit || !this._note) return;
+    // One gate for the whole render: the nine refs are assigned together in
+    // `connectedCallback`, so either all of them are here or none are.
+    if (!this._root) return;
 
     const options = this._moneyOptions();
     // `formatMoneyParts` resolves the locale from this element — its own
@@ -131,7 +132,7 @@ export class EPrice extends HTMLElement {
     this._renderAmount(money);
     this._renderOriginal(options);
     this._renderFootnotes(options);
-    patchText(this._a11y, money.text === MONEY_PLACEHOLDER ? t(this, 'noPrice') : money.text);
+    patchText(this._a11y!, money.text === MONEY_PLACEHOLDER ? t(this, 'noPrice') : money.text);
   }
 
   private _renderAmount(money: MoneyParts): void {

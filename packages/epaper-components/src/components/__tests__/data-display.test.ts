@@ -1152,6 +1152,17 @@ describe('e-event-log', () => {
     expect(rows(el).every((r) => r.dataset['severity'] === 'info')).toBe(true);
   });
 
+  it('keeps rows with an unreadable timestamp in input order', () => {
+    // A PLC that sends a malformed `ts` must not reshuffle the log around it:
+    // the comparison is neutral, so the pair keeps the order it arrived in.
+    const el = mountLog([
+      { id: 'a', ts: 'not-a-timestamp', message: 'First' },
+      { id: 'b', ts: 'also-broken', message: 'Second' },
+    ]);
+    expect(ids(el)).toEqual(['a', 'b']);
+    expect(rows(el)[0].querySelector('.ink-event-log__time')!.textContent).toBe('not-a-timestamp');
+  });
+
   it('reverses the order on demand and trims to max-items', () => {
     const el = mountLog(entries, 'order="oldest" max-items="2"');
     expect(ids(el)).toEqual(['a', 'b']);

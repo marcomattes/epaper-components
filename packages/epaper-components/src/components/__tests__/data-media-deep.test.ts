@@ -2568,6 +2568,11 @@ describe('e-barcode', () => {
       `<e-barcode value="12345678" format="code128" module-width="1" quiet-zone="0"></e-barcode>`,
     );
     expect(svg(digits)!.getAttribute('width')).toBe('79');
+
+    // Digits alone do not make an EAN: a length no retail symbology uses
+    // falls back to Code 128 rather than to an error.
+    const five = mount(`<e-barcode value="12345"></e-barcode>`);
+    expect(svg(five)!.getAttribute('aria-label')).toBe('CODE128 barcode 12345');
   });
 
   it('reports the values it cannot encode', () => {

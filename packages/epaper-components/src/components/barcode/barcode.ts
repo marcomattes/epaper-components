@@ -435,13 +435,15 @@ export class EBarcode extends HTMLElement {
    * symbol is a single `<svg>`, so replacing it keeps the dirty area to the
    * bars.
    */
+  // `_render` is the only caller of the three painters, and it returns before
+  // any of them when the refs are missing.
   private _paintSymbol(markup: string, format: BarcodeFormat, value: string): void {
-    if (!this._wrap) return;
+    const wrap = this._wrap!;
     if (markup !== this._lastContent) {
-      this._wrap.innerHTML = markup;
+      wrap.innerHTML = markup;
       this._lastContent = markup;
     }
-    const svg = this._wrap.firstElementChild;
+    const svg = wrap.firstElementChild;
     if (svg) {
       svg.setAttribute('role', 'img');
       svg.setAttribute('aria-label', `${format.toUpperCase()} barcode ${value}`);
@@ -456,7 +458,6 @@ export class EBarcode extends HTMLElement {
    * reason to have the sink at all for a single line of text.
    */
   private _paintMessage(variant: 'empty' | 'error', message: string, label: string): void {
-    if (!this._wrap) return;
     // Prefixed so a message key can never collide with a symbol's markup.
     const key = `${variant}:${message}`;
     if (key !== this._lastContent) {
@@ -465,17 +466,17 @@ export class EBarcode extends HTMLElement {
       node.setAttribute('role', 'img');
       node.setAttribute('aria-label', label);
       node.textContent = message;
-      this._wrap.replaceChildren(node);
+      this._wrap!.replaceChildren(node);
       this._lastContent = key;
     }
     this._paintCaption('');
   }
 
   private _paintCaption(text: string): void {
-    if (!this._text) return;
-    if (this._text.textContent !== text) this._text.textContent = text;
-    if (text) this._text.removeAttribute('hidden');
-    else this._text.setAttribute('hidden', '');
+    const line = this._text!;
+    if (line.textContent !== text) line.textContent = text;
+    if (text) line.removeAttribute('hidden');
+    else line.setAttribute('hidden', '');
   }
 }
 

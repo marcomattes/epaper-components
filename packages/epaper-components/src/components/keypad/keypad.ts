@@ -256,8 +256,10 @@ export class EKeypad extends BaseFormControl {
     return keys;
   }
 
+  // Reached only from `connectedCallback` and from `attributeChangedCallback`,
+  // which bails on `_wired` — the refs are always in place by then.
   private _buildKeys(): void {
-    if (!this._grid) return;
+    const grid = this._grid!;
     const defs = this._keyDefs();
     this._keys = defs.map((def) => {
       const button = document.createElement('button');
@@ -269,20 +271,19 @@ export class EKeypad extends BaseFormControl {
       button.textContent = def.label;
       return button;
     });
-    this._grid.replaceChildren(...this._keys);
-    patchAttr(this._grid, 'data-columns', '3');
+    grid.replaceChildren(...this._keys);
+    patchAttr(grid, 'data-columns', '3');
   }
 
   private _syncTexts(): void {
-    if (!this._labelEl || !this._hintEl || !this._grid) return;
     const label = this.getAttribute('label') || '';
-    patchText(this._labelEl, label);
-    patchAttr(this._labelEl, 'hidden', label ? null : '');
+    patchText(this._labelEl!, label);
+    patchAttr(this._labelEl!, 'hidden', label ? null : '');
     const hint = this.getAttribute('hint') || '';
-    patchText(this._hintEl, hint);
-    patchAttr(this._hintEl, 'hidden', hint ? null : '');
+    patchText(this._hintEl!, hint);
+    patchAttr(this._hintEl!, 'hidden', hint ? null : '');
     patchAttr(
-      this._grid,
+      this._grid!,
       'aria-label',
       label || this.getAttribute('aria-label') || t(this, 'keypad'),
     );

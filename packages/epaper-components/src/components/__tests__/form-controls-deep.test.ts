@@ -1785,6 +1785,16 @@ describe('e-rating', () => {
     expect(symbols(el)[0].disabled).toBe(true);
   });
 
+  it('ignores a click that lands beside a symbol', () => {
+    const el = mount<HTMLElement & { value: number }>(`<e-rating value="2" max="5"></e-rating>`);
+    const changes = record(el, 'e-change');
+    // The gap between two 44px targets is still inside the radiogroup, and a
+    // gloved tap lands there often enough to matter.
+    el.querySelector<HTMLElement>('.ink-rating__group')!.click();
+    expect(el.value).toBe(2);
+    expect(changes).toHaveLength(0);
+  });
+
   it('rebuilds the row when max or glyph changes and re-clamps the value', () => {
     const el = mount<HTMLElement & { value: number }>(`<e-rating value="5" max="5"></e-rating>`);
     el.setAttribute('max', '3');
@@ -2084,6 +2094,24 @@ describe('e-pin-input', () => {
  * e-signature
  * ===================================================================== */
 
+describe('e-pin-input · attribute mutation after mount', () => {
+  it('follows label, hint and an externally set value', () => {
+    const el = mount<HTMLElement & { value: string }>(`<e-pin-input length="4"></e-pin-input>`);
+    el.setAttribute('label', 'PIN');
+    el.setAttribute('hint', 'Four digits');
+    expect(el.querySelector('.ink-label')!.textContent).toBe('PIN');
+    expect(el.querySelector('.ink-hint')!.textContent).toBe('Four digits');
+
+    // A host that re-renders its template writes the attribute rather than the
+    // property, so the boxes have to follow it.
+    el.setAttribute('value', '12ab7');
+    expect(el.value).toBe('127');
+    expect([...el.querySelectorAll<HTMLInputElement>('.ink-pin__box')].map((b) => b.value)).toEqual(
+      ['1', '2', '7', ''],
+    );
+  });
+});
+
 describe('e-signature', () => {
   const PNG =
     'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
@@ -2139,6 +2167,22 @@ describe('e-signature', () => {
     // Clearing an already empty pad is not a change.
     el.clear();
     expect(changes).toHaveLength(1);
+  });
+
+  it('erases the pad when the value property is set to an empty string', () => {
+    const el = mount<HTMLElement & { value: string; empty: boolean }>(
+      `<e-signature name="sig"></e-signature>`,
+    );
+    stroke(el);
+    expect(el.empty).toBe(false);
+    const changes = record(el, 'e-change');
+
+    // Assigning the property is a host-side write, not user input, so it
+    // wipes the surface without announcing a change.
+    el.value = '';
+    expect(el.value).toBe('');
+    expect(el.empty).toBe(true);
+    expect(changes).toHaveLength(0);
   });
 
   it('ignores pointer input while readonly or disabled', () => {
@@ -2356,5 +2400,70 @@ describe('e-keypad', () => {
     expect(el.querySelector('.ink-label')!.textContent).toBe('Quantity');
     expect(el.querySelector('.ink-hint')!.textContent).toBe('Digits only');
     expect(el.querySelector('.ink-keypad__grid')!.getAttribute('aria-label')).toBe('Quantity');
+  });
+
+  it('rebuilds the pad when the layout attributes change', () => {
+    const el = mount(`<e-keypad disabled></e-keypad>`);
+    expect(keys(el).map((k) => k.dataset['key'])).not.toContain('.');
+
+    el.setAttribute('decimal', '');
+    el.setAttribute('decimal-separator', ',');
+    el.setAttribute('clear-label', 'Leeren');
+    el.setAttribute('backspace-label', 'Zurück');
+    const rebuilt = keys(el);
+    expect(rebuilt.map((k) => k.dataset['key'])).toContain(',');
+    expect(rebuilt.find((k) => k.dataset['kind'] === 'clear')!.textContent).toBe('Leeren');
+    expect(rebuilt.find((k) => k.dataset['kind'] === 'backspace')!.textContent).toBe('Zurück');
+    // A rebuild must not hand a disabled pad back as enabled.
+    expect(rebuilt.every((k) => k.disabled)).toBe(true);
+  });
+
+  it('follows an externally set value attribute', () => {
+    const el = mount<HTMLElement & { value: string }>(`<e-keypad show-display></e-keypad>`);
+    // A host that re-renders its template writes the attribute, not the
+    // property; the readout has to follow it.
+    el.setAttribute('value', '4711');
+    expect(el.value).toBe('4711');
+    expect(el.querySelector('.ink-keypad__display')!.textContent).toBe('4711');
+  });
+
+  it('ignores a tap that lands between the keys', () => {
+    const el = mount<HTMLElement & { value: string }>(`<e-keypad value="9"></e-keypad>`);
+    const changes = record(el, 'e-change');
+    el.querySelector<HTMLElement>('.ink-keypad__grid')!.click();
+    expect(el.value).toBe('9');
+    expect(changes).toHaveLength(0);
+  });
+
+  it('leaves the `for` target alone when it already holds the value', () => {
+    const wrap = mount(
+      `<div><e-input id="qty2" value=""></e-input><e-keypad for="qty2"></e-keypad></div>`,
+    );
+    const keypad = wrap.querySelector<HTMLElement & { press(k: string): void }>('e-keypad')!;
+    const target = wrap.querySelector<HTMLElement & { value: string }>('e-input')!;
+    const seen: string[] = [];
+    target.addEventListener('input', () => seen.push(target.value));
+    target.value = '5';
+    keypad.press('5');
+    expect(target.value).toBe('5');
+    // Same value: no echo back into the control, so no repaint of its box.
+    expect(seen).toHaveLength(0);
+  });
+
+  it('accepts a value before it is connected', () => {
+    const el = document.createElement('e-keypad') as HTMLElement & {
+      value: string;
+      press(k: string): void;
+    };
+    el.setAttribute('show-display', '');
+    // `press` reflects into the `value` attribute, so the state survives the
+    // upgrade that `connectedCallback` performs when the element lands.
+    el.press('7');
+    el.press('3');
+    expect(el.value).toBe('73');
+
+    const host = mount(`<div></div>`);
+    host.appendChild(el);
+    expect(el.querySelector('.ink-keypad__display')!.textContent).toBe('73');
   });
 });
