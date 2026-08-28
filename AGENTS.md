@@ -13,9 +13,9 @@ repo root (a one-line `@AGENTS.md` import) — edit this file, not that one.
 
 This is **EPaper**, a vanilla web component library (83 source files, 108 registered Custom Elements)
 optimized for e-paper displays. It is **not Lit-based** — Lit is only a
-Storybook devDependency. Components extend `HTMLElement` directly or
-`BaseFormControl<T>` for form controls. Light DOM only, no Shadow DOM.
-No animations, no `:hover`.
+Storybook devDependency. Components extend `EpaperElement` (`HTMLElement` in a
+browser, an SSR-safe stand-in elsewhere) or `BaseFormControl<T>` for form
+controls. Light DOM only, no Shadow DOM. No animations, no `:hover`.
 
 ## Repository layout
 
@@ -279,9 +279,13 @@ and strand the tag — then tag the merged commit on `main` and push the tag.
   path outside the Vitest include set must be excluded on the Sonar side
   too. Change one, change the other.
 - **There is one test runner, not two.** Playwright is Vitest's browser
-  provider, not a separate suite. Both Vitest projects (`unit`, `storybook`)
-  run in a single `vitest run` and V8 merges their coverage into one
-  `lcov.info` — there is nothing to combine afterwards.
+  provider, not a separate suite. All three Vitest projects (`unit`,
+  `storybook`, `ssr`) run in a single `vitest run` and V8 merges their
+  coverage into one `lcov.info` — there is nothing to combine afterwards.
+  `ssr` is the odd one: it runs in a Node environment rather than the browser,
+  because the code paths that let the library import on a server only exist
+  where there is no DOM. Its tests live in `src/**/__ssr__/`, which the `unit`
+  project excludes.
 - **CSS imports use sub-paths**: `@marcomattes/epaper-components/styles/tokens.css`
   resolves to `packages/epaper-components/src/styles/tokens.css` via the exports map. The
   `sideEffects` array intentionally lists `./src/styles/*.css` for this

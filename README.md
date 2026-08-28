@@ -859,11 +859,13 @@ numbers CI actually measured:
 | `reports/test/sonar.xml`     | `vitest-sonar-reporter` | `sonar.testExecutionReportPaths`    |
 
 There is only one test runner. Playwright is not a second suite — it is the
-browser provider Vitest drives in browser mode, and both Vitest projects, `unit`
-(`src/**/*.test.ts`) and `storybook` (the a11y and interaction stories), run in
-that same Chromium instance within a single `vitest run`. V8 collects coverage
-per project and merges it before writing, so `lcov.info` is already the union of
-the two; nothing has to be combined afterwards. Should a genuinely separate
+browser provider Vitest drives in browser mode, and two of the three Vitest
+projects, `unit` (`src/**/*.test.ts`) and `storybook` (the a11y and interaction
+stories), run in that same Chromium instance within a single `vitest run`. The
+third, `ssr` (`src/**/__ssr__/`), runs in a Node environment instead: it covers
+the paths that only exist where there is no DOM, which a browser cannot reach.
+V8 collects coverage per project and merges it before writing, so `lcov.info` is
+already the union of all three; nothing has to be combined afterwards. Should a genuinely separate
 runner ever be added, `sonar.javascript.lcov.reportPaths` takes a
 comma-separated list and Sonar unions the files itself.
 
