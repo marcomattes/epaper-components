@@ -1,4 +1,11 @@
-import { addCleanup, boolAttr, define, patchAttr, runCleanups } from '../../core/dom';
+import {
+  addCleanup,
+  boolAttr,
+  define,
+  EpaperElement,
+  patchAttr,
+  runCleanups,
+} from '../../core/dom';
 import { iconSvg } from '../../core/icons';
 import { TreeView, collectSubtree, parseTreeAttr } from '../../core/tree';
 import type { TreeNode } from '../../core/types';
@@ -43,7 +50,7 @@ function glyphForCheckState(state: CheckState): string {
  * @example
  * <e-tree checkable data='[{"value":"src","label":"src","children":[{"value":"a","label":"app.ts"}]}]' default-expanded="src"></e-tree>
  */
-export class ETree extends HTMLElement {
+export class ETree extends EpaperElement {
   static readonly observedAttributes = ['data', 'value', 'checked'];
 
   private _built = false;

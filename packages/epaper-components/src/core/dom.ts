@@ -55,7 +55,34 @@ export function clampedNumAttr(
   return Math.min(max, Math.max(min, numAttr(el, name, dflt)));
 }
 
+/**
+ * The base class every component extends, instead of `HTMLElement` directly.
+ *
+ * In a browser this *is* `HTMLElement` — same object, no wrapper, no cost. On a
+ * server (Next.js, Nuxt, Astro, a Vitest node-environment suite) there is no
+ * `HTMLElement` binding at all, and a bare `class E extends HTMLElement` throws
+ * `ReferenceError` while the module is still being evaluated. That made every
+ * import of this library — the barrel and every subpath alike — unusable in a
+ * server render, even from a file the framework only ever runs on the client.
+ *
+ * Extending this instead makes the import a no-op outside a browser: the
+ * classes are constructed but never registered (see {@link define}) and never
+ * instantiated, because an upgrade can only happen in a document. Nothing else
+ * in the library touches a DOM global at module scope, so an SSR pass now
+ * imports cleanly and the components upgrade on the client as usual.
+ *
+ * The stand-in is deliberately empty. It is never instantiated server-side, so
+ * it needs no behaviour — only enough of a type to keep `extends` valid.
+ */
+export const EpaperElement: typeof HTMLElement =
+  typeof HTMLElement === 'undefined' ? (class {} as unknown as typeof HTMLElement) : HTMLElement;
+
+/**
+ * Register a custom element, once. Silently does nothing where there is no
+ * `customElements` registry — see {@link EpaperElement} for why.
+ */
 export const define = (name: string, ctor: CustomElementConstructor): void => {
+  if (typeof customElements === 'undefined') return;
   if (!customElements.get(name)) customElements.define(name, ctor);
 };
 

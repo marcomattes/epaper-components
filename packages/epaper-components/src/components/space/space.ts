@@ -1,4 +1,4 @@
-import { boolAttr, define, numAttr } from '../../core/dom';
+import { boolAttr, define, EpaperElement, numAttr } from '../../core/dom';
 
 /**
  * @summary Inline-flex container that distributes children with a uniform gap.
@@ -11,7 +11,7 @@ import { boolAttr, define, numAttr } from '../../core/dom';
  * @example
  * <e-space size="12" wrap><e-button>A</e-button><e-button>B</e-button></e-space>
  */
-export class ESpace extends HTMLElement {
+export class ESpace extends EpaperElement {
   static readonly observedAttributes = ['size', 'direction', 'wrap'];
 
   connectedCallback() {

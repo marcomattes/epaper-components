@@ -24,7 +24,7 @@ it by hand).
 Non-form component, extend `HTMLElement` directly:
 
 ```ts
-import { define, esc } from '../../core/dom';
+import { define, EpaperElement, esc } from '../../core/dom';
 
 /**
  * @summary Short description.
@@ -34,7 +34,7 @@ import { define, esc } from '../../core/dom';
  * @slot - Default slot description.
  * @example <e-foo></e-foo>
  */
-export class EFoo extends HTMLElement {
+export class EFoo extends EpaperElement {
   static observedAttributes = ['foo'];
   private _wired = false;
 

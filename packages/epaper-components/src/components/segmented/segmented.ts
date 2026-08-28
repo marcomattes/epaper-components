@@ -1,6 +1,7 @@
 import {
   addCleanup,
   define,
+  EpaperElement,
   observeItems,
   patchAttr,
   patchText,
@@ -34,7 +35,7 @@ import {
  *   <e-segment value="b" label="B"></e-segment>
  * </e-segmented>
  */
-export class ESegmented extends HTMLElement {
+export class ESegmented extends EpaperElement {
   static readonly observedAttributes = ['value'];
 
   private _wired = false;
@@ -152,5 +153,5 @@ define('e-segmented', ESegmented);
  * @attr {string} value - Value contributed when this segment is active.
  * @attr {string} [label] - Visible label. Falls back to text content.
  */
-export class ESegment extends HTMLElement {}
+export class ESegment extends EpaperElement {}
 define('e-segment', ESegment);

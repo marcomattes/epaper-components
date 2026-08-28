@@ -2,6 +2,7 @@ import {
   addCleanup,
   boolAttr,
   define,
+  EpaperElement,
   observeItems,
   patchAttr,
   patchText,
@@ -247,5 +248,5 @@ define('e-radio-group', ERadioGroup);
  * @example
  * <e-radio value="a" label="Apples"></e-radio>
  */
-export class ERadio extends HTMLElement {}
+export class ERadio extends EpaperElement {}
 define('e-radio', ERadio);

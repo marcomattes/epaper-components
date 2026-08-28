@@ -1,4 +1,4 @@
-import { boolAttr, define, patchBoolAttr, patchClassModifier } from '../../core/dom';
+import { boolAttr, define, EpaperElement, patchBoolAttr, patchClassModifier } from '../../core/dom';
 
 /**
  * @summary Primary button with three visual variants.
@@ -19,7 +19,7 @@ import { boolAttr, define, patchBoolAttr, patchClassModifier } from '../../core/
  * @example
  * <e-button variant="primary">Save</e-button>
  */
-export class EButton extends HTMLElement {
+export class EButton extends EpaperElement {
   static readonly formAssociated = true;
   // `autofocus` is not observed — it only applies at mount time.
   static readonly observedAttributes = ['variant', 'disabled'];

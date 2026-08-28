@@ -2,6 +2,7 @@ import {
   addCleanup,
   boolAttr,
   define,
+  EpaperElement,
   observeItems,
   onGlobal,
   patchAttr,
@@ -492,5 +493,5 @@ define('e-select', ESelect);
  * @example
  * <e-option value="a" label="Apples"></e-option>
  */
-export class EOption extends HTMLElement {}
+export class EOption extends EpaperElement {}
 define('e-option', EOption);

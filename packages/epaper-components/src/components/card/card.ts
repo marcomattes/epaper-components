@@ -1,4 +1,4 @@
-import { define, syncEyebrowTitle } from '../../core/dom';
+import { define, EpaperElement, syncEyebrowTitle } from '../../core/dom';
 
 /**
  * @summary Container with optional eyebrow, title and action area.
@@ -16,7 +16,7 @@ import { define, syncEyebrowTitle } from '../../core/dom';
  *   Body content here.
  * </e-card>
  */
-export class ECard extends HTMLElement {
+export class ECard extends EpaperElement {
   static readonly observedAttributes = ['title', 'eyebrow'];
 
   private _section: HTMLElement | null = null;

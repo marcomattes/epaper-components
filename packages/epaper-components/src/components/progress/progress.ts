@@ -1,4 +1,12 @@
-import { define, intAttr, numAttr, patchAttr, patchBoolAttr, patchText } from '../../core/dom';
+import {
+  define,
+  EpaperElement,
+  intAttr,
+  numAttr,
+  patchAttr,
+  patchBoolAttr,
+  patchText,
+} from '../../core/dom';
 
 /**
  * @summary Static progress indicator (linear bar or discrete steps).
@@ -17,7 +25,7 @@ import { define, intAttr, numAttr, patchAttr, patchBoolAttr, patchText } from '.
  * @example
  * <e-progress value="42" label="Upload"></e-progress>
  */
-export class EProgress extends HTMLElement {
+export class EProgress extends EpaperElement {
   static readonly observedAttributes = ['value', 'max', 'variant', 'steps', 'label', 'hide-label'];
 
   private _wired = false;

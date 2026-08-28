@@ -1,4 +1,12 @@
-import { define, intAttr, numAttr, patchAttr, patchBoolAttr, patchText } from '../../core/dom';
+import {
+  define,
+  EpaperElement,
+  intAttr,
+  numAttr,
+  patchAttr,
+  patchBoolAttr,
+  patchText,
+} from '../../core/dom';
 import { formatNumber } from '../../core/format';
 import { t, type LocaleStrings } from '../../core/i18n';
 
@@ -40,7 +48,7 @@ const BAND_KEY: Record<MeterBand, keyof LocaleStrings> = {
  * @example
  * <e-meter locale="de" label="Füllstand" value="12" low="20" unit=" l"></e-meter>
  */
-export class EMeter extends HTMLElement {
+export class EMeter extends EpaperElement {
   static readonly observedAttributes = [
     'value',
     'min',

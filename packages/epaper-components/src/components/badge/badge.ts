@@ -1,4 +1,11 @@
-import { boolAttr, captureWrap, define, patchAttr, patchClassModifier } from '../../core/dom';
+import {
+  boolAttr,
+  captureWrap,
+  define,
+  EpaperElement,
+  patchAttr,
+  patchClassModifier,
+} from '../../core/dom';
 
 const VARIANTS = new Set(['outline', 'solid', 'dashed']);
 const SIZES = new Set(['sm', 'md', 'lg']);
@@ -22,7 +29,7 @@ const SIZES = new Set(['sm', 'md', 'lg']);
  * @example
  * <e-badge variant="solid" size="lg">-30 %</e-badge>
  */
-export class EBadge extends HTMLElement {
+export class EBadge extends EpaperElement {
   static readonly observedAttributes = ['inverted', 'variant', 'size'];
 
   private _wrap: HTMLElement | null = null;

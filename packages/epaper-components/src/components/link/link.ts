@@ -1,4 +1,11 @@
-import { boolAttr, captureWrap, define, patchAttr, patchBoolAttr } from '../../core/dom';
+import {
+  boolAttr,
+  captureWrap,
+  define,
+  EpaperElement,
+  patchAttr,
+  patchBoolAttr,
+} from '../../core/dom';
 
 /**
  * Minimum `rel` for a `target="_blank"` link: `noopener` cuts the new
@@ -25,7 +32,7 @@ const BLANK_REL = 'noopener noreferrer';
  * @example
  * <e-link href="https://bund.de" target="_blank" external>Bundesportal</e-link>
  */
-export class ELink extends HTMLElement {
+export class ELink extends EpaperElement {
   static readonly observedAttributes = ['href', 'target', 'rel', 'external'];
 
   private _a: HTMLAnchorElement | null = null;

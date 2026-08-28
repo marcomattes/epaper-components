@@ -105,8 +105,32 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   an `<e-anchor>` it builds and keeps reactive to headings added, removed or
   retitled after mount.
 
+- The library imports on a server. All 90 JavaScript entry points — the barrel,
+  every component subpath and the core helpers — can now be loaded from a
+  Next.js, Nuxt, Astro or SvelteKit render
+  without a DOM. Before this, `class E extends HTMLElement` was evaluated the
+  moment a module loaded, so any server-side import threw
+  `ReferenceError: HTMLElement is not defined` and took the route down with it
+  — including from a `'use client'` file, which a framework still runs through
+  its SSR pass. Components now extend `EpaperElement` from `core/dom.ts`, which
+  is `HTMLElement` itself in a browser and an inert stand-in elsewhere, and
+  `define()` skips registration where there is no `customElements` registry.
+  The import is a no-op on a server and the elements upgrade on the client as
+  before; nothing about their browser behaviour changes. This does not make the
+  components render server-side — they build their subtree in
+  `connectedCallback` and a server emits only the authored tag. An ESLint rule
+  and `npm run test:ssr`, which imports every built entry point in a bare Node
+  process, keep it that way.
+
 ### Changed
 
+- Unregistered custom elements are hidden until they upgrade
+  (`.ink-page :not(:defined) { visibility: hidden }` in `base.css`). Until its
+  module has run, a custom element is an unstyled inline box showing its raw
+  authored text; the page then snapped to the real layout once the script
+  registered the element. On an EPDC that second paint is a full refresh. The
+  page now repaints once. Where a no-script fallback matters more than the
+  flash, one `<noscript>` rule undoes it — see the README.
 - **Breaking for DOM queries:** components that read their entries from child
   data carriers — `<e-timeline>`, `<e-description-list>`, `<e-breadcrumb>`,
   `<e-avatar-group>`, `<e-segmented>`, `<e-anchor>` — no longer destroy those

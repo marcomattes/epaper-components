@@ -1,6 +1,7 @@
 import {
   clampedNumAttr,
   define,
+  EpaperElement,
   intAttr,
   observeItems,
   patchAttr,
@@ -21,7 +22,7 @@ import {
  * @example
  * <e-avatar name="Ada Lovelace" size="48" shape="circle"></e-avatar>
  */
-export class EAvatar extends HTMLElement {
+export class EAvatar extends EpaperElement {
   static readonly observedAttributes = ['name', 'src', 'size', 'shape'];
 
   private _wrap: HTMLElement | null = null;
@@ -109,7 +110,7 @@ define('e-avatar', EAvatar);
  *   <e-avatar-item name="Linus"></e-avatar-item>
  * </e-avatar-group>
  */
-export class EAvatarGroup extends HTMLElement {
+export class EAvatarGroup extends EpaperElement {
   static readonly observedAttributes = ['max', 'size'];
 
   private _wired = false;
@@ -228,5 +229,5 @@ define('e-avatar-group', EAvatarGroup);
  * @example
  * <e-avatar-item name="Ada Lovelace"></e-avatar-item>
  */
-export class EAvatarItem extends HTMLElement {}
+export class EAvatarItem extends EpaperElement {}
 define('e-avatar-item', EAvatarItem);

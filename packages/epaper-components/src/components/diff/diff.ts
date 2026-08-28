@@ -1,4 +1,4 @@
-import { define, patchAttr, patchText } from '../../core/dom';
+import { define, EpaperElement, patchAttr, patchText } from '../../core/dom';
 
 /**
  * @summary Side-by-side previous and current values with a non-color change cue.
@@ -18,7 +18,7 @@ import { define, patchAttr, patchText } from '../../core/dom';
  * @example
  * <e-diff label="Firmware" before="1.8.4" after="1.9.0"></e-diff>
  */
-export class EDiff extends HTMLElement {
+export class EDiff extends EpaperElement {
   static readonly observedAttributes = [
     'before',
     'after',

@@ -5,9 +5,9 @@
 // and `parse(s: string)` (used by `formResetCallback` and
 // `formStateRestoreCallback` to turn a string back into `T`).
 
-import { boolAttr } from './dom';
+import { boolAttr, EpaperElement } from './dom';
 
-export abstract class BaseFormControl<T = string> extends HTMLElement {
+export abstract class BaseFormControl<T = string> extends EpaperElement {
   static readonly formAssociated = true;
 
   protected internals: ElementInternals;

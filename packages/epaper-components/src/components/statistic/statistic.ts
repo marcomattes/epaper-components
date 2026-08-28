@@ -1,4 +1,12 @@
-import { boolAttr, clampedNumAttr, define, numAttr, patchAttr, patchText } from '../../core/dom';
+import {
+  boolAttr,
+  clampedNumAttr,
+  define,
+  EpaperElement,
+  numAttr,
+  patchAttr,
+  patchText,
+} from '../../core/dom';
 import { formatNumber, resolveLocale, type NumberFormatOptions } from '../../core/format';
 import { t, type LocaleStrings } from '../../core/i18n';
 
@@ -65,7 +73,7 @@ function isStatusBand(value: string): value is StatusBand {
  * @example
  * <e-statistic locale="de" label="Umsatz" value="1299" currency="EUR" low="1500"></e-statistic>
  */
-export class EStatistic extends HTMLElement {
+export class EStatistic extends EpaperElement {
   static readonly observedAttributes = [
     'label',
     'value',

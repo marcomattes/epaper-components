@@ -1,4 +1,4 @@
-import { clampedNumAttr, define, patchAttr, patchText } from '../../core/dom';
+import { clampedNumAttr, define, EpaperElement, patchAttr, patchText } from '../../core/dom';
 import { formatNumber, resolveLocale } from '../../core/format';
 import { t } from '../../core/i18n';
 
@@ -33,7 +33,7 @@ type ChangeDirection = 'up' | 'down' | 'changed' | 'unchanged';
  * @example
  * <e-change-marker locale="de" previous="21.8" value="22.4" suffix=" °C" precision="1"></e-change-marker>
  */
-export class EChangeMarker extends HTMLElement {
+export class EChangeMarker extends EpaperElement {
   static readonly observedAttributes = [
     'value',
     'previous',

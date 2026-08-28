@@ -3,6 +3,7 @@ import {
   boolAttr,
   captureWrap,
   define,
+  EpaperElement,
   patchBoolAttr,
   runCleanups,
 } from '../../core/dom';
@@ -25,7 +26,7 @@ import {
  * @example
  * <e-chip selected>Today</e-chip>
  */
-export class EChip extends HTMLElement {
+export class EChip extends EpaperElement {
   static readonly observedAttributes = ['selected', 'disabled'];
 
   private _wrap: HTMLButtonElement | null = null;

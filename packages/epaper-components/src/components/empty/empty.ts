@@ -1,4 +1,4 @@
-import { define, esc, patchAttr, patchText } from '../../core/dom';
+import { define, EpaperElement, esc, patchAttr, patchText } from '../../core/dom';
 import { iconSvg } from '../../core/icons';
 
 /**
@@ -19,7 +19,7 @@ import { iconSvg } from '../../core/icons';
  *   <e-button slot="action" variant="primary">Create</e-button>
  * </e-empty>
  */
-export class EEmpty extends HTMLElement {
+export class EEmpty extends EpaperElement {
   static readonly observedAttributes = ['icon', 'title', 'description'];
 
   private _wired = false;

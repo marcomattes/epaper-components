@@ -49,7 +49,7 @@ in.
 Every component file follows this shape:
 
 ```ts
-import { define, esc } from '../core/dom';
+import { define, EpaperElement, esc } from '../core/dom';
 import { BaseFormControl } from '../core/base-form-control'; // for form inputs
 
 /**
@@ -62,7 +62,7 @@ import { BaseFormControl } from '../core/base-form-control'; // for form inputs
  * @example
  * <e-foo></e-foo>
  */
-export class EFoo extends HTMLElement {
+export class EFoo extends EpaperElement {
   static observedAttributes = ['foo'];
 
   private _wired = false;

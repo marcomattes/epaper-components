@@ -1,4 +1,4 @@
-import { define, patchAttr, patchText } from '../../core/dom';
+import { define, EpaperElement, patchAttr, patchText } from '../../core/dom';
 
 /**
  * @summary Visual separator with optional label and orientation.
@@ -11,7 +11,7 @@ import { define, patchAttr, patchText } from '../../core/dom';
  * @example
  * <e-divider variant="dashed" label="OR"></e-divider>
  */
-export class EDivider extends HTMLElement {
+export class EDivider extends EpaperElement {
   static readonly observedAttributes = ['variant', 'orientation', 'label'];
 
   private _wired = false;

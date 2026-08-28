@@ -106,7 +106,17 @@ the right workspace, so day-to-day commands are unchanged.
     full repaint rule 7 exists to prevent. Pass `isOutput` so the observer
     ignores the component's own rendered subtree, and keep the sync
     surgical.
-12. **Locale-dependent output goes through `core/format.ts` and
+12. **Extend `EpaperElement`, never `HTMLElement` directly.** The `extends`
+    clause is evaluated when the module loads, and a server render has no
+    `HTMLElement` binding — one bare `extends HTMLElement` makes the barrel
+    _and every subpath_ throw `ReferenceError` in Next.js, Nuxt or Astro, even
+    from a file the framework only ever runs on the client. `EpaperElement`
+    from `core/dom.ts` is `HTMLElement` itself in a browser and an inert
+    stand-in elsewhere. `HTMLElement` as a _type_ is fine; only the `extends`
+    clause is restricted, and ESLint enforces it. Nothing else in the library
+    may touch a DOM global at module scope either — keep it inside
+    `connectedCallback` and methods, where a document is guaranteed.
+13. **Locale-dependent output goes through `core/format.ts` and
     `core/i18n.ts`.** No `toFixed()` for a displayed number, and no English
     string literal in a rendered label. Numbers, dates and relative times use
     the `Intl` wrappers; the words the library invents itself (freshness,
@@ -117,7 +127,7 @@ the right workspace, so day-to-day commands are unchanged.
 ## Adding a component (skeleton)
 
 ```ts
-import { define, esc } from '../core/dom';
+import { define, EpaperElement, esc } from '../core/dom';
 
 /**
  * @summary Short description.
@@ -127,7 +137,7 @@ import { define, esc } from '../core/dom';
  * @slot - Default slot description.
  * @example <e-foo></e-foo>
  */
-export class EFoo extends HTMLElement {
+export class EFoo extends EpaperElement {
   static observedAttributes = ['foo'];
   private _wired = false;
 

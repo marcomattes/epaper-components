@@ -9,6 +9,7 @@ import {
   clampedNumAttr,
   cloneItemBody,
   define,
+  EpaperElement,
   esc,
   html,
   intAttr,
@@ -216,16 +217,35 @@ describe('clampedNumAttr', () => {
   });
 });
 
+describe('EpaperElement', () => {
+  it('is HTMLElement itself in a browser', () => {
+    // The stand-in only exists where there is no `HTMLElement` to extend, so
+    // in a document this must be the real base — anything else would mean the
+    // components are not actually HTML elements. The server-side branch is
+    // covered by scripts/ssr-import-test.mjs, which runs in a bare Node
+    // process where this file cannot.
+    expect(EpaperElement).toBe(HTMLElement);
+  });
+
+  it('is a usable custom element base', () => {
+    class Host extends EpaperElement {}
+    define('x-dom-epaper-base', Host);
+    const el = document.createElement('x-dom-epaper-base');
+    expect(el).toBeInstanceOf(HTMLElement);
+    expect(el).toBeInstanceOf(Host);
+  });
+});
+
 describe('define', () => {
   it('registers the element once', () => {
-    class First extends HTMLElement {}
+    class First extends EpaperElement {}
     define('x-dom-define-a', First);
     expect(customElements.get('x-dom-define-a')).toBe(First);
   });
 
   it('is a no-op on a second call with the same tag', () => {
-    class First extends HTMLElement {}
-    class Second extends HTMLElement {}
+    class First extends EpaperElement {}
+    class Second extends EpaperElement {}
     define('x-dom-define-b', First);
     define('x-dom-define-b', Second);
     expect(customElements.get('x-dom-define-b')).toBe(First);

@@ -1,4 +1,4 @@
-import { boolAttr, captureWrap, clampedNumAttr, define } from '../../core/dom';
+import { boolAttr, captureWrap, clampedNumAttr, define, EpaperElement } from '../../core/dom';
 
 /**
  * @summary Page-level layout container that arranges header, sider, content and footer children.
@@ -14,7 +14,7 @@ import { boolAttr, captureWrap, clampedNumAttr, define } from '../../core/dom';
  *   <e-layout-footer></e-layout-footer>
  * </e-layout>
  */
-export class ELayout extends HTMLElement {
+export class ELayout extends EpaperElement {
   static readonly observedAttributes = ['has-sider'];
 
   connectedCallback() {
@@ -33,7 +33,7 @@ export class ELayout extends HTMLElement {
 define('e-layout', ELayout);
 
 /** @summary Header region inside an `<e-layout>`. */
-export class ELayoutHeader extends HTMLElement {
+export class ELayoutHeader extends EpaperElement {
   private _wired = false;
   connectedCallback() {
     if (this._wired) return;
@@ -48,7 +48,7 @@ define('e-layout-header', ELayoutHeader);
  *
  * @attr {string} [width='220'] - Pixel width of the sider.
  */
-export class ELayoutSider extends HTMLElement {
+export class ELayoutSider extends EpaperElement {
   static readonly observedAttributes = ['width'];
 
   private _aside: HTMLElement | null = null;
@@ -77,7 +77,7 @@ export class ELayoutSider extends HTMLElement {
 define('e-layout-sider', ELayoutSider);
 
 /** @summary Main content region inside an `<e-layout>`. */
-export class ELayoutContent extends HTMLElement {
+export class ELayoutContent extends EpaperElement {
   private _wired = false;
   connectedCallback() {
     if (this._wired) return;
@@ -88,7 +88,7 @@ export class ELayoutContent extends HTMLElement {
 define('e-layout-content', ELayoutContent);
 
 /** @summary Footer region inside an `<e-layout>`. */
-export class ELayoutFooter extends HTMLElement {
+export class ELayoutFooter extends EpaperElement {
   private _wired = false;
   connectedCallback() {
     if (this._wired) return;

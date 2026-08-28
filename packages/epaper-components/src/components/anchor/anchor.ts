@@ -1,6 +1,7 @@
 import {
   addCleanup,
   define,
+  EpaperElement,
   numAttr,
   observeItems,
   onGlobal,
@@ -44,7 +45,7 @@ interface AnchorEntry {
  *   <e-anchor-item href="#api" title="API" depth="1"></e-anchor-item>
  * </e-anchor>
  */
-export class EAnchor extends HTMLElement {
+export class EAnchor extends EpaperElement {
   static readonly observedAttributes = ['offset-top'];
 
   private _wired = false;
@@ -203,5 +204,5 @@ define('e-anchor', EAnchor);
  * @example
  * <e-anchor-item href="#api" title="API" depth="1"></e-anchor-item>
  */
-export class EAnchorItem extends HTMLElement {}
+export class EAnchorItem extends EpaperElement {}
 define('e-anchor-item', EAnchorItem);

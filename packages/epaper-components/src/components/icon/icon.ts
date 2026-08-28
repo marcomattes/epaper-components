@@ -1,4 +1,4 @@
-import { define, numAttr } from '../../core/dom';
+import { define, EpaperElement, numAttr } from '../../core/dom';
 import { hasIcon, iconSvg } from '../../core/icons';
 
 /**
@@ -12,7 +12,7 @@ import { hasIcon, iconSvg } from '../../core/icons';
  * @example
  * <e-icon name="plus" size="24" label="Add"></e-icon>
  */
-export class EIcon extends HTMLElement {
+export class EIcon extends EpaperElement {
   static readonly observedAttributes = ['name', 'size', 'label'];
 
   connectedCallback() {

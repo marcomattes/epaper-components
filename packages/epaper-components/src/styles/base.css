@@ -18,6 +18,38 @@
   text-rendering: geometricPrecision;
 }
 
+/* Pre-upgrade state.
+ *
+ * Until its module has run, a custom element is an unstyled inline box holding
+ * whatever the author wrote between the tags. On a server-rendered or
+ * bandwidth-slow page that is visible: raw label text, options as run-on
+ * prose, no borders. It then snaps to the real layout the moment the script
+ * registers the element.
+ *
+ * On a screen that costs nothing, that flash is a cosmetic annoyance. On an
+ * EPDC it is a second full repaint — the exact thing the surgical-patch rules
+ * elsewhere in this library exist to avoid. Holding the unregistered element
+ * back trades a flash for a brief blank and repaints once.
+ *
+ * `:not(:defined)` matches only custom elements that have no registration yet;
+ * built-in elements always count as defined, so nothing authored in plain HTML
+ * is affected. It does not distinguish this library's elements from anyone
+ * else's, though: a third-party custom element nested inside `.ink-page` is
+ * held back too, and stays hidden if its own script never registers it. CSS
+ * has no way to match a tag prefix, so the alternative would be a generated
+ * list of all 108 tags.
+ *
+ * The trade is that a page whose script never arrives shows nothing at all.
+ * Where that matters — no-JS fallback, a slow CDN, a foreign element that
+ * loads on its own schedule — undo it for the elements that carry authored
+ * text:
+ *
+ *   <noscript><style>.ink-page :not(:defined) { visibility: visible }</style></noscript>
+ */
+.ink-page :not(:defined) {
+  visibility: hidden;
+}
+
 /* Selection is a flip, not a wash. */
 .ink-page ::selection {
   background: var(--ink-fg);

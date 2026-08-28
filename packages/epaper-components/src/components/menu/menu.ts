@@ -1,6 +1,7 @@
 import {
   addCleanup,
   define,
+  EpaperElement,
   patchAttr,
   patchBoolAttr,
   patchClassModifier,
@@ -44,7 +45,7 @@ interface RenderedItem {
  *   </e-menu-item>
  * </e-menu>
  */
-export class EMenu extends HTMLElement {
+export class EMenu extends EpaperElement {
   static readonly observedAttributes = ['mode', 'value'];
 
   private _wired = false;
@@ -338,5 +339,5 @@ define('e-menu', EMenu);
  * @attr {string} [icon] - Icon name displayed before the label.
  * @attr {string} [badge] - Badge text shown trailing the label.
  */
-export class EMenuItem extends HTMLElement {}
+export class EMenuItem extends EpaperElement {}
 define('e-menu-item', EMenuItem);

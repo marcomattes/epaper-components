@@ -1,4 +1,4 @@
-import { define, numAttr } from '../../core/dom';
+import { define, EpaperElement, numAttr } from '../../core/dom';
 
 /**
  * @summary Wraps slotted content in a `position: sticky` container.
@@ -21,7 +21,7 @@ import { define, numAttr } from '../../core/dom';
  *   <nav>...</nav>
  * </e-affix>
  */
-export class EAffix extends HTMLElement {
+export class EAffix extends EpaperElement {
   static readonly observedAttributes = ['offset-top'];
 
   private _wired = false;

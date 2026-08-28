@@ -1,4 +1,4 @@
-import { boolAttr, define, intAttr, patchAttr } from '../../core/dom';
+import { boolAttr, define, EpaperElement, intAttr, patchAttr } from '../../core/dom';
 import { t } from '../../core/i18n';
 import { slugifyTitle, uniqueSlugId } from '../../core/slug';
 
@@ -33,7 +33,7 @@ import { slugifyTitle, uniqueSlugId } from '../../core/slug';
  * <!-- id="jahresbilanz-2026", plus a "#" self-link -->
  * <e-title level="2" anchor>Jahresbilanz 2026</e-title>
  */
-export class ETitle extends HTMLElement {
+export class ETitle extends EpaperElement {
   static readonly observedAttributes = ['level', 'auto-id', 'anchor', 'anchor-label'];
 
   private _wrap: HTMLElement | null = null;

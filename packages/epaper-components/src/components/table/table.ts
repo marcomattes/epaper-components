@@ -2,6 +2,7 @@ import {
   addCleanup,
   boolAttr,
   define,
+  EpaperElement,
   patchAttr,
   patchBoolAttr,
   patchText,
@@ -196,7 +197,7 @@ function cellNumber(v: unknown): number {
  *   columns='[{"key":"id","title":"ID"},{"key":"state","title":"State","type":"status"},{"key":"cost","title":"Cost","format":"currency","currency":"EUR","align":"right"}]'
  *   data='[{"id":"L1","state":"warning","cost":1299.5}]'></e-table>
  */
-export class ETable extends HTMLElement {
+export class ETable extends EpaperElement {
   static readonly observedAttributes = [
     'columns',
     'data',

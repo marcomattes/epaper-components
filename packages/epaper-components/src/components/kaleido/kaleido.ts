@@ -1,4 +1,4 @@
-import { clampedNumAttr, define, esc } from '../../core/dom';
+import { clampedNumAttr, define, EpaperElement, esc } from '../../core/dom';
 
 const KALEIDO_COLORS = [
   { name: 'Ink', hex: '#000000' },
@@ -75,7 +75,7 @@ function paintDither(canvas: HTMLCanvasElement, hex: string, size: number, cell:
  * @example
  * <e-kaleido cell="3"></e-kaleido>
  */
-export class EKaleido extends HTMLElement {
+export class EKaleido extends EpaperElement {
   static readonly observedAttributes = ['cell'];
 
   connectedCallback() {

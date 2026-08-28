@@ -2,6 +2,7 @@ import {
   addCleanup,
   boolAttr,
   define,
+  EpaperElement,
   esc,
   patchAttr,
   patchText,
@@ -70,7 +71,7 @@ export type DialogCloseReason = 'close-button' | 'escape' | 'backdrop' | 'api';
  *   <e-button slot="footer" variant="primary">Delete</e-button>
  * </e-dialog>
  */
-export class EDialog extends HTMLElement {
+export class EDialog extends EpaperElement {
   static readonly observedAttributes = ['open', 'heading', 'size', 'no-close', 'aria-label'];
 
   private _wired = false;

@@ -1,4 +1,12 @@
-import { boolAttr, captureWrap, define, patchAttr, patchBoolAttr, patchText } from '../../core/dom';
+import {
+  boolAttr,
+  captureWrap,
+  define,
+  EpaperElement,
+  patchAttr,
+  patchBoolAttr,
+  patchText,
+} from '../../core/dom';
 
 const PLACEMENTS = new Set(['top-right', 'top-left', 'bottom-right', 'bottom-left']);
 
@@ -19,7 +27,7 @@ const PLACEMENTS = new Set(['top-right', 'top-left', 'bottom-right', 'bottom-lef
  * @example
  * <e-ribbon text="AKTION" placement="top-left" inverted><e-card></e-card></e-ribbon>
  */
-export class ERibbon extends HTMLElement {
+export class ERibbon extends EpaperElement {
   static readonly observedAttributes = ['text', 'placement', 'inverted'];
 
   private _wrap: HTMLElement | null = null;

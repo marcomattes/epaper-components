@@ -1,4 +1,11 @@
-import { define, patchAttr, patchClassModifier, patchText, syncEyebrowTitle } from '../../core/dom';
+import {
+  define,
+  EpaperElement,
+  patchAttr,
+  patchClassModifier,
+  patchText,
+  syncEyebrowTitle,
+} from '../../core/dom';
 
 /** Values reserved by the hatch pattern since v1.0.1. */
 const isHatchCover = (v: string): boolean => v.startsWith('hatch');
@@ -58,7 +65,7 @@ const isImageCover = (v: string): boolean => {
  *   Ab Lager verfügbar.
  * </e-card-image>
  */
-export class ECardImage extends HTMLElement {
+export class ECardImage extends EpaperElement {
   static readonly observedAttributes = ['title', 'eyebrow', 'cover', 'cover-alt'];
 
   private _section: HTMLElement | null = null;
