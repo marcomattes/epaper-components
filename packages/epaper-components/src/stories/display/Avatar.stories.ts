@@ -6,9 +6,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nUser or entity portrait. Falls back from image (`src`) to derived initials based on `name`. Supports any pixel size and either a `square` or `circle` shape.',
+          'User or entity portrait. Falls back from image (`src`) to derived initials based on `name`. Supports any pixel size and either a `square` or `circle` shape.',
       },
     },
   },

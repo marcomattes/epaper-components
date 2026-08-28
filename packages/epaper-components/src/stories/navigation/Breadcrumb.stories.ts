@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nHierarchical trail showing the user’s location within nested pages. The last item represents the current page and is rendered as plain text.',
+          'Hierarchical trail showing the user’s location within nested pages. The last item represents the current page and is rendered as plain text.',
       },
     },
   },

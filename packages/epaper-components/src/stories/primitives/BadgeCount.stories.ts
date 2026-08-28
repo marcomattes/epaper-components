@@ -6,9 +6,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nCompact numeric indicator for unread or new-item counts. Renders as a small filled chip overflowing past `max` (default 99) or as a simple dot when `dot` is set. Typically overlaid on icons, avatars, or menu items.',
+          'Compact numeric indicator for unread or new-item counts. Renders as a small filled chip overflowing past `max` (default 99) or as a simple dot when `dot` is set. Typically overlaid on icons, avatars, or menu items.',
       },
     },
   },

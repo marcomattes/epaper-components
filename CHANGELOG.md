@@ -204,6 +204,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Fixed
 
+- Storybook's Introduction page rendered its markdown tables as a flat run
+  of pipe-separated text instead of actual `<table>`s — addon-docs' MDX
+  compiler doesn't enable GitHub-Flavored Markdown by default. `remark-gfm`
+  is now wired into `.storybook/main.ts`.
+- Every component's autodocs page opened with a `**Version:** vX.Y.Z` line
+  folded into the description paragraph — unstyled bold text with no
+  indication it referred to the library's release, easy to misread as a
+  per-component version. It's now a bordered tag reading "Since vX.Y.Z"
+  above the description, via `parameters.docs.subtitle`.
 - Composite form controls reported `aria-invalid` on their own anchor — a
   select trigger, a radiogroup, a drop zone — and no CSS rule targeted any of
   them. On a greyscale panel with no colour and no animation, a rejected

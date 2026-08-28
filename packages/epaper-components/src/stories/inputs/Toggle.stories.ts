@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nTwo-state switch for binary settings that take effect immediately. Use as an alternative to Checkbox in settings panels and toolbars.',
+          'Two-state switch for binary settings that take effect immediately. Use as an alternative to Checkbox in settings panels and toolbars.',
       },
     },
   },

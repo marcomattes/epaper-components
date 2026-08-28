@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nResizable two-pane layout with a draggable divider. Supports horizontal and vertical orientations plus min-size constraints so panes can’t be collapsed past a usable width.',
+          'Resizable two-pane layout with a draggable divider. Supports horizontal and vertical orientations plus min-size constraints so panes can’t be collapsed past a usable width.',
       },
     },
   },

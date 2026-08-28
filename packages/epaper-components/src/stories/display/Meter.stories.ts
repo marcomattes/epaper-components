@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.1.0',
       description: {
         component:
-          '**Version:** v1.1.0\n\nDiscrete bounded measurement with explicit low, in-range and high cues. It uses segments and hatch patterns instead of animation or color-only status.',
+          'Discrete bounded measurement with explicit low, in-range and high cues. It uses segments and hatch patterns instead of animation or color-only status.',
       },
     },
   },

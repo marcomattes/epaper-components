@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nInline gap utility that distributes equal spacing between children. Lighter than Flex when all you need is a consistent gutter between elements.',
+          'Inline gap utility that distributes equal spacing between children. Lighter than Flex when all you need is a consistent gutter between elements.',
       },
     },
   },

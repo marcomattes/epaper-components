@@ -15,9 +15,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nMonth-grid date display. Read-only by default; supply `events` (a JSON array of `{ date, title }`) to mark dated entries. Useful for editorial calendars, schedules and date overviews.',
+          'Month-grid date display. Read-only by default; supply `events` (a JSON array of `{ date, title }`) to mark dated entries. Useful for editorial calendars, schedules and date overviews.',
       },
     },
   },

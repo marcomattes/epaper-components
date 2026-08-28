@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nStatus page block (success / error / 404 / info / warning). Composes an icon, large title, optional description and a slotted action area.',
+          'Status page block (success / error / 404 / info / warning). Composes an icon, large title, optional description and a slotted action area.',
       },
     },
   },

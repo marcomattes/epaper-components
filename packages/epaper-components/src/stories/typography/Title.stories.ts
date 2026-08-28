@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nHeading element across the H1–H6 scale. The `level` attribute drives both the rendered tag (for semantics) and the `--ink-text-h*` token used for sizing.',
+          'Heading element across the H1–H6 scale. The `level` attribute drives both the rendered tag (for semantics) and the `--ink-text-h*` token used for sizing.',
       },
     },
   },

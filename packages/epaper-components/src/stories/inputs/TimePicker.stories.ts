@@ -7,9 +7,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nText field paired with an hour/minute popover for picking a time. Values are exchanged as 24-hour `HH:MM` strings.',
+          'Text field paired with an hour/minute popover for picking a time. Values are exchanged as 24-hour `HH:MM` strings.',
       },
     },
   },

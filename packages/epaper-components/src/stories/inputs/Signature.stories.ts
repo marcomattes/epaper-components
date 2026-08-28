@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.3.0',
       description: {
         component:
-          '**Version:** v1.3.0\n\nSignature pad on a canvas. The drawn signature is submitted as a PNG `File`, exactly as an `<input type="file">` would post one, and a restored file is put back on the canvas. `clear()` wipes it; `fallback-text` covers a browser without a 2D canvas.',
+          'Signature pad on a canvas. The drawn signature is submitted as a PNG `File`, exactly as an `<input type="file">` would post one, and a restored file is put back on the canvas. `clear()` wipes it; `fallback-text` covers a browser without a 2D canvas.',
       },
     },
   },

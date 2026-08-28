@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.3.0',
       description: {
         component:
-          '**Version:** v1.3.0\n\nOn-screen numeric keypad for kiosk browsers with no operating-system keyboard. It is a form control in its own right, and mirrors every key into the control named by `for`.',
+          'On-screen numeric keypad for kiosk browsers with no operating-system keyboard. It is a form control in its own right, and mirrors every key into the control named by `for`.',
       },
     },
   },

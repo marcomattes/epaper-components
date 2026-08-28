@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nSingle-select control rendered as a flat row of mutually-exclusive segments. Use it as a lightweight alternative to Tabs or RadioGroup when options are short labels.',
+          'Single-select control rendered as a flat row of mutually-exclusive segments. Use it as a lightweight alternative to Tabs or RadioGroup when options are short labels.',
       },
     },
   },

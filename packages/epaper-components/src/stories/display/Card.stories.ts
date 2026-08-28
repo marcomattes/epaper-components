@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nFramed container with optional eyebrow, title and slotted body content. Uses the standard 2 px ink border so cards line up with the rest of the system.',
+          'Framed container with optional eyebrow, title and slotted body content. Uses the standard 2 px ink border so cards line up with the rest of the system.',
       },
     },
   },

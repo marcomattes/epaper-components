@@ -36,9 +36,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nSelect that exposes a hierarchical tree of options collapsible by branch. Useful for taxonomies, org charts or geo selectors where parent/child context matters.',
+          'Select that exposes a hierarchical tree of options collapsible by branch. Useful for taxonomies, org charts or geo selectors where parent/child context matters.',
       },
     },
   },

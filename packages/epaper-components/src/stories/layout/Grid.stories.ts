@@ -16,9 +16,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nTwo-dimensional CSS-grid container. Compose with `<e-grid-item col="span N">` to lay out cells. Use the `cols` and `gap` attributes to drive the track count and spacing.',
+          'Two-dimensional CSS-grid container. Compose with `<e-grid-item col="span N">` to lay out cells. Use the `cols` and `gap` attributes to drive the track count and spacing.',
       },
     },
   },

@@ -7,9 +7,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nText field paired with a popover month calendar for picking a single date. Values are exchanged as ISO `YYYY-MM-DD` strings.',
+          'Text field paired with a popover month calendar for picking a single date. Values are exchanged as ISO `YYYY-MM-DD` strings.',
       },
     },
   },

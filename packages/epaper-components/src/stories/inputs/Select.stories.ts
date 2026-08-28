@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nDrop-down list for choosing one option from a closed set. Prefer over RadioGroup once the option count gets long enough that scanning becomes expensive (~6+ items).',
+          'Drop-down list for choosing one option from a closed set. Prefer over RadioGroup once the option count gets long enough that scanning becomes expensive (~6+ items).',
       },
     },
   },

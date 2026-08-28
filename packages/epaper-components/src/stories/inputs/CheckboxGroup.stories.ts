@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nCollection of related checkboxes managed as one form field. Lays out children either vertically (default) or horizontally, exposing the joined selection as a comma-separated string.',
+          'Collection of related checkboxes managed as one form field. Lays out children either vertically (default) or horizontally, exposing the joined selection as a comma-separated string.',
       },
     },
   },

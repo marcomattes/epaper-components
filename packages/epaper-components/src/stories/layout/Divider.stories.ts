@@ -6,9 +6,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nHorizontal or vertical rule used to separate sections. Supports `solid` and `dashed` strokes and an optional centered inline label.',
+          'Horizontal or vertical rule used to separate sections. Supports `solid` and `dashed` strokes and an optional centered inline label.',
       },
     },
   },

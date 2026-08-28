@@ -9,9 +9,10 @@ const meta: Meta = {
   parameters: {
     layout: 'fullscreen',
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nFixed-position circular action button anchored to a viewport corner. Surfaces a top-priority action (e.g. compose, add) without taking space in the document flow.',
+          'Fixed-position circular action button anchored to a viewport corner. Surfaces a top-priority action (e.g. compose, add) without taking space in the document flow.',
       },
     },
   },

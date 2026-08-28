@@ -7,9 +7,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nDiagonal corner banner attached to a parent container — typically a card. Used sparingly for promotions, status flags or “new” callouts.',
+          'Diagonal corner banner attached to a parent container — typically a card. Used sparingly for promotions, status flags or “new” callouts.',
       },
     },
   },

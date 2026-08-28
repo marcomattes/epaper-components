@@ -6,9 +6,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nFloating button that scrolls the window (or a target container) to the top. Hidden until the user has scrolled past `visibility-height`.',
+          'Floating button that scrolls the window (or a target container) to the top. Hidden until the user has scrolled past `visibility-height`.',
       },
     },
   },

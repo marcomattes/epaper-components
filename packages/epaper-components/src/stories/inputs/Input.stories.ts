@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nSingle-line text field with built-in label, placeholder, hint and error states. Setting `error` switches the border to the error treatment and wires `aria-invalid` automatically.',
+          'Single-line text field with built-in label, placeholder, hint and error states. Setting `error` switches the border to the error treatment and wires `aria-invalid` automatically.',
       },
     },
   },

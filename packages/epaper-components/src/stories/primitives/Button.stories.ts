@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nPrimary interactive control for triggering actions. Three visual variants — `primary` (filled ink), `secondary` (outlined), and `destructive` (hatched) — plus a disabled state. Always meets the 44 px hit-target token.',
+          'Primary interactive control for triggering actions. Three visual variants — `primary` (filled ink), `secondary` (outlined), and `destructive` (hatched) — plus a disabled state. Always meets the 44 px hit-target token.',
       },
     },
   },

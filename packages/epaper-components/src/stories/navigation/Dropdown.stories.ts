@@ -7,9 +7,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nLightweight menu that opens from a trigger button to expose secondary actions, filters, or sort options. Closes on outside click and Escape.',
+          'Lightweight menu that opens from a trigger button to expose secondary actions, filters, or sort options. Closes on outside click and Escape.',
       },
     },
   },

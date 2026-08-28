@@ -6,9 +6,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.0.1',
       description: {
         component:
-          '**Version:** v1.0.1\n\nWraps content in a CSS `position: sticky` container. Pure CSS — no scroll listeners, no e-paper waveform on scroll.',
+          'Wraps content in a CSS `position: sticky` container. Pure CSS — no scroll listeners, no e-paper waveform on scroll.',
       },
     },
   },

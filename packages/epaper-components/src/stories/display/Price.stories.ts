@@ -8,9 +8,10 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
+      subtitle: 'Since v1.3.0',
       description: {
         component:
-          '**Version:** v1.3.0\n\nRetail price with the major unit set large and the minor unit small. Formatting goes through `Intl`, so the currency symbol lands where the locale puts it. `original` adds a struck-through previous price, `unit-price`/`unit` add the base price, and `size` scales the whole block from a 1.5" shelf label to a 10" panel.',
+          'Retail price with the major unit set large and the minor unit small. Formatting goes through `Intl`, so the currency symbol lands where the locale puts it. `original` adds a struck-through previous price, `unit-price`/`unit` add the base price, and `size` scales the whole block from a 1.5" shelf label to a 10" panel.',
       },
     },
   },
