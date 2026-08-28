@@ -156,6 +156,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   barcode encoder's symbology tables. Nothing changes for a consumer
   importing a single sub-path: `<e-button>` is still 1.6 KB and `<e-input>`
   2.05 KB.
+- The barrel's size budget moved again, to 62 KB brotli. `<e-prose>`,
+  `<e-redline>` and `<e-toc>` land it at 60.79 KB, mostly `<e-redline>`'s
+  word-level LCS diff. Single sub-path imports are unaffected.
 - The website's cover page (`/`) now carries the site's subject in prose
   instead of only in a masthead. It was roughly sixty words — a headline, a
   lede and three statistics — which left the FAQ as the only page that spelled
