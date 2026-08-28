@@ -1,4 +1,4 @@
-import { define, esc, intAttr } from '../../core/dom';
+import { define, intAttr } from '../../core/dom';
 
 /* ============================================================================
  * Self-contained linear barcode encoder.
@@ -399,11 +399,7 @@ export class EBarcode extends HTMLElement {
     const quietZone = Math.max(0, Math.min(64, intAttr(this, 'quiet-zone', 10)));
 
     if (!raw) {
-      this._paint(
-        `<div class="ink-barcode__empty" role="img" aria-label="Empty barcode">${esc('—')}</div>`,
-        '',
-        null,
-      );
+      this._paintMessage('empty', '—', 'Empty barcode');
       return;
     }
 
@@ -411,36 +407,58 @@ export class EBarcode extends HTMLElement {
       const value = normalizeValue(raw, format);
       const bits = encodeBarcode(value, format);
       const svg = barsToSvg(bits, moduleWidth, height, quietZone);
-      this._paint(svg, this.hasAttribute('show-text') ? humanReadable(value, format) : '', {
-        format,
-        value,
-      });
+      this._paintSymbol(svg, format, value);
+      this._paintCaption(this.hasAttribute('show-text') ? humanReadable(value, format) : '');
     } catch (err) {
-      this._paint(
-        `<div class="ink-barcode__error" role="img" aria-label="Barcode error">${esc((err as Error).message)}</div>`,
-        '',
-        null,
-      );
+      this._paintMessage('error', (err as Error).message, 'Barcode error');
     }
   }
 
-  private _paint(
-    content: string,
-    text: string,
-    meta: { format: BarcodeFormat; value: string } | null,
-  ): void {
-    if (!this._wrap || !this._text) return;
-    if (content !== this._lastContent) {
-      // The only innerHTML write after the first render: the symbol is one
-      // <svg> element, so replacing it keeps the dirty area to the bars.
-      this._wrap.innerHTML = content;
-      this._lastContent = content;
-      const svg = this._wrap.firstElementChild;
-      if (svg && meta) {
-        svg.setAttribute('role', 'img');
-        svg.setAttribute('aria-label', `${meta.format.toUpperCase()} barcode ${meta.value}`);
-      }
+  /**
+   * Swap in a freshly encoded symbol. This is the only markup the component
+   * writes, and it carries no author input: `barsToSvg` interpolates bar
+   * offsets and widths — numbers it computed itself — and nothing else. The
+   * symbol is a single `<svg>`, so replacing it keeps the dirty area to the
+   * bars.
+   */
+  private _paintSymbol(markup: string, format: BarcodeFormat, value: string): void {
+    if (!this._wrap) return;
+    if (markup !== this._lastContent) {
+      this._wrap.innerHTML = markup;
+      this._lastContent = markup;
     }
+    const svg = this._wrap.firstElementChild;
+    if (svg) {
+      svg.setAttribute('role', 'img');
+      svg.setAttribute('aria-label', `${format.toUpperCase()} barcode ${value}`);
+    }
+  }
+
+  /**
+   * Placeholder and error states are built as a node with `textContent`, not
+   * as markup. Both quote the author's own `value` — the error message names
+   * the check digit it found — and escaping it would still leave an
+   * `innerHTML` sink one refactor away from being unescaped. There is no
+   * reason to have the sink at all for a single line of text.
+   */
+  private _paintMessage(variant: 'empty' | 'error', message: string, label: string): void {
+    if (!this._wrap) return;
+    // Prefixed so a message key can never collide with a symbol's markup.
+    const key = `${variant}:${message}`;
+    if (key !== this._lastContent) {
+      const node = document.createElement('div');
+      node.className = `ink-barcode__${variant}`;
+      node.setAttribute('role', 'img');
+      node.setAttribute('aria-label', label);
+      node.textContent = message;
+      this._wrap.replaceChildren(node);
+      this._lastContent = key;
+    }
+    this._paintCaption('');
+  }
+
+  private _paintCaption(text: string): void {
+    if (!this._text) return;
     if (this._text.textContent !== text) this._text.textContent = text;
     if (text) this._text.removeAttribute('hidden');
     else this._text.setAttribute('hidden', '');

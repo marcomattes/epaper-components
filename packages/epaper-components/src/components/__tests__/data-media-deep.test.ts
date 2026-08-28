@@ -2660,8 +2660,19 @@ describe('e-barcode', () => {
     expect(svg(el)!.getAttribute('width')).toBe('1072');
   });
 
-  it('escapes an error message built from the value', () => {
+  it('never turns a hostile value into markup, in either fallback state', () => {
     const el = mount(`<e-barcode value="<img src=x onerror=alert(1)>" format="ean8"></e-barcode>`);
+    const error = el.querySelector('.ink-barcode__error')!;
     expect(el.querySelector('img')).toBeNull();
+    // The message is a text node, not parsed markup: the component builds
+    // this state with textContent and never routes it through innerHTML.
+    expect(error.children).toHaveLength(0);
+    expect(error.textContent).toBe('EAN8 accepts digits only.');
+    expect(error.getAttribute('aria-label')).toBe('Barcode error');
+
+    el.setAttribute('value', '');
+    const empty = el.querySelector('.ink-barcode__empty')!;
+    expect(empty.children).toHaveLength(0);
+    expect(empty.textContent).toBe('—');
   });
 });
