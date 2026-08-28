@@ -1,7 +1,7 @@
 // Behavioural tests for the data/media group:
-// e-calendar, e-table, e-segmented, e-qrcode, e-avatar (+ group), e-image,
-// e-steps, e-pagination, e-sparkline, e-statistic, e-change-marker and
-// e-last-updated.
+// e-calendar, e-agenda, e-table, e-segmented, e-qrcode, e-barcode,
+// e-avatar (+ group), e-image, e-steps, e-pagination, e-sparkline,
+// e-statistic, e-change-marker and e-last-updated.
 //
 // Every observed attribute is set before mount *and* mutated afterwards
 // (add -> change -> remove), every interaction handler is driven, and every
@@ -10,9 +10,11 @@ import { describe, it, expect, beforeAll } from 'vitest';
 
 beforeAll(async () => {
   await import('../calendar/calendar');
+  await import('../agenda/agenda');
   await import('../table/table');
   await import('../segmented/segmented');
   await import('../qrcode/qrcode');
+  await import('../barcode/barcode');
   await import('../avatar/avatar');
   await import('../image/image');
   await import('../steps/steps');
@@ -2270,5 +2272,371 @@ describe('e-qrcode', () => {
     parent.appendChild(el);
     expect(el.querySelectorAll('.ink-qrcode')).toHaveLength(1);
     expect(el.querySelector('.ink-qrcode')).toBe(wrap);
+  });
+});
+
+/* ========================================================================= *
+ * e-agenda
+ * ========================================================================= */
+
+describe('e-agenda', () => {
+  const day = [
+    { date: '2026-08-28', start: '09:00', end: '10:30', title: 'Standup', status: 'confirmed' },
+    { date: '2026-08-28', start: '14:00', end: '15:00', title: 'Review', status: 'tentative' },
+    { date: '2026-08-28', title: 'Company offsite' },
+  ];
+  const mountAgenda = (attrs: string, events: unknown[] = day): HTMLElement =>
+    mount(`<e-agenda ${attrs} events='${JSON.stringify(events)}'></e-agenda>`);
+  const blocks = (el: HTMLElement): HTMLElement[] => [
+    ...el.querySelectorAll<HTMLElement>('.ink-agenda__block'),
+  ];
+  const gaps = (el: HTMLElement): HTMLElement[] => [
+    ...el.querySelectorAll<HTMLElement>('.ink-agenda__gap'),
+  ];
+  const text = (el: Element, selector: string): string =>
+    el.querySelector(selector)!.textContent ?? '';
+
+  it('places timed entries proportionally inside the visible window', () => {
+    const el = mountAgenda('date="2026-08-28" start-hour="8" end-hour="18"');
+    const [standup, review] = blocks(el);
+    // 09:00 is one of ten visible hours past 08:00; 90 minutes is 15% of them.
+    expect(standup.style.top).toBe('10%');
+    expect(standup.style.height).toBe('15%');
+    expect(review.style.top).toBe('60%');
+    expect(review.style.height).toBe('10%');
+    expect(text(standup, '.ink-agenda__block-time')).toBe('09:00–10:30');
+    expect(text(standup, '.ink-agenda__block-label')).toBe('Standup');
+    expect(standup.dataset['status']).toBe('confirmed');
+    expect(review.dataset['status']).toBe('tentative');
+    expect(standup.getAttribute('aria-label')).toBe('09:00–10:30 Standup confirmed');
+  });
+
+  it('labels the free stretches between entries', () => {
+    const el = mountAgenda('date="2026-08-28" start-hour="8" end-hour="18"');
+    expect(gaps(el).map((g) => text(g, '.ink-agenda__block-label'))).toEqual([
+      'Free until 09:00',
+      'Free until 14:00',
+      'Free until 18:00',
+    ]);
+    expect(gaps(el)[1].style.top).toBe('25%');
+    expect(gaps(el)[1].style.height).toBe('35%');
+  });
+
+  it('suppresses gaps shorter than min-gap, and all of them on demand', () => {
+    // The only free stretch is 10:30–14:00 (210 min); a 240-minute floor
+    // would hide that one too.
+    const el = mountAgenda('date="2026-08-28" start-hour="9" end-hour="15" min-gap="120"');
+    expect(gaps(el).map((g) => text(g, '.ink-agenda__block-label'))).toEqual(['Free until 14:00']);
+    el.setAttribute('hide-gaps', '');
+    expect(gaps(el)).toHaveLength(0);
+    expect(blocks(el)).toHaveLength(2);
+  });
+
+  it('lists an entry without a start time as all-day', () => {
+    const el = mountAgenda('date="2026-08-28"');
+    const allDay = el.querySelector('.ink-agenda__all-day')!;
+    expect(allDay.hasAttribute('hidden')).toBe(false);
+    expect(text(allDay, '.ink-agenda__all-day-item')).toBe('Company offsite');
+    expect(blocks(el)).toHaveLength(2);
+  });
+
+  it('hides the all-day row when nothing is all-day', () => {
+    const el = mountAgenda('date="2026-08-28"', [
+      { date: '2026-08-28', start: '09:00', end: '10:00', title: 'Only timed' },
+    ]);
+    expect(el.querySelector('.ink-agenda__all-day')!.hasAttribute('hidden')).toBe(true);
+  });
+
+  it('renders one track for a day and seven for a week', () => {
+    const el = mountAgenda('date="2026-08-28" view="day"');
+    expect(el.querySelectorAll('.ink-agenda__track')).toHaveLength(1);
+    expect(
+      [...el.querySelectorAll('.ink-agenda__col-head')].every((h) => h.hasAttribute('hidden')),
+    ).toBe(true);
+
+    el.setAttribute('view', 'week');
+    const tracks = [...el.querySelectorAll<HTMLElement>('.ink-agenda__track')];
+    expect(tracks).toHaveLength(7);
+    // 2026-08-28 is a Friday; the week starts on Monday by default.
+    expect(tracks.map((t) => t.dataset['date'])[0]).toBe('2026-08-24');
+    expect(tracks[6].dataset['date']).toBe('2026-08-30');
+    expect(el.querySelector('.ink-agenda__col-head')!.hasAttribute('hidden')).toBe(false);
+    // The eyebrow is a string-table entry; CSS, not the component, uppercases it.
+    expect(el.querySelector('.ink-agenda__eyebrow')!.textContent).toBe('Agenda · Week');
+
+    el.setAttribute('week-start', '0');
+    expect(el.querySelector<HTMLElement>('.ink-agenda__track')!.dataset['date']).toBe('2026-08-23');
+  });
+
+  it('draws the now marker only in the matching column', () => {
+    const el = mountAgenda('date="2026-08-28" view="week" now="2026-08-28T13:00:00"');
+    const markers = [...el.querySelectorAll<HTMLElement>('.ink-agenda__now')];
+    expect(markers).toHaveLength(1);
+    expect(markers[0].parentElement!.dataset['date']).toBe('2026-08-28');
+    expect(markers[0].style.top).toBe('50%');
+    expect(markers[0].querySelector('.ink-agenda__now-label')!.textContent).toBe('Now');
+  });
+
+  it('accepts a bare HH:MM now in the day view and drops it outside the window', () => {
+    const el = mountAgenda('date="2026-08-28" now="13:00"');
+    expect(el.querySelectorAll('.ink-agenda__now')).toHaveLength(1);
+    el.setAttribute('now', '03:00');
+    expect(el.querySelectorAll('.ink-agenda__now')).toHaveLength(0);
+    el.setAttribute('now', 'not-a-time');
+    expect(el.querySelectorAll('.ink-agenda__now')).toHaveLength(0);
+    el.removeAttribute('now');
+    expect(el.querySelectorAll('.ink-agenda__now')).toHaveLength(0);
+  });
+
+  it('owns no timer: the marker moves only when `now` is rewritten', async () => {
+    const el = mountAgenda('date="2026-08-28" now="10:00"');
+    const before = el.querySelector<HTMLElement>('.ink-agenda__now')!.style.top;
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    expect(el.querySelector<HTMLElement>('.ink-agenda__now')!.style.top).toBe(before);
+    el.setAttribute('now', '15:00');
+    expect(el.querySelector<HTMLElement>('.ink-agenda__now')!.style.top).not.toBe(before);
+  });
+
+  it('prints one axis tick per visible hour', () => {
+    const el = mountAgenda('date="2026-08-28" start-hour="8" end-hour="12"');
+    const ticks = [...el.querySelectorAll('.ink-agenda__tick')].map((t) => t.textContent);
+    expect(ticks).toEqual(['08:00', '09:00', '10:00', '11:00', '12:00']);
+    el.setAttribute('end-hour', '10');
+    expect(el.querySelectorAll('.ink-agenda__tick')).toHaveLength(3);
+  });
+
+  it('falls back to the whole day when the window is inverted', () => {
+    const el = mountAgenda('date="2026-08-28" start-hour="18" end-hour="8"');
+    expect(el.querySelectorAll('.ink-agenda__tick')).toHaveLength(25);
+  });
+
+  it('clips an entry that starts before or ends after the window', () => {
+    const el = mountAgenda('date="2026-08-28" start-hour="10" end-hour="12"', [
+      { date: '2026-08-28', start: '08:00', end: '11:00', title: 'Early' },
+      { date: '2026-08-28', start: '11:30', end: '16:00', title: 'Late' },
+      { date: '2026-08-28', start: '20:00', end: '21:00', title: 'Outside' },
+    ]);
+    const [early, late] = blocks(el);
+    expect(blocks(el)).toHaveLength(2);
+    expect(early.style.top).toBe('0%');
+    expect(early.style.height).toBe('50%');
+    expect(late.style.top).toBe('75%');
+    expect(late.style.height).toBe('25%');
+  });
+
+  it('treats a missing or inverted end time as a point in time', () => {
+    const el = mountAgenda('date="2026-08-28" start-hour="8" end-hour="18" hide-gaps', [
+      { date: '2026-08-28', start: '09:00', title: 'Point' },
+      { date: '2026-08-28', start: '10:00', end: '09:00', title: 'Inverted' },
+    ]);
+    expect(blocks(el).map((b) => text(b, '.ink-agenda__block-time'))).toEqual(['09:00', '10:00']);
+    expect(blocks(el)[0].style.height).toBe('0%');
+  });
+
+  it('reacts to new event data and to a new date', () => {
+    const el = mountAgenda('date="2026-08-28" start-hour="8" end-hour="18"');
+    expect(blocks(el)).toHaveLength(2);
+    el.setAttribute('date', '2026-08-29');
+    expect(blocks(el)).toHaveLength(0);
+    el.setAttribute(
+      'events',
+      JSON.stringify([{ date: '2026-08-29', start: '09:00', end: '10:00', title: 'Next day' }]),
+    );
+    expect(blocks(el).map((b) => text(b, '.ink-agenda__block-label'))).toEqual(['Next day']);
+  });
+
+  it.each([
+    ['invalid JSON', '{'],
+    ['a JSON scalar', '"nope"'],
+    ['entries without a title', '[{"date":"2026-08-28"}]'],
+    ['a non-string start', '[{"date":"2026-08-28","title":"X","start":9}]'],
+  ])('ignores %s', (_label, events) => {
+    const el = mount(`<e-agenda date="2026-08-28" events='${events}'></e-agenda>`);
+    expect(blocks(el)).toHaveLength(0);
+    expect(el.querySelector('.ink-agenda__all-day')!.hasAttribute('hidden')).toBe(true);
+  });
+
+  it('ignores an unfamiliar status instead of dropping the entry', () => {
+    const el = mountAgenda('date="2026-08-28"', [
+      { date: '2026-08-28', start: '09:00', end: '10:00', title: 'Odd', status: 'nonsense' },
+    ]);
+    expect(blocks(el)).toHaveLength(1);
+    expect(blocks(el)[0].dataset['status']).toBeUndefined();
+  });
+
+  it('escapes titles and labels coming from attributes', () => {
+    const el = mountAgenda('date="2026-08-28" free-label="<svg onload=alert(1)>"', [
+      { date: '2026-08-28', start: '09:00', end: '10:00', title: '<img src=x onerror=alert(1)>' },
+      { date: '2026-08-28', title: '<script>alert(1)</script>' },
+    ]);
+    expect(el.querySelector('img')).toBeNull();
+    expect(el.querySelector('script')).toBeNull();
+    expect(el.querySelector('svg[onload]')).toBeNull();
+    expect(text(el, '.ink-agenda__block .ink-agenda__block-label')).toBe(
+      '<img src=x onerror=alert(1)>',
+    );
+    expect(text(el, '.ink-agenda__gap .ink-agenda__block-label')).toBe(
+      '<svg onload=alert(1)> 09:00',
+    );
+  });
+
+  it('takes its labels from the string table, and lets an attribute win', () => {
+    const de = mountAgenda('date="2026-08-28" locale="de-DE" start-hour="8" end-hour="18"');
+    expect(text(de, '.ink-agenda__eyebrow')).toBe('Agenda · Tag');
+    expect(text(de, '.ink-agenda__all-day-label')).toBe('Ganztägig');
+    expect(text(de, '.ink-agenda__gap .ink-agenda__block-label')).toContain('Frei bis');
+
+    const override = mountAgenda(
+      'date="2026-08-28" locale="de-DE" free-label="Offen bis" all-day-label="Ganzer Tag"',
+    );
+    expect(text(override, '.ink-agenda__all-day-label')).toBe('Ganzer Tag');
+    expect(text(override, '.ink-agenda__gap .ink-agenda__block-label')).toContain('Offen bis');
+  });
+
+  it('honours the locale for its headings', () => {
+    const de = mountAgenda('date="2026-08-28" locale="de-DE"');
+    const en = mountAgenda('date="2026-08-28" locale="en-GB"');
+    expect(de.querySelector('.ink-agenda__title')!.textContent).toContain('Freitag');
+    expect(en.querySelector('.ink-agenda__title')!.textContent).toContain('Friday');
+  });
+
+  it('falls back to today when the date attribute is missing or malformed', () => {
+    const el = mount(`<e-agenda></e-agenda>`);
+    const today = new Date();
+    const expected = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    expect(el.querySelector<HTMLElement>('.ink-agenda__track')!.dataset['date']).toBe(expected);
+    el.setAttribute('date', 'nonsense');
+    expect(el.querySelector<HTMLElement>('.ink-agenda__track')!.dataset['date']).toBe(expected);
+  });
+});
+
+/* ========================================================================= *
+ * e-barcode
+ * ========================================================================= */
+
+describe('e-barcode', () => {
+  const svg = (el: HTMLElement): SVGSVGElement | null => el.querySelector('svg');
+  const bars = (el: HTMLElement): string => svg(el)!.querySelector('path')!.getAttribute('d')!;
+
+  it('renders an EAN-13 as a crisp 1-bit SVG', () => {
+    const el = mount(`<e-barcode value="4006381333931"></e-barcode>`);
+    const image = svg(el)!;
+    expect(image.getAttribute('shape-rendering')).toBe('crispEdges');
+    expect(image.getAttribute('role')).toBe('img');
+    expect(image.getAttribute('aria-label')).toBe('EAN13 barcode 4006381333931');
+    // 95 modules plus two 10-module quiet zones, at 2px each.
+    expect(image.getAttribute('width')).toBe('230');
+    expect(image.getAttribute('height')).toBe('80');
+    expect(image.querySelector('rect')!.getAttribute('fill')).toBe('#fff');
+    expect(image.querySelector('path')!.getAttribute('fill')).toBe('#000');
+  });
+
+  it('computes a missing check digit and rejects a wrong one', () => {
+    const twelve = mount(`<e-barcode value="03600029145"></e-barcode>`);
+    // 11 digits: auto-detected as UPC-A, whose twelfth digit is derived.
+    expect(svg(twelve)!.getAttribute('aria-label')).toBe('UPCA barcode 036000291452');
+    const ean = mount(`<e-barcode value="400638133393" format="ean13"></e-barcode>`);
+    expect(svg(ean)!.getAttribute('aria-label')).toBe('EAN13 barcode 4006381333931');
+    // Same symbol either way: the check digit is derived, not invented.
+    expect(bars(ean)).toBe(bars(mount(`<e-barcode value="4006381333931"></e-barcode>`)));
+
+    const wrong = mount(`<e-barcode value="4006381333930" format="ean13"></e-barcode>`);
+    expect(svg(wrong)).toBeNull();
+    expect(wrong.querySelector('.ink-barcode__error')!.textContent).toBe(
+      'Check digit is 0, expected 1.',
+    );
+  });
+
+  it('encodes EAN-8 and UPC-A at their own module counts', () => {
+    const ean8 = mount(`<e-barcode value="96385074" module-width="1" quiet-zone="0"></e-barcode>`);
+    expect(svg(ean8)!.getAttribute('width')).toBe('67');
+    const upc = mount(
+      `<e-barcode value="036000291452" module-width="1" quiet-zone="0"></e-barcode>`,
+    );
+    expect(svg(upc)!.getAttribute('width')).toBe('95');
+    expect(svg(upc)!.getAttribute('aria-label')).toContain('UPCA');
+  });
+
+  it('encodes text as Code 128 and numbers in its compact mode', () => {
+    const text = mount(`<e-barcode value="EPAPER-42" module-width="1" quiet-zone="0"></e-barcode>`);
+    expect(svg(text)!.getAttribute('aria-label')).toBe('CODE128 barcode EPAPER-42');
+    // Start + 9 data + check = 11 symbols of 11 modules, plus a 13-module stop.
+    expect(svg(text)!.getAttribute('width')).toBe('134');
+    // Code C packs two digits per symbol, so the even-length numeric payload
+    // is far shorter than the same digits in Code B would be.
+    const digits = mount(
+      `<e-barcode value="12345678" format="code128" module-width="1" quiet-zone="0"></e-barcode>`,
+    );
+    expect(svg(digits)!.getAttribute('width')).toBe('79');
+
+    // Digits alone do not make an EAN: a length no retail symbology uses
+    // falls back to Code 128 rather than to an error.
+    const five = mount(`<e-barcode value="12345"></e-barcode>`);
+    expect(svg(five)!.getAttribute('aria-label')).toBe('CODE128 barcode 12345');
+  });
+
+  it('reports the values it cannot encode', () => {
+    const short = mount(`<e-barcode value="123" format="ean13"></e-barcode>`);
+    expect(short.querySelector('.ink-barcode__error')!.textContent).toBe(
+      'EAN13 needs 12 or 13 digits.',
+    );
+    const letters = mount(`<e-barcode value="ABC" format="ean8"></e-barcode>`);
+    expect(letters.querySelector('.ink-barcode__error')!.textContent).toBe(
+      'EAN8 accepts digits only.',
+    );
+    const nonAscii = mount(`<e-barcode value="Grüße" format="code128"></e-barcode>`);
+    expect(nonAscii.querySelector('.ink-barcode__error')!.textContent).toContain(
+      'Code 128 cannot encode',
+    );
+  });
+
+  it('shows a placeholder for an empty value', () => {
+    const el = mount(`<e-barcode></e-barcode>`);
+    expect(el.querySelector('.ink-barcode__empty')!.textContent).toBe('—');
+    el.setAttribute('value', '96385074');
+    expect(svg(el)).not.toBeNull();
+    el.setAttribute('value', '');
+    expect(el.querySelector('.ink-barcode__empty')).not.toBeNull();
+  });
+
+  it('prints a grouped human-readable line only when asked', () => {
+    const el = mount(`<e-barcode value="4006381333931"></e-barcode>`);
+    const line = el.querySelector('.ink-barcode__text')!;
+    expect(line.hasAttribute('hidden')).toBe(true);
+    el.setAttribute('show-text', '');
+    expect(line.textContent).toBe('4 006381 333931');
+    el.setAttribute('value', '96385074');
+    expect(line.textContent).toBe('9638 5074');
+    el.setAttribute('value', '036000291452');
+    expect(line.textContent).toBe('0 36000 29145 2');
+    el.setAttribute('value', 'EPAPER-42');
+    expect(line.textContent).toBe('EPAPER-42');
+    el.removeAttribute('show-text');
+    expect(line.hasAttribute('hidden')).toBe(true);
+  });
+
+  it('clamps geometry attributes', () => {
+    const el = mount(
+      `<e-barcode value="96385074" height="0" module-width="99" quiet-zone="-4"></e-barcode>`,
+    );
+    expect(svg(el)!.getAttribute('height')).toBe('8');
+    // 67 modules at the 16px cap, with no quiet zone.
+    expect(svg(el)!.getAttribute('width')).toBe('1072');
+  });
+
+  it('never turns a hostile value into markup, in either fallback state', () => {
+    const el = mount(`<e-barcode value="<img src=x onerror=alert(1)>" format="ean8"></e-barcode>`);
+    const error = el.querySelector('.ink-barcode__error')!;
+    expect(el.querySelector('img')).toBeNull();
+    // The message is a text node, not parsed markup: the component builds
+    // this state with textContent and never routes it through innerHTML.
+    expect(error.children).toHaveLength(0);
+    expect(error.textContent).toBe('EAN8 accepts digits only.');
+    expect(error.getAttribute('aria-label')).toBe('Barcode error');
+
+    el.setAttribute('value', '');
+    const empty = el.querySelector('.ink-barcode__empty')!;
+    expect(empty.children).toHaveLength(0);
+    expect(empty.textContent).toBe('—');
   });
 });

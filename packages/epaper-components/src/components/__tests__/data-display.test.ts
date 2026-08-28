@@ -1,7 +1,7 @@
 // Component tests for the Data-Display group:
 // e-tag, e-chip, e-empty, e-skeleton, e-progress, e-result, e-list, e-table,
 // e-alert, e-collapse, e-tree, e-meter, e-sparkline, e-status-board,
-// e-change-marker, e-last-updated and e-diff.
+// e-change-marker, e-last-updated, e-diff, e-event-log and e-price.
 import { describe, it, expect, beforeAll } from 'vitest';
 
 beforeAll(async () => {
@@ -22,6 +22,8 @@ beforeAll(async () => {
   await import('../change-marker/change-marker');
   await import('../last-updated/last-updated');
   await import('../diff/diff');
+  await import('../event-log/event-log');
+  await import('../price/price');
 });
 
 /** `<details>` dispatches `toggle` as a queued task, never synchronously. */
@@ -1111,5 +1113,282 @@ describe('e-diff', () => {
     const el = mount(`<e-diff></e-diff>`);
     el.setAttribute('after', '<img src=x onerror=alert(1)>');
     expect(el.querySelector('img')).toBeNull();
+  });
+});
+
+/* ========================================================================= *
+ * e-event-log
+ * ========================================================================= */
+
+describe('e-event-log', () => {
+  const entries = [
+    { id: 'a', ts: '2026-08-28T09:00:00Z', message: 'Line started', source: 'LINE-2' },
+    { id: 'b', ts: '2026-08-28T09:05:00Z', severity: 'warning', message: 'Torque high' },
+    { id: 'c', ts: '2026-08-28T09:10:00Z', severity: 'critical', message: 'Guard open' },
+  ];
+  const rows = (el: HTMLElement): HTMLElement[] => [
+    ...el.querySelectorAll<HTMLElement>('.ink-event-log__row'),
+  ];
+  const ids = (el: HTMLElement): string[] => rows(el).map((r) => r.dataset['id']!);
+  const mountLog = (data: unknown[], attrs = ''): HTMLElement =>
+    mount(`<e-event-log ${attrs} data='${JSON.stringify(data)}'></e-event-log>`);
+
+  it('renders newest first and fills every cell of a row', () => {
+    const el = mountLog(entries);
+    expect(ids(el)).toEqual(['c', 'b', 'a']);
+    const newest = rows(el)[0];
+    expect(newest.dataset['severity']).toBe('critical');
+    expect(newest.querySelector('.ink-event-log__message')!.textContent).toBe('Guard open');
+    expect(newest.querySelector('.ink-event-log__cue')!.textContent).toBe('‼');
+    expect(rows(el)[2].querySelector('.ink-event-log__source')!.textContent).toBe('LINE-2');
+    expect(rows(el)[0].getAttribute('aria-label')).toContain('Critical');
+  });
+
+  it('defaults an unknown or missing severity to info', () => {
+    const el = mountLog([
+      { id: 'a', ts: '2026-08-28T09:00:00Z', message: 'Plain' },
+      { id: 'b', ts: '2026-08-28T09:01:00Z', severity: 'nonsense', message: 'Odd' },
+    ]);
+    expect(rows(el).every((r) => r.dataset['severity'] === 'info')).toBe(true);
+  });
+
+  it('keeps rows with an unreadable timestamp in input order', () => {
+    // A PLC that sends a malformed `ts` must not reshuffle the log around it:
+    // the comparison is neutral, so the pair keeps the order it arrived in.
+    const el = mountLog([
+      { id: 'a', ts: 'not-a-timestamp', message: 'First' },
+      { id: 'b', ts: 'also-broken', message: 'Second' },
+    ]);
+    expect(ids(el)).toEqual(['a', 'b']);
+    expect(rows(el)[0].querySelector('.ink-event-log__time')!.textContent).toBe('not-a-timestamp');
+  });
+
+  it('reverses the order on demand and trims to max-items', () => {
+    const el = mountLog(entries, 'order="oldest" max-items="2"');
+    expect(ids(el)).toEqual(['a', 'b']);
+    el.setAttribute('order', 'newest');
+    expect(ids(el)).toEqual(['c', 'b']);
+    el.setAttribute('max-items', '3');
+    expect(ids(el)).toEqual(['c', 'b', 'a']);
+  });
+
+  it('keeps the existing row nodes when a new event arrives', () => {
+    const el = mountLog(entries) as HTMLElement & {
+      appendEntries(e: unknown): void;
+      entries: Array<{ id: string }>;
+    };
+    const before = rows(el);
+    el.appendEntries({ id: 'd', ts: '2026-08-28T09:20:00Z', message: 'Resolved' });
+    const after = rows(el);
+    expect(ids(el)).toEqual(['d', 'c', 'b', 'a']);
+    // The three original <li> nodes are the very same objects: only the new
+    // row was inserted, the rest was not re-rendered.
+    expect(after.slice(1)).toEqual(before);
+    expect(el.entries.map((e) => e.id)).toEqual(['d', 'c', 'b', 'a']);
+  });
+
+  it('replaces a row in place when an id arrives again', () => {
+    const el = mountLog(entries) as HTMLElement & { appendEntries(e: unknown): void };
+    const target = rows(el).find((r) => r.dataset['id'] === 'b')!;
+    el.appendEntries([
+      { id: 'b', ts: '2026-08-28T09:05:00Z', severity: 'error', message: 'Fixed' },
+    ]);
+    expect(rows(el).find((r) => r.dataset['id'] === 'b')).toBe(target);
+    expect(target.dataset['severity']).toBe('error');
+    expect(target.querySelector('.ink-event-log__message')!.textContent).toBe('Fixed');
+  });
+
+  it('ignores malformed appends and malformed data attributes', () => {
+    const el = mountLog(entries) as HTMLElement & { appendEntries(e: unknown): void };
+    el.appendEntries([{ id: 5 } as unknown as { id: string; ts: string; message: string }]);
+    expect(ids(el)).toEqual(['c', 'b', 'a']);
+    el.setAttribute('data', '{not json');
+    expect(rows(el)).toHaveLength(0);
+    el.setAttribute('data', '[{"id":"x"}]');
+    expect(rows(el)).toHaveLength(0);
+  });
+
+  it('acknowledges one row without touching the others', () => {
+    const el = mountLog(entries) as HTMLElement & { acknowledge(id: string): boolean };
+    const row = rows(el).find((r) => r.dataset['id'] === 'b')!;
+    expect(el.acknowledge('b')).toBe(true);
+    expect(row.dataset['acknowledged']).toBe('true');
+    expect(row.querySelector('.ink-event-log__ack')!.textContent).toBe('ACK');
+    // Already acknowledged, and an unknown id.
+    expect(el.acknowledge('b')).toBe(true);
+    expect(el.acknowledge('nope')).toBe(false);
+    expect(rows(el)[0].dataset['acknowledged']).toBeUndefined();
+  });
+
+  it('shows the empty state and clears back to it', () => {
+    const el = mountLog(entries, 'empty-text="Quiet"') as HTMLElement & { clear(): void };
+    const empty = el.querySelector('.ink-event-log__empty')!;
+    expect(empty.hasAttribute('hidden')).toBe(true);
+    el.clear();
+    expect(rows(el)).toHaveLength(0);
+    expect(empty.textContent).toBe('Quiet');
+    expect(empty.hasAttribute('hidden')).toBe(false);
+    expect(el.querySelector('.ink-event-log__list')!.hasAttribute('hidden')).toBe(true);
+  });
+
+  it('hides the source column on demand and prints an unparsable timestamp verbatim', () => {
+    const el = mountLog(
+      [{ id: 'a', ts: 'whenever', message: 'Odd', source: 'LINE-2' }],
+      'hide-source',
+    );
+    expect(el.querySelector('.ink-event-log__source')!.textContent).toBe('');
+    expect(el.querySelector('.ink-event-log__time')!.textContent).toBe('whenever');
+    expect(el.querySelector('.ink-event-log__time')!.getAttribute('datetime')).toBe('whenever');
+  });
+
+  it('formats the timestamp per locale and time-format', () => {
+    const el = mountLog([{ id: 'a', ts: '2026-08-28T09:00:00Z', message: 'X' }], 'locale="en-US"');
+    const time = el.querySelector('.ink-event-log__time')!;
+    const timeOnly = time.textContent!;
+    el.setAttribute('time-format', 'datetime');
+    expect(time.textContent!.length).toBeGreaterThan(timeOnly.length);
+  });
+
+  it('escapes message, source and id', () => {
+    const el = mountLog([
+      {
+        id: '<img src=x onerror=alert(1)>',
+        ts: '2026-08-28T09:00:00Z',
+        message: '<script>alert(1)</script>',
+        source: '<svg onload=alert(1)>',
+      },
+    ]);
+    expect(el.querySelector('img')).toBeNull();
+    expect(el.querySelector('script')).toBeNull();
+    expect(el.querySelector('.ink-event-log__message')!.textContent).toBe(
+      '<script>alert(1)</script>',
+    );
+  });
+
+  it('assigns the value through the property before it is connected', () => {
+    const el = document.createElement('e-event-log') as HTMLElement & { clear(): void };
+    // Methods are safe to call before connection: they must not throw.
+    el.clear();
+    expect(el.querySelectorAll('.ink-event-log__row')).toHaveLength(0);
+  });
+});
+
+/* ========================================================================= *
+ * e-price
+ * ========================================================================= */
+
+describe('e-price', () => {
+  const parts = (el: HTMLElement): Record<string, string> => ({
+    currency: el.querySelector('.ink-price__currency')!.textContent!,
+    major: el.querySelector('.ink-price__major')!.textContent!,
+    minor: el.querySelector('.ink-price__minor')!.textContent!,
+    original: el.querySelector('.ink-price__original')!.textContent!,
+    unit: el.querySelector('.ink-price__unit')!.textContent!,
+    note: el.querySelector('.ink-price__note')!.textContent!,
+    a11y: el.querySelector('.sr-only')!.textContent!,
+  });
+
+  it('splits the amount and puts a German symbol last', () => {
+    const el = mount(`<e-price value="3.99" locale="de-DE"></e-price>`);
+    const p = parts(el);
+    expect(p.major).toBe('3');
+    expect(p.minor).toBe(',99');
+    expect(p.currency).toBe('€');
+    expect(el.querySelector('.ink-price__amount')!.lastElementChild!.className).toBe(
+      'ink-price__currency',
+    );
+    expect(p.a11y).toContain('3,99');
+    expect(el.querySelector('.ink-price__amount')!.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('moves the symbol in front for a leading-symbol locale', () => {
+    const el = mount(`<e-price value="3.99" currency="USD" locale="en-US"></e-price>`);
+    expect(el.querySelector('.ink-price__amount')!.firstElementChild!.className).toBe(
+      'ink-price__currency',
+    );
+    expect(parts(el).currency).toBe('$');
+    // Switching back to a trailing-symbol locale moves the same node again.
+    el.setAttribute('locale', 'de-DE');
+    el.setAttribute('currency', 'EUR');
+    expect(el.querySelector('.ink-price__amount')!.lastElementChild!.className).toBe(
+      'ink-price__currency',
+    );
+  });
+
+  it('renders the struck-through original, the base price and the note', () => {
+    const el = mount(
+      `<e-price value="3.99" original="4.99" unit-price="7.98" unit="kg" note="incl. VAT" locale="de-DE"></e-price>`,
+    );
+    const p = parts(el);
+    expect(el.querySelector('.ink-price__original')!.tagName).toBe('S');
+    expect(p.original).toContain('4,99');
+    // The element carries `locale="de-DE"`, so the prefix comes from the
+    // German string table rather than the English default.
+    expect(el.querySelector('.ink-price__original')!.getAttribute('aria-label')).toContain(
+      'Vorher',
+    );
+    expect(p.unit).toContain('7,98');
+    expect(p.unit.endsWith('/kg')).toBe(true);
+    expect(p.note).toBe('incl. VAT');
+  });
+
+  it('takes the struck-through prefix from the string table, and lets an attribute win', () => {
+    const en = mount(`<e-price value="1" original="2" locale="en-GB"></e-price>`);
+    expect(en.querySelector('.ink-price__original')!.getAttribute('aria-label')).toContain('Was');
+    const override = mount(
+      `<e-price value="1" original="2" locale="de-DE" original-label="Statt"></e-price>`,
+    );
+    expect(override.querySelector('.ink-price__original')!.getAttribute('aria-label')).toContain(
+      'Statt',
+    );
+  });
+
+  it('reads the locale from an ancestor lang when it has none of its own', () => {
+    const wrap = mount(`<div lang="de-DE"><e-price value="3.99"></e-price></div>`);
+    const price = wrap.querySelector('e-price')!;
+    expect(price.querySelector('.ink-price__minor')!.textContent).toBe(',99');
+    expect(price.querySelector('.ink-price__currency')!.textContent).toBe('€');
+  });
+
+  it('hides the optional parts when their attributes are removed', () => {
+    const el = mount(`<e-price value="1" original="2" unit-price="3" note="x"></e-price>`);
+    for (const name of ['original', 'unit-price', 'note']) el.removeAttribute(name);
+    expect(el.querySelector('.ink-price__original')!.hasAttribute('hidden')).toBe(true);
+    expect(el.querySelector('.ink-price__unit')!.hasAttribute('hidden')).toBe(true);
+    expect(el.querySelector('.ink-price__note')!.hasAttribute('hidden')).toBe(true);
+  });
+
+  it('clamps the size to the documented steps', () => {
+    const el = mount(`<e-price value="1" size="xl"></e-price>`);
+    const root = el.querySelector('.ink-price')!;
+    expect(root.getAttribute('data-size')).toBe('xl');
+    el.setAttribute('size', 'gigantic');
+    expect(root.getAttribute('data-size')).toBe('md');
+  });
+
+  it('shows a placeholder for a missing or unusable value', () => {
+    const el = mount(`<e-price></e-price>`);
+    expect(parts(el).major).toBe('—');
+    expect(parts(el).a11y).toBe('No price');
+    el.setAttribute('value', 'abc');
+    expect(parts(el).major).toBe('—');
+    el.setAttribute('value', '2.5');
+    expect(parts(el).major).toBe('2');
+  });
+
+  it('marks a negative amount and honours fraction-digits', () => {
+    const el = mount(`<e-price value="-2.5" locale="de-DE" fraction-digits="0"></e-price>`);
+    expect(el.querySelector('.ink-price')!.getAttribute('data-negative')).toBe('true');
+    expect(parts(el).minor).toBe('');
+    expect(el.querySelector('.ink-price__minor')!.hasAttribute('hidden')).toBe(true);
+  });
+
+  it('escapes a hostile note and unit', () => {
+    const el = mount(
+      `<e-price value="1" unit-price="2" unit="<img src=x onerror=alert(1)>" note="<script>alert(1)</script>"></e-price>`,
+    );
+    expect(el.querySelector('img')).toBeNull();
+    expect(el.querySelector('script')).toBeNull();
+    expect(parts(el).note).toBe('<script>alert(1)</script>');
   });
 });

@@ -18,6 +18,11 @@ beforeAll(async () => {
   await import('../upload/upload');
   await import('../input-number/input-number');
   await import('../form/form');
+  await import('../rating/rating');
+  await import('../slider/slider');
+  await import('../pin-input/pin-input');
+  await import('../signature/signature');
+  await import('../keypad/keypad');
 });
 
 const mount = (html: string): HTMLFormElement => {
@@ -1311,5 +1316,103 @@ describe('e-form validation reporting', () => {
     await settle();
     expect(invalid).toHaveLength(0);
     expect(submits).toHaveLength(1);
+  });
+});
+
+describe('form association · agenda, retail and kiosk controls', () => {
+  it('e-rating submits its rating and omits an unrated control', () => {
+    const form = mount(
+      `<form>
+        <e-rating name="r1" value="4"></e-rating>
+        <e-rating name="r2"></e-rating>
+       </form>`,
+    );
+    const fd = new FormData(form);
+    expect(fd.get('r1')).toBe('4');
+    expect(fd.get('r2')).toBe('');
+  });
+
+  it('e-slider submits its current value', () => {
+    const form = mount(`<form><e-slider name="s" min="0" max="10" value="7"></e-slider></form>`);
+    expect(new FormData(form).get('s')).toBe('7');
+  });
+
+  it('e-pin-input submits the assembled code', () => {
+    const form = mount(
+      `<form><e-pin-input name="pin" length="4" value="1234"></e-pin-input></form>`,
+    );
+    expect(new FormData(form).get('pin')).toBe('1234');
+  });
+
+  it('e-keypad submits its entry', () => {
+    const form = mount(`<form><e-keypad name="k" value="42"></e-keypad></form>`);
+    expect(new FormData(form).get('k')).toBe('42');
+  });
+
+  it('e-signature submits a PNG File once something is drawn', () => {
+    const form = mount(`<form><e-signature name="sig"></e-signature></form>`);
+    const control = form.firstElementChild as HTMLElement & { value: string };
+    expect(new FormData(form).get('sig')).toBeNull();
+    // A 1×1 transparent PNG stands in for a drawn stroke.
+    control.value =
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+    const file = new FormData(form).get('sig');
+    expect(file).toBeInstanceOf(File);
+    expect((file as File).name).toBe('sig.png');
+    expect((file as File).type).toBe('image/png');
+  });
+
+  it('the new controls round-trip through a form reset', () => {
+    const form = mount(
+      `<form>
+        <e-rating name="r" default-value="2" value="5"></e-rating>
+        <e-slider name="s" min="0" max="10" default-value="3" value="9"></e-slider>
+        <e-pin-input name="p" default-value="11" value="9999"></e-pin-input>
+        <e-keypad name="k" default-value="7" value="123"></e-keypad>
+       </form>`,
+    );
+    form.reset();
+    const fd = new FormData(form);
+    expect(fd.get('r')).toBe('2');
+    expect(fd.get('s')).toBe('3');
+    expect(fd.get('p')).toBe('11');
+    expect(fd.get('k')).toBe('7');
+  });
+
+  it('the new controls report a required violation while empty', () => {
+    const form = mount(
+      `<form>
+        <e-rating name="r" required required-message="Rate it"></e-rating>
+        <e-pin-input name="p" length="4" required></e-pin-input>
+        <e-keypad name="k" required></e-keypad>
+        <e-signature name="sig" required></e-signature>
+       </form>`,
+    );
+    expect(form.checkValidity()).toBe(false);
+    const rating = form.firstElementChild as HTMLElement & {
+      validationMessage: string;
+      value: number;
+      checkValidity(): boolean;
+    };
+    expect(rating.validationMessage).toBe('Rate it');
+    rating.value = 3;
+    expect(rating.checkValidity()).toBe(true);
+  });
+
+  it('a fieldset disables the new controls through formDisabledCallback', () => {
+    const form = mount(
+      `<form><fieldset disabled>
+        <e-rating name="r" value="2"></e-rating>
+        <e-slider name="s"></e-slider>
+        <e-pin-input name="p"></e-pin-input>
+        <e-keypad name="k"></e-keypad>
+        <e-signature name="sig"></e-signature>
+      </fieldset></form>`,
+    );
+    expect(form.querySelector<HTMLButtonElement>('.ink-rating__symbol')!.disabled).toBe(true);
+    expect(form.querySelector<HTMLInputElement>('.ink-slider__input')!.disabled).toBe(true);
+    expect(form.querySelector<HTMLInputElement>('.ink-pin__box')!.disabled).toBe(true);
+    expect(form.querySelector<HTMLButtonElement>('.ink-keypad__key')!.disabled).toBe(true);
+    expect(form.querySelector<HTMLButtonElement>('.ink-signature .ink-btn')!.disabled).toBe(true);
   });
 });

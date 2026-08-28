@@ -71,22 +71,29 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   hard-coded `#000`/`#fff`, so it follows both theme packs; `<e-watermark>`
   resolves its ink from the theme the same way.
 
-### Fixed
-
-- Composite form controls reported `aria-invalid` on their own anchor — a
-  select trigger, a radiogroup, a drop zone — and no CSS rule targeted any of
-  them. On a greyscale panel with no colour and no animation, a rejected
-  required field looked exactly like an untouched one. Both the invalid and
-  the disabled state now have a rule, carried by border weight and texture.
-- `<e-input-number>` painted `aria-invalid` directly instead of going through
-  `_markInvalid`, making it the one control that bypassed the deferred
-  validation gate and flagged an untouched required field on first paint.
-- `<e-card-image>`'s `cover` accepts an image URL. It previously rendered any
-  value as a hatch pattern or as literal text, so the component its name
-  promises could not show a picture.
-- `<e-qrcode>` applied a changed `label` even when the geometry was unchanged;
-  the update was previously swallowed by the cached-SVG guard.
-
+- The nine components above render every locale-dependent value through
+  `core/format.ts` and take every word they invent from `core/i18n.ts`, the
+  way the rest of the library now does: `<e-price>` splits its amount with
+  `formatMoneyParts`, `<e-agenda>` and `<e-event-log>` date and time through
+  `formatDate`, and the labels — "Free until", "All day", "Now", the event
+  severities, the acknowledgement chip, "Was" — are string-table entries with
+  the same per-instance attribute overrides as before. English defaults are
+  unchanged; German ships with them.
+- Hard rule 13, applied to the kiosk controls: `<e-rating>`, `<e-pin-input>`,
+  `<e-keypad>` and `<e-signature>` each mark an anchor of their own — a
+  radiogroup, a box row, a key grid, a canvas — so the shared composite
+  `aria-invalid` rule now names them too. Until this they reported a
+  violation that rendered nothing at all on a greyscale panel.
+- `core/format.ts` gained `formatMoneyParts` and `formatUnitPrice`.
+  `formatNumber(el, value, { currency })` already produced a formatted string;
+  a price display needs the pieces separately — the major unit large, the
+  minor unit small and raised, the symbol wherever the locale puts it — and
+  `Intl.formatToParts` is the documented way to get them.
+- The barrel's size budget moved to 60 KB brotli. The nine components above
+  add 9.6 KB to it (48.42 KB → 58.03 KB), most of it the self-contained
+  barcode encoder's symbology tables. Nothing changes for a consumer
+  importing a single sub-path: `<e-button>` is still 1.6 KB and `<e-input>`
+  2.05 KB.
 - The website's cover page (`/`) now carries the site's subject in prose
   instead of only in a masthead. It was roughly sixty words — a headline, a
   lede and three statistics — which left the FAQ as the only page that spelled
@@ -104,6 +111,73 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   alternate an answer engine reads is no longer thinner than the HTML page.
 
 ### Fixed
+
+- Composite form controls reported `aria-invalid` on their own anchor — a
+  select trigger, a radiogroup, a drop zone — and no CSS rule targeted any of
+  them. On a greyscale panel with no colour and no animation, a rejected
+  required field looked exactly like an untouched one. Both the invalid and
+  the disabled state now have a rule, carried by border weight and texture.
+- `<e-input-number>` painted `aria-invalid` directly instead of going through
+  `_markInvalid`, making it the one control that bypassed the deferred
+  validation gate and flagged an untouched required field on first paint.
+- `<e-card-image>`'s `cover` accepts an image URL. It previously rendered any
+  value as a hatch pattern or as literal text, so the component its name
+  promises could not show a picture.
+- `<e-qrcode>` applied a changed `label` even when the geometry was unchanged;
+  the update was previously swallowed by the cached-SVG guard.
+
+- `<e-agenda>`: day and week agenda on a real time axis. Entries are drawn as
+  blocks whose height is their actual duration, and the free time between two
+  of them is labelled ("Free until 14:00") instead of left blank, so a glance
+  at a panel answers "what is next and when am I free" without counting grid
+  lines. An entry without a `start` time is listed as an all-day entry above
+  the axis. Like `<e-last-updated>`, the component owns no timer: the "now"
+  marker is drawn only when the `now` attribute is set, and moves only when
+  the host rewrites it from an existing refresh cycle.
+- `CalendarEvent` gained optional `start`, `end` and `status` fields. The
+  addition is backwards compatible — `date` and `title` stay required, and
+  `<e-calendar>` ignores the new fields — so one dataset now feeds both the
+  month grid and the agenda.
+- `<e-calendar>` fires `e-month-change` (`{value: 'YYYY-MM', year, month}`)
+  when the displayed month moves, by the header steppers or by keyboard
+  navigation crossing a month boundary. Hosts that hold one month of data at a
+  time can load the next one and write it back to `events`.
+- `<e-event-log>`: data-driven, keyed event and alarm list. Rows are identified
+  by `id`, so a new event is inserted as a single node and an existing row is
+  patched in place rather than the whole list being re-rendered — the
+  difference between a partial refresh of one row and a full-page GC16 flash.
+  `max-items` bounds what is rendered without discarding what was handed in;
+  `appendEntries()`, `acknowledge(id)` and `clear()` drive it from script. It
+  replaces the `<e-timeline>` / `<e-list>` / `<e-table>` improvisations that
+  live logs used before.
+- `<e-price>`: retail price with the major unit set large and the minor unit
+  small and raised. Formatting goes through `Intl`, so the currency symbol
+  lands where the locale puts it; `original` renders a struck-through previous
+  price, `unit-price`/`unit` a base price, and `size` scales the block from a
+  1.5" shelf label to a 10" panel.
+- `<e-barcode>`: EAN-13, EAN-8, UPC-A and Code 128 rendered as inline SVG by a
+  self-contained encoder, built the same way as `<e-qrcode>` — zero runtime
+  dependencies, one white rect plus one dark path, `shape-rendering="crispEdges"`.
+  A missing check digit is computed, a wrong one is reported instead of printed.
+- `<e-rating>`: star or smiley rating, form-associated, with 48px touch targets
+  and full keyboard control (arrows, `Home`/`End`, digit keys). An unrated
+  control submits an empty value, so `required` behaves as it does natively.
+- `<e-slider>`: range slider with a 28×36 grip, a printed value readout and
+  optional tick marks. The first component to style `input[type='range']`, and
+  the readout is not decoration: a thumb position alone is unreadable on a
+  panel without sub-pixel rendering.
+- `<e-pin-input>`: fixed-length code entry as separate digit boxes with
+  auto-advance, `inputmode="numeric"`, a `masked` option and paste support.
+- `<e-signature>`: signature pad on a canvas. The result is submitted as a PNG
+  `File` and a restored file is drawn back onto the canvas; `clear()` wipes it
+  and `fallback-text` covers a browser without a 2D context.
+- `<e-keypad>`: on-screen numeric keypad for kiosk browsers with no operating
+  system keyboard. It is a form control in its own right and mirrors every key
+  into the control named by `for`.
+- `core/format.ts`: `formatMoney()` and `formatUnitPrice()`, which return the
+  formatted amount together with the parts a price display sets separately
+  (major, minor, decimal separator, symbol and which side it belongs on).
+- `core/date.ts`: `parseHM()` and `hm()` for `HH:MM` times.
 
 - `<e-calendar>`: on narrow containers the week grid lost its column
   alignment — a bare `1fr` column floors at the content's min-content

@@ -2,7 +2,7 @@
 // local-midnight `Date`; these tests pin the assumption so accidental UTC
 // rewrites do not regress the date pickers.
 import { describe, it, expect } from 'vitest';
-import { parseYMD, ymd, pad2 } from './date';
+import { parseYMD, ymd, pad2, parseHM, hm } from './date';
 
 describe('pad2', () => {
   it('pads single digits to two characters', () => {
@@ -58,5 +58,43 @@ describe('ymd round-trip', () => {
   it('round-trips a year boundary', () => {
     expect(ymd(parseYMD('2025-12-31')!)).toBe('2025-12-31');
     expect(ymd(parseYMD('2026-01-01')!)).toBe('2026-01-01');
+  });
+});
+
+describe('parseHM', () => {
+  it('returns minutes since midnight', () => {
+    expect(parseHM('00:00')).toBe(0);
+    expect(parseHM('9:05')).toBe(545);
+    expect(parseHM('14:30')).toBe(870);
+    expect(parseHM('23:59')).toBe(1439);
+  });
+
+  it('returns null for empty, malformed or out-of-range input', () => {
+    expect(parseHM('')).toBeNull();
+    expect(parseHM(null)).toBeNull();
+    expect(parseHM(undefined)).toBeNull();
+    expect(parseHM('9:5')).toBeNull();
+    expect(parseHM('14.30')).toBeNull();
+    expect(parseHM('24:00')).toBeNull();
+    expect(parseHM('12:60')).toBeNull();
+  });
+});
+
+describe('hm', () => {
+  it('formats minutes back to HH:MM', () => {
+    expect(hm(0)).toBe('00:00');
+    expect(hm(545)).toBe('09:05');
+    expect(hm(1439)).toBe('23:59');
+  });
+
+  it('clamps to the day and rounds fractional minutes', () => {
+    expect(hm(-30)).toBe('00:00');
+    expect(hm(24 * 60)).toBe('24:00');
+    expect(hm(25 * 60)).toBe('24:00');
+    expect(hm(90.6)).toBe('01:31');
+  });
+
+  it('round-trips through parseHM', () => {
+    expect(parseHM(hm(613))).toBe(613);
   });
 });

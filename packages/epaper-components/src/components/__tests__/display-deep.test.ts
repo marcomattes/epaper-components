@@ -2439,6 +2439,21 @@ describe('e-calendar · localization and month events', () => {
     expect(details).toHaveLength(1);
   });
 
+  it('does not announce a month when only the selection changes', () => {
+    const el = mount(`<e-calendar value="2026-04-15"></e-calendar>`);
+    const details = collect<{ year: number; month: number }>(el, 'e-month-change');
+    el.querySelector<HTMLButtonElement>('[data-day="20"]')!.click();
+    expect(details).toHaveLength(0);
+    expect(el.getAttribute('value')).toBe('2026-04-20');
+  });
+
+  it('bubbles e-month-change, so a host can listen on an ancestor', () => {
+    const el = mount(`<e-calendar value="2026-04-15"></e-calendar>`);
+    const details = collect<{ year: number; month: number }>(el.parentElement!, 'e-month-change');
+    el.querySelector<HTMLButtonElement>('[data-step="1"]')!.click();
+    expect(details).toEqual([{ year: 2026, month: 4 }]);
+  });
+
   it('does not localize the grid when no locale is declared', () => {
     const el = mount(`<e-calendar value="2026-04-15"></e-calendar>`);
     expect(dow(el)).toEqual(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);

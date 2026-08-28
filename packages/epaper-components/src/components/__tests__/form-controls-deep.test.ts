@@ -1,4 +1,4 @@
-// Behavioural tests for the six core form controls.
+// Behavioural tests for the core form controls and the kiosk input family.
 //
 // Each block does the same four things for its component: render from
 // attributes, mutate every observed attribute after mount, drive the
@@ -19,6 +19,12 @@ beforeAll(async () => {
   await import('../checkbox-group/checkbox-group');
   await import('../textarea/textarea');
   await import('../radio-group/radio-group');
+  await import('../rating/rating');
+  await import('../slider/slider');
+  await import('../pin-input/pin-input');
+  await import('../signature/signature');
+  await import('../keypad/keypad');
+  await import('../input/input');
 });
 
 const roots: HTMLElement[] = [];
@@ -1681,5 +1687,783 @@ describe('e-radio-group · value, events and form participation', () => {
     el.removeAttribute('required');
     expect(group.getAttribute('aria-required')).toBe('false');
     expect(el.checkValidity()).toBe(true);
+  });
+});
+
+/* ===================================================================== *
+ * e-rating
+ * ===================================================================== */
+
+describe('e-rating', () => {
+  const symbols = (el: HTMLElement): HTMLButtonElement[] => [
+    ...el.querySelectorAll<HTMLButtonElement>('.ink-rating__symbol'),
+  ];
+  const press = (el: HTMLElement, key: string): void => {
+    const focused = symbols(el).find((s) => s.tabIndex === 0) ?? symbols(el)[0];
+    focused.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+  };
+
+  it('renders one symbol per step with the selected ones filled', () => {
+    const el = mount(`<e-rating value="3" max="5" label="Taste"></e-rating>`);
+    expect(symbols(el)).toHaveLength(5);
+    expect(symbols(el).map((s) => s.dataset['on'])).toEqual([
+      'true',
+      'true',
+      'true',
+      undefined,
+      undefined,
+    ]);
+    expect(symbols(el)[2].getAttribute('aria-checked')).toBe('true');
+    expect(symbols(el)[2].tabIndex).toBe(0);
+    expect(symbols(el).filter((s) => s.tabIndex === 0)).toHaveLength(1);
+    expect(el.querySelector('.ink-rating__group')!.getAttribute('role')).toBe('radiogroup');
+    expect(el.querySelector('.ink-label')!.textContent).toBe('Taste');
+    expect(symbols(el)[0].querySelector('svg')).not.toBeNull();
+  });
+
+  it('picks a rating on click and announces it once', () => {
+    const el = mount<HTMLElement & { value: number }>(`<e-rating max="5"></e-rating>`);
+    const seen = record(el, 'e-change');
+    symbols(el)[3].click();
+    expect(el.value).toBe(4);
+    expect(el.getAttribute('value')).toBe('4');
+    expect(detailsOf(seen)).toEqual([{ value: 4 }]);
+    // Selecting the same rating again is not a change.
+    symbols(el)[3].click();
+    expect(seen).toHaveLength(1);
+  });
+
+  it('clears on re-select only with allow-clear', () => {
+    const el = mount<HTMLElement & { value: number }>(`<e-rating value="2"></e-rating>`);
+    symbols(el)[1].click();
+    expect(el.value).toBe(2);
+    el.setAttribute('allow-clear', '');
+    symbols(el)[1].click();
+    expect(el.value).toBe(0);
+    expect(symbols(el).every((s) => s.dataset['on'] === undefined)).toBe(true);
+  });
+
+  it('is fully keyboard operable', () => {
+    const el = mount<HTMLElement & { value: number }>(`<e-rating value="2" max="5"></e-rating>`);
+    press(el, 'ArrowRight');
+    expect(el.value).toBe(3);
+    press(el, 'ArrowLeft');
+    press(el, 'ArrowDown');
+    expect(el.value).toBe(1);
+    press(el, 'End');
+    expect(el.value).toBe(5);
+    press(el, 'Home');
+    expect(el.value).toBe(0);
+    press(el, '4');
+    expect(el.value).toBe(4);
+    // Out-of-range digits clamp, unrelated keys are ignored.
+    press(el, '9');
+    expect(el.value).toBe(5);
+    press(el, 'q');
+    expect(el.value).toBe(5);
+  });
+
+  it('does not move past its bounds', () => {
+    const el = mount<HTMLElement & { value: number }>(`<e-rating value="5" max="5"></e-rating>`);
+    press(el, 'ArrowUp');
+    expect(el.value).toBe(5);
+    el.setAttribute('value', '0');
+    press(el, 'ArrowLeft');
+    expect(el.value).toBe(0);
+  });
+
+  it('ignores input while readonly or disabled', () => {
+    const el = mount<HTMLElement & { value: number }>(`<e-rating value="2" readonly></e-rating>`);
+    symbols(el)[4].click();
+    press(el, 'ArrowRight');
+    expect(el.value).toBe(2);
+    expect(el.querySelector('.ink-rating__group')!.getAttribute('aria-readonly')).toBe('true');
+    el.removeAttribute('readonly');
+    el.setAttribute('disabled', '');
+    symbols(el)[4].click();
+    expect(el.value).toBe(2);
+    expect(symbols(el)[0].disabled).toBe(true);
+  });
+
+  it('ignores a click that lands beside a symbol', () => {
+    const el = mount<HTMLElement & { value: number }>(`<e-rating value="2" max="5"></e-rating>`);
+    const changes = record(el, 'e-change');
+    // The gap between two 44px targets is still inside the radiogroup, and a
+    // gloved tap lands there often enough to matter.
+    el.querySelector<HTMLElement>('.ink-rating__group')!.click();
+    expect(el.value).toBe(2);
+    expect(changes).toHaveLength(0);
+  });
+
+  it('rebuilds the row when max or glyph changes and re-clamps the value', () => {
+    const el = mount<HTMLElement & { value: number }>(`<e-rating value="5" max="5"></e-rating>`);
+    el.setAttribute('max', '3');
+    expect(symbols(el)).toHaveLength(3);
+    expect(el.value).toBe(3);
+    el.setAttribute('glyph', 'smiley');
+    expect(el.querySelector('.ink-rating__group')!.getAttribute('data-glyph')).toBe('smiley');
+    expect(symbols(el)[0].querySelectorAll('path')).toHaveLength(2);
+    el.setAttribute('max', '99');
+    expect(symbols(el)).toHaveLength(10);
+  });
+
+  it('clamps a value set through the property and exposes it', () => {
+    const el = mount<HTMLElement & { value: number }>(`<e-rating max="5"></e-rating>`);
+    el.value = 12;
+    expect(el.value).toBe(5);
+    el.value = -3;
+    expect(el.value).toBe(0);
+    el.value = Number.NaN;
+    expect(el.value).toBe(0);
+    el.value = 3.4;
+    expect(el.value).toBe(3);
+  });
+
+  it('serializes and parses through the base-class contract', () => {
+    const el = mount(`<e-rating max="5"></e-rating>`);
+    expect(inner(el).serialize(3 as unknown as string)).toBe('3');
+    expect(inner(el).serialize(0 as unknown as string)).toBe('');
+    expect(inner(el).parse('4')).toBe(4 as unknown as string);
+    expect(inner(el).parse('nonsense')).toBe(0 as unknown as string);
+  });
+
+  it('updates the label and hint after mount', () => {
+    const el = mount(`<e-rating></e-rating>`);
+    expect(el.querySelector('.ink-label')!.hasAttribute('hidden')).toBe(true);
+    el.setAttribute('label', 'Service');
+    el.setAttribute('hint', 'Five is best');
+    expect(el.querySelector('.ink-label')!.textContent).toBe('Service');
+    expect(el.querySelector('.ink-hint')!.textContent).toBe('Five is best');
+    expect(el.querySelector('.ink-rating__group')!.getAttribute('aria-label')).toBe('Service');
+  });
+});
+
+/* ===================================================================== *
+ * e-slider
+ * ===================================================================== */
+
+describe('e-slider', () => {
+  const range = (el: HTMLElement): HTMLInputElement =>
+    el.querySelector<HTMLInputElement>('.ink-slider__input')!;
+  const drag = (el: HTMLElement, to: string, type: 'input' | 'change'): void => {
+    range(el).value = to;
+    range(el).dispatchEvent(new Event(type, { bubbles: true }));
+  };
+
+  it('mirrors min, max, step and the value onto the native range', () => {
+    const el = mount<HTMLElement & { value: number }>(
+      `<e-slider min="10" max="30" step="5" value="20" label="Level" unit="°C"></e-slider>`,
+    );
+    expect(range(el).min).toBe('10');
+    expect(range(el).max).toBe('30');
+    expect(range(el).step).toBe('5');
+    expect(range(el).value).toBe('20');
+    expect(el.value).toBe(20);
+    expect(el.querySelector('.ink-slider__value')!.textContent).toBe('20 °C');
+    expect(el.querySelector('.ink-slider__scale-min')!.textContent).toBe('10 °C');
+    expect(el.querySelector('.ink-slider__scale-max')!.textContent).toBe('30 °C');
+    expect(el.querySelector('label.ink-label')!.textContent).toBe('Level');
+  });
+
+  it('fires e-input while dragging and e-change on commit', () => {
+    const el = mount<HTMLElement & { value: number }>(`<e-slider min="0" max="10"></e-slider>`);
+    const inputs = record(el, 'e-input');
+    const changes = record(el, 'e-change');
+    drag(el, '4', 'input');
+    drag(el, '7', 'change');
+    expect(detailsOf(inputs)).toEqual([{ value: 4 }]);
+    expect(detailsOf(changes)).toEqual([{ value: 7 }]);
+    expect(el.value).toBe(7);
+    expect(el.querySelector('.ink-slider__value')!.textContent).toBe('7');
+  });
+
+  it('clamps values set through the attribute and the property', () => {
+    const el = mount<HTMLElement & { value: number }>(
+      `<e-slider min="0" max="10" value="99"></e-slider>`,
+    );
+    expect(el.value).toBe(10);
+    el.setAttribute('value', '-5');
+    expect(el.value).toBe(0);
+    el.value = 6;
+    expect(range(el).value).toBe('6');
+    el.value = Number.NaN;
+    expect(el.value).toBe(0);
+  });
+
+  it('repairs an inverted range and a non-positive step', () => {
+    const el = mount<HTMLElement & { value: number }>(
+      `<e-slider min="10" max="2" step="0" value="10"></e-slider>`,
+    );
+    expect(range(el).max).toBe('11');
+    expect(range(el).step).toBe('1');
+  });
+
+  it('draws tick marks only when asked for a sensible number', () => {
+    const el = mount(`<e-slider min="0" max="10" ticks="5"></e-slider>`);
+    const ticks = el.querySelector<HTMLElement>('.ink-slider__ticks')!;
+    expect(ticks.children).toHaveLength(6);
+    expect((ticks.children[0] as HTMLElement).style.left).toBe('0%');
+    expect((ticks.children[5] as HTMLElement).style.left).toBe('100%');
+    el.setAttribute('ticks', '1');
+    expect(ticks.children).toHaveLength(0);
+    expect(ticks.hasAttribute('hidden')).toBe(true);
+    el.setAttribute('ticks', '999');
+    expect(ticks.children).toHaveLength(21);
+  });
+
+  it('hides the readout and the scale on demand', () => {
+    const el = mount(`<e-slider hide-value hide-scale></e-slider>`);
+    expect(el.querySelector('.ink-slider__value')!.hasAttribute('hidden')).toBe(true);
+    expect(el.querySelector('.ink-slider__scale')!.hasAttribute('hidden')).toBe(true);
+    el.removeAttribute('hide-value');
+    expect(el.querySelector('.ink-slider__value')!.hasAttribute('hidden')).toBe(false);
+  });
+
+  it('labels the native control when no visible label is given', () => {
+    const el = mount(`<e-slider aria-label="Contrast"></e-slider>`);
+    expect(range(el).getAttribute('aria-label')).toBe('Contrast');
+    el.setAttribute('label', 'Contrast');
+    expect(range(el).hasAttribute('aria-label')).toBe(false);
+    expect(el.querySelector('label.ink-label')!.textContent).toBe('Contrast');
+  });
+
+  it('follows disabled and serializes through the base-class contract', () => {
+    const el = mount(`<e-slider min="0" max="10" value="5" disabled></e-slider>`);
+    expect(range(el).disabled).toBe(true);
+    el.removeAttribute('disabled');
+    expect(range(el).disabled).toBe(false);
+    expect(inner(el).serialize(5 as unknown as string)).toBe('5');
+    expect(inner(el).parse('7')).toBe(7 as unknown as string);
+    expect(inner(el).parse('nonsense')).toBe(0 as unknown as string);
+    inner(el).resetValue();
+    expect((el as HTMLElement & { value: number }).value).toBe(0);
+  });
+
+  it('escapes a hostile id when building the control markup', () => {
+    const el = mount(`<e-slider id="a&quot;&gt;&lt;img src=x onerror=alert(1)&gt;"></e-slider>`);
+    expect(el.querySelector('img')).toBeNull();
+  });
+});
+
+/* ===================================================================== *
+ * e-pin-input
+ * ===================================================================== */
+
+describe('e-pin-input', () => {
+  const boxes = (el: HTMLElement): HTMLInputElement[] => [
+    ...el.querySelectorAll<HTMLInputElement>('.ink-pin__box'),
+  ];
+  const type = (box: HTMLInputElement, text: string): void => {
+    box.value = text;
+    box.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+  const keyOn = (box: HTMLInputElement, key: string): void => {
+    box.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+  };
+
+  it('renders one box per digit and fills them from the value', () => {
+    const el = mount<HTMLElement & { value: string }>(
+      `<e-pin-input length="4" value="1234" label="PIN"></e-pin-input>`,
+    );
+    expect(boxes(el).map((b) => b.value)).toEqual(['1', '2', '3', '4']);
+    expect(boxes(el)[0].inputMode).toBe('numeric');
+    expect(boxes(el)[0].maxLength).toBe(1);
+    expect(boxes(el)[0].getAttribute('aria-label')).toBe('Digit 1 of 4');
+    expect(boxes(el).every((b) => b.dataset['filled'] === 'true')).toBe(true);
+    expect(el.value).toBe('1234');
+  });
+
+  it('drops non-digits and truncates to the configured length', () => {
+    const el = mount<HTMLElement & { value: string }>(
+      `<e-pin-input length="4" value="12ab34567"></e-pin-input>`,
+    );
+    expect(el.value).toBe('1234');
+  });
+
+  it('advances while typing and fires e-input, then e-change when complete', () => {
+    const el = mount<HTMLElement & { value: string }>(`<e-pin-input length="3"></e-pin-input>`);
+    const inputs = record(el, 'e-input');
+    const changes = record(el, 'e-change');
+    type(boxes(el)[0], '1');
+    expect(document.activeElement).toBe(boxes(el)[1]);
+    type(boxes(el)[1], '2');
+    expect(changes).toHaveLength(0);
+    type(boxes(el)[2], '3');
+    expect(detailsOf(inputs)).toEqual([{ value: '1' }, { value: '12' }, { value: '123' }]);
+    expect(detailsOf(changes)).toEqual([{ value: '123' }]);
+    expect(el.value).toBe('123');
+  });
+
+  it('spills a multi-character entry into the following boxes', () => {
+    const el = mount<HTMLElement & { value: string }>(`<e-pin-input length="4"></e-pin-input>`);
+    type(boxes(el)[0], '12');
+    expect(el.value).toBe('12');
+    expect(boxes(el).map((b) => b.value)).toEqual(['1', '2', '', '']);
+  });
+
+  it('deletes with Backspace and steps back from an empty box', () => {
+    const el = mount<HTMLElement & { value: string }>(
+      `<e-pin-input length="4" value="12"></e-pin-input>`,
+    );
+    type(boxes(el)[1], '');
+    expect(el.value).toBe('1');
+    keyOn(boxes(el)[1], 'Backspace');
+    expect(el.value).toBe('');
+    expect(document.activeElement).toBe(boxes(el)[0]);
+    // Backspace in the first box has nowhere to go.
+    keyOn(boxes(el)[0], 'Backspace');
+    expect(el.value).toBe('');
+  });
+
+  it('moves between boxes with the arrow keys and ignores other keys', () => {
+    const el = mount(`<e-pin-input length="3" value="123"></e-pin-input>`);
+    boxes(el)[1].focus();
+    keyOn(boxes(el)[1], 'ArrowLeft');
+    expect(document.activeElement).toBe(boxes(el)[0]);
+    keyOn(boxes(el)[0], 'ArrowLeft');
+    expect(document.activeElement).toBe(boxes(el)[0]);
+    keyOn(boxes(el)[0], 'ArrowRight');
+    expect(document.activeElement).toBe(boxes(el)[1]);
+    keyOn(boxes(el)[1], 'Enter');
+    expect(document.activeElement).toBe(boxes(el)[1]);
+  });
+
+  it('fills every box from a pasted code and ignores a paste without digits', () => {
+    const el = mount<HTMLElement & { value: string }>(`<e-pin-input length="4"></e-pin-input>`);
+    const paste = (text: string): void => {
+      const data = new DataTransfer();
+      data.setData('text', text);
+      boxes(el)[0].dispatchEvent(
+        new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }),
+      );
+    };
+    paste('98-76');
+    expect(el.value).toBe('9876');
+    paste('nope');
+    expect(el.value).toBe('9876');
+  });
+
+  it('masks the digits without losing the value', () => {
+    const el = mount<HTMLElement & { value: string }>(
+      `<e-pin-input length="4" value="1234" masked></e-pin-input>`,
+    );
+    expect(boxes(el).map((b) => b.value)).toEqual(['•', '•', '•', '•']);
+    expect(el.value).toBe('1234');
+    el.removeAttribute('masked');
+    expect(boxes(el).map((b) => b.value)).toEqual(['1', '2', '3', '4']);
+  });
+
+  it('rebuilds and re-clamps when the length changes', () => {
+    const el = mount<HTMLElement & { value: string }>(
+      `<e-pin-input length="6" value="123456"></e-pin-input>`,
+    );
+    el.setAttribute('length', '4');
+    expect(boxes(el)).toHaveLength(4);
+    expect(el.value).toBe('1234');
+    el.setAttribute('length', '99');
+    expect(boxes(el)).toHaveLength(12);
+  });
+
+  it('selects the box content on focus and exposes focusNext', () => {
+    const el = mount<HTMLElement & { value: string; focusNext(): void }>(
+      `<e-pin-input length="4" value="12"></e-pin-input>`,
+    );
+    el.focusNext();
+    expect(document.activeElement).toBe(boxes(el)[2]);
+    boxes(el)[0].dispatchEvent(new FocusEvent('focus', { bubbles: false }));
+    expect(boxes(el)[0].selectionStart).toBe(0);
+    expect(boxes(el)[0].selectionEnd).toBe(1);
+    el.value = '1234';
+    el.focusNext();
+    expect(document.activeElement).toBe(boxes(el)[3]);
+  });
+
+  it('follows disabled and the base-class contract', () => {
+    const el = mount<HTMLElement & { value: string }>(
+      `<e-pin-input length="4" value="12" disabled></e-pin-input>`,
+    );
+    expect(boxes(el).every((b) => b.disabled)).toBe(true);
+    expect(inner(el).serialize('12')).toBe('12');
+    expect(inner(el).parse('9a87654')).toBe('9876');
+    inner(el).resetValue();
+    expect(el.value).toBe('');
+  });
+});
+
+/* ===================================================================== *
+ * e-signature
+ * ===================================================================== */
+
+describe('e-pin-input · attribute mutation after mount', () => {
+  it('follows label, hint and an externally set value', () => {
+    const el = mount<HTMLElement & { value: string }>(`<e-pin-input length="4"></e-pin-input>`);
+    el.setAttribute('label', 'PIN');
+    el.setAttribute('hint', 'Four digits');
+    expect(el.querySelector('.ink-label')!.textContent).toBe('PIN');
+    expect(el.querySelector('.ink-hint')!.textContent).toBe('Four digits');
+
+    // A host that re-renders its template writes the attribute rather than the
+    // property, so the boxes have to follow it.
+    el.setAttribute('value', '12ab7');
+    expect(el.value).toBe('127');
+    expect([...el.querySelectorAll<HTMLInputElement>('.ink-pin__box')].map((b) => b.value)).toEqual(
+      ['1', '2', '7', ''],
+    );
+  });
+});
+
+describe('e-signature', () => {
+  const PNG =
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+  const canvasOf = (el: HTMLElement): HTMLCanvasElement =>
+    el.querySelector<HTMLCanvasElement>('.ink-signature__canvas')!;
+  const stroke = (el: HTMLElement): void => {
+    const canvas = canvasOf(el);
+    const base = { bubbles: true, cancelable: true, pointerId: 1, clientX: 10, clientY: 10 };
+    canvas.dispatchEvent(new PointerEvent('pointerdown', base));
+    canvas.dispatchEvent(new PointerEvent('pointermove', { ...base, clientX: 40, clientY: 30 }));
+    canvas.dispatchEvent(new PointerEvent('pointerup', { ...base, clientX: 40, clientY: 30 }));
+  };
+
+  it('sizes the pad from its attributes and labels the canvas', () => {
+    const el = mount(`<e-signature width="320" height="120" label="Sign here"></e-signature>`);
+    const canvas = canvasOf(el);
+    expect(canvas.width).toBe(320);
+    expect(canvas.height).toBe(120);
+    expect(canvas.getAttribute('role')).toBe('img');
+    expect(canvas.getAttribute('aria-label')).toBe('Sign here');
+    expect(el.querySelector('.ink-signature__fallback')!.hasAttribute('hidden')).toBe(true);
+    expect(el.querySelector('.ink-btn')!.textContent).toBe('Clear');
+  });
+
+  it('clamps the geometry attributes', () => {
+    const el = mount(`<e-signature width="1" height="1" pen-width="99"></e-signature>`);
+    expect(canvasOf(el).width).toBe(64);
+    expect(canvasOf(el).height).toBe(48);
+  });
+
+  it('captures a stroke as a PNG data URL and announces it', () => {
+    const el = mount<HTMLElement & { value: string; empty: boolean }>(
+      `<e-signature></e-signature>`,
+    );
+    const changes = record(el, 'e-change');
+    expect(el.empty).toBe(true);
+    stroke(el);
+    expect(el.value.startsWith('data:image/png')).toBe(true);
+    expect(el.empty).toBe(false);
+    expect(changes).toHaveLength(1);
+  });
+
+  it('clears the pad, the value and the form entry', () => {
+    const el = mount<HTMLElement & { value: string; clear(): void; empty: boolean }>(
+      `<e-signature name="sig"></e-signature>`,
+    );
+    stroke(el);
+    const changes = record(el, 'e-change');
+    el.clear();
+    expect(el.value).toBe('');
+    expect(el.empty).toBe(true);
+    expect(changes).toHaveLength(1);
+    // Clearing an already empty pad is not a change.
+    el.clear();
+    expect(changes).toHaveLength(1);
+  });
+
+  it('erases the pad when the value property is set to an empty string', () => {
+    const el = mount<HTMLElement & { value: string; empty: boolean }>(
+      `<e-signature name="sig"></e-signature>`,
+    );
+    stroke(el);
+    expect(el.empty).toBe(false);
+    const changes = record(el, 'e-change');
+
+    // Assigning the property is a host-side write, not user input, so it
+    // wipes the surface without announcing a change.
+    el.value = '';
+    expect(el.value).toBe('');
+    expect(el.empty).toBe(true);
+    expect(changes).toHaveLength(0);
+  });
+
+  it('ignores pointer input while readonly or disabled', () => {
+    const el = mount<HTMLElement & { value: string }>(`<e-signature readonly></e-signature>`);
+    stroke(el);
+    expect(el.value).toBe('');
+    expect(el.getAttribute('data-readonly')).toBe('true');
+    el.removeAttribute('readonly');
+    el.setAttribute('disabled', '');
+    stroke(el);
+    expect(el.value).toBe('');
+    expect(el.querySelector<HTMLButtonElement>('.ink-btn')!.disabled).toBe(true);
+  });
+
+  it('paints an image assigned through the property, and drops it on resize', async () => {
+    const el = mount<HTMLElement & { value: string; empty: boolean }>(
+      `<e-signature></e-signature>`,
+    );
+    // A solid square, so "has the image landed on the canvas" is observable:
+    // the 1x1 transparent PNG used elsewhere is indistinguishable from a
+    // blank pad.
+    const source = document.createElement('canvas');
+    source.width = 8;
+    source.height = 8;
+    const sourceCtx = source.getContext('2d')!;
+    sourceCtx.fillStyle = '#000';
+    sourceCtx.fillRect(0, 0, 8, 8);
+    const solid = source.toDataURL('image/png');
+
+    el.value = solid;
+    expect(el.value).toBe(solid);
+    expect(el.empty).toBe(false);
+
+    // Decoding is asynchronous: poll until the pad actually carries ink,
+    // which is what proves the load handler ran rather than just being wired.
+    const ctx = canvasOf(el).getContext('2d')!;
+    const opaque = (): number => ctx.getImageData(2, 2, 1, 1).data[3];
+    for (let i = 0; i < 100 && opaque() === 0; i++) await settle();
+    expect(opaque()).toBeGreaterThan(0);
+
+    el.setAttribute('width', '300');
+    expect(el.value).toBe('');
+    expect(el.empty).toBe(true);
+  });
+
+  it('serializes to a File and restores one through parseFile', () => {
+    const el = mount<HTMLElement & { value: string }>(`<e-signature name="sig"></e-signature>`);
+    const control = inner(el);
+    expect(control.serialize('')).toBeNull();
+    const file = control.serialize(PNG) as File;
+    expect(file).toBeInstanceOf(File);
+    expect(file.name).toBe('sig.png');
+    expect(file.size).toBeGreaterThan(0);
+    // A value that is not a data URL cannot be turned into a PNG.
+    expect(control.serialize('https://example.test/x.png')).toBeNull();
+
+    // `parse` is the string half of the same contract: a restored data URL
+    // is its own in-memory value.
+    expect(control.parse(PNG)).toBe(PNG);
+    expect(control.parse('')).toBe('');
+
+    const restored = new File([new Uint8Array([1, 2, 3])], 'x.png', { type: 'image/png' });
+    (el as unknown as { formStateRestoreCallback(s: File): void }).formStateRestoreCallback(
+      restored,
+    );
+    expect(el.value.startsWith('blob:')).toBe(true);
+    expect(control.serialize(el.value)).toBe(restored);
+  });
+
+  it('updates its texts after mount', () => {
+    const el = mount(`<e-signature></e-signature>`);
+    el.setAttribute('clear-label', 'Erase');
+    el.setAttribute('hint', 'Use a finger');
+    el.setAttribute('label', 'Signature');
+    expect(el.querySelector('.ink-btn')!.textContent).toBe('Erase');
+    expect(el.querySelector('.ink-hint')!.textContent).toBe('Use a finger');
+    expect(canvasOf(el).getAttribute('aria-label')).toBe('Signature');
+    el.setAttribute('fallback-text', 'No canvas here');
+    expect(el.querySelector('.ink-signature__fallback')!.textContent).toBe('No canvas here');
+  });
+
+  it('clears through the clear button and a form reset', () => {
+    const el = mount<HTMLElement & { value: string }>(`<e-signature></e-signature>`);
+    stroke(el);
+    el.querySelector<HTMLButtonElement>('.ink-btn')!.click();
+    expect(el.value).toBe('');
+    stroke(el);
+    inner(el).resetValue();
+    expect(el.value).toBe('');
+  });
+});
+
+/* ===================================================================== *
+ * e-keypad
+ * ===================================================================== */
+
+describe('e-keypad', () => {
+  const keys = (el: HTMLElement): HTMLButtonElement[] => [
+    ...el.querySelectorAll<HTMLButtonElement>('.ink-keypad__key'),
+  ];
+  const tap = (el: HTMLElement, label: string): void => {
+    keys(el)
+      .find((k) => k.dataset['key'] === label)!
+      .click();
+  };
+
+  it('renders a 3-column numeric layout with clear and backspace', () => {
+    const el = mount(`<e-keypad></e-keypad>`);
+    expect(keys(el).map((k) => k.textContent)).toEqual([
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+      '9',
+      'C',
+      '0',
+      '⌫',
+    ]);
+    expect(el.querySelector('.ink-keypad__grid')!.getAttribute('role')).toBe('group');
+    expect(keys(el)[9].getAttribute('aria-label')).toBe('Clear');
+  });
+
+  it('adds a decimal key on demand, keeping clear reachable', () => {
+    const el = mount(`<e-keypad decimal decimal-separator=","></e-keypad>`);
+    const labels = keys(el).map((k) => k.textContent);
+    expect(labels).toHaveLength(13);
+    expect(labels[9]).toBe(',');
+    expect(labels.at(-1)).toBe('C');
+  });
+
+  it('types, backspaces and clears, announcing every change once', () => {
+    const el = mount<HTMLElement & { value: string }>(`<e-keypad></e-keypad>`);
+    const changes = record(el, 'e-change');
+    tap(el, '4');
+    tap(el, '2');
+    expect(el.value).toBe('42');
+    expect(el.getAttribute('value')).toBe('42');
+    tap(el, 'backspace');
+    expect(el.value).toBe('4');
+    tap(el, 'clear');
+    expect(el.value).toBe('');
+    expect(detailsOf(changes)).toEqual([
+      { value: '4' },
+      { value: '42' },
+      { value: '4' },
+      { value: '' },
+    ]);
+    // Clearing an empty keypad changes nothing.
+    tap(el, 'clear');
+    expect(changes).toHaveLength(4);
+  });
+
+  it('stops at max-length', () => {
+    const el = mount<HTMLElement & { value: string }>(`<e-keypad max-length="2"></e-keypad>`);
+    tap(el, '1');
+    tap(el, '2');
+    tap(el, '3');
+    expect(el.value).toBe('12');
+  });
+
+  it('types into the control named by `for`', () => {
+    const wrap = mount(
+      `<div><e-input id="qty" value=""></e-input><e-keypad for="qty"></e-keypad></div>`,
+    );
+    const keypad = wrap.querySelector<HTMLElement & { value: string; control: HTMLElement | null }>(
+      'e-keypad',
+    )!;
+    const target = wrap.querySelector<HTMLElement & { value: string }>('e-input')!;
+    expect(keypad.control).toBe(target);
+    tap(keypad, '7');
+    tap(keypad, '5');
+    expect(target.value).toBe('75');
+    expect(target.querySelector('input')!.value).toBe('75');
+    keypad.setAttribute('for', 'missing');
+    expect(keypad.control).toBeNull();
+    tap(keypad, '1');
+    expect(target.value).toBe('75');
+  });
+
+  it('shows its own readout only when asked', () => {
+    const el = mount(`<e-keypad show-display value="12"></e-keypad>`);
+    const display = el.querySelector('.ink-keypad__display')!;
+    expect(display.hasAttribute('hidden')).toBe(false);
+    expect(display.textContent).toBe('12');
+    el.removeAttribute('show-display');
+    expect(display.hasAttribute('hidden')).toBe(true);
+  });
+
+  it('follows disabled and the base-class contract', () => {
+    const el = mount<HTMLElement & { value: string; press(k: string): void }>(
+      `<e-keypad value="9" disabled></e-keypad>`,
+    );
+    expect(keys(el).every((k) => k.disabled)).toBe(true);
+    tap(el, '1');
+    expect(el.value).toBe('9');
+    // The API still works while the UI is disabled.
+    el.press('8');
+    expect(el.value).toBe('98');
+    el.removeAttribute('disabled');
+    expect(keys(el).some((k) => k.disabled)).toBe(false);
+    expect(inner(el).serialize('98')).toBe('98');
+    expect(inner(el).parse('123456')).toBe('123456');
+    inner(el).resetValue();
+    expect(el.value).toBe('');
+  });
+
+  it('updates the label and hint after mount', () => {
+    const el = mount(`<e-keypad></e-keypad>`);
+    el.setAttribute('label', 'Quantity');
+    el.setAttribute('hint', 'Digits only');
+    expect(el.querySelector('.ink-label')!.textContent).toBe('Quantity');
+    expect(el.querySelector('.ink-hint')!.textContent).toBe('Digits only');
+    expect(el.querySelector('.ink-keypad__grid')!.getAttribute('aria-label')).toBe('Quantity');
+  });
+
+  it('rebuilds the pad when the layout attributes change', () => {
+    const el = mount(`<e-keypad disabled></e-keypad>`);
+    expect(keys(el).map((k) => k.dataset['key'])).not.toContain('.');
+
+    el.setAttribute('decimal', '');
+    el.setAttribute('decimal-separator', ',');
+    el.setAttribute('clear-label', 'Leeren');
+    el.setAttribute('backspace-label', 'Zurück');
+    const rebuilt = keys(el);
+    expect(rebuilt.map((k) => k.dataset['key'])).toContain(',');
+    expect(rebuilt.find((k) => k.dataset['kind'] === 'clear')!.textContent).toBe('Leeren');
+    expect(rebuilt.find((k) => k.dataset['kind'] === 'backspace')!.textContent).toBe('Zurück');
+    // A rebuild must not hand a disabled pad back as enabled.
+    expect(rebuilt.every((k) => k.disabled)).toBe(true);
+  });
+
+  it('follows an externally set value attribute', () => {
+    const el = mount<HTMLElement & { value: string }>(`<e-keypad show-display></e-keypad>`);
+    // A host that re-renders its template writes the attribute, not the
+    // property; the readout has to follow it.
+    el.setAttribute('value', '4711');
+    expect(el.value).toBe('4711');
+    expect(el.querySelector('.ink-keypad__display')!.textContent).toBe('4711');
+  });
+
+  it('ignores a tap that lands between the keys', () => {
+    const el = mount<HTMLElement & { value: string }>(`<e-keypad value="9"></e-keypad>`);
+    const changes = record(el, 'e-change');
+    el.querySelector<HTMLElement>('.ink-keypad__grid')!.click();
+    expect(el.value).toBe('9');
+    expect(changes).toHaveLength(0);
+  });
+
+  it('leaves the `for` target alone when it already holds the value', () => {
+    const wrap = mount(
+      `<div><e-input id="qty2" value=""></e-input><e-keypad for="qty2"></e-keypad></div>`,
+    );
+    const keypad = wrap.querySelector<HTMLElement & { press(k: string): void }>('e-keypad')!;
+    const target = wrap.querySelector<HTMLElement & { value: string }>('e-input')!;
+    const seen: string[] = [];
+    target.addEventListener('input', () => seen.push(target.value));
+    target.value = '5';
+    keypad.press('5');
+    expect(target.value).toBe('5');
+    // Same value: no echo back into the control, so no repaint of its box.
+    expect(seen).toHaveLength(0);
+  });
+
+  it('accepts a value before it is connected', () => {
+    const el = document.createElement('e-keypad') as HTMLElement & {
+      value: string;
+      press(k: string): void;
+    };
+    el.setAttribute('show-display', '');
+    // `press` reflects into the `value` attribute, so the state survives the
+    // upgrade that `connectedCallback` performs when the element lands.
+    el.press('7');
+    el.press('3');
+    expect(el.value).toBe('73');
+
+    const host = mount(`<div></div>`);
+    host.appendChild(el);
+    expect(el.querySelector('.ink-keypad__display')!.textContent).toBe('73');
   });
 });

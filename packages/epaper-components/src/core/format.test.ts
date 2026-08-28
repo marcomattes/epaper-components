@@ -5,8 +5,11 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import {
   formatDate,
+  formatMoneyParts,
   formatNumber,
   formatRelativeTime,
+  formatUnitPrice,
+  MONEY_PLACEHOLDER,
   monthLabel,
   resolveLocale,
   weekdayLabels,
@@ -160,5 +163,102 @@ describe('monthLabel', () => {
 
   it('falls back to the month number on a malformed locale', () => {
     expect(monthLabel(el('<span locale="not a locale"></span>'), 0, 2026)).toBe('1');
+  });
+});
+
+describe('formatMoneyParts', () => {
+  it('splits a German amount into major, minor and a trailing symbol', () => {
+    const money = formatMoneyParts(el('<span locale="de-DE"></span>'), 1299.5);
+    expect(money.major).toBe('1.299');
+    expect(money.minor).toBe('50');
+    expect(money.decimal).toBe(',');
+    expect(money.currency).toBe('€');
+    expect(money.currencyFirst).toBe(false);
+    expect(money.negative).toBe(false);
+    expect(money.text).toContain('1.299,50');
+  });
+
+  it('reports a leading symbol for locales that write one', () => {
+    const money = formatMoneyParts(el('<span locale="en-US"></span>'), 3.99, { currency: 'USD' });
+    expect(money.major).toBe('3');
+    expect(money.minor).toBe('99');
+    expect(money.currency).toBe('$');
+    expect(money.currencyFirst).toBe(true);
+    expect(money.text).toBe('$3.99');
+  });
+
+  it('resolves the locale from the element context like the other wrappers', () => {
+    document.documentElement.lang = 'de-DE';
+    expect(formatMoneyParts(el(), 3.99).currency).toBe('€');
+  });
+
+  it('keeps the minus sign with the major part', () => {
+    const money = formatMoneyParts(el('<span locale="de-DE"></span>'), -4.2);
+    expect(money.negative).toBe(true);
+    expect(money.major.startsWith('-')).toBe(true);
+    expect(money.minor).toBe('20');
+  });
+
+  it('honours a currency without fraction digits', () => {
+    const money = formatMoneyParts(el('<span locale="en-US"></span>'), 2500, { currency: 'JPY' });
+    expect(money.minor).toBe('');
+    expect(money.decimal).toBe('');
+    expect(money.major).toBe('2,500');
+  });
+
+  it('applies an explicit precision', () => {
+    const de = el('<span locale="de-DE"></span>');
+    expect(formatMoneyParts(de, 3.456, { precision: 0 }).minor).toBe('');
+    expect(formatMoneyParts(de, 3.456, { precision: 3 }).minor).toBe('456');
+  });
+
+  it('falls back to a placeholder for a non-finite amount', () => {
+    for (const value of [Number.NaN, Number.POSITIVE_INFINITY]) {
+      const money = formatMoneyParts(el(), value);
+      expect(money.text).toBe(MONEY_PLACEHOLDER);
+      expect(money.major).toBe(MONEY_PLACEHOLDER);
+      expect(money.minor).toBe('');
+      expect(money.currency).toBe('');
+    }
+  });
+
+  it('still formats when the currency code is one Intl rejects', () => {
+    const money = formatMoneyParts(el('<span locale="de-DE"></span>'), -7.5, {
+      currency: 'not-a-currency',
+    });
+    expect(money.major).toBe('-7');
+    expect(money.minor).toBe('50');
+    expect(money.currency).toBe('not-a-currency');
+    expect(money.negative).toBe(true);
+    expect(money.text).toBe('-7.50 not-a-currency');
+  });
+
+  it('drops the separator in the fallback when no fraction digits are wanted', () => {
+    const money = formatMoneyParts(el(), 7, { currency: 'not-a-currency', precision: 0 });
+    expect(money.minor).toBe('');
+    expect(money.decimal).toBe('');
+    expect(money.text).toBe('7 not-a-currency');
+  });
+});
+
+describe('formatUnitPrice', () => {
+  // `de-DE` separates the amount from the symbol with U+00A0, not a space.
+  const NBSP = '\u00a0';
+
+  it('appends the unit with a slash', () => {
+    expect(formatUnitPrice(el('<span locale="de-DE"></span>'), 7.98, 'kg')).toBe(`7,98${NBSP}€/kg`);
+  });
+
+  it('trims the unit and omits the slash when there is none', () => {
+    const de = el('<span locale="de-DE"></span>');
+    expect(formatUnitPrice(de, 7.98, '  l ')).toBe(`7,98${NBSP}€/l`);
+    expect(formatUnitPrice(de, 7.98, '   ')).toBe(`7,98${NBSP}€`);
+    expect(formatUnitPrice(de, 7.98)).toBe(`7,98${NBSP}€`);
+  });
+
+  it('passes the precision through', () => {
+    expect(formatUnitPrice(el('<span locale="de-DE"></span>'), 7.98, 'kg', { precision: 0 })).toBe(
+      `8${NBSP}€/kg`,
+    );
   });
 });

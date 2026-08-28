@@ -55,6 +55,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./agenda": {
+      "types": "./dist/components/agenda.d.ts",
+      "import": "./dist/components/agenda.js"
+    },
     "./anchor": {
       "types": "./dist/components/anchor.d.ts",
       "import": "./dist/components/anchor.js"
@@ -82,6 +86,10 @@
     "./badge-count": {
       "types": "./dist/components/badge-count.d.ts",
       "import": "./dist/components/badge-count.js"
+    },
+    "./barcode": {
+      "types": "./dist/components/barcode.d.ts",
+      "import": "./dist/components/barcode.js"
     },
     "./breadcrumb": {
       "types": "./dist/components/breadcrumb.d.ts",
@@ -155,6 +163,10 @@
       "types": "./dist/components/empty.d.ts",
       "import": "./dist/components/empty.js"
     },
+    "./event-log": {
+      "types": "./dist/components/event-log.d.ts",
+      "import": "./dist/components/event-log.js"
+    },
     "./flex": {
       "types": "./dist/components/flex.d.ts",
       "import": "./dist/components/flex.js"
@@ -191,6 +203,10 @@
       "types": "./dist/components/kaleido.d.ts",
       "import": "./dist/components/kaleido.js"
     },
+    "./keypad": {
+      "types": "./dist/components/keypad.d.ts",
+      "import": "./dist/components/keypad.js"
+    },
     "./layout": {
       "types": "./dist/components/layout.d.ts",
       "import": "./dist/components/layout.js"
@@ -223,6 +239,10 @@
       "types": "./dist/components/pagination.d.ts",
       "import": "./dist/components/pagination.js"
     },
+    "./pin-input": {
+      "types": "./dist/components/pin-input.d.ts",
+      "import": "./dist/components/pin-input.js"
+    },
     "./popconfirm": {
       "types": "./dist/components/popover.d.ts",
       "import": "./dist/components/popover.js"
@@ -230,6 +250,10 @@
     "./popover": {
       "types": "./dist/components/popover.d.ts",
       "import": "./dist/components/popover.js"
+    },
+    "./price": {
+      "types": "./dist/components/price.d.ts",
+      "import": "./dist/components/price.js"
     },
     "./qrcode": {
       "types": "./dist/components/qrcode.d.ts",
@@ -242,6 +266,10 @@
     "./radio-group": {
       "types": "./dist/components/radio-group.d.ts",
       "import": "./dist/components/radio-group.js"
+    },
+    "./rating": {
+      "types": "./dist/components/rating.d.ts",
+      "import": "./dist/components/rating.js"
     },
     "./ribbon": {
       "types": "./dist/components/ribbon.d.ts",
@@ -259,9 +287,17 @@
       "types": "./dist/components/select.d.ts",
       "import": "./dist/components/select.js"
     },
+    "./signature": {
+      "types": "./dist/components/signature.d.ts",
+      "import": "./dist/components/signature.js"
+    },
     "./skeleton": {
       "types": "./dist/components/skeleton.d.ts",
       "import": "./dist/components/skeleton.js"
+    },
+    "./slider": {
+      "types": "./dist/components/slider.d.ts",
+      "import": "./dist/components/slider.js"
     },
     "./space": {
       "types": "./dist/components/space.d.ts",
@@ -429,7 +465,7 @@
     {
       "name": "barrel (all components)",
       "path": "dist/index.js",
-      "limit": "50 KB"
+      "limit": "60 KB"
     },
     {
       "name": "e-button (single component)",

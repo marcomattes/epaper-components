@@ -34,6 +34,40 @@ export interface LocaleStrings {
   pageOf: string;
   /** Generic required-field message shared by the composite form controls. */
   required: string;
+  /** `e-agenda` axis and entry labels. */
+  agendaDay: string;
+  agendaWeek: string;
+  allDay: string;
+  freeUntil: string;
+  now: string;
+  /** `e-event-log` severities, acknowledgement chip and empty state. */
+  severityInfo: string;
+  severityWarning: string;
+  severityError: string;
+  severityCritical: string;
+  acknowledged: string;
+  noEvents: string;
+  /** `e-price`: the struck-through previous price, and the empty amount. */
+  wasPrice: string;
+  noPrice: string;
+  /** `e-barcode` fallback states. */
+  barcodeEmpty: string;
+  barcodeError: string;
+  /** `e-rating`; `{value}` and `{max}` are substituted. */
+  rating: string;
+  ratingOf: string;
+  /** `e-slider`, `e-pin-input`; `{index}` and `{length}` are substituted. */
+  slider: string;
+  code: string;
+  digitOf: string;
+  /** `e-signature`. */
+  signaturePad: string;
+  signatureUnavailable: string;
+  /** `e-keypad`, and the clear control `e-signature` shares with it. */
+  keypad: string;
+  clear: string;
+  backspace: string;
+  decimalSeparator: string;
 }
 
 const EN: LocaleStrings = {
@@ -51,6 +85,32 @@ const EN: LocaleStrings = {
   next: 'Next',
   pageOf: 'Page {page} of {total}',
   required: 'Please fill out this field.',
+  agendaDay: 'Agenda · Day',
+  agendaWeek: 'Agenda · Week',
+  allDay: 'All day',
+  freeUntil: 'Free until',
+  now: 'Now',
+  severityInfo: 'Info',
+  severityWarning: 'Warning',
+  severityError: 'Error',
+  severityCritical: 'Critical',
+  acknowledged: 'ACK',
+  noEvents: 'No events',
+  wasPrice: 'Was',
+  noPrice: 'No price',
+  barcodeEmpty: 'Empty barcode',
+  barcodeError: 'Barcode error',
+  rating: 'Rating',
+  ratingOf: '{value} of {max}',
+  slider: 'Slider',
+  code: 'Code',
+  digitOf: 'Digit {index} of {length}',
+  signaturePad: 'Signature pad',
+  signatureUnavailable: 'Signature capture is unavailable on this device.',
+  keypad: 'Keypad',
+  clear: 'Clear',
+  backspace: 'Backspace',
+  decimalSeparator: 'Decimal separator',
 };
 
 const DE: LocaleStrings = {
@@ -68,6 +128,32 @@ const DE: LocaleStrings = {
   next: 'Weiter',
   pageOf: 'Seite {page} von {total}',
   required: 'Bitte füllen Sie dieses Feld aus.',
+  agendaDay: 'Agenda · Tag',
+  agendaWeek: 'Agenda · Woche',
+  allDay: 'Ganztägig',
+  freeUntil: 'Frei bis',
+  now: 'Jetzt',
+  severityInfo: 'Info',
+  severityWarning: 'Warnung',
+  severityError: 'Fehler',
+  severityCritical: 'Kritisch',
+  acknowledged: 'QUIT',
+  noEvents: 'Keine Ereignisse',
+  wasPrice: 'Vorher',
+  noPrice: 'Kein Preis',
+  barcodeEmpty: 'Leerer Barcode',
+  barcodeError: 'Barcode-Fehler',
+  rating: 'Bewertung',
+  ratingOf: '{value} von {max}',
+  slider: 'Schieberegler',
+  code: 'Code',
+  digitOf: 'Ziffer {index} von {length}',
+  signaturePad: 'Unterschriftenfeld',
+  signatureUnavailable: 'Unterschriften sind auf diesem Gerät nicht verfügbar.',
+  keypad: 'Tastenfeld',
+  clear: 'Löschen',
+  backspace: 'Rücktaste',
+  decimalSeparator: 'Dezimaltrennzeichen',
 };
 
 const REGISTRY = new Map<string, LocaleStrings>([
