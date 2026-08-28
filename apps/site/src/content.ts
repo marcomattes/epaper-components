@@ -24,7 +24,9 @@ import {
   COMPONENTS,
   CATEGORIES,
   DASH_READINGS,
+  EINK_CONSTRAINTS,
   FEATURES,
+  HOME_INTRO,
   IMPORT_SNIPPET,
   INSTALL_SNIPPETS,
   READER_PAGES,
@@ -45,7 +47,7 @@ import { isNotFound, PACKAGE_NAME, REPO_URL, ROUTES, withBase, type Route } from
 import { shotAlt, shotKey, shotUrl, type ShotIndex } from './shots';
 import { ARTICLES, articlePath, articlesOfKind, readingMinutes, type Article } from './articles';
 import { blocksHtml, inlineHtml, tableOfContents } from './blocks';
-import { FAQ } from './faq';
+import { FAQ, faqId, homeQuestions } from './faq';
 
 export interface ContentOptions {
   /** Deployed Storybook base URL — resolved by the build, not by data.ts. */
@@ -88,11 +90,11 @@ function coverMain(opts: ContentOptions): string {
               <span class="site-cover__tag">MIT</span>
               <span class="site-cover__tag">Vanilla CE</span>
             </div>
-            <h1 class="site-cover__headline">Web components<br />for ink &amp; paper.</h1>
+            <h1 class="site-cover__headline">Web components<br />for e-ink &amp; e-paper.</h1>
             <p class="site-cover__lede">
-              EPaper is a vanilla custom-element library tuned for e-paper displays. Surgical DOM
-              updates, no animations, no <code>:hover</code>, no Shadow DOM — just standards-based
-              components your design system can ship on a Kaleido panel today.
+              EPaper is a vanilla custom-element library tuned for e-ink and e-paper displays.
+              Surgical DOM updates, no animations, no <code>:hover</code>, no Shadow DOM — just
+              standards-based components your design system can ship on a Kaleido panel today.
             </p>
             <div class="site-cover__cta">
               <a class="ink-btn ink-btn--primary" href="${esc(withBase('/install/'))}">Get started</a>
@@ -124,6 +126,155 @@ function coverMain(opts: ContentOptions): string {
               <div class="site-cover__stat-value" data-site-stat="stars">${esc(opts.stars)}</div>
             </div>
           </div>
+        </div>
+${coverFoldHtml()}`;
+}
+
+/**
+ * The cover below the fold.
+ *
+ * The hero above is a masthead: three words, a lede and two buttons. That is
+ * the right first screen and the wrong whole document — a page carrying sixty
+ * words of prose has nothing for a search engine to match, which is how the
+ * FAQ came to outrank this page for the site's own subject. So the cover
+ * continues the way a broadsheet front page continues past the fold: the
+ * subject stated plainly, then the shortest honest route into every section
+ * that answers it in full.
+ *
+ * Deliberately not a copy of those sections. Each block here states its point
+ * in a couple of sentences and links onward; the depth stays on the page that
+ * owns it, so the cover and the section it points at are not two documents
+ * competing for the same query.
+ *
+ * Static markup rather than custom elements, for the reason at the top of this
+ * file: a crawler that does not run JavaScript has to see every word of it.
+ */
+function coverFoldHtml(): string {
+  const intro = HOME_INTRO.map(
+    (para) => `
+            <p class="site-lede">${inlineHtml(para)}</p>`,
+  ).join('');
+
+  const constraints = EINK_CONSTRAINTS.map(
+    (c) => `
+              <div class="site-home__def">
+                <dt class="site-home__term">${inlineHtml(c.term)}</dt>
+                <dd class="site-home__desc">${inlineHtml(c.def)}</dd>
+              </div>`,
+  ).join('');
+
+  // Counted rather than authored: the category tallies drift the moment a
+  // component is added, and a wrong number on the cover is worse than none.
+  const categories = CATEGORIES.filter((c) => c.value !== 'all')
+    .map((c) => {
+      const count = COMPONENTS.filter((entry) => entry.category === c.value).length;
+      return `
+            <a class="ink-link" href="${esc(withBase('/components/'))}">${esc(c.label)} (${esc(
+              String(count),
+            )})</a>`;
+    })
+    .join('');
+
+  const guides = articlesOfKind('guide')
+    .map(
+      (a) => `
+            <li class="site-home__item">
+              <a class="ink-link" href="${esc(withBase(articlePath(a)))}">${esc(a.heading)}</a>
+              <span class="site-home__item-desc">${esc(a.description)}</span>
+            </li>`,
+    )
+    .join('');
+
+  const recipes = articlesOfKind('recipe')
+    .map(
+      (a) => `
+            <a class="ink-link" href="${esc(withBase(articlePath(a)))}">${esc(a.heading)}</a>`,
+    )
+    .join('');
+
+  const questions = homeQuestions()
+    .map(
+      (item) => `
+            <div class="site-home__qa">
+              <h3 class="site-home__q">
+                <a class="ink-link" href="${esc(
+                  withBase('/faq/'),
+                )}#${esc(item.anchor)}">${esc(item.q)}</a>
+              </h3>
+              <p class="site-home__a">${inlineHtml(item.teaser)}</p>
+            </div>`,
+    )
+    .join('');
+
+  const answerCount = String(FAQ.reduce((n, group) => n + group.items.length, 0));
+
+  return `
+        <div class="site-home">
+          <section class="site-home__block" aria-labelledby="home-what">
+            <h2 class="ink-title ink-title--3" id="home-what">What EPaper is</h2>${intro}
+          </section>
+
+          <section class="site-home__block" aria-labelledby="home-eink">
+            <h2 class="ink-title ink-title--3" id="home-eink">
+              What makes a web component e-ink-ready
+            </h2>
+            <dl class="site-home__defs">${constraints}
+            </dl>
+            <p class="site-home__more">
+              <a class="ink-link" href="${esc(
+                withBase('/features/'),
+              )}">All six design principles →</a>
+            </p>
+          </section>
+
+          <section class="site-home__block" aria-labelledby="home-install">
+            <h2 class="ink-title ink-title--3" id="home-install">Install it</h2>
+            <pre class="site-code">${esc(INSTALL_SNIPPETS.npm)}</pre>
+            <pre class="site-code">${esc(IMPORT_SNIPPET)}</pre>
+            <p class="site-home__more">
+              <a class="ink-link" href="${esc(
+                withBase('/install/'),
+              )}">Quickstart, including pnpm and yarn →</a>
+            </p>
+          </section>
+
+          <section class="site-home__block" aria-labelledby="home-components">
+            <h2 class="ink-title ink-title--3" id="home-components">
+              ${esc(String(COMPONENTS.length))} components, one custom element each
+            </h2>
+            <p class="site-lede">
+              Buttons, inputs, pickers, tables, calendars and layout primitives — each a standalone
+              module, so a page that needs one component ships one component. The form controls are
+              form-associated: they submit through <code>FormData</code> and validate through
+              <code>ElementInternals</code> like native inputs do.
+            </p>
+            <nav class="site-linkrow" aria-label="Component categories">${categories}
+            </nav>
+          </section>
+
+          <section class="site-home__block" aria-labelledby="home-guides">
+            <h2 class="ink-title ink-title--3" id="home-guides">
+              How to build for e-ink
+            </h2>
+            <p class="site-lede">
+              Long-form explanations of the medium and the platform APIs underneath it. They are
+              useful whether or not you install EPaper.
+            </p>
+            <ul class="site-home__list">${guides}
+            </ul>
+            <p class="site-home__more">
+              Complete builds: <span class="site-home__inline">${recipes}</span>
+            </p>
+          </section>
+
+          <section class="site-home__block" aria-labelledby="home-faq">
+            <h2 class="ink-title ink-title--3" id="home-faq">Common questions</h2>${questions}
+            <p class="site-home__more">
+              <a class="ink-link" href="${esc(withBase('/faq/'))}">All ${esc(
+                answerCount,
+              )} answers →</a>
+            </p>
+          </section>
         </div>`;
 }
 
@@ -839,16 +990,6 @@ function faqMain(route: Route): string {
           )}/discussions" rel="noopener">discussions board</a> is the right place to ask.
         </p>
         ${groups}`;
-}
-
-/** Fragment id for a question, so an answer can be linked to directly. */
-function faqId(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9]{1,300}/g, '-')
-    .replace(/^-{1,300}/, '')
-    .replace(/-{1,300}$/, '')
-    .slice(0, 60);
 }
 
 /* --------------------------------------------------------------------- *
