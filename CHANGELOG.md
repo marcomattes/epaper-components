@@ -79,6 +79,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   severities, the acknowledgement chip, "Was" — are string-table entries with
   the same per-instance attribute overrides as before. English defaults are
   unchanged; German ships with them.
+- Hard rule 13, applied to the kiosk controls: `<e-rating>`, `<e-pin-input>`,
+  `<e-keypad>` and `<e-signature>` each mark an anchor of their own — a
+  radiogroup, a box row, a key grid, a canvas — so the shared composite
+  `aria-invalid` rule now names them too. Until this they reported a
+  violation that rendered nothing at all on a greyscale panel.
 - `core/format.ts` gained `formatMoneyParts` and `formatUnitPrice`.
   `formatNumber(el, value, { currency })` already produced a formatted string;
   a price display needs the pieces separately — the major unit large, the

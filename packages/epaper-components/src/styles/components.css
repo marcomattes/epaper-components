@@ -59,6 +59,10 @@ e-date-picker[aria-invalid='true'],
 e-time-picker[aria-invalid='true'],
 e-input-number[aria-invalid='true'],
 e-upload[aria-invalid='true'],
+e-rating[aria-invalid='true'],
+e-pin-input[aria-invalid='true'],
+e-keypad[aria-invalid='true'],
+e-signature[aria-invalid='true'],
 e-select [aria-invalid='true'],
 e-radio-group [aria-invalid='true'],
 e-checkbox-group [aria-invalid='true'],
@@ -67,7 +71,11 @@ e-tree-select [aria-invalid='true'],
 e-date-picker [aria-invalid='true'],
 e-time-picker [aria-invalid='true'],
 e-input-number [aria-invalid='true'],
-e-upload [aria-invalid='true'] {
+e-upload [aria-invalid='true'],
+e-rating [aria-invalid='true'],
+e-pin-input [aria-invalid='true'],
+e-keypad [aria-invalid='true'],
+e-signature [aria-invalid='true'] {
   box-shadow: inset 0 0 0 var(--ink-border-width-error) var(--ink-fg);
 }
 

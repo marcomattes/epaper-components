@@ -7,6 +7,10 @@ import '../../styles/themes/kaleido.css';
 
 beforeAll(async () => {
   await import('../alert/alert');
+  await import('../rating/rating');
+  await import('../pin-input/pin-input');
+  await import('../keypad/keypad');
+  await import('../signature/signature');
 });
 
 afterEach(() => {
@@ -49,5 +53,39 @@ describe('panel theme packs', () => {
     expect(getComputedStyle(alert.querySelector('.ink-alert__icon')!).backgroundImage).not.toBe(
       'none',
     );
+  });
+});
+
+/**
+ * Hard rule 13: a state the user must perceive needs a non-colour cue. These
+ * four controls mark an anchor of their own — a radiogroup, a box row, a key
+ * grid, a canvas — rather than an `.ink-control`, so the shared invalid rule
+ * has to name them or the state renders nothing at all on a greyscale panel.
+ */
+describe('composite invalid states render a cue', () => {
+  const mountRequired = (html: string): HTMLElement => {
+    const page = document.createElement('div');
+    page.dataset['themeTest'] = '';
+    page.className = 'ink-page';
+    page.innerHTML = html;
+    document.body.appendChild(page);
+    return page.firstElementChild as HTMLElement;
+  };
+
+  it.each([
+    ['e-rating', '<e-rating required></e-rating>', '.ink-rating__group'],
+    ['e-pin-input', '<e-pin-input required length="4"></e-pin-input>', '.ink-pin__boxes'],
+    ['e-keypad', '<e-keypad required></e-keypad>', '.ink-keypad__grid'],
+    ['e-signature', '<e-signature required></e-signature>', '.ink-signature__canvas'],
+  ])('%s paints the anchor it marks', (_name, html, selector) => {
+    const control = mountRequired(html) as HTMLElement & { reportValidity(): boolean };
+    const anchor = control.querySelector<HTMLElement>(selector)!;
+    // Pristine: the violation is held, so nothing is marked or painted yet.
+    expect(anchor.getAttribute('aria-invalid')).toBeNull();
+    expect(getComputedStyle(anchor).boxShadow).toBe('none');
+
+    control.reportValidity();
+    expect(anchor.getAttribute('aria-invalid')).toBe('true');
+    expect(getComputedStyle(anchor).boxShadow).not.toBe('none');
   });
 });

@@ -25,14 +25,14 @@ const optionalNumber = (el: Element, name: string): number | null => {
  *
  * @attr {number} value - Current price.
  * @attr {string} [currency='EUR'] - ISO 4217 currency code.
- * @attr {string} [locale] - Formatting locale. Defaults to the document language.
+ * @attr {string} [locale] - Formatting locale. Defaults to the nearest `lang`, then the document language.
  * @attr {number} [original] - Previous price, rendered struck through above the current one.
  * @attr {number} [unit-price] - Base price per `unit`, rendered as a footnote.
  * @attr {string} [unit] - Base-price unit, e.g. `kg` or `l`.
  * @attr {number} [fraction-digits] - Overrides the currency's own number of decimals.
  * @attr {'xs'|'sm'|'md'|'lg'|'xl'} [size='md'] - Type scale, from a 1.5" label (`xs`) to a 10" panel (`xl`).
  * @attr {string} [note] - Small print under the price, e.g. `incl. VAT`.
- * @attr {string} [original-label='Was'] - Screen-reader prefix of the struck-through price.
+ * @attr {string} [original-label] - Screen-reader prefix of the struck-through price. Defaults to the string table's `wasPrice`.
  *
  * @example
  * <e-price value="3.99" original="4.99" unit-price="7.98" unit="kg" size="lg"></e-price>
