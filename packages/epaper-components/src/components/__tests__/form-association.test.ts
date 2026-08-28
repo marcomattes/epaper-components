@@ -1,6 +1,6 @@
 // Smoke tests for the form-association migration. Each interactive form
 // component must round-trip through `new FormData(form)` when given a `name`.
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterEach } from 'vitest';
 
 beforeAll(async () => {
   await import('../input/input');
@@ -650,5 +650,520 @@ describe('form association', () => {
       validationMessage: string;
     };
     expect(control.validationMessage).toBe('Accept the terms');
+  });
+
+  it('a pristine required e-input-number is not marked aria-invalid', () => {
+    // Regression: `_syncValidity()` used to paint `aria-invalid` on the inner
+    // input directly when a `required-message` was set, bypassing the base
+    // class's deferred-validation gate — so an untouched field announced an
+    // error on first paint. Both the plain and the custom-message path must
+    // stay silent until the user has had a chance to fill the field in.
+    const form = mount(
+      `<form>
+        <e-input-number name="a" required></e-input-number>
+        <e-input-number name="b" required required-message="Enter a number"></e-input-number>
+       </form>`,
+    );
+    const [plain, custom] = [...form.querySelectorAll('e-input-number')] as HTMLElement[];
+    expect(plain!.querySelector('input')!.hasAttribute('aria-invalid')).toBe(false);
+    expect(custom!.querySelector('input')!.hasAttribute('aria-invalid')).toBe(false);
+    // The violation is still reported to the form — only its display is held.
+    expect(form.checkValidity()).toBe(false);
+    expect((custom as unknown as { validationMessage: string }).validationMessage).toBe(
+      'Enter a number',
+    );
+  });
+
+  it('e-input-number surfaces its custom required violation once touched', () => {
+    const form = mount(
+      '<form><e-input-number name="v" required required-message="Enter a number"></e-input-number></form>',
+    );
+    const control = form.firstElementChild as HTMLElement;
+    const input = control.querySelector('input')!;
+    expect(input.hasAttribute('aria-invalid')).toBe(false);
+    input.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
+    expect(input.getAttribute('aria-invalid')).toBe('true');
+    control.setAttribute('value', '4');
+    expect(input.hasAttribute('aria-invalid')).toBe(false);
+  });
+
+  it('e-upload forwards capture to the native file input', () => {
+    const form = mount(`<form><e-upload name="f" capture="environment"></e-upload></form>`);
+    const input = form.querySelector<HTMLInputElement>('input[type="file"]')!;
+    expect(input.getAttribute('capture')).toBe('environment');
+  });
+
+  it('e-upload omits capture when the attribute is absent', () => {
+    const form = mount(`<form><e-upload name="f"></e-upload></form>`);
+    const input = form.querySelector<HTMLInputElement>('input[type="file"]')!;
+    expect(input.hasAttribute('capture')).toBe(false);
+  });
+});
+
+/* ===================================================================== *
+ * disabled — one shared contract across every form control.
+ *
+ * Two paths reach a control: its own `disabled` attribute and a surrounding
+ * `<fieldset disabled>` (or `form.disabled`), which the browser reports
+ * through `formDisabledCallback`. Both must produce the same state, and
+ * dropping the attribute must hand interactivity back.
+ * ===================================================================== */
+
+const disabledRoots: HTMLElement[] = [];
+
+/** Mount markup and keep the wrapper for teardown — a stray `<fieldset disabled>`
+ *  left in `<body>` would be visible to every later document-wide query. */
+const mountFragment = (html: string): HTMLElement => {
+  const wrap = document.createElement('div');
+  wrap.innerHTML = html;
+  document.body.appendChild(wrap);
+  disabledRoots.push(wrap);
+  return wrap;
+};
+
+const settle = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
+
+/** Whether `el` can still be reached by Tab. */
+const inTabFlow = (el: HTMLElement): boolean =>
+  !(el as HTMLElement & { disabled?: boolean }).disabled && el.tabIndex >= 0;
+
+const q = <T extends HTMLElement>(host: HTMLElement, selector: string): T =>
+  host.querySelector<T>(selector)!;
+
+const all = (host: HTMLElement, selector: string): HTMLElement[] => [
+  ...host.querySelectorAll<HTMLElement>(selector),
+];
+
+const valueOf = (host: HTMLElement): string =>
+  String((host as unknown as { value: unknown }).value);
+
+const checkedOf = (host: HTMLElement): string =>
+  String((host as unknown as { checked: boolean }).checked);
+
+interface DisabledCase {
+  name: string;
+  /** The control's markup, without the surrounding `<form>`. */
+  html: string;
+  /** Inner elements that carry the control's tab stops. */
+  focusables: (host: HTMLElement) => HTMLElement[];
+  /** Element expected to carry `aria-disabled="true"`, where one applies. */
+  ariaAnchor?: (host: HTMLElement) => HTMLElement | null;
+  /** A user gesture — a click or a key press on the rendered control. */
+  act: (host: HTMLElement) => void;
+  /** The control's value, normalised to a string. */
+  read: (host: HTMLElement) => string;
+  /** What `read` returns after `act` runs on an *enabled* control. Omitted for
+   *  the two text controls: a disabled `<input>`/`<textarea>` cannot receive a
+   *  keystroke at all, so there is no synthetic gesture that would change their
+   *  value — the native `disabled` property is the whole guarantee there. */
+  enabledValue?: string;
+}
+
+const CASCADER_DATA =
+  '[{"value":"eu","label":"Europe","children":[{"value":"de","label":"DE"},{"value":"fr","label":"FR"}]}]';
+const TREE_DATA = '[{"value":"a","label":"A"},{"value":"b","label":"B"}]';
+
+const dropFile = (host: HTMLElement): void => {
+  const dt = new DataTransfer();
+  dt.items.add(new File(['x'], 'x.txt'));
+  q(host, '.ink-upload').dispatchEvent(
+    new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: dt }),
+  );
+};
+
+const disabledCases: DisabledCase[] = [
+  {
+    name: 'e-input',
+    html: '<e-input name="v" value="a"></e-input>',
+    focusables: (h) => [q(h, 'input')],
+    act: (h) => q(h, 'input').click(),
+    read: valueOf,
+  },
+  {
+    name: 'e-textarea',
+    html: '<e-textarea name="v" value="a"></e-textarea>',
+    focusables: (h) => [q(h, 'textarea')],
+    act: (h) => q(h, 'textarea').click(),
+    read: valueOf,
+  },
+  {
+    name: 'e-checkbox',
+    html: '<e-checkbox name="v"></e-checkbox>',
+    focusables: (h) => [q(h, 'input')],
+    act: (h) => q(h, 'input').click(),
+    read: checkedOf,
+    enabledValue: 'true',
+  },
+  {
+    name: 'e-toggle',
+    html: '<e-toggle name="v"></e-toggle>',
+    focusables: (h) => [q(h, 'input')],
+    act: (h) => q(h, 'input').click(),
+    read: checkedOf,
+    enabledValue: 'true',
+  },
+  {
+    name: 'e-select',
+    html: `<e-select name="v" value="a">
+             <e-option value="a" label="Apples"></e-option>
+             <e-option value="b" label="Bananas"></e-option>
+           </e-select>`,
+    focusables: (h) => [q(h, '.ink-select__trigger')],
+    ariaAnchor: (h) => q(h, '.ink-select__trigger'),
+    act: (h) => {
+      q(h, '.ink-select__trigger').click();
+      q(h, '.ink-select__option[data-value="b"]').click();
+    },
+    read: valueOf,
+    enabledValue: 'b',
+  },
+  {
+    name: 'e-radio-group',
+    html: `<e-radio-group name="v" value="a">
+             <e-radio value="a" label="A"></e-radio>
+             <e-radio value="b" label="B"></e-radio>
+           </e-radio-group>`,
+    focusables: (h) => all(h, 'input[type="radio"]'),
+    ariaAnchor: (h) => q(h, '[role="radiogroup"]'),
+    act: (h) => q(h, 'input[value="b"]').click(),
+    read: valueOf,
+    enabledValue: 'b',
+  },
+  {
+    name: 'e-checkbox-group',
+    html: `<e-checkbox-group name="v" value="a">
+             <e-cbox-option value="a" label="A"></e-cbox-option>
+             <e-cbox-option value="b" label="B"></e-cbox-option>
+           </e-checkbox-group>`,
+    focusables: (h) => all(h, 'input[type="checkbox"]'),
+    ariaAnchor: (h) => q(h, '[role="group"]'),
+    act: (h) => q(h, 'input[value="b"]').click(),
+    read: valueOf,
+    enabledValue: 'a,b',
+  },
+  {
+    name: 'e-input-number',
+    html: '<e-input-number name="v" value="3" step="1"></e-input-number>',
+    focusables: (h) => [q(h, 'input'), ...all(h, '.ink-number__btn')],
+    ariaAnchor: (h) => q(h, 'input'),
+    act: (h) => q(h, '[data-step="1"]').click(),
+    read: valueOf,
+    enabledValue: '4',
+  },
+  {
+    name: 'e-date-picker',
+    html: '<e-date-picker name="v" value="2026-04-26"></e-date-picker>',
+    focusables: (h) => [q(h, '.ink-datepicker__trigger')],
+    ariaAnchor: (h) => q(h, '.ink-datepicker__trigger'),
+    act: (h) => {
+      q(h, '.ink-datepicker__trigger').click();
+      q(h, '.ink-datepicker__cell[data-day="10"]').click();
+    },
+    read: valueOf,
+    enabledValue: '2026-04-10',
+  },
+  {
+    name: 'e-time-picker',
+    html: '<e-time-picker name="v" value="09:30"></e-time-picker>',
+    focusables: (h) => [...all(h, '.ink-timepicker__cell'), ...all(h, '.ink-timepicker__step')],
+    ariaAnchor: (h) => q(h, '[data-cell="h"]'),
+    act: (h) => q(h, '[data-axis="h"][data-dir="1"]').click(),
+    read: valueOf,
+    enabledValue: '10:30',
+  },
+  {
+    name: 'e-cascader',
+    html: `<e-cascader name="v" data='${CASCADER_DATA}' value="eu,de"></e-cascader>`,
+    focusables: (h) => [q(h, '.ink-select__trigger')],
+    ariaAnchor: (h) => q(h, '.ink-select__trigger'),
+    act: (h) => {
+      q(h, '.ink-select__trigger').click();
+      q(h, '.ink-cascader__item[data-value="fr"]').click();
+    },
+    read: valueOf,
+    enabledValue: 'eu,fr',
+  },
+  {
+    name: 'e-tree-select',
+    html: `<e-tree-select name="v" data='${TREE_DATA}' value="a"></e-tree-select>`,
+    focusables: (h) => all(h, '.ink-tree__row'),
+    ariaAnchor: (h) => q(h, '[role="tree"]'),
+    act: (h) => q(h, '.ink-tree__row[data-value="b"]').click(),
+    read: valueOf,
+    enabledValue: 'b',
+  },
+  {
+    name: 'e-upload',
+    html: '<e-upload name="v"></e-upload>',
+    focusables: (h) => [q(h, '.ink-upload'), q(h, 'input[type="file"]')],
+    ariaAnchor: (h) => q(h, '.ink-upload'),
+    act: dropFile,
+    read: (h) => String((h as unknown as { value: File[] }).value.length),
+    enabledValue: '1',
+  },
+];
+
+describe('disabled form controls', () => {
+  afterEach(() => {
+    for (const root of disabledRoots.splice(0)) root.remove();
+  });
+
+  for (const testCase of disabledCases) {
+    const host = (wrap: HTMLElement): HTMLElement =>
+      wrap.querySelector<HTMLElement>(testCase.name)!;
+
+    it(`${testCase.name} bars interaction while the disabled attribute is set`, () => {
+      const el = host(mountFragment(`<form>${testCase.html}</form>`));
+      el.setAttribute('disabled', '');
+
+      expect(testCase.focusables(el).some(inTabFlow)).toBe(false);
+      if (testCase.ariaAnchor) {
+        expect(testCase.ariaAnchor(el)!.getAttribute('aria-disabled')).toBe('true');
+      }
+
+      const before = testCase.read(el);
+      testCase.act(el);
+      expect(testCase.read(el)).toBe(before);
+    });
+
+    it(`${testCase.name} renders disabled when the attribute is present on mount`, () => {
+      // The attribute is in the authored markup, so the state has to survive
+      // the initial render rather than arriving later as a patch.
+      const el = host(
+        mountFragment(`<form>${testCase.html.replace(/^(<[\w-]+)/, '$1 disabled')}</form>`),
+      );
+      expect(el.hasAttribute('disabled')).toBe(true);
+      expect(testCase.focusables(el).some(inTabFlow)).toBe(false);
+    });
+
+    it(`${testCase.name} follows a surrounding <fieldset disabled>`, async () => {
+      const wrap = mountFragment(`<form><fieldset>${testCase.html}</fieldset></form>`);
+      const fieldset = q<HTMLFieldSetElement>(wrap, 'fieldset');
+      const el = host(wrap);
+      expect(testCase.focusables(el).some(inTabFlow)).toBe(true);
+
+      fieldset.disabled = true;
+      await settle();
+
+      expect(testCase.focusables(el).some(inTabFlow)).toBe(false);
+      if (testCase.ariaAnchor) {
+        expect(testCase.ariaAnchor(el)!.getAttribute('aria-disabled')).toBe('true');
+      }
+
+      const before = testCase.read(el);
+      testCase.act(el);
+      expect(testCase.read(el)).toBe(before);
+
+      fieldset.disabled = false;
+      await settle();
+      expect(testCase.focusables(el).some(inTabFlow)).toBe(true);
+    });
+
+    it(`${testCase.name} regains interactivity when disabled is removed`, () => {
+      const el = host(mountFragment(`<form>${testCase.html}</form>`));
+      el.setAttribute('disabled', '');
+      expect(testCase.focusables(el).some(inTabFlow)).toBe(false);
+
+      el.removeAttribute('disabled');
+      expect(testCase.focusables(el).some(inTabFlow)).toBe(true);
+      if (testCase.ariaAnchor) {
+        expect(testCase.ariaAnchor(el)!.hasAttribute('aria-disabled')).toBe(false);
+      }
+
+      if (testCase.enabledValue == null) return;
+      testCase.act(el);
+      expect(testCase.read(el)).toBe(testCase.enabledValue);
+    });
+  }
+
+  it('a control keeps its own disabled attribute when the fieldset re-enables', async () => {
+    const wrap = mountFragment(
+      `<form><fieldset><e-select name="v" disabled><e-option value="a" label="A"></e-option></e-select></fieldset></form>`,
+    );
+    const fieldset = q<HTMLFieldSetElement>(wrap, 'fieldset');
+    const trigger = q<HTMLButtonElement>(wrap, '.ink-select__trigger');
+    expect(trigger.disabled).toBe(true);
+
+    fieldset.disabled = true;
+    await settle();
+    expect(trigger.disabled).toBe(true);
+
+    fieldset.disabled = false;
+    await settle();
+    // The fieldset let go, but the control's own attribute still holds.
+    expect(trigger.disabled).toBe(true);
+  });
+
+  it('e-select cannot open its menu while disabled', () => {
+    const wrap = mountFragment(
+      `<form><e-select name="v" disabled>
+         <e-option value="a" label="Apples"></e-option>
+       </e-select></form>`,
+    );
+    const menu = q(wrap, '.ink-select__menu') as HTMLElement & { hidden: boolean };
+    q(wrap, '.ink-select__trigger').click();
+    expect(menu.hidden).toBe(true);
+    expect(q(wrap, '.ink-select__trigger').getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('e-date-picker closes an open calendar when it is disabled', () => {
+    const wrap = mountFragment(`<form><e-date-picker name="v"></e-date-picker></form>`);
+    const el = q(wrap, 'e-date-picker');
+    const pop = q(wrap, '.ink-datepicker__pop') as HTMLElement & { hidden: boolean };
+    q(wrap, '.ink-datepicker__trigger').click();
+    expect(pop.hidden).toBe(false);
+
+    el.setAttribute('disabled', '');
+    expect(pop.hidden).toBe(true);
+  });
+
+  it('e-cascader closes its open columns when it is disabled', () => {
+    const wrap = mountFragment(
+      `<form><e-cascader name="v" data='${CASCADER_DATA}'></e-cascader></form>`,
+    );
+    const el = q(wrap, 'e-cascader');
+    const menu = q(wrap, '.ink-cascader__menu') as HTMLElement & { hidden: boolean };
+    q(wrap, '.ink-select__trigger').click();
+    expect(menu.hidden).toBe(false);
+
+    el.setAttribute('disabled', '');
+    expect(menu.hidden).toBe(true);
+  });
+
+  it('e-select marks a single disabled option and refuses to select it', () => {
+    const wrap = mountFragment(
+      `<form><e-select name="v" value="a">
+         <e-option value="a" label="Apples"></e-option>
+         <e-option value="b" label="Bananas" disabled></e-option>
+         <e-option value="c" label="Cherries"></e-option>
+       </e-select></form>`,
+    );
+    const el = q(wrap, 'e-select');
+    const options = all(wrap, '.ink-select__option');
+    expect(options[1]!.getAttribute('aria-disabled')).toBe('true');
+    expect(options[0]!.hasAttribute('aria-disabled')).toBe(false);
+    expect(options[1]!.tabIndex).toBe(-1);
+
+    q(wrap, '.ink-select__trigger').click();
+    options[1]!.click();
+    expect(valueOf(el)).toBe('a');
+
+    options[2]!.click();
+    expect(valueOf(el)).toBe('c');
+  });
+
+  it('e-select type-ahead skips a disabled option', () => {
+    const wrap = mountFragment(
+      `<form><e-select name="v">
+         <e-option value="b1" label="Banana" disabled></e-option>
+         <e-option value="b2" label="Blueberry"></e-option>
+       </e-select></form>`,
+    );
+    const el = q(wrap, 'e-select');
+    q(wrap, '.ink-select__trigger').dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'b', bubbles: true }),
+    );
+    expect(valueOf(el)).toBe('b2');
+  });
+
+  it('e-select arrow navigation skips a disabled option', () => {
+    const wrap = mountFragment(
+      `<form><e-select name="v">
+         <e-option value="a" label="A"></e-option>
+         <e-option value="b" label="B" disabled></e-option>
+         <e-option value="c" label="C"></e-option>
+       </e-select></form>`,
+    );
+    const trigger = q(wrap, '.ink-select__trigger');
+    const options = all(wrap, '.ink-select__option');
+    trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    expect(document.activeElement).toBe(options[0]);
+
+    options[0]!.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    expect(document.activeElement).toBe(options[2]);
+  });
+
+  it('e-radio-group disables a single option without disabling the group', () => {
+    const wrap = mountFragment(
+      `<form><e-radio-group name="v" value="a">
+         <e-radio value="a" label="A"></e-radio>
+         <e-radio value="b" label="B" disabled></e-radio>
+         <e-radio value="c" label="C"></e-radio>
+       </e-radio-group></form>`,
+    );
+    const el = q(wrap, 'e-radio-group');
+    const radios = [...wrap.querySelectorAll<HTMLInputElement>('input[type="radio"]')];
+    expect(radios.map((r) => r.disabled)).toEqual([false, true, false]);
+    expect(all(wrap, 'label.ink-radio')[1]!.getAttribute('aria-disabled')).toBe('true');
+
+    radios[1]!.click();
+    expect(valueOf(el)).toBe('a');
+    radios[2]!.click();
+    expect(valueOf(el)).toBe('c');
+  });
+
+  it('e-radio-group keeps an option disabled after the group is re-enabled', () => {
+    const wrap = mountFragment(
+      `<form><e-radio-group name="v" disabled>
+         <e-radio value="a" label="A"></e-radio>
+         <e-radio value="b" label="B" disabled></e-radio>
+       </e-radio-group></form>`,
+    );
+    const el = q(wrap, 'e-radio-group');
+    const radios = [...wrap.querySelectorAll<HTMLInputElement>('input[type="radio"]')];
+    expect(radios.map((r) => r.disabled)).toEqual([true, true]);
+
+    el.removeAttribute('disabled');
+    expect(radios.map((r) => r.disabled)).toEqual([false, true]);
+  });
+
+  it('e-checkbox-group disables a single option without disabling the group', () => {
+    const wrap = mountFragment(
+      `<form><e-checkbox-group name="v" value="a">
+         <e-cbox-option value="a" label="A"></e-cbox-option>
+         <e-cbox-option value="b" label="B" disabled></e-cbox-option>
+         <e-cbox-option value="c" label="C"></e-cbox-option>
+       </e-checkbox-group></form>`,
+    );
+    const el = q(wrap, 'e-checkbox-group');
+    const boxes = [...wrap.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')];
+    expect(boxes.map((b) => b.disabled)).toEqual([false, true, false]);
+    expect(all(wrap, 'label.ink-checkbox')[1]!.getAttribute('aria-disabled')).toBe('true');
+
+    boxes[1]!.click();
+    expect(valueOf(el)).toBe('a');
+    boxes[2]!.click();
+    expect(valueOf(el)).toBe('a,c');
+  });
+
+  it('e-checkbox-group keeps an option disabled after the group is re-enabled', () => {
+    const wrap = mountFragment(
+      `<form><e-checkbox-group name="v" disabled>
+         <e-cbox-option value="a" label="A"></e-cbox-option>
+         <e-cbox-option value="b" label="B" disabled></e-cbox-option>
+       </e-checkbox-group></form>`,
+    );
+    const el = q(wrap, 'e-checkbox-group');
+    const boxes = [...wrap.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')];
+    expect(boxes.map((b) => b.disabled)).toEqual([true, true]);
+
+    el.removeAttribute('disabled');
+    expect(boxes.map((b) => b.disabled)).toEqual([false, true]);
+  });
+
+  it('an option-level disabled="false" leaves the option selectable', () => {
+    // `<e-option>` is a plain data carrier, so it follows the library's
+    // boolean-attribute convention rather than the HTML form-control rule.
+    const wrap = mountFragment(
+      `<form><e-select name="v">
+         <e-option value="a" label="A" disabled="false"></e-option>
+       </e-select></form>`,
+    );
+    const el = q(wrap, 'e-select');
+    const option = q(wrap, '.ink-select__option');
+    expect(option.hasAttribute('aria-disabled')).toBe(false);
+    q(wrap, '.ink-select__trigger').click();
+    option.click();
+    expect(valueOf(el)).toBe('a');
   });
 });

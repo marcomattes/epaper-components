@@ -95,6 +95,61 @@ e-upload [aria-disabled='true'] {
   background-image: var(--ink-hatch-disabled);
   cursor: not-allowed;
 }
+
+/* What the aria-disabled block above does not reach: inner elements that take
+   the *native* `disabled` (step buttons, group radios and boxes), plus a
+   second, shape-based carrier for the whole control. Texture and border shape
+   carry the state, never colour alone. */
+.ink-number__btn[disabled],
+.ink-timepicker__step[disabled] {
+  background-color: var(--ink-bg);
+  background-image: var(--ink-hatch-disabled);
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+/* A single disabled option inside an otherwise usable group: the control
+   glyph itself is hatched, so the row reads as unavailable even without the
+   group-level hatch. */
+.ink-radio input[type='radio'][disabled] + .ink-radio__dot,
+.ink-checkbox input[type='checkbox'][disabled] ~ .ink-checkbox__box {
+  background-image: var(--ink-hatch-disabled);
+  border-style: dashed;
+}
+.ink-radio[aria-disabled='true'],
+.ink-checkbox[aria-disabled='true'] {
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+/* A disabled <e-option>: `.ink-select__option[aria-selected='true']` paints a
+   solid --ink-fg ground the hatch would vanish into, so the row is pulled
+   back onto a readable ground and struck through instead. */
+.ink-select__option[aria-disabled='true'] {
+  background-color: var(--ink-bg);
+  color: var(--ink-fg);
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+e-select .ink-select__trigger[aria-disabled='true'],
+e-cascader .ink-select__trigger[aria-disabled='true'],
+.ink-datepicker__trigger[aria-disabled='true'],
+.ink-timepicker__cell[aria-disabled='true'],
+.ink-number__input[aria-disabled='true'],
+e-tree-select .ink-tree[aria-disabled='true'],
+e-radio-group [role='radiogroup'][aria-disabled='true'],
+e-checkbox-group [role='group'][aria-disabled='true'] {
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+/* `.ink-upload` carries its visible frame as an `outline`, not a `border`
+   (its border is transparent), so it needs its own rule. */
+.ink-upload[aria-disabled='true'] {
+  outline-style: dashed;
+  cursor: not-allowed;
+}
 .ink-control::placeholder {
   color: var(--ink-fg);
   opacity: 1;

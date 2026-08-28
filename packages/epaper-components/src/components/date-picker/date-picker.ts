@@ -24,6 +24,10 @@ const CELL_COUNT = 42;
  * @attr {string} [value] - Selected day in `YYYY-MM-DD` format.
  * @attr {string} [placeholder='YYYY-MM-DD'] - Trigger placeholder when no value is set.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
+ * @attr {boolean} [disabled] - Disables interaction: the trigger leaves the tab flow, the calendar
+ *   popover cannot open (and closes if it is open) and no day can be picked. Presence alone
+ *   disables, per the HTML spec for form-associated elements — `disabled="false"` still disables.
+ *   Also applied by a surrounding `<fieldset disabled>`.
  * @attr {boolean} [required] - Requires a selected date.
  * @attr {string} [required-message] - Message reported when no required date is selected.
  *
@@ -33,7 +37,13 @@ const CELL_COUNT = 42;
  * <e-date-picker value="2025-04-26"></e-date-picker>
  */
 export class EDatePicker extends BaseFormControl {
-  static readonly observedAttributes = ['value', 'placeholder', 'required', 'required-message'];
+  static readonly observedAttributes = [
+    'value',
+    'placeholder',
+    'disabled',
+    'required',
+    'required-message',
+  ];
 
   private _wired = false;
   private _view = { y: 2026, m: 0 };
@@ -84,13 +94,39 @@ export class EDatePicker extends BaseFormControl {
         this._trigger?.focus();
       }
     });
+
+    this._applyDisabled();
   }
 
   disconnectedCallback() {
     runCleanups(this);
   }
 
+  /**
+   * Effective disabled state. Presence alone disables — the HTML spec, not the
+   * library's `x="false"` convention, governs `disabled` on a form-associated
+   * element, and that is what the browser reports through `formDisabledCallback`.
+   */
+  private get _disabled(): boolean {
+    return this.hasAttribute('disabled') || this._formDisabled;
+  }
+
+  /** Forward the effective disabled state to the trigger and close the popover. */
+  private _applyDisabled(): void {
+    if (!this._trigger) return;
+    const disabled = this._disabled;
+    this._trigger.disabled = disabled;
+    patchAttr(this._trigger, 'aria-disabled', disabled ? 'true' : null);
+    // A calendar left open would still take clicks behind a dead trigger.
+    if (disabled) this._setOpen(false);
+  }
+
+  protected override formDisabledChanged(): void {
+    this._applyDisabled();
+  }
+
   private readonly _onClick = (e: Event): void => {
+    if (this._disabled) return;
     const target = e.target as Element;
 
     /* Trigger toggle */
@@ -133,6 +169,7 @@ export class EDatePicker extends BaseFormControl {
   };
 
   private readonly _onKeydown = (e: Event): void => {
+    if (this._disabled) return;
     const ke = e as KeyboardEvent;
     const target = ke.target as Element;
 
@@ -252,6 +289,7 @@ export class EDatePicker extends BaseFormControl {
 
   private _setOpen(open: boolean): void {
     if (!this._pop || !this._trigger) return;
+    if (open && this._disabled) return;
     this._pop.hidden = !open;
     patchAttr(this._trigger, 'aria-expanded', String(open));
   }
@@ -440,6 +478,8 @@ export class EDatePicker extends BaseFormControl {
       this._patchTrigger();
     } else if (name === 'value') {
       this._applyValue(val ?? '');
+    } else if (name === 'disabled') {
+      this._applyDisabled();
     } else if (name === 'required' || name === 'required-message') {
       this._syncValidity();
     }
