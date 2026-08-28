@@ -34,7 +34,8 @@ packages/epaper-components/  the library — the only npm-published package
                         README.md (auto-generated, don't edit by hand)
       __tests__/        7 suites (cleanup, form-association, reactivity, security,
                         data-display, new-components, screenshots)
-    core/               dom.ts, base-form-control.ts, icons.ts, date.ts, types.ts
+    core/               dom.ts, base-form-control.ts, icons.ts, date.ts, types.ts,
+                        format.ts (Intl wrappers), i18n.ts (string table)
     styles/             tokens.css → base.css → components.css (cascade order matters)
     stories/            Storybook docs (composite/, display/, inputs/, layout/, navigation/, primitives/, typography/)
     demo/               Local dev demo (not shipped)
@@ -96,6 +97,22 @@ the right workspace, so day-to-day commands are unchanged.
 10. **Don't bypass the cleanup contract.** If a component opens a popover,
     a calendar grid, a dropdown — register every `document` listener with
     `onGlobal` so leaving the page doesn't leak.
+11. **Child-driven components stay reactive.** A component that reads its
+    entries from child data carriers (`<e-timeline-item>`, `<e-desc-item>`,
+    `<e-option>`, …) must register `observeItems(this, sync, opts)` from
+    `core/dom.ts` rather than reading them once in `connectedCallback`.
+    Reading once froze those components: an item appended later never
+    rendered, and hosts had to re-mount the element — which is exactly the
+    full repaint rule 7 exists to prevent. Pass `isOutput` so the observer
+    ignores the component's own rendered subtree, and keep the sync
+    surgical.
+12. **Locale-dependent output goes through `core/format.ts` and
+    `core/i18n.ts`.** No `toFixed()` for a displayed number, and no English
+    string literal in a rendered label. Numbers, dates and relative times use
+    the `Intl` wrappers; the words the library invents itself (freshness,
+    meter bands, pager controls) come from the string table, which authors
+    override per locale with `setLocaleStrings()` or per instance with an
+    attribute. Defaults stay English so existing pages don't shift.
 
 ## Adding a component (skeleton)
 

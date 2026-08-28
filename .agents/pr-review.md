@@ -72,6 +72,31 @@ Walk every changed `.ts` file in `packages/epaper-components/src/components/` ag
     before `super()` runs, or any class-field initializer on a property
     that must exist pre-`super()` for a Custom Element.
 
+11. **Child-driven components stay reactive** — if a component reads entries
+    from child data carriers, it must register `observeItems()` from
+    `core/dom.ts` instead of reading them once in `connectedCallback`, and
+    must pass `isOutput` so the observer ignores its own rendered subtree.
+    A `querySelectorAll` over child carriers that only ever runs at connect
+    time is the bug this rule exists for: the component silently ignores
+    every later edit. Check the sync path is surgical, not a
+    `replaceChildren`.
+
+12. **No hard-coded locale output** — reject `toFixed()` on a value that is
+    rendered, a hand-rolled relative-time string, hard-coded weekday or
+    month names, and English label literals in rendered markup. These go
+    through `core/format.ts` (`formatNumber`, `formatDate`,
+    `formatRelativeTime`, `weekdayLabels`, `monthLabel`) and `core/i18n.ts`
+    (`t`, `label`). Also check that the English default did not shift: the
+    deep suites pin it, and a changed default is a breaking change for
+    every existing page.
+
+13. **A state a user must perceive has a non-colour cue** — a new
+    `aria-invalid`, `aria-disabled` or status treatment needs a rule that
+    changes border, fill or symbol, not just a colour. On a greyscale panel
+    a colour-only state is invisible, which is how the composite controls
+    ended up reporting `aria-invalid` that nothing rendered. Check that the
+    anchor the component actually marks is the one the CSS targets.
+
 ## Wiring checklist for a new/renamed component
 
 If the diff adds a component (`packages/epaper-components/src/components/<name>/<name>.ts`), confirm all of

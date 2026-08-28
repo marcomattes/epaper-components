@@ -1,7 +1,8 @@
 // Component tests for the newly added components:
 // e-statistic, e-timeline, e-description-list, e-affix, e-back-top,
-// e-watermark, e-image, e-qrcode.
+// e-watermark, e-image, e-qrcode, e-status-pill.
 import { describe, it, expect, beforeAll } from 'vitest';
+import { registerIcon, hasIcon, iconSvg } from '../../core/icons';
 
 beforeAll(async () => {
   await import('../statistic/statistic');
@@ -12,6 +13,10 @@ beforeAll(async () => {
   await import('../watermark/watermark');
   await import('../image/image');
   await import('../qrcode/qrcode');
+  await import('../status-pill/status-pill');
+  await import('../status-board/status-board');
+  await import('../badge/badge');
+  await import('../ribbon/ribbon');
 });
 
 const mount = <T extends HTMLElement = HTMLElement>(html: string): T => {
@@ -186,5 +191,151 @@ describe('e-qrcode', () => {
   it('respects level attribute', () => {
     const el = mount(`<e-qrcode value="hello" level="H"></e-qrcode>`);
     expect(el.querySelector('svg')).not.toBeNull();
+  });
+});
+
+describe('e-status-pill', () => {
+  it('renders the built-in symbol and label for a status', () => {
+    const el = mount(`<e-status-pill status="ok"></e-status-pill>`);
+    expect(el.querySelector('.ink-status-pill__symbol')!.textContent).toBe('✓');
+    expect(el.querySelector('.ink-status-pill__label')!.textContent).toBe('OK');
+    expect(el.querySelector('.ink-status-pill')!.getAttribute('data-status')).toBe('ok');
+  });
+
+  it('keeps the symbol out of the accessible name', () => {
+    const el = mount(`<e-status-pill status="ok"></e-status-pill>`);
+    expect(el.querySelector('.ink-status-pill__symbol')!.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('accepts a custom vocabulary', () => {
+    const el = mount(
+      `<e-status-pill statuses='{"busy":{"symbol":"●","label":"Belegt"}}' status="busy"></e-status-pill>`,
+    );
+    expect(el.querySelector('.ink-status-pill__label')!.textContent).toBe('Belegt');
+    expect(el.querySelector('.ink-status-pill')!.getAttribute('data-status')).toBe('busy');
+  });
+
+  it('falls back to neutral for an unknown status instead of rendering undefined', () => {
+    const el = mount(`<e-status-pill status="nonsense"></e-status-pill>`);
+    expect(el.querySelector('.ink-status-pill__label')!.textContent).toBe('Neutral');
+  });
+
+  it('survives malformed statuses JSON', () => {
+    const el = mount(`<e-status-pill statuses="{not json" status="ok"></e-status-pill>`);
+    expect(el.querySelector('.ink-status-pill__label')!.textContent).toBe('OK');
+  });
+
+  it('skips vocabulary entries missing a symbol or label', () => {
+    const el = mount(`<e-status-pill statuses='{"x":{"symbol":"●"}}' status="x"></e-status-pill>`);
+    expect(el.querySelector('.ink-status-pill__label')!.textContent).toBe('Neutral');
+  });
+
+  it('lets label override the vocabulary text', () => {
+    const el = mount(`<e-status-pill status="ok" label="Frei"></e-status-pill>`);
+    expect(el.querySelector('.ink-status-pill__label')!.textContent).toBe('Frei');
+  });
+
+  it('patches in place rather than rebuilding on a status change', () => {
+    const el = mount(`<e-status-pill status="ok"></e-status-pill>`);
+    const labelEl = el.querySelector('.ink-status-pill__label')!;
+    el.setAttribute('status', 'critical');
+    expect(el.querySelector('.ink-status-pill__label')).toBe(labelEl);
+    expect(labelEl.textContent).toBe('Critical');
+  });
+
+  it('is only a live region when it opts in', () => {
+    const quiet = mount(`<e-status-pill status="ok"></e-status-pill>`);
+    expect(quiet.hasAttribute('aria-live')).toBe(false);
+    const loud = mount(`<e-status-pill status="ok" announce></e-status-pill>`);
+    expect(loud.getAttribute('aria-live')).toBe('polite');
+    expect(loud.getAttribute('role')).toBe('status');
+  });
+});
+
+describe('e-status-board custom vocabulary', () => {
+  it('renders an author-declared status', () => {
+    const el = mount(
+      `<e-status-board statuses='{"busy":{"symbol":"●","label":"Belegt"}}' data='[{"key":"r1","label":"Raum 1","value":"09:00","status":"busy"}]'></e-status-board>`,
+    );
+    const cell = el.querySelector('[data-key="r1"]')!;
+    expect(cell.getAttribute('data-status')).toBe('busy');
+    expect(cell.querySelector('.ink-status-board__cue')!.textContent).toBe('● Belegt');
+  });
+
+  it('still falls back to neutral for an undeclared status', () => {
+    const el = mount(
+      `<e-status-board data='[{"key":"a","label":"A","value":1,"status":"mystery"}]'></e-status-board>`,
+    );
+    expect(el.querySelector('[data-key="a"]')!.getAttribute('data-status')).toBe('neutral');
+  });
+
+  it('keeps the built-in vocabulary working unchanged', () => {
+    const el = mount(
+      `<e-status-board data='[{"key":"a","label":"A","value":1,"status":"warning"}]'></e-status-board>`,
+    );
+    expect(
+      el.querySelector('[data-key="a"]')!.querySelector('.ink-status-board__cue')!.textContent,
+    ).toBe('! Warning');
+  });
+});
+
+describe('e-badge variants', () => {
+  it('exposes variant and size as data attributes', () => {
+    const el = mount(`<e-badge variant="solid" size="lg">-30 %</e-badge>`);
+    const wrap = el.querySelector('.ink-badge')!;
+    expect(wrap.getAttribute('data-variant')).toBe('solid');
+    expect(wrap.getAttribute('data-size')).toBe('lg');
+  });
+
+  it('ignores an unknown variant or size', () => {
+    const el = mount(`<e-badge variant="nope" size="huge">X</e-badge>`);
+    const wrap = el.querySelector('.ink-badge')!;
+    expect(wrap.hasAttribute('data-variant')).toBe(false);
+    expect(wrap.hasAttribute('data-size')).toBe(false);
+  });
+
+  it('still composes with the inverted class', () => {
+    const el = mount(`<e-badge inverted size="sm">NEW</e-badge>`);
+    const wrap = el.querySelector('.ink-badge')!;
+    expect(wrap.classList.contains('ink-badge--inverted')).toBe(true);
+    expect(wrap.getAttribute('data-size')).toBe('sm');
+  });
+});
+
+describe('e-ribbon placement', () => {
+  it('marks a valid placement', () => {
+    const el = mount(`<e-ribbon text="AKTION" placement="top-left"></e-ribbon>`);
+    expect(el.querySelector('.ink-ribbon__tag')!.getAttribute('data-placement')).toBe('top-left');
+  });
+
+  it('leaves the default corner unmarked for an unknown placement', () => {
+    const el = mount(`<e-ribbon text="X" placement="sideways"></e-ribbon>`);
+    expect(el.querySelector('.ink-ribbon__tag')!.hasAttribute('data-placement')).toBe(false);
+  });
+
+  it('supports inverted', () => {
+    const el = mount(`<e-ribbon text="X" inverted></e-ribbon>`);
+    expect(el.querySelector('.ink-ribbon__tag')!.hasAttribute('data-inverted')).toBe(true);
+  });
+});
+
+describe('registerIcon', () => {
+  it('makes a custom glyph usable', () => {
+    registerIcon('test-glyph', 'M4 4h16v16H4z');
+    expect(hasIcon('test-glyph')).toBe(true);
+    expect(iconSvg('test-glyph')).toContain('M4 4h16v16H4z');
+  });
+
+  it('refuses to shadow a built-in', () => {
+    expect(() => registerIcon('check', 'M0 0h1')).toThrow(/built-in/);
+  });
+
+  it('rejects path data that could break out of the attribute', () => {
+    expect(() => registerIcon('evil', '" onload="alert(1)')).toThrow(/invalid SVG path/);
+    expect(() => registerIcon('evil2', 'M0 0<script>')).toThrow(/invalid SVG path/);
+  });
+
+  it('rejects an empty name', () => {
+    expect(() => registerIcon('  ', 'M0 0h1')).toThrow(/must not be empty/);
   });
 });

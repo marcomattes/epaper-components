@@ -283,6 +283,10 @@
       "types": "./dist/components/status-board.d.ts",
       "import": "./dist/components/status-board.js"
     },
+    "./status-pill": {
+      "types": "./dist/components/status-pill.d.ts",
+      "import": "./dist/components/status-pill.js"
+    },
     "./steps": {
       "types": "./dist/components/steps.d.ts",
       "import": "./dist/components/steps.js"
@@ -346,6 +350,14 @@
     "./core/dom": {
       "types": "./dist/core/dom.d.ts",
       "import": "./dist/core/dom.js"
+    },
+    "./core/format": {
+      "types": "./dist/core/format.d.ts",
+      "import": "./dist/core/format.js"
+    },
+    "./core/i18n": {
+      "types": "./dist/core/i18n.d.ts",
+      "import": "./dist/core/i18n.js"
     },
     "./core/icons": {
       "types": "./dist/core/icons.d.ts",

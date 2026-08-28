@@ -43,6 +43,58 @@
   background-image: var(--ink-hatch-disabled);
   cursor: not-allowed;
 }
+
+/* Composite controls report `aria-invalid` on their own anchor — a select
+   trigger, a radiogroup, a drop zone — not on an `.ink-control`. Without
+   these rules that state rendered nothing at all: on a greyscale panel with
+   no colour and no animation, a rejected required field looked exactly like
+   an untouched one. Both the host and the inner anchor are listed, so the
+   rule holds whichever element a control chooses to mark. */
+e-select[aria-invalid='true'],
+e-radio-group[aria-invalid='true'],
+e-checkbox-group[aria-invalid='true'],
+e-cascader[aria-invalid='true'],
+e-tree-select[aria-invalid='true'],
+e-date-picker[aria-invalid='true'],
+e-time-picker[aria-invalid='true'],
+e-input-number[aria-invalid='true'],
+e-upload[aria-invalid='true'],
+e-select [aria-invalid='true'],
+e-radio-group [aria-invalid='true'],
+e-checkbox-group [aria-invalid='true'],
+e-cascader [aria-invalid='true'],
+e-tree-select [aria-invalid='true'],
+e-date-picker [aria-invalid='true'],
+e-time-picker [aria-invalid='true'],
+e-input-number [aria-invalid='true'],
+e-upload [aria-invalid='true'] {
+  box-shadow: inset 0 0 0 var(--ink-border-width-error) var(--ink-fg);
+}
+
+/* Same reasoning for the disabled state: `formDisabledChanged` marks the
+   composite controls with `aria-disabled`, which needs the hatch treatment
+   the native `.ink-control` already gets. */
+e-select[aria-disabled='true'],
+e-radio-group[aria-disabled='true'],
+e-checkbox-group[aria-disabled='true'],
+e-cascader[aria-disabled='true'],
+e-tree-select[aria-disabled='true'],
+e-date-picker[aria-disabled='true'],
+e-time-picker[aria-disabled='true'],
+e-input-number[aria-disabled='true'],
+e-upload[aria-disabled='true'],
+e-select [aria-disabled='true'],
+e-radio-group [aria-disabled='true'],
+e-checkbox-group [aria-disabled='true'],
+e-cascader [aria-disabled='true'],
+e-tree-select [aria-disabled='true'],
+e-date-picker [aria-disabled='true'],
+e-time-picker [aria-disabled='true'],
+e-input-number [aria-disabled='true'],
+e-upload [aria-disabled='true'] {
+  background-image: var(--ink-hatch-disabled);
+  cursor: not-allowed;
+}
 .ink-control::placeholder {
   color: var(--ink-fg);
   opacity: 1;
@@ -313,6 +365,24 @@
 .ink-badge--inverted {
   background: var(--ink-fg);
   color: var(--ink-bg);
+}
+/* `variant` and `size` are data-attributes so they compose with the
+   pre-existing `--inverted` class instead of competing for the same
+   modifier slot. A discount stamp needs to outweigh a caption. */
+.ink-badge[data-variant='solid'] {
+  background: var(--ink-fg);
+  color: var(--ink-bg);
+}
+.ink-badge[data-variant='dashed'] {
+  border-style: dashed;
+}
+.ink-badge[data-size='sm'] {
+  font-size: var(--ink-text-caption);
+  padding: 2px 6px;
+}
+.ink-badge[data-size='lg'] {
+  font-size: var(--ink-text-body);
+  padding: 6px 12px;
 }
 
 /* ============================================================
@@ -1645,12 +1715,32 @@ e-text {
   right: -2px;
   background: var(--ink-fg);
   color: var(--ink-bg);
+  /* `placement` overrides these below; the defaults keep the pre-1.3.0
+     top-right corner for every ribbon that does not ask for another. */
   font-family: var(--ink-mono);
   font-size: var(--ink-text-label);
   font-weight: 700;
   letter-spacing: var(--ink-tracking-label);
   padding: 4px 10px;
   border: var(--ink-border);
+}
+.ink-ribbon__tag[data-placement='top-left'] {
+  right: auto;
+  left: -2px;
+}
+.ink-ribbon__tag[data-placement='bottom-right'] {
+  top: auto;
+  bottom: 8px;
+}
+.ink-ribbon__tag[data-placement='bottom-left'] {
+  top: auto;
+  right: auto;
+  bottom: 8px;
+  left: -2px;
+}
+.ink-ribbon__tag[data-inverted] {
+  background: var(--ink-bg);
+  color: var(--ink-fg);
 }
 
 /* ============================================================
@@ -2466,6 +2556,54 @@ e-status-board {
 .ink-status-board__grid[hidden],
 .ink-status-board__empty[hidden] {
   display: none;
+}
+
+/* ============================================================
+ * Status pill · single-value status marker
+ * ============================================================ */
+e-status-pill {
+  display: inline-block;
+}
+.ink-status-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--ink-space-2);
+  border: var(--ink-border);
+  padding: 2px 8px;
+  background: var(--ink-bg);
+  color: var(--ink-fg);
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-label);
+  text-transform: uppercase;
+}
+.ink-status-pill__symbol {
+  font-size: 1em;
+  line-height: 1;
+}
+/* The built-in states differentiate by border treatment and fill, never by
+   colour alone — the label beside the symbol always carries the meaning, so
+   an unknown custom status still reads correctly with the neutral frame. */
+.ink-status-pill[data-status='warning'] {
+  border-style: double;
+  border-width: var(--ink-border-width-strong);
+}
+.ink-status-pill[data-status='critical'] {
+  background: var(--ink-fg);
+  color: var(--ink-bg);
+}
+.ink-status-pill[data-status='offline'] {
+  border-style: dashed;
+}
+.ink-status-pill[data-size='sm'] {
+  font-size: var(--ink-text-caption);
+  padding: 1px 6px;
+}
+.ink-status-pill[data-size='lg'] {
+  padding: 6px 14px;
+  font-size: var(--ink-text-h3);
+  letter-spacing: normal;
 }
 
 /* ============================================================
