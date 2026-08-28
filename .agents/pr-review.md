@@ -109,6 +109,11 @@ the following are present in the same PR — a component that only has the
 - [ ] Covered by one of the existing suites in `packages/epaper-components/src/components/__tests__/`
       (don't create a new suite file — extend an existing one)
 - [ ] Sub-path entry added to `packages/epaper-components/package.json` `exports`, alphabetically
+- [ ] A visual baseline exists for the new story. `screenshots.test.ts`
+      compares every story against a committed PNG, so a new one without a
+      baseline fails CI. It has to come from the **Update visual baselines**
+      workflow — a baseline rendered on any other Chromium build is off by a
+      few pixels. A hand-generated PNG in the diff is a finding, not a nit.
 
 See `.agents/new-component.md` for the full scaffolding walkthrough.
 
