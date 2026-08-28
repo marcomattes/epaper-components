@@ -150,10 +150,15 @@ function wireChat(): void {
     const q = question.trim();
     if (!q || busy) return;
     busy = true;
+    // The visitor's text goes in via textContent, never through the HTML
+    // parser — esc() would be correct too, but this leaves no taint path
+    // for CodeQL (js/xss-through-dom) to flag.
     log.insertAdjacentHTML(
       'beforeend',
-      chatMessageHtml('user', chatTimeNow(), `<p class="site-chat__p">${esc(q)}</p>`),
+      chatMessageHtml('user', chatTimeNow(), `<p class="site-chat__p"></p>`),
     );
+    const userP = log.lastElementChild?.querySelector('.site-chat__p');
+    if (userP) userP.textContent = q;
     log.insertAdjacentHTML('beforeend', chatPendingHtml(chatTimeNow()));
     log.scrollTop = log.scrollHeight;
 
