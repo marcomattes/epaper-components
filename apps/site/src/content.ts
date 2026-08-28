@@ -23,16 +23,19 @@ import {
   CALENDAR_EVENTS,
   COMPONENTS,
   CATEGORIES,
+  DASH_READINGS,
   FEATURES,
   IMPORT_SNIPPET,
   INSTALL_SNIPPETS,
   ROADMAP,
   ROADMAP_INTRO,
+  SHELF_PRODUCTS,
   TABLE_COLUMNS,
   TABLE_ROWS,
   USE_SNIPPET,
   type ComponentEntry,
 } from './data';
+import { chatOpeningHtml, chatSuggestionsHtml } from './chat';
 import { isNotFound, PACKAGE_NAME, REPO_URL, ROUTES, withBase, type Route } from './routes';
 import { shotAlt, shotKey, shotUrl, type ShotIndex } from './shots';
 import { ARTICLES, articlePath, articlesOfKind, readingMinutes, type Article } from './articles';
@@ -219,6 +222,117 @@ function componentsMain(route: Route, opts: ContentOptions): string {
 /* --------------------------------------------------------------------- *
  * Page 4 — Live showcase
  * --------------------------------------------------------------------- */
+/**
+ * Panel: scripted AI chat.
+ *
+ * The opening transcript is prerendered so a crawler reads a conversation,
+ * not an empty log. Replies to the chips and the composer are wired in
+ * main.ts from the same canned script (src/chat.ts) — no network, no model.
+ */
+function chatShowcase(): string {
+  return `
+            <div class="site-chat" id="showcase-chat">
+              <div class="site-chat__log" id="chat-log" role="log" aria-label="Chat transcript">
+                ${chatOpeningHtml()}
+              </div>
+              <div class="site-chat__suggest" aria-label="Suggested questions">
+                ${chatSuggestionsHtml()}
+              </div>
+              <form class="site-chat__composer" id="chat-form">
+                <e-input id="chat-input" name="question" label="Your question"
+                         placeholder="e.g. show refresh stats" autocomplete="off"></e-input>
+                <e-button variant="primary" type="submit">Send</e-button>
+              </form>
+            </div>`;
+}
+
+/**
+ * Panel: office-climate wall dashboard.
+ *
+ * The button cycles through the fixed readings in data.ts — every value
+ * lands as an attribute patch, so an e-paper panel would repaint only the
+ * numerals that changed. The initial `now` pins the relative age at build
+ * time; the first simulated reading switches to the visitor's clock.
+ */
+function dashShowcase(): string {
+  const r = DASH_READINGS[0]!;
+  const now = new Date(new Date(r.at).getTime() + 120_000).toISOString();
+
+  return `
+            <div class="site-dash">
+              <div class="site-dash__head">
+                <e-last-updated id="dash-updated" datetime="${esc(r.at)}" now="${esc(now)}"
+                                stale-after="600"></e-last-updated>
+                <e-button id="dash-refresh" variant="secondary">Simulate reading</e-button>
+              </div>
+              <div class="site-dash__stats">
+                <e-statistic id="dash-temp" label="Temperature" value="${r.temperature}"
+                             precision="1" suffix=" °C" trend="${esc(r.temperatureTrend)}"
+                             delta="${r.temperatureDelta}"></e-statistic>
+                <e-change-marker id="dash-co2" label="CO₂" value="${r.co2}" suffix=" ppm"
+                                 announce></e-change-marker>
+                <e-statistic id="dash-hum" label="Humidity" value="${r.humidity}"
+                             suffix=" %"></e-statistic>
+              </div>
+              <div class="site-dash__row">
+                <div class="site-dash__panel">
+                  <e-sparkline id="dash-spark" label="CO₂ · ppm"
+                               values="${esc(JSON.stringify(r.co2Series))}"></e-sparkline>
+                </div>
+                <div class="site-dash__panel">
+                  <e-meter id="dash-batt" label="Battery" value="${r.battery}" low="20" high="90"
+                           unit="%"></e-meter>
+                </div>
+              </div>
+              <e-status-board id="dash-board" label="Sensors" columns="2"
+                              data="${esc(JSON.stringify(r.sensors))}"></e-status-board>
+            </div>`;
+}
+
+/**
+ * Panel: electronic shelf label.
+ *
+ * The picker swaps the product; every field on the "label" is patched in
+ * place — name, tags, price marker, QR code — which is exactly the update an
+ * ESL fleet pushes over the air.
+ */
+function shelfShowcase(): string {
+  const p = SHELF_PRODUCTS[0]!;
+  const segments = SHELF_PRODUCTS.map(
+    (s) => `<e-segment value="${esc(s.id)}" label="${esc(s.name)}"></e-segment>`,
+  ).join('');
+  const tags = p.tags.map((t) => `<e-tag>${esc(t)}</e-tag>`).join('');
+
+  return `
+            <div class="site-shelf">
+              <e-segmented id="shelf-pick" value="${esc(p.id)}" aria-label="Product">
+                ${segments}
+              </e-segmented>
+              <div class="site-shelf__device">
+                <div class="site-shelf__info">
+                  <h3 class="site-shelf__name" data-shelf="name">${esc(p.name)}</h3>
+                  <p class="site-shelf__detail" data-shelf="detail">${esc(p.detail)}</p>
+                  <div class="site-shelf__tags" id="shelf-tags">${tags}</div>
+                  <p class="site-shelf__sku">SKU <span data-shelf="sku">${esc(p.sku)}</span></p>
+                </div>
+                <div class="site-shelf__price">
+                  <e-change-marker id="shelf-price" value="${p.price.toFixed(2)}"
+                                   previous="${p.prevPrice.toFixed(2)}" precision="2" prefix="€ "
+                                   show-previous></e-change-marker>
+                  <p class="site-shelf__unit" data-shelf="perUnit">${esc(p.perUnit)}</p>
+                </div>
+                <div class="site-shelf__qr">
+                  <e-qrcode id="shelf-qr" value="${esc(p.url)}" scale="3"></e-qrcode>
+                  <p class="site-shelf__scan">Scan for details</p>
+                </div>
+              </div>
+              <p class="site-shelf__note">
+                A 4.2&Prime; three-color panel holds this label for months on a coin cell —
+                the picker above simulates the over-the-air price update.
+              </p>
+            </div>`;
+}
+
 function showcaseMain(route: Route): string {
   const tableCols = esc(JSON.stringify(TABLE_COLUMNS));
   const tableRows = esc(JSON.stringify(TABLE_ROWS));
@@ -226,13 +340,22 @@ function showcaseMain(route: Route): string {
 
   return `${pageHead(route)}
         <p class="site-lede">
-          The three panels below are the shipped components, not screenshots. The form is
-          form-associated — every control reports its value through <code>FormData</code> and
-          validates through <code>ElementInternals</code>. The table sorts and selects, and the
-          calendar renders a month with events.
+          Every panel below is the shipped components, not screenshots. A scripted AI chat
+          renders rich replies — tables, sparklines, meters — as e-paper-safe chat content. The
+          dashboard and shelf label replay the two places e-paper actually ships, and the form,
+          table and calendar show <code>FormData</code>, sorting and events working as plain
+          custom elements.
         </p>
 
-        <e-tabs default-value="form" id="showcase-tabs">
+        <e-tabs default-value="chat" id="showcase-tabs">
+          <e-tab key="chat" label="AI Chat">${chatShowcase()}
+          </e-tab>
+
+          <e-tab key="dashboard" label="Dashboard">${dashShowcase()}
+          </e-tab>
+
+          <e-tab key="shelf" label="Shelf label">${shelfShowcase()}
+          </e-tab>
           <e-tab key="form" label="Form">
             <e-form id="showcase-form">
               <e-form-item label="Name" required>

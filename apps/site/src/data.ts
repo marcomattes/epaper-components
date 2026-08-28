@@ -242,6 +242,177 @@ export const CALENDAR_EVENTS: CalendarEvent[] = [
   { date: '2026-04-30', title: 'Design review' },
 ];
 
+/* --------------------------------------------------------------------- *
+ * Showcase — office-climate dashboard
+ * --------------------------------------------------------------------- */
+
+export interface DashSensor {
+  key: string;
+  label: string;
+  value: string;
+  status: 'ok' | 'warning' | 'critical' | 'offline' | 'neutral';
+  detail?: string;
+}
+
+export interface DashReading {
+  /** ISO timestamp of the reading — drives `<e-last-updated>`. */
+  at: string;
+  temperature: number;
+  temperatureDelta: number;
+  temperatureTrend: 'up' | 'down' | 'flat';
+  co2: number;
+  humidity: number;
+  battery: number;
+  /** CO₂ series for the sparkline, oldest first. */
+  co2Series: number[];
+  sensors: DashSensor[];
+}
+
+/**
+ * The "Simulate reading" button cycles through these. Three fixed frames
+ * rather than random numbers, so every visitor sees the same story: morning
+ * calm, a full meeting room, then the ventilation catching up.
+ */
+export const DASH_READINGS: DashReading[] = [
+  {
+    at: '2026-08-28T06:55:00Z',
+    temperature: 21.4,
+    temperatureDelta: 0.6,
+    temperatureTrend: 'up',
+    co2: 618,
+    humidity: 44,
+    battery: 72,
+    co2Series: [430, 465, 510, 575, 640, 660, 605, 590, 618],
+    sensors: [
+      { key: 'lobby', label: 'Lobby', value: 'OK', status: 'ok', detail: '21.4 °C' },
+      {
+        key: 'meeting',
+        label: 'Meeting room',
+        value: '780 ppm',
+        status: 'warning',
+        detail: 'Ventilate soon',
+      },
+      { key: 'server', label: 'Server room', value: 'OK', status: 'ok', detail: '19.8 °C' },
+      {
+        key: 'roof',
+        label: 'Roof node',
+        value: 'Offline',
+        status: 'offline',
+        detail: 'Last seen 06:12',
+      },
+    ],
+  },
+  {
+    at: '2026-08-28T07:10:00Z',
+    temperature: 22.1,
+    temperatureDelta: 0.7,
+    temperatureTrend: 'up',
+    co2: 905,
+    humidity: 47,
+    battery: 71,
+    co2Series: [465, 510, 575, 640, 660, 605, 590, 618, 905],
+    sensors: [
+      { key: 'lobby', label: 'Lobby', value: 'OK', status: 'ok', detail: '22.1 °C' },
+      {
+        key: 'meeting',
+        label: 'Meeting room',
+        value: '1180 ppm',
+        status: 'critical',
+        detail: 'Open a window',
+      },
+      { key: 'server', label: 'Server room', value: 'OK', status: 'ok', detail: '19.9 °C' },
+      {
+        key: 'roof',
+        label: 'Roof node',
+        value: 'Offline',
+        status: 'offline',
+        detail: 'Last seen 06:12',
+      },
+    ],
+  },
+  {
+    at: '2026-08-28T07:25:00Z',
+    temperature: 21.8,
+    temperatureDelta: 0.3,
+    temperatureTrend: 'down',
+    co2: 640,
+    humidity: 45,
+    battery: 71,
+    co2Series: [510, 575, 640, 660, 605, 590, 618, 905, 640],
+    sensors: [
+      { key: 'lobby', label: 'Lobby', value: 'OK', status: 'ok', detail: '21.8 °C' },
+      {
+        key: 'meeting',
+        label: 'Meeting room',
+        value: '690 ppm',
+        status: 'ok',
+        detail: 'Back in range',
+      },
+      { key: 'server', label: 'Server room', value: 'OK', status: 'ok', detail: '19.9 °C' },
+      { key: 'roof', label: 'Roof node', value: 'OK', status: 'ok', detail: 'Reconnected 07:18' },
+    ],
+  },
+];
+
+/* --------------------------------------------------------------------- *
+ * Showcase — electronic shelf label
+ * --------------------------------------------------------------------- */
+
+export interface ShelfProduct {
+  /** Segment value in the product picker. */
+  id: string;
+  name: string;
+  /** Pack size line under the name. */
+  detail: string;
+  /** Current price in euros. */
+  price: number;
+  /** Previous price — the change marker turns a price drop into a cue. */
+  prevPrice: number;
+  /** Reference price line, e.g. "€ 12.90 / kg". */
+  perUnit: string;
+  /** Exactly two label tags, patched in place on product switch. */
+  tags: [string, string];
+  sku: string;
+  /** Encoded in the QR code. */
+  url: string;
+}
+
+export const SHELF_PRODUCTS: ShelfProduct[] = [
+  {
+    id: 'espresso',
+    name: 'Espresso Beans',
+    detail: 'Whole beans · 1 kg',
+    price: 12.9,
+    prevPrice: 14.5,
+    perUnit: '€ 12.90 / kg',
+    tags: ['Arabica', 'Fair trade'],
+    sku: 'EP-1041',
+    url: 'https://epaper-components.dev/showcase/?sku=EP-1041',
+  },
+  {
+    id: 'oat-milk',
+    name: 'Oat Milk Barista',
+    detail: 'UHT · 1 L',
+    price: 2.19,
+    prevPrice: 1.99,
+    perUnit: '€ 2.19 / L',
+    tags: ['Vegan', 'Organic'],
+    sku: 'EP-2087',
+    url: 'https://epaper-components.dev/showcase/?sku=EP-2087',
+  },
+  {
+    id: 'chocolate',
+    name: 'Dark Chocolate 85%',
+    detail: 'Bar · 100 g',
+    price: 2.49,
+    prevPrice: 2.49,
+    perUnit: '€ 24.90 / kg',
+    tags: ['Single origin', 'Bio'],
+    sku: 'EP-3123',
+    url: 'https://epaper-components.dev/showcase/?sku=EP-3123',
+  },
+];
+
 export const INSTALL_SNIPPETS = {
   npm: 'npm install @marcomattes/epaper-components',
   pnpm: 'pnpm add @marcomattes/epaper-components',

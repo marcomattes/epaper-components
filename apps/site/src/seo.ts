@@ -379,6 +379,9 @@ export function routeMarkdown(route: Route, opts: { version: string; stars: stri
       lines.push(
         '## Live showcase',
         '',
+        '- Scripted AI chat rendering rich replies — tables, sparklines, meters, tags — as e-paper-safe chat content.',
+        '- Office-climate wall dashboard with statistics, a CO2 change marker, a sparkline, a battery meter and a sensor status board.',
+        '- Electronic shelf label with a product picker, price change marker and QR code, updated by surgical attribute patches.',
         '- Form-associated custom-element form with validation and FormData output.',
         '- Sortable/selectable data table.',
         '- Calendar month view with event markers.',
