@@ -13,6 +13,7 @@ import {
   html,
   intAttr,
   numAttr,
+  observeItems,
   onGlobal,
   patchAttr,
   patchBoolAttr,
@@ -23,6 +24,9 @@ import {
   syncEyebrowTitle,
   type EyebrowTitleRefs,
 } from './dom';
+
+/** Wait a turn so the `queueMicrotask` inside `observeItems` has run. */
+const flush = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
 
 /** Detached element carrying the given attributes, for the *Attr readers. */
 const elWith = (attrs: Record<string, string>): HTMLElement => {
@@ -703,5 +707,166 @@ describe('cloneItemBody', () => {
     target.innerHTML = 'stale';
     cloneItemBody(carrier(''), target);
     expect(target.innerHTML).toBe('');
+  });
+});
+
+describe('observeItems', () => {
+  it('syncs once for a childList change and coalesces a burst into one call', async () => {
+    const host = document.createElement('div');
+    let calls = 0;
+    observeItems(host, () => {
+      calls++;
+    });
+    host.append(document.createElement('span'), document.createElement('span'));
+    await flush();
+    expect(calls).toBe(1);
+    host.remove();
+  });
+
+  it('ignores an attribute change when no attributeFilter is given', async () => {
+    const host = document.createElement('div');
+    const child = document.createElement('span');
+    host.appendChild(child);
+    let calls = 0;
+    observeItems(host, () => {
+      calls++;
+    });
+    child.setAttribute('data-x', 'y');
+    await flush();
+    expect(calls).toBe(0);
+    host.remove();
+  });
+
+  it('honours a named attributeFilter and ignores attributes outside it', async () => {
+    const host = document.createElement('div');
+    const item = document.createElement('div');
+    host.appendChild(item);
+    let calls = 0;
+    observeItems(host, () => calls++, { attributeFilter: ['term'] });
+
+    item.setAttribute('data-other', 'x');
+    await flush();
+    expect(calls).toBe(0);
+
+    item.setAttribute('term', 'x');
+    await flush();
+    expect(calls).toBe(1);
+    host.remove();
+  });
+
+  it('attributeFilter: true watches every attribute, including on descendants', async () => {
+    const host = document.createElement('div');
+    const item = document.createElement('div');
+    const link = document.createElement('a');
+    item.appendChild(link);
+    host.appendChild(item);
+    let calls = 0;
+    observeItems(host, () => calls++, { attributeFilter: true });
+
+    // An attribute change on a descendant of the item, not the item itself.
+    link.setAttribute('href', '/new');
+    await flush();
+    expect(calls).toBe(1);
+    host.remove();
+  });
+
+  it('isOutput drops a batch that only touches the rendered subtree', async () => {
+    const host = document.createElement('div');
+    const output = document.createElement('div');
+    host.appendChild(output);
+    let calls = 0;
+    observeItems(host, () => calls++, { isOutput: (n) => output.contains(n) });
+
+    output.appendChild(document.createElement('span'));
+    await flush();
+    expect(calls).toBe(0);
+    host.remove();
+  });
+
+  it('a genuine edit after mount still syncs', async () => {
+    const host = document.createElement('div');
+    const output = document.createElement('div');
+    host.appendChild(output);
+    const item = document.createElement('div');
+    host.appendChild(item);
+    let calls = 0;
+    observeItems(host, () => calls++, {
+      attributeFilter: true,
+      isOutput: (n) => output.contains(n),
+    });
+
+    item.setAttribute('title', 'A');
+    await flush();
+    expect(calls).toBe(1);
+    host.remove();
+  });
+
+  // Regression for a fragile self-write contract: `observer.takeRecords()`
+  // used to run before `sync()`, so it could never drain what sync itself
+  // just wrote. A sync that mutates the observed subtree (with no `isOutput`
+  // to exclude it) used to re-trigger itself forever, one microtask at a
+  // time. If this test hangs, the loop is back.
+  it('does not loop when sync mutates the observed subtree and there is no isOutput', async () => {
+    const host = document.createElement('div');
+    const item = document.createElement('div');
+    host.appendChild(item);
+    let calls = 0;
+    const sync = (): void => {
+      calls++;
+      item.setAttribute('data-n', String(calls));
+    };
+    observeItems(host, sync, { attributeFilter: ['data-n'] });
+
+    item.setAttribute('data-n', 'trigger');
+    await flush();
+    await flush();
+    await flush();
+    expect(calls).toBe(1);
+    host.remove();
+  });
+
+  // Same bug, the other shape the finding called out: `isOutput` is present,
+  // but the self-write lands on the authored carrier itself (not "output")
+  // using an attribute name the filter is watching.
+  it('does not loop when sync writes a watched attribute onto the carrier, even with isOutput', async () => {
+    const host = document.createElement('div');
+    const output = document.createElement('div');
+    host.appendChild(output);
+    const carrier = document.createElement('div');
+    host.appendChild(carrier);
+    let calls = 0;
+    const sync = (): void => {
+      calls++;
+      carrier.setAttribute('data-flag', String(calls));
+    };
+    observeItems(host, sync, {
+      attributeFilter: ['data-flag'],
+      isOutput: (n) => output.contains(n),
+    });
+
+    carrier.setAttribute('data-flag', 'trigger');
+    await flush();
+    await flush();
+    await flush();
+    expect(calls).toBe(1);
+    host.remove();
+  });
+
+  it('stops syncing once disconnected through runCleanups', async () => {
+    const host = document.createElement('div');
+    const item = document.createElement('div');
+    host.appendChild(item);
+    let calls = 0;
+    observeItems(host, () => calls++, { attributeFilter: ['term'] });
+
+    item.setAttribute('term', 'a');
+    await flush();
+    expect(calls).toBe(1);
+
+    runCleanups(host);
+    item.setAttribute('term', 'b');
+    await flush();
+    expect(calls).toBe(1);
+    host.remove();
   });
 });

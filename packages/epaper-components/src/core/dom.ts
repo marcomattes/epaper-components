@@ -148,12 +148,30 @@ export function onGlobal(
  *
  * Two things make it safe to observe a host that also renders into itself:
  *
- * - `isOutput` marks the component's own rendered subtree. Records whose
- *   target sits inside it are dropped, so a sync never re-triggers itself.
- *   Without this the observer would loop on its own writes.
- * - Surviving records are coalesced into one `sync()` per microtask, so a
- *   burst of appends repaints once rather than once per item — the same
- *   reasoning as the patch helpers below.
+ * - `isOutput` marks the component's own rendered subtree. An incoming batch
+ *   of records that only touches it is dropped, so it never even schedules a
+ *   sync.
+ * - Whatever `sync` itself writes — into the rendered output, or directly
+ *   onto an authored carrier (e.g. hiding it with `display: none`, or an
+ *   attribute `attributeFilter` is watching) — is drained with
+ *   `observer.takeRecords()` right after `sync()` returns, still inside the
+ *   same microtask. That empties the observer's pending record queue before
+ *   the browser's own "notify mutation observers" step gets a chance to run,
+ *   so those self-caused records never reach this callback and can't
+ *   schedule a follow-up sync. This is what actually makes a sync loop-proof:
+ *   `isOutput` alone cannot, since a self-write that lands on the carrier
+ *   itself isn't "output" and would otherwise come back as a normal,
+ *   `relevant` record in some future callback.
+ *
+ * Records that survive both of the above are coalesced into one `sync()` per
+ * microtask, so a burst of appends repaints once rather than once per item —
+ * the same reasoning as the patch helpers below.
+ *
+ * `attributeFilter` accepts either a list of attribute names to watch, or
+ * `true` to watch every attribute in the subtree. Pass `true` when an edit
+ * worth reacting to can land anywhere inside an item's markup — e.g. an
+ * `href` on a link inside its default-slot content — rather than only on
+ * the item element's own named attributes.
  *
  * The observer is disconnected through the host's cleanup registry, so a
  * component that already calls `runCleanups(this)` in `disconnectedCallback`
@@ -162,7 +180,7 @@ export function onGlobal(
 export function observeItems(
   host: HTMLElement,
   sync: () => void,
-  opts: { attributeFilter?: string[]; isOutput?: (node: Node) => boolean } = {},
+  opts: { attributeFilter?: string[] | true; isOutput?: (node: Node) => boolean } = {},
 ): MutationObserver {
   const { attributeFilter, isOutput } = opts;
   let queued = false;
@@ -174,9 +192,10 @@ export function observeItems(
     queued = true;
     queueMicrotask(() => {
       queued = false;
-      // Drop anything `sync` itself wrote, so the next real edit starts clean.
-      observer.takeRecords();
       sync();
+      // Drain records `sync()` itself just produced before the browser's own
+      // microtask can deliver them back to this callback — see doc comment.
+      observer.takeRecords();
     });
   });
 
@@ -184,7 +203,9 @@ export function observeItems(
     childList: true,
     subtree: true,
     characterData: true,
-    ...(attributeFilter ? { attributes: true, attributeFilter } : {}),
+    ...(attributeFilter
+      ? { attributes: true, ...(attributeFilter === true ? {} : { attributeFilter }) }
+      : {}),
   });
   addCleanup(host, () => observer.disconnect());
   return observer;

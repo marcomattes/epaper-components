@@ -714,6 +714,20 @@ describe('data-carrier children stay reactive', () => {
     expect(rows()[0]).toBe(first);
   });
 
+  it('e-timeline re-renders when a descendant attribute changes inside the item body', async () => {
+    const el = mount<HTMLElement>(
+      `<e-timeline><e-timeline-item time="08:00" title="A"><a href="/old">Link</a></e-timeline-item></e-timeline>`,
+    );
+    const bodyLink = () => el.querySelector<HTMLAnchorElement>('.ink-timeline__body a')!;
+    expect(bodyLink().getAttribute('href')).toBe('/old');
+
+    // The attribute change lands on the <a> inside the item's slotted body,
+    // not on the item's own time/title/variant attributes.
+    el.querySelector('a')!.setAttribute('href', '/new');
+    await flush();
+    expect(bodyLink().getAttribute('href')).toBe('/new');
+  });
+
   it('e-description-list adds, patches and drops pairs as its items change', async () => {
     const el = mount<HTMLElement>(
       `<e-description-list><e-desc-item term="Status">Shipped</e-desc-item></e-description-list>`,
@@ -745,6 +759,20 @@ describe('data-carrier children stay reactive', () => {
     await flush();
     expect(pairs()).toHaveLength(1);
     expect(pairs()[0]).toBe(first);
+  });
+
+  it('e-description-list re-renders when a descendant attribute changes inside the item detail', async () => {
+    const el = mount<HTMLElement>(
+      `<e-description-list><e-desc-item term="Status"><a href="/old">Track</a></e-desc-item></e-description-list>`,
+    );
+    const detailLink = () => el.querySelector<HTMLAnchorElement>('.ink-desc-list__detail a')!;
+    expect(detailLink().getAttribute('href')).toBe('/old');
+
+    // The attribute change lands on the <a> inside the item's slotted detail,
+    // not on the item's own `term` attribute.
+    el.querySelector('a')!.setAttribute('href', '/new');
+    await flush();
+    expect(detailLink().getAttribute('href')).toBe('/new');
   });
 
   it('e-breadcrumb re-roles the trail as items are added and removed', async () => {
