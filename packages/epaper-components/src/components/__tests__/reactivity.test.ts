@@ -9,6 +9,9 @@ beforeAll(async () => {
   await import('../checkbox/checkbox');
   await import('../toggle/toggle');
   await import('../checkbox-group/checkbox-group');
+  await import('../radio-group/radio-group');
+  await import('../tabs/tabs');
+  await import('../steps/steps');
   await import('../segmented/segmented');
   await import('../alert/alert');
   await import('../dialog/dialog');
@@ -714,6 +717,20 @@ describe('data-carrier children stay reactive', () => {
     expect(rows()[0]).toBe(first);
   });
 
+  it('e-timeline re-renders when a descendant attribute changes inside the item body', async () => {
+    const el = mount<HTMLElement>(
+      `<e-timeline><e-timeline-item time="08:00" title="A"><a href="/old">Link</a></e-timeline-item></e-timeline>`,
+    );
+    const bodyLink = () => el.querySelector<HTMLAnchorElement>('.ink-timeline__body a')!;
+    expect(bodyLink().getAttribute('href')).toBe('/old');
+
+    // The attribute change lands on the <a> inside the item's slotted body,
+    // not on the item's own time/title/variant attributes.
+    el.querySelector('a')!.setAttribute('href', '/new');
+    await flush();
+    expect(bodyLink().getAttribute('href')).toBe('/new');
+  });
+
   it('e-description-list adds, patches and drops pairs as its items change', async () => {
     const el = mount<HTMLElement>(
       `<e-description-list><e-desc-item term="Status">Shipped</e-desc-item></e-description-list>`,
@@ -745,6 +762,20 @@ describe('data-carrier children stay reactive', () => {
     await flush();
     expect(pairs()).toHaveLength(1);
     expect(pairs()[0]).toBe(first);
+  });
+
+  it('e-description-list re-renders when a descendant attribute changes inside the item detail', async () => {
+    const el = mount<HTMLElement>(
+      `<e-description-list><e-desc-item term="Status"><a href="/old">Track</a></e-desc-item></e-description-list>`,
+    );
+    const detailLink = () => el.querySelector<HTMLAnchorElement>('.ink-desc-list__detail a')!;
+    expect(detailLink().getAttribute('href')).toBe('/old');
+
+    // The attribute change lands on the <a> inside the item's slotted detail,
+    // not on the item's own `term` attribute.
+    el.querySelector('a')!.setAttribute('href', '/new');
+    await flush();
+    expect(detailLink().getAttribute('href')).toBe('/new');
   });
 
   it('e-breadcrumb re-roles the trail as items are added and removed', async () => {
@@ -940,5 +971,144 @@ describe('data-carrier children stay reactive', () => {
 
     el.remove();
     targets.remove();
+  });
+
+  it('e-select tracks options added and relabelled', async () => {
+    const el = mount<HTMLElement>(
+      `<e-select value="a"><e-option value="a" label="A"></e-option></e-select>`,
+    );
+    const rows = (): HTMLElement[] => [...el.querySelectorAll<HTMLElement>('.ink-select__option')];
+    expect(rows()).toHaveLength(1);
+    const first = rows()[0];
+
+    const late = document.createElement('e-option');
+    late.setAttribute('value', 'b');
+    late.setAttribute('label', 'B');
+    el.appendChild(late);
+    await flush();
+    expect(rows()).toHaveLength(2);
+    expect(rows()[0]).toBe(first); // the existing row keeps its identity
+    expect(rows()[1].textContent).toBe('B');
+    expect(late.style.display).toBe('none');
+
+    late.setAttribute('label', 'B2');
+    await flush();
+    expect(rows()[1].textContent).toBe('B2');
+
+    late.remove();
+    await flush();
+    expect(rows()).toHaveLength(1);
+    expect(rows()[0]).toBe(first);
+  });
+
+  it('e-checkbox-group tracks options added and relabelled', async () => {
+    const el = mount<HTMLElement>(
+      `<e-checkbox-group value="a"><e-cbox-option value="a" label="A"></e-cbox-option></e-checkbox-group>`,
+    );
+    const rows = (): HTMLElement[] => [...el.querySelectorAll<HTMLElement>('label.ink-checkbox')];
+    expect(rows()).toHaveLength(1);
+    const first = rows()[0];
+
+    const late = document.createElement('e-cbox-option');
+    late.setAttribute('value', 'b');
+    late.setAttribute('label', 'B');
+    el.appendChild(late);
+    await flush();
+    expect(rows()).toHaveLength(2);
+    expect(rows()[0]).toBe(first);
+    expect(rows()[1].textContent).toBe('B');
+    expect(late.style.display).toBe('none');
+
+    late.setAttribute('label', 'B2');
+    await flush();
+    expect(rows()[1].textContent).toBe('B2');
+
+    late.remove();
+    await flush();
+    expect(rows()).toHaveLength(1);
+    expect(rows()[0]).toBe(first);
+  });
+
+  it('e-radio-group tracks options added and relabelled', async () => {
+    const el = mount<HTMLElement>(
+      `<e-radio-group value="a"><e-radio value="a" label="A"></e-radio></e-radio-group>`,
+    );
+    const rows = (): HTMLElement[] => [...el.querySelectorAll<HTMLElement>('label.ink-radio')];
+    expect(rows()).toHaveLength(1);
+    const first = rows()[0];
+
+    const late = document.createElement('e-radio');
+    late.setAttribute('value', 'b');
+    late.setAttribute('label', 'B');
+    el.appendChild(late);
+    await flush();
+    expect(rows()).toHaveLength(2);
+    expect(rows()[0]).toBe(first);
+    expect(rows()[1].textContent).toBe('B');
+    expect(late.style.display).toBe('none');
+
+    late.setAttribute('label', 'B2');
+    await flush();
+    expect(rows()[1].textContent).toBe('B2');
+
+    late.remove();
+    await flush();
+    expect(rows()).toHaveLength(1);
+    expect(rows()[0]).toBe(first);
+  });
+
+  it('e-tabs tracks tabs added and relabelled', async () => {
+    const el = mount<HTMLElement>(`<e-tabs><e-tab key="a" label="A">Alpha</e-tab></e-tabs>`);
+    const buttons = (): HTMLButtonElement[] => [
+      ...el.querySelectorAll<HTMLButtonElement>('.ink-tabs__tab'),
+    ];
+    expect(buttons()).toHaveLength(1);
+    const first = buttons()[0];
+
+    const late = document.createElement('e-tab');
+    late.setAttribute('key', 'b');
+    late.setAttribute('label', 'B');
+    late.textContent = 'Beta';
+    el.appendChild(late);
+    await flush();
+    expect(buttons()).toHaveLength(2);
+    expect(buttons()[0]).toBe(first); // the existing button keeps its identity
+    expect(buttons()[1].textContent).toBe('B');
+    expect(el.querySelector('[data-panel="b"]')!.textContent).toBe('Beta');
+    expect(late.style.display).toBe('none');
+
+    late.setAttribute('label', 'B2');
+    await flush();
+    expect(buttons()[1].textContent).toBe('B2');
+
+    late.remove();
+    await flush();
+    expect(buttons()).toHaveLength(1);
+    expect(buttons()[0]).toBe(first);
+  });
+
+  it('e-steps tracks steps added and retitled', async () => {
+    const el = mount<HTMLElement>(`<e-steps><e-step title="Plan"></e-step></e-steps>`);
+    const rows = (): HTMLElement[] => [...el.querySelectorAll<HTMLElement>('.ink-steps__item')];
+    expect(rows()).toHaveLength(1);
+    const first = rows()[0];
+
+    const late = document.createElement('e-step');
+    late.setAttribute('title', 'Build');
+    el.appendChild(late);
+    await flush();
+    expect(rows()).toHaveLength(2);
+    expect(rows()[0]).toBe(first);
+    expect(rows()[1].querySelector('.ink-steps__title')!.textContent).toBe('Build');
+    expect(late.style.display).toBe('none');
+
+    late.setAttribute('title', 'Build2');
+    await flush();
+    expect(rows()[1].querySelector('.ink-steps__title')!.textContent).toBe('Build2');
+
+    late.remove();
+    await flush();
+    expect(rows()).toHaveLength(1);
+    expect(rows()[0]).toBe(first);
   });
 });

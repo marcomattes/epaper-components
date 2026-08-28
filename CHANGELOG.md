@@ -42,6 +42,58 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `target`/`rel`/`external` on `<e-link>`, `ordered` on `<e-list>`, a
   configurable `threshold` on `<e-sparkline>`, and `variant`/`size` on
   `<e-badge>`, `placement`/`inverted` on `<e-ribbon>`.
+- `<e-agenda>`: day and week agenda on a real time axis. Entries are drawn as
+  blocks whose height is their actual duration, and the free time between two
+  of them is labelled ("Free until 14:00") instead of left blank, so a glance
+  at a panel answers "what is next and when am I free" without counting grid
+  lines. An entry without a `start` time is listed as an all-day entry above
+  the axis. Like `<e-last-updated>`, the component owns no timer: the "now"
+  marker is drawn only when the `now` attribute is set, and moves only when
+  the host rewrites it from an existing refresh cycle.
+- `CalendarEvent` gained optional `start`, `end` and `status` fields. The
+  addition is backwards compatible — `date` and `title` stay required, and
+  `<e-calendar>` ignores the new fields — so one dataset now feeds both the
+  month grid and the agenda.
+- `<e-calendar>` fires `e-month-change` (`{value: 'YYYY-MM', year, month}`)
+  when the displayed month moves, by the header steppers or by keyboard
+  navigation crossing a month boundary. Hosts that hold one month of data at a
+  time can load the next one and write it back to `events`.
+- `<e-event-log>`: data-driven, keyed event and alarm list. Rows are identified
+  by `id`, so a new event is inserted as a single node and an existing row is
+  patched in place rather than the whole list being re-rendered — the
+  difference between a partial refresh of one row and a full-page GC16 flash.
+  `max-items` bounds what is rendered without discarding what was handed in;
+  `appendEntries()`, `acknowledge(id)` and `clear()` drive it from script. It
+  replaces the `<e-timeline>` / `<e-list>` / `<e-table>` improvisations that
+  live logs used before.
+- `<e-price>`: retail price with the major unit set large and the minor unit
+  small and raised. Formatting goes through `Intl`, so the currency symbol
+  lands where the locale puts it; `original` renders a struck-through previous
+  price, `unit-price`/`unit` a base price, and `size` scales the block from a
+  1.5" shelf label to a 10" panel.
+- `<e-barcode>`: EAN-13, EAN-8, UPC-A and Code 128 rendered as inline SVG by a
+  self-contained encoder, built the same way as `<e-qrcode>` — zero runtime
+  dependencies, one white rect plus one dark path, `shape-rendering="crispEdges"`.
+  A missing check digit is computed, a wrong one is reported instead of printed.
+- `<e-rating>`: star or smiley rating, form-associated, with 48px touch targets
+  and full keyboard control (arrows, `Home`/`End`, digit keys). An unrated
+  control submits an empty value, so `required` behaves as it does natively.
+- `<e-slider>`: range slider with a 28×36 grip, a printed value readout and
+  optional tick marks. The first component to style `input[type='range']`, and
+  the readout is not decoration: a thumb position alone is unreadable on a
+  panel without sub-pixel rendering.
+- `<e-pin-input>`: fixed-length code entry as separate digit boxes with
+  auto-advance, `inputmode="numeric"`, a `masked` option and paste support.
+- `<e-signature>`: signature pad on a canvas. The result is submitted as a PNG
+  `File` and a restored file is drawn back onto the canvas; `clear()` wipes it
+  and `fallback-text` covers a browser without a 2D context.
+- `<e-keypad>`: on-screen numeric keypad for kiosk browsers with no operating
+  system keyboard. It is a form control in its own right and mirrors every key
+  into the control named by `for`.
+- `core/format.ts`: `formatMoneyParts()` and `formatUnitPrice()`, which return the
+  formatted amount together with the parts a price display sets separately
+  (major, minor, decimal separator, symbol and which side it belongs on).
+- `core/date.ts`: `parseHM()` and `hm()` for `HH:MM` times.
 
 ### Changed
 
@@ -109,6 +161,33 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   alongside the `SoftwareSourceCode` node every page already carried.
 - `/index.md` and `llms.txt` mirror the expanded cover copy, so the markdown
   alternate an answer engine reads is no longer thinner than the HTML page.
+- `observeItems()` drains the records a sync itself produced after that sync
+  runs rather than before it, so a sync that writes onto an authored carrier
+  can no longer schedule itself again. `isOutput` is what keeps an
+  output-only batch from scheduling a sync in the first place; it was never
+  what made a sync loop-proof, though the comment said so.
+- `observeItems()`'s `attributeFilter` accepts `true` for "every attribute in
+  the subtree". `<e-timeline>` and `<e-description-list>` use it, so editing
+  an `href` or `src` inside an item's slotted markup now re-renders it.
+  **Behaviour change:** those two components previously ignored such an edit,
+  contrary to what their carrier documentation promised.
+- `<e-select>`, `<e-checkbox-group>`, `<e-radio-group>`, `<e-tabs>` and
+  `<e-steps>` track their data carriers after mount, like every other
+  child-driven component. They read `<e-option>`, `<e-cbox-option>`,
+  `<e-radio>`, `<e-tab>` and `<e-step>` once at connect and never again, so an
+  entry appended or edited later never appeared and the host had to re-mount
+  the element — the full repaint the surgical-update rule exists to avoid.
+  `<e-step status>` is the clearest case: a step whose status changes over
+  time is what the component is for.
+  **Breaking:** the carriers are no longer consumed. They stay in the DOM,
+  hidden with `display: none`, because the observer needs them — the same
+  contract `<e-timeline>` and `<e-description-list>` already had. Code that
+  counted the group's children, or asserted that the carriers were gone after
+  connect, sees them now. Rendered output is unchanged.
+  **Breaking:** `<e-checkbox-group>` re-derives its selection from `value` on
+  reconnect, so a box toggled natively while the group was disconnected — and
+  therefore unobserved — is discarded instead of surviving into the next
+  reported value.
 
 ### Fixed
 
@@ -126,65 +205,49 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - `<e-qrcode>` applied a changed `label` even when the geometry was unchanged;
   the update was previously swallowed by the cached-SVG guard.
 
-- `<e-agenda>`: day and week agenda on a real time axis. Entries are drawn as
-  blocks whose height is their actual duration, and the free time between two
-  of them is labelled ("Free until 14:00") instead of left blank, so a glance
-  at a panel answers "what is next and when am I free" without counting grid
-  lines. An entry without a `start` time is listed as an all-day entry above
-  the axis. Like `<e-last-updated>`, the component owns no timer: the "now"
-  marker is drawn only when the `now` attribute is set, and moves only when
-  the host rewrites it from an existing refresh cycle.
-- `CalendarEvent` gained optional `start`, `end` and `status` fields. The
-  addition is backwards compatible — `date` and `title` stay required, and
-  `<e-calendar>` ignores the new fields — so one dataset now feeds both the
-  month grid and the agenda.
-- `<e-calendar>` fires `e-month-change` (`{value: 'YYYY-MM', year, month}`)
-  when the displayed month moves, by the header steppers or by keyboard
-  navigation crossing a month boundary. Hosts that hold one month of data at a
-  time can load the next one and write it back to `events`.
-- `<e-event-log>`: data-driven, keyed event and alarm list. Rows are identified
-  by `id`, so a new event is inserted as a single node and an existing row is
-  patched in place rather than the whole list being re-rendered — the
-  difference between a partial refresh of one row and a full-page GC16 flash.
-  `max-items` bounds what is rendered without discarding what was handed in;
-  `appendEntries()`, `acknowledge(id)` and `clear()` drive it from script. It
-  replaces the `<e-timeline>` / `<e-list>` / `<e-table>` improvisations that
-  live logs used before.
-- `<e-price>`: retail price with the major unit set large and the minor unit
-  small and raised. Formatting goes through `Intl`, so the currency symbol
-  lands where the locale puts it; `original` renders a struck-through previous
-  price, `unit-price`/`unit` a base price, and `size` scales the block from a
-  1.5" shelf label to a 10" panel.
-- `<e-barcode>`: EAN-13, EAN-8, UPC-A and Code 128 rendered as inline SVG by a
-  self-contained encoder, built the same way as `<e-qrcode>` — zero runtime
-  dependencies, one white rect plus one dark path, `shape-rendering="crispEdges"`.
-  A missing check digit is computed, a wrong one is reported instead of printed.
-- `<e-rating>`: star or smiley rating, form-associated, with 48px touch targets
-  and full keyboard control (arrows, `Home`/`End`, digit keys). An unrated
-  control submits an empty value, so `required` behaves as it does natively.
-- `<e-slider>`: range slider with a 28×36 grip, a printed value readout and
-  optional tick marks. The first component to style `input[type='range']`, and
-  the readout is not decoration: a thumb position alone is unreadable on a
-  panel without sub-pixel rendering.
-- `<e-pin-input>`: fixed-length code entry as separate digit boxes with
-  auto-advance, `inputmode="numeric"`, a `masked` option and paste support.
-- `<e-signature>`: signature pad on a canvas. The result is submitted as a PNG
-  `File` and a restored file is drawn back onto the canvas; `clear()` wipes it
-  and `fallback-text` covers a browser without a 2D context.
-- `<e-keypad>`: on-screen numeric keypad for kiosk browsers with no operating
-  system keyboard. It is a form control in its own right and mirrors every key
-  into the control named by `for`.
-- `core/format.ts`: `formatMoney()` and `formatUnitPrice()`, which return the
-  formatted amount together with the parts a price display sets separately
-  (major, minor, decimal separator, symbol and which side it belongs on).
-- `core/date.ts`: `parseHM()` and `hm()` for `HH:MM` times.
-
 - `<e-calendar>`: on narrow containers the week grid lost its column
   alignment — a bare `1fr` column floors at the content's min-content
   width, so a long `white-space: nowrap` event label widened its column
   and, because every week row is its own grid, rows stopped lining up.
   Columns now use `minmax(0, 1fr)`, keeping all seven equal at every
   width; long event labels truncate with an ellipsis instead.
+- `<e-table>` disambiguated a duplicate row key to `<key>#<index>` without
+  checking that form against the keys already taken, so data keyed
+  `["a", "a#2", "a"]` put two rows on one `<tr>`: the table rendered a row
+  short and the middle row's data was lost.
+- `formatDate()` read a date-only `YYYY-MM-DD` string with the `Date`
+  constructor, which parses it as UTC midnight while `Intl` renders in the
+  viewer's zone — west of UTC the day before. It now goes through `parseYMD`,
+  which builds a local date. Reachable from `<e-table>`'s `format: 'date'`
+  columns, which pass cell strings straight through. **Behaviour change:** a
+  page west of UTC that shows date-only strings will render them one day
+  later than it did, which is the correct day.
+- `<e-signature>`: `pen-width` was observed and documented but never
+  re-applied to the canvas context, so changing it after mount did nothing. A
+  disabled pad also had no cue of its own — invisible on a greyscale panel —
+  and now carries the hatch every other control uses, while `readonly` gets a
+  dashed border so the cue does not sit over the captured ink. A restored
+  file's object URL is revoked when the element is removed.
+- `<e-agenda>` rewrote each block's class on every render, so every `now` tick
+  queued an attribute mutation for every block in every track when only the
+  marker had moved.
+- `<e-statistic>` read `percent` and `grouping` with `hasAttribute`, so
+  `percent="false"` switched percent mode on. **Behaviour change:** both now
+  follow the `boolAttr` convention and `="false"` turns the mode off.
+- Eleven components wrote English straight into rendered output, three of them
+  against string-table keys that already existed and were unused. Most of it
+  was invisible from a diff because only the accessible name was localised and
+  the visible text was not: `<e-barcode>` painted its error states in English
+  in every locale, and a German board read "▲ Gestiegen um 0,6 from 21,8".
+  `<e-slider>` now formats its value and scale through `formatNumber`, so a
+  fractional `step` prints "0,5" rather than "0.5" on a German page. The
+  English defaults are unchanged.
+- `<e-status-pill>`'s built-in vocabulary moved into the string table, so
+  `setLocaleStrings()` can translate it. The per-instance `statuses` and
+  `label` overrides still merge over it unchanged.
+- `<e-qrcode>` built its error state by concatenating markup. Both
+  interpolations were escaped, so it was not injectable, but the sink is gone:
+  it is built with DOM APIs and `textContent`, like `<e-barcode>`.
 
 ## [1.2.0] — 2026-08-25
 

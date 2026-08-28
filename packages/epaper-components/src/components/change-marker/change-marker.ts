@@ -122,9 +122,11 @@ export class EChangeMarker extends HTMLElement {
     const suffix = this.getAttribute('suffix') || '';
     // Hoisted out of both return templates: nesting a conditional template inside
     // another is the shape Sonar flags, and both branches built it identically.
-    const fromPrevious = showPrevious ? ` from ${prefix}${this._format(previous!)}${suffix}` : '';
+    const fromPrevious = showPrevious
+      ? ` ${t(this, 'from')} ${prefix}${this._format(previous!)}${suffix}`
+      : '';
     if (direction === 'changed') {
-      return `≠ Changed${fromPrevious}`;
+      return `≠ ${t(this, 'changed')}${fromPrevious}`;
     }
     const delta = Number(value) - Number(previous);
     const precision = this._precision();

@@ -1416,3 +1416,97 @@ describe('form association · agenda, retail and kiosk controls', () => {
     expect(form.querySelector<HTMLButtonElement>('.ink-signature .ink-btn')!.disabled).toBe(true);
   });
 });
+
+/* ===================================================================== *
+ * v1.3.x — observeItems migration: the option-driven controls keep their
+ * own `value` and required-validity, unaffected by an unrelated option
+ * being added or edited after mount.
+ * ===================================================================== */
+
+interface StringControl extends HTMLElement {
+  value: string;
+  checkValidity(): boolean;
+}
+
+describe('option-driven controls keep value and validity across an unrelated option change', () => {
+  it('e-select keeps its selection and required validity', async () => {
+    const form = mount(
+      `<form>
+        <e-select name="s" value="a" required>
+          <e-option value="a" label="A"></e-option>
+        </e-select>
+       </form>`,
+    );
+    const el = form.querySelector<StringControl>('e-select')!;
+    expect(el.value).toBe('a');
+    expect(el.checkValidity()).toBe(true);
+
+    const extra = document.createElement('e-option');
+    extra.setAttribute('value', 'b');
+    extra.setAttribute('label', 'B');
+    el.appendChild(extra);
+    await settle();
+    expect(el.value).toBe('a');
+    expect(new FormData(form).get('s')).toBe('a');
+    expect(el.checkValidity()).toBe(true);
+
+    extra.setAttribute('label', 'B2');
+    await settle();
+    expect(el.value).toBe('a');
+    expect(el.checkValidity()).toBe(true);
+  });
+
+  it('e-checkbox-group keeps its selection and required validity', async () => {
+    const form = mount(
+      `<form>
+        <e-checkbox-group name="g" value="a" required>
+          <e-cbox-option value="a" label="A"></e-cbox-option>
+        </e-checkbox-group>
+       </form>`,
+    );
+    const el = form.querySelector<StringControl>('e-checkbox-group')!;
+    expect(el.value).toBe('a');
+    expect(el.checkValidity()).toBe(true);
+
+    const extra = document.createElement('e-cbox-option');
+    extra.setAttribute('value', 'b');
+    extra.setAttribute('label', 'B');
+    el.appendChild(extra);
+    await settle();
+    expect(el.value).toBe('a');
+    expect(new FormData(form).getAll('g')).toEqual(['a']);
+    expect(el.checkValidity()).toBe(true);
+
+    extra.setAttribute('label', 'B2');
+    await settle();
+    expect(el.value).toBe('a');
+    expect(el.checkValidity()).toBe(true);
+  });
+
+  it('e-radio-group keeps its selection and required validity', async () => {
+    const form = mount(
+      `<form>
+        <e-radio-group name="r" value="a" required>
+          <e-radio value="a" label="A"></e-radio>
+        </e-radio-group>
+       </form>`,
+    );
+    const el = form.querySelector<StringControl>('e-radio-group')!;
+    expect(el.value).toBe('a');
+    expect(el.checkValidity()).toBe(true);
+
+    const extra = document.createElement('e-radio');
+    extra.setAttribute('value', 'b');
+    extra.setAttribute('label', 'B');
+    el.appendChild(extra);
+    await settle();
+    expect(el.value).toBe('a');
+    expect(new FormData(form).get('r')).toBe('a');
+    expect(el.checkValidity()).toBe(true);
+
+    extra.setAttribute('label', 'B2');
+    await settle();
+    expect(el.value).toBe('a');
+    expect(el.checkValidity()).toBe(true);
+  });
+});

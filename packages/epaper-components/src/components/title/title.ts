@@ -1,4 +1,5 @@
 import { boolAttr, define, intAttr, patchAttr } from '../../core/dom';
+import { t } from '../../core/i18n';
 
 /** German umlauts and ß transliterate before the accent strip, not through it. */
 const TRANSLITERATE: Record<string, string> = {
@@ -177,7 +178,7 @@ export class ETitle extends HTMLElement {
     patchAttr(
       this._anchor,
       'aria-label',
-      this.getAttribute('anchor-label') || 'Link to this section',
+      this.getAttribute('anchor-label') || t(this, 'linkToSection'),
     );
     if (this._anchor.parentElement !== h) h.appendChild(this._anchor);
   }

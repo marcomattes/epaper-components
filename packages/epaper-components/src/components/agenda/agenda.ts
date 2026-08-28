@@ -387,7 +387,10 @@ export class EAgenda extends HTMLElement {
         element.append(time, label);
         track.insertBefore(element, marker);
       }
-      element.className = block.kind === 'gap' ? 'ink-agenda__gap' : 'ink-agenda__block';
+      // Every `now` tick re-runs this for every block; an unconditional write
+      // would queue an attribute mutation on each one even when unchanged.
+      const className = block.kind === 'gap' ? 'ink-agenda__gap' : 'ink-agenda__block';
+      if (element.className !== className) element.className = className;
       element.style.top = `${block.top}%`;
       element.style.height = `${block.height}%`;
       patchAttr(element, 'data-status', block.status);

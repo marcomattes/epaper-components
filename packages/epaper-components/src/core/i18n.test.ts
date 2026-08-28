@@ -53,6 +53,59 @@ describe('setLocaleStrings', () => {
   });
 });
 
+describe('new component vocabulary added alongside e-barcode, e-status-pill and friends', () => {
+  it('keeps the English defaults components already pin', () => {
+    const table = strings(el());
+    expect(table.rating).toBe('Rating');
+    expect(table.decimalSeparator).toBe('Decimal separator');
+    expect(table.changed).toBe('Changed');
+    expect(table.from).toBe('from');
+    expect(table.onThisPage).toBe('ON THIS PAGE');
+    expect(table.inPageNavigation).toBe('In-page navigation');
+    expect(table.linkToSection).toBe('Link to this section');
+    expect(table.anyFileType).toBe('ANY FILE TYPE');
+    expect(table.statusOk).toBe('OK');
+    expect(table.statusWarning).toBe('Warning');
+    expect(table.statusCritical).toBe('Critical');
+    expect(table.statusOffline).toBe('Offline');
+    expect(table.statusNeutral).toBe('Neutral');
+  });
+
+  it('ships a German translation for every added key', () => {
+    const table = strings(el('<span locale="de"></span>'));
+    expect(table.rating).toBe('Bewertung');
+    expect(table.changed).toBe('Geändert');
+    expect(table.from).toBe('von');
+    expect(table.statusWarning).toBe('Warnung');
+    expect(table.statusCritical).toBe('Kritisch');
+  });
+
+  it('interpolates the e-barcode messages', () => {
+    expect(t(el(), 'barcodeLabel', { format: 'EAN13', value: '4006381333931' })).toBe(
+      'EAN13 barcode 4006381333931',
+    );
+    expect(t(el(), 'barcodeNeedsDigits', { format: 'EAN13', min: 12, max: 13 })).toBe(
+      'EAN13 needs 12 or 13 digits.',
+    );
+    expect(t(el(), 'barcodeCheckDigit', { found: '0', expected: '1' })).toBe(
+      'Check digit is 0, expected 1.',
+    );
+    expect(t(el(), 'code128CannotEncode', { char: 'ü' })).toBe(
+      'Code 128 cannot encode character "ü".',
+    );
+  });
+
+  it('interpolates the e-sparkline threshold phrase', () => {
+    expect(t(el(), 'sparklineThreshold', { state: t(el(), 'thresholdAbove'), threshold: 5 })).toBe(
+      '; above threshold 5',
+    );
+  });
+
+  it('interpolates the e-qrcode messages', () => {
+    expect(t(el(), 'qrCodeFor', { value: 'hello' })).toBe('QR code for hello');
+  });
+});
+
 describe('label', () => {
   it('lets a per-instance attribute win over the locale table', () => {
     expect(label(el('<span prev-label="Vorherige"></span>'), 'prev-label', 'previous')).toBe(

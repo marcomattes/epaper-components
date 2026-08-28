@@ -96,6 +96,36 @@ describe('formatDate', () => {
     expect(formatDate(el('<span locale="en-US"></span>'), '2026-08-28')).not.toBe('');
   });
 
+  it('parses a date-only string as the local calendar day, not UTC midnight', () => {
+    // Regression: `new Date('2026-08-28')` parses as UTC midnight, and Intl
+    // then renders that instant in the viewer's local zone — anywhere west of
+    // UTC the date printed as the day before. A date-only string must land on
+    // the same day as the equivalent local `Date`, in any time zone, so this
+    // compares the two rather than hard-coding an offset.
+    const opts: Intl.DateTimeFormatOptions = { year: 'numeric', month: '2-digit', day: '2-digit' };
+    const fromString = formatDate(el('<span locale="en-CA"></span>'), '2026-08-28', opts);
+    const fromLocalDate = formatDate(
+      el('<span locale="en-CA"></span>'),
+      new Date(2026, 7, 28),
+      opts,
+    );
+    expect(fromString).toBe(fromLocalDate);
+    expect(fromString).toBe('2026-08-28');
+  });
+
+  it('keeps a full timestamp on its own instant rather than routing it through parseYMD', () => {
+    // Only a bare YYYY-MM-DD is date-only; a timestamp already carries a zone
+    // and must keep the `Date` constructor's normal behaviour.
+    expect(
+      formatDate(el('<span locale="en-US"></span>'), '2026-08-28T23:30:00Z', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        timeZone: 'UTC',
+      }),
+    ).toBe('08/28/2026');
+  });
+
   it('falls back to ISO rather than throwing on a malformed locale', () => {
     // Intl rejects a malformed language tag outright; a display component must
     // not take the page down over a typo in an attribute.
@@ -140,6 +170,16 @@ describe('weekdayLabels', () => {
 
   it('localizes', () => {
     expect(weekdayLabels(el('<span locale="de-DE"></span>'), 1, 'short')[0]).toContain('Mo');
+  });
+
+  it('round-trips the long format through the join/split separator', () => {
+    // The separator between joining and splitting is `\0`, chosen because a
+    // weekday label can itself contain a space (unlike `narrow`/`short`, the
+    // `long` format is the one most likely to). Seven labels in, seven out.
+    const labels = weekdayLabels(el('<span locale="en-US"></span>'), 0, 'long');
+    expect(labels).toHaveLength(7);
+    expect(labels[0]).toBe('Sunday');
+    expect(labels[6]).toBe('Saturday');
   });
 
   it('falls back to the English narrow set on a malformed locale', () => {

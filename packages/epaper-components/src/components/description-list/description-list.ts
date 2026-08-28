@@ -66,7 +66,10 @@ export class EDescriptionList extends HTMLElement {
     }
     this._sync();
     observeItems(this, this._sync, {
-      attributeFilter: ['term'],
+      // `true` rather than `['term']`: an attribute edit inside the item's
+      // slotted detail markup (e.g. an `<a href>`) must also re-clone it, and
+      // that can land on any attribute of any descendant, not just `term`.
+      attributeFilter: true,
       isOutput: (n) => this._dl?.contains(n) ?? false,
     });
   }

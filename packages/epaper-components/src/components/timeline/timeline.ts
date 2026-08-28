@@ -66,7 +66,10 @@ export class ETimeline extends HTMLElement {
     }
     this._sync();
     observeItems(this, this._sync, {
-      attributeFilter: ['time', 'title', 'variant'],
+      // `true` rather than a named list: an attribute edit inside the item's
+      // slotted body (e.g. an `<a href>`) must also re-clone it, and that can
+      // land on any attribute of any descendant, not just time/title/variant.
+      attributeFilter: true,
       isOutput: (n) => this._list?.contains(n) ?? false,
     });
   }

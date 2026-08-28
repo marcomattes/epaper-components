@@ -60,7 +60,7 @@ export const ROUTES: Route[] = [
     // only page that spelled "e-ink" next to "web components" in prose.
     title: 'EPaper — E-Ink Web Components for E-Paper Displays',
     description:
-      'EPaper is an open-source library of 71 e-ink web components: vanilla custom elements for e-paper (eink) displays, with surgical DOM updates, no animations, no :hover and no Shadow DOM. 40 KB gzipped, MIT licensed.',
+      'EPaper is an open-source library of 81 e-ink web components: vanilla custom elements for e-paper (eink) displays, with surgical DOM updates, no animations, no :hover and no Shadow DOM. 58 KB brotli, MIT licensed.',
     heading: 'Web components for e-ink & e-paper.',
     folio: '01',
   },
@@ -78,7 +78,7 @@ export const ROUTES: Route[] = [
     path: '/components/',
     dir: 'components',
     nav: 'Components',
-    title: 'Components — All 71 EPaper custom elements',
+    title: 'Components — All 81 EPaper custom elements',
     description:
       'The complete EPaper component inventory for e-paper and e-ink displays: buttons, inputs, pickers, tables, calendars and layout primitives, each shipped as a standalone custom element you can import on its own.',
     heading: 'Every component, one tile each.',

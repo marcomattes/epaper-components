@@ -91,6 +91,11 @@ export const COMPONENTS: ComponentEntry[] = [
   { name: 'Timeline', tag: 'e-timeline', category: 'display' },
   { name: 'Popover', tag: 'e-popover', category: 'display' },
   { name: 'Tree', tag: 'e-tree', category: 'display' },
+  { name: 'Agenda', tag: 'e-agenda', category: 'display' },
+  { name: 'Barcode', tag: 'e-barcode', category: 'display' },
+  { name: 'EventLog', tag: 'e-event-log', category: 'display' },
+  { name: 'Price', tag: 'e-price', category: 'display' },
+  { name: 'StatusPill', tag: 'e-status-pill', category: 'display' },
   // Inputs
   { name: 'Input', tag: 'e-input', category: 'inputs' },
   { name: 'InputNumber', tag: 'e-input-number', category: 'inputs' },
@@ -105,6 +110,11 @@ export const COMPONENTS: ComponentEntry[] = [
   { name: 'TimePicker', tag: 'e-time-picker', category: 'inputs' },
   { name: 'Toggle', tag: 'e-toggle', category: 'inputs' },
   { name: 'Chip', tag: 'e-chip', category: 'inputs' },
+  { name: 'Keypad', tag: 'e-keypad', category: 'inputs' },
+  { name: 'PinInput', tag: 'e-pin-input', category: 'inputs' },
+  { name: 'Rating', tag: 'e-rating', category: 'inputs' },
+  { name: 'Signature', tag: 'e-signature', category: 'inputs' },
+  { name: 'Slider', tag: 'e-slider', category: 'inputs' },
   // Layout
   { name: 'Layout', tag: 'e-layout', category: 'layout' },
   { name: 'Flex', tag: 'e-flex', category: 'layout' },
@@ -190,7 +200,7 @@ export const FEATURES: FeatureCard[] = [
  * first sentence has to stand alone as the answer to "what is this".
  */
 export const HOME_INTRO: string[] = [
-  'EPaper is an open-source library of e-ink web components: 71 vanilla custom elements built for electrophoretic (e-ink, also spelled eink) panels rather than backlit screens. Every element is plain HTML — `<e-button>`, `<e-table>`, `<e-date-picker>` — so an e-paper dashboard, an electronic shelf label or a meeting-room display is written the way a web page is written, with no framework and no build plugin.',
+  'EPaper is an open-source library of e-ink web components: 81 vanilla custom elements built for electrophoretic (e-ink, also spelled eink) panels rather than backlit screens. Every element is plain HTML — `<e-button>`, `<e-table>`, `<e-date-picker>` — so an e-paper dashboard, an electronic shelf label or a meeting-room display is written the way a web page is written, with no framework and no build plugin.',
   'Web components suit e-ink precisely because the platform does the work. A custom element owns the DOM it renders, so it can patch a single text node when a value changes instead of rebuilding a subtree — and on an e-paper panel the size of that change *is* the cost of the refresh. Every component here is written to that constraint, and the ones that take input participate in `<form>` natively through `ElementInternals`.',
   'None of it requires an e-ink device. The components render normally on any screen; the constraints the medium imposes — no animation, no hover, high contrast — simply produce a stark, print-like interface that also suits kiosks, embedded panels and low-distraction reading UIs.',
 ];

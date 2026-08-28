@@ -1,5 +1,6 @@
 import { define, numAttr, patchAttr, patchText } from '../../core/dom';
 import { SVG_NS } from '../../core/icons';
+import { t } from '../../core/i18n';
 
 type SparklineTrend = 'up' | 'down' | 'flat';
 
@@ -12,6 +13,12 @@ const TREND_META: Record<SparklineTrend, { text: string; glyph: string }> = {
 /** Where the latest reading sits relative to the configured threshold. */
 type ThresholdState = 'above' | 'below' | 'at';
 
+const THRESHOLD_KEY: Record<ThresholdState, 'thresholdAbove' | 'thresholdBelow' | 'thresholdAt'> = {
+  above: 'thresholdAbove',
+  below: 'thresholdBelow',
+  at: 'thresholdAt',
+};
+
 const thresholdState = (value: number, threshold: number): ThresholdState => {
   if (value > threshold) return 'above';
   return value < threshold ? 'below' : 'at';
@@ -19,6 +26,7 @@ const thresholdState = (value: number, threshold: number): ThresholdState => {
 
 /** Accessible summary of the series: label, latest value and trend, or "No data". */
 function sparklineAriaLabel(
+  el: Element,
   label: string,
   hasData: boolean,
   lastValue: number | undefined,
@@ -28,7 +36,10 @@ function sparklineAriaLabel(
 ): string {
   const prefix = label ? `${label}: ` : '';
   if (!hasData) return `${prefix}No data`;
-  const limit = threshold != null && state ? `; ${state} threshold ${threshold}` : '';
+  const limit =
+    threshold != null && state
+      ? t(el, 'sparklineThreshold', { state: t(el, THRESHOLD_KEY[state]), threshold })
+      : '';
   return `${prefix}${lastValue}; ${trendText.toLowerCase()}${limit}`;
 }
 
@@ -220,7 +231,7 @@ export class ESparkline extends HTMLElement {
     patchAttr(
       this,
       'aria-label',
-      sparklineAriaLabel(label, hasData, lastValue, trendText, threshold, state),
+      sparklineAriaLabel(this, label, hasData, lastValue, trendText, threshold, state),
     );
     patchAttr(this._root, 'data-trend', trend);
     patchAttr(this._root, 'data-threshold', state);
