@@ -16,15 +16,19 @@ const TRANSLITERATE: Record<string, string> = {
  * selector, `#h-2026-bilanz` is.
  */
 export function slugifyTitle(raw: string): string {
-  const base = raw
+  const collapsed = raw
     .toLowerCase()
-    .replace(/[äöüß]/g, (c) => TRANSLITERATE[c] ?? c)
+    .replaceAll(/[äöüß]/g, (c) => TRANSLITERATE[c] ?? c)
     .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .replaceAll(/[\u0300-\u036f]/g, '')
+    .replaceAll(/[^a-z\d]+/g, '-');
+  // Trimming with `/^-+|-+$/` is O(n^2) on a long run of separators: the engine
+  // backtracks the `+` from every start position. The collapse above already
+  // guarantees separators never repeat, so one unquantified character at each
+  // end is both sufficient and linear.
+  const base = collapsed.replace(/^-/, '').replace(/-$/, '');
   if (!base) return '';
-  return /^[0-9]/.test(base) ? `h-${base}` : base;
+  return /^\d/.test(base) ? `h-${base}` : base;
 }
 
 /**

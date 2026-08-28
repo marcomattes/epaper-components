@@ -55,7 +55,7 @@ describe('XSS prevention', () => {
   for (const payload of XSS_PAYLOADS) {
     it(`e-date-picker value does not inject HTML: ${payload.slice(0, 30)}`, () => {
       const el = mount(
-        `<e-date-picker value="${payload.replace(/"/g, '&quot;')}"></e-date-picker>`,
+        `<e-date-picker value="${payload.replaceAll('"', '&quot;')}"></e-date-picker>`,
       );
       expectNoInjection(el);
       el.remove();
@@ -63,7 +63,7 @@ describe('XSS prevention', () => {
 
     it(`e-date-picker placeholder does not inject HTML: ${payload.slice(0, 30)}`, () => {
       const el = mount(
-        `<e-date-picker placeholder="${payload.replace(/"/g, '&quot;')}"></e-date-picker>`,
+        `<e-date-picker placeholder="${payload.replaceAll('"', '&quot;')}"></e-date-picker>`,
       );
       expectNoInjection(el);
       el.remove();
@@ -140,25 +140,25 @@ describe('XSS prevention', () => {
 
   for (const payload of XSS_PAYLOADS) {
     it(`e-alert heading does not inject HTML: ${payload.slice(0, 30)}`, () => {
-      const el = mount(`<e-alert heading="${payload.replace(/"/g, '&quot;')}"></e-alert>`);
+      const el = mount(`<e-alert heading="${payload.replaceAll('"', '&quot;')}"></e-alert>`);
       expectNoInjection(el);
       expect(el.querySelector('.ink-alert__heading')!.textContent).toBe(payload);
     });
 
     it(`e-dialog heading does not inject HTML: ${payload.slice(0, 30)}`, () => {
-      const el = mount(`<e-dialog heading="${payload.replace(/"/g, '&quot;')}"></e-dialog>`);
+      const el = mount(`<e-dialog heading="${payload.replaceAll('"', '&quot;')}"></e-dialog>`);
       expectNoInjection(el);
       expect(el.querySelector('.ink-dialog__title')!.textContent).toBe(payload);
     });
 
     it(`e-popover heading does not inject HTML: ${payload.slice(0, 30)}`, () => {
-      const el = mount(`<e-popover heading="${payload.replace(/"/g, '&quot;')}"></e-popover>`);
+      const el = mount(`<e-popover heading="${payload.replaceAll('"', '&quot;')}"></e-popover>`);
       expectNoInjection(el);
       expect(el.querySelector('.ink-popover__heading')!.textContent).toBe(payload);
     });
 
     it(`e-popconfirm message and labels do not inject HTML: ${payload.slice(0, 30)}`, () => {
-      const escaped = payload.replace(/"/g, '&quot;');
+      const escaped = payload.replaceAll('"', '&quot;');
       const el = mount(
         `<e-popconfirm message="${escaped}" confirm-label="${escaped}" cancel-label="${escaped}"></e-popconfirm>`,
       );
@@ -169,14 +169,14 @@ describe('XSS prevention', () => {
 
     it(`e-collapse heading does not inject HTML: ${payload.slice(0, 30)}`, () => {
       const el = mount(
-        `<e-collapse><e-collapse-panel key="a" heading="${payload.replace(/"/g, '&quot;')}">b</e-collapse-panel></e-collapse>`,
+        `<e-collapse><e-collapse-panel key="a" heading="${payload.replaceAll('"', '&quot;')}">b</e-collapse-panel></e-collapse>`,
       );
       expectNoInjection(el);
       expect(el.querySelector('.ink-collapse__heading')!.textContent).toBe(payload);
     });
 
     it(`e-tree labels do not inject HTML: ${payload.slice(0, 30)}`, () => {
-      const data = JSON.stringify([{ value: 'a', label: payload }]).replace(/"/g, '&quot;');
+      const data = JSON.stringify([{ value: 'a', label: payload }]).replaceAll('"', '&quot;');
       const el = mount(`<e-tree data="${data}"></e-tree>`);
       expectNoInjection(el);
       expect(el.querySelector('.ink-tree__label')!.textContent).toBe(payload);
@@ -240,7 +240,7 @@ describe('XSS prevention — automated attribute sweep', () => {
     for (const attr of attrs) {
       for (const payload of XSS_PAYLOADS) {
         it(`${tag}[${attr}] does not inject HTML: ${payload.slice(0, 30)}`, () => {
-          const escaped = payload.replace(/"/g, '&quot;');
+          const escaped = payload.replaceAll('"', '&quot;');
           const el = mount(`<${tag} ${attr}="${escaped}"></${tag}>`);
           expectNoInjection(el);
           el?.remove();

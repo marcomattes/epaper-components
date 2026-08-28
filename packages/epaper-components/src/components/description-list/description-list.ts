@@ -53,7 +53,7 @@ export class EDescriptionList extends HTMLElement {
 
   private _wired = false;
   private _dl: HTMLElement | null = null;
-  private _pairs = new WeakMap<Element, DescPair>();
+  private readonly _pairs = new WeakMap<Element, DescPair>();
   private _keys: HTMLElement[] = [];
 
   connectedCallback() {

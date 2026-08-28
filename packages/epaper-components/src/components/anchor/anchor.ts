@@ -49,7 +49,7 @@ export class EAnchor extends HTMLElement {
   private _wired = false;
   private _nav: HTMLElement | null = null;
   private _list: HTMLElement | null = null;
-  private _links: HTMLAnchorElement[] = [];
+  private readonly _links: HTMLAnchorElement[] = [];
   private _scrollHandler: (() => void) | null = null;
   private _scrollFrame: number | null = null;
   private _items: AnchorEntry[] = [];
@@ -151,8 +151,8 @@ export class EAnchor extends HTMLElement {
     });
   };
 
-  private readonly _updateActive = (): void => {
-    const links = [...this.querySelectorAll<HTMLAnchorElement>('.ink-anchor__link')];
+  /** The last entry whose target has scrolled past the offset line. */
+  private _activeHref(): string | null | undefined {
     const offsetTop = Math.max(0, numAttr(this, 'offset-top', 80));
     let active = this._items[0]?.href;
     for (const item of this._items) {
@@ -160,14 +160,25 @@ export class EAnchor extends HTMLElement {
       const target = document.getElementById(item.href.slice(1));
       if (target && target.getBoundingClientRect().top - offsetTop <= 0) active = item.href;
     }
-    for (const link of links) {
+    return active;
+  }
+
+  private _paintActive(active: string | null | undefined): void {
+    for (const link of this.querySelectorAll<HTMLAnchorElement>('.ink-anchor__link')) {
       const current = link.getAttribute('href') === active;
       patchAttr(link, 'aria-current', current ? 'true' : null);
       const marker = link.querySelector('.ink-anchor__marker');
       if (marker) patchText(marker, current ? '▸ ' : '  ');
     }
+  }
+
+  private readonly _updateActive = (): void => {
+    const active = this._activeHref();
+    this._paintActive(active);
     const previous = this._active;
     this._active = active ?? null;
+    // `undefined` means "never painted", so the first highlight after mount is
+    // not reported as a change.
     if (previous !== undefined && previous !== this._active && this._active != null) {
       this.dispatchEvent(
         new CustomEvent('e-change', { detail: { value: this._active }, bubbles: true }),

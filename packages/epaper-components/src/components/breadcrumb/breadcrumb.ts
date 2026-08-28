@@ -108,7 +108,7 @@ export class EBreadcrumb extends HTMLElement {
         return;
       }
       const node = EBreadcrumb._makeSlot(slot);
-      if (cur) nav.replaceChild(node, cur);
+      if (cur) cur.replaceWith(node);
       else nav.appendChild(node);
     });
     while (nav.children.length > slots.length) nav.lastElementChild!.remove();

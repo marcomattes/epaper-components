@@ -52,37 +52,44 @@ const statusToken = (v: unknown): CellStatus => {
   return 'neutral';
 };
 
-const sanitizeColumns = (raw: unknown): ColumnDef[] => {
-  if (!Array.isArray(raw)) return [];
-  const out: ColumnDef[] = [];
-  for (const c of raw) {
-    if (!isObject(c)) continue;
-    const key = typeof c['key'] === 'string' ? c['key'] : '';
-    const title = typeof c['title'] === 'string' ? c['title'] : key;
-    if (!key) continue;
-    const align =
-      c['align'] === 'right' || c['align'] === 'center'
-        ? (c['align'] as 'right' | 'center')
-        : 'left';
-    const def: ColumnDef = {
-      key,
-      title,
-      sortable: c['sortable'] === true,
-      align,
-    };
-    if (typeof c['width'] === 'string') def.width = c['width'];
-    const format = c['format'];
-    if (format === 'number' || format === 'currency' || format === 'date') def.format = format;
-    if (typeof c['currency'] === 'string' && c['currency'] !== '') def.currency = c['currency'];
-    const precision = c['precision'];
-    if (typeof precision === 'number' && Number.isInteger(precision) && precision >= 0) {
-      def.precision = Math.min(20, precision);
-    }
-    if (c['type'] === 'status') def.type = 'status';
-    out.push(def);
+/**
+ * Copy the optional presentation fields across, each only when it is actually
+ * well-formed. Split out of `sanitizeColumn` so neither half carries the whole
+ * validation chain on its own.
+ */
+const applyColumnOptions = (def: ColumnDef, c: Record<string, unknown>): void => {
+  if (typeof c['width'] === 'string') def.width = c['width'];
+  const format = c['format'];
+  if (format === 'number' || format === 'currency' || format === 'date') def.format = format;
+  if (typeof c['currency'] === 'string' && c['currency'] !== '') def.currency = c['currency'];
+  const precision = c['precision'];
+  if (typeof precision === 'number' && Number.isInteger(precision) && precision >= 0) {
+    def.precision = Math.min(20, precision);
   }
-  return out;
+  if (c['type'] === 'status') def.type = 'status';
 };
+
+/** One column definition, or `null` when the entry is unusable. */
+const sanitizeColumn = (c: unknown): ColumnDef | null => {
+  if (!isObject(c)) return null;
+  const key = typeof c['key'] === 'string' ? c['key'] : '';
+  if (!key) return null;
+  const align =
+    c['align'] === 'right' || c['align'] === 'center' ? (c['align'] as 'right' | 'center') : 'left';
+  const def: ColumnDef = {
+    key,
+    title: typeof c['title'] === 'string' ? c['title'] : key,
+    sortable: c['sortable'] === true,
+    align,
+  };
+  applyColumnOptions(def, c);
+  return def;
+};
+
+const sanitizeColumns = (raw: unknown): ColumnDef[] =>
+  Array.isArray(raw)
+    ? raw.map((c) => sanitizeColumn(c)).filter((c): c is ColumnDef => c !== null)
+    : [];
 
 const sanitizeRows = (raw: unknown): Row[] => {
   if (!Array.isArray(raw)) return [];

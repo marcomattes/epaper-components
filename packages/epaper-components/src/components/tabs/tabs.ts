@@ -37,7 +37,9 @@ export class ETabs extends HTMLElement {
     return this._active;
   }
   set value(v: string) {
-    const key = v ?? '';
+    // A setter takes no default parameter, and callers reach this from plain
+    // JS where the declared type is not enforced.
+    const key = typeof v === 'string' ? v : '';
     if (this._wired) this._activate(key, false);
     else this.setAttribute('value', key);
   }

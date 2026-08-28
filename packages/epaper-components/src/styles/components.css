@@ -3340,15 +3340,12 @@ e-diff {
   display: inline-block;
   border: var(--ink-border);
   background: var(--ink-bg);
+  /* The SVG path paints with currentColor, so the wrapper pins the ink token
+     instead of inheriting whatever colour the host happens to set. */
+  color: var(--ink-fg);
   padding: var(--ink-space-2);
   line-height: 0;
   box-sizing: border-box;
-}
-
-/* Required: the SVG path paints with currentColor now, so the wrapper pins
-   the ink token instead of inheriting whatever colour the host happens to set. */
-.ink-qrcode {
-  color: var(--ink-fg);
 }
 .ink-qrcode svg {
   display: block;

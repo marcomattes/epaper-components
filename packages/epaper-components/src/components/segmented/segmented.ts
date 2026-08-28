@@ -39,7 +39,7 @@ export class ESegmented extends HTMLElement {
 
   private _wired = false;
   private _container: HTMLElement | null = null;
-  private _buttons: HTMLButtonElement[] = [];
+  private readonly _buttons: HTMLButtonElement[] = [];
 
   connectedCallback() {
     if (!this._wired) {

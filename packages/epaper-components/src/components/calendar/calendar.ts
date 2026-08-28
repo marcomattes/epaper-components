@@ -299,8 +299,8 @@ export class ECalendar extends HTMLElement {
     const template = this.getAttribute('eyebrow');
     if (template == null) return `CALENDAR · ${y}`;
     return template
-      .replace(/\{month\}/g, monthLabel(this, m, y, 'short'))
-      .replace(/\{year\}/g, String(y));
+      .replaceAll('{month}', monthLabel(this, m, y, 'short'))
+      .replaceAll('{year}', String(y));
   }
 
   private _patchGrid(): void {

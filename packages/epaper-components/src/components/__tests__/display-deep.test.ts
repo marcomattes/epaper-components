@@ -1996,7 +1996,7 @@ const collect = <T>(el: Element, type: string): T[] => {
 };
 
 /** `Intl` separates a percentage or a currency with a non-breaking space. */
-const nbsp = (s: string | null): string => (s ?? '').replace(/[\u00a0\u202f]/g, ' ');
+const nbsp = (s: string | null): string => (s ?? '').replaceAll(/[\u00a0\u202f]/g, ' ');
 
 const key = (el: Element, k: string): void => {
   el.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true }));
@@ -2277,8 +2277,9 @@ describe('e-pagination · localization and keyboard', () => {
   const summary = (el: HTMLElement): HTMLElement =>
     el.querySelector<HTMLElement>('.ink-pagination__summary')!;
   const next = (el: HTMLElement): HTMLButtonElement => {
-    const cells = el.querySelectorAll<HTMLButtonElement>('.ink-pagination__cell');
-    return cells[cells.length - 1]!;
+    // A NodeList has no `.at()`, in the DOM lib or at runtime — spread first.
+    const cells = [...el.querySelectorAll<HTMLButtonElement>('.ink-pagination__cell')];
+    return cells.at(-1)!;
   };
 
   it('names the controls in the declared locale', () => {

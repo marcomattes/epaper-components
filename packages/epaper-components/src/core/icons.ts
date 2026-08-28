@@ -125,11 +125,11 @@ export const SVG_NS = 'http://www.w3.org/2000/svg';
 
 const escAttr = (s: string): string =>
   s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
 
 /**
  * True when `name` is an own key of the icon registry. Uses `Object.hasOwn`

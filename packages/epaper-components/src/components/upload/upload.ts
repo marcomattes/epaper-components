@@ -132,29 +132,31 @@ export class EUpload extends BaseFormControl<File[]> {
 
   attributeChangedCallback(name: string, _old: string | null, v: string | null) {
     if (!this._input || !this._hint) return;
-    if (name === 'accept') {
-      const accept = v || '';
-      if (accept) this._input.setAttribute('accept', accept);
-      else this._input.removeAttribute('accept');
-      this._hint.textContent = accept ? `ACCEPTS · ${accept.toUpperCase()}` : 'ANY FILE TYPE';
-    } else if (name === 'multiple') {
-      if (boolAttr(this, 'multiple')) this._input.setAttribute('multiple', '');
-      else {
-        this._input.removeAttribute('multiple');
-        // Dropping to single-file mode discards the surplus files, which is a
-        // value change like any other and is announced as one.
-        if (this._value.length > 1) {
-          this._value = this._value.slice(0, 1);
-          this._rebuildList();
-          this._syncFormValue();
-          this._emitChange();
-        }
-      }
-    } else if (name === 'disabled') {
-      this._applyDisabled();
-    } else {
-      this._validate(this._value);
+    if (name === 'accept') this._applyAccept(v || '');
+    else if (name === 'multiple') this._applyMultiple();
+    else if (name === 'disabled') this._applyDisabled();
+    else this._validate(this._value);
+  }
+
+  private _applyAccept(accept: string): void {
+    if (accept) this._input!.setAttribute('accept', accept);
+    else this._input!.removeAttribute('accept');
+    this._hint!.textContent = accept ? `ACCEPTS · ${accept.toUpperCase()}` : 'ANY FILE TYPE';
+  }
+
+  private _applyMultiple(): void {
+    if (boolAttr(this, 'multiple')) {
+      this._input!.setAttribute('multiple', '');
+      return;
     }
+    this._input!.removeAttribute('multiple');
+    // Dropping to single-file mode discards the surplus files, which is a
+    // value change like any other and is announced as one.
+    if (this._value.length <= 1) return;
+    this._value = this._value.slice(0, 1);
+    this._rebuildList();
+    this._syncFormValue();
+    this._emitChange();
   }
 
   protected override resetValue(): void {

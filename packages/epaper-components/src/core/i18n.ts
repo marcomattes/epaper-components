@@ -108,7 +108,7 @@ export function t(
 ): string {
   const value = strings(el)[key];
   if (!vars) return value;
-  return value.replace(/\{(\w+)\}/g, (match, name: string) =>
+  return value.replaceAll(/\{(\w+)\}/g, (match, name: string) =>
     name in vars ? String(vars[name]) : match,
   );
 }

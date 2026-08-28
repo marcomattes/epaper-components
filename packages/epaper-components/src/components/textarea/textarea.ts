@@ -84,10 +84,24 @@ export class ETextarea extends BaseFormControl {
     const disabled = this.hasAttribute('disabled');
     const readonly = boolAttr(this, 'readonly');
     const required = boolAttr(this, 'required');
-    this.innerHTML = `${label ? `<label class="ink-label" for="${esc(id)}">${esc(label)}</label>` : ''}<textarea class="ink-control" id="${esc(id)}" placeholder="${esc(placeholder)}"
-      style="resize:vertical"
-      ${ariaLabel ? `aria-label="${esc(ariaLabel)}"` : ''}
-      ${error ? 'aria-invalid="true"' : ''} ${disabled ? 'disabled' : ''} ${readonly ? 'readonly' : ''} ${required ? 'required' : ''}>${esc(value)}</textarea>${hint ? `<div class="ink-hint">${esc(hint)}</div>` : ''}`;
+    // Concatenated rather than nested: `esc()` has to stay inline inside the
+    // template the local no-unescaped-innerhtml rule inspects, so hoisting the
+    // optional fragments into variables would blind that check (hard rule #1),
+    // while nesting them would breach no-nested-template-literals. Joining
+    // separate templates satisfies both.
+    const flags = [
+      ariaLabel ? `aria-label="${esc(ariaLabel)}"` : '',
+      error ? 'aria-invalid="true"' : '',
+      disabled ? 'disabled' : '',
+      readonly ? 'readonly' : '',
+      required ? 'required' : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+    this.innerHTML =
+      (label ? `<label class="ink-label" for="${esc(id)}">${esc(label)}</label>` : '') +
+      `<textarea class="ink-control" id="${esc(id)}" placeholder="${esc(placeholder)}" style="resize:vertical" ${flags}>${esc(value)}</textarea>` +
+      (hint ? `<div class="ink-hint">${esc(hint)}</div>` : '');
     this._ta = this.querySelector('textarea');
     this._label = this.querySelector('label.ink-label');
     this._hint = this.querySelector('.ink-hint');
@@ -124,36 +138,56 @@ export class ETextarea extends BaseFormControl {
     });
   }
 
+  // Split three ways purely to stay under the cognitive-complexity budget:
+  // one flat if-chain over this many observed attributes reads as one
+  // 20-branch function even though every branch is trivial.
   attributeChangedCallback(name: string, _old: string | null, v: string | null) {
     if (!this._ta) return;
+    this._applyValueAttr(name, v);
+    this._applyPresentationAttr(name, v);
+    this._applyConstraintAttr(name, v);
+  }
+
+  /** Attributes that change the submitted value or its validity. */
+  private _applyValueAttr(name: string, v: string | null): void {
+    const ta = this._ta!;
     if (name === 'value') {
-      if (this._ta.value !== (v ?? '')) this._ta.value = v ?? '';
+      if (ta.value !== (v ?? '')) ta.value = v ?? '';
       this._value = v ?? '';
       this.internals.setFormValue(this._value);
       this._syncValidity();
       this._syncCounter();
     }
-    if (name === 'aria-label') {
-      if (v) this._ta.setAttribute('aria-label', v);
-      else this._ta.removeAttribute('aria-label');
-    }
     if (name === 'error' || name === 'error-message') this._syncValidity();
+    if (name === 'required' || name === 'required-message') {
+      ta.required = boolAttr(this, 'required');
+      this._syncValidity();
+    }
+  }
+
+  /** Attributes that only change how the control presents itself. */
+  private _applyPresentationAttr(name: string, v: string | null): void {
+    const ta = this._ta!;
+    if (name === 'aria-label') {
+      if (v) ta.setAttribute('aria-label', v);
+      else ta.removeAttribute('aria-label');
+    }
     // Presence alone disables — the HTML spec governs `disabled` here.
-    if (name === 'disabled')
-      this._ta.disabled = this.hasAttribute('disabled') || this._formDisabled;
-    if (name === 'readonly') this._ta.readOnly = boolAttr(this, 'readonly');
-    if (name === 'placeholder') this._ta.placeholder = v ?? '';
+    if (name === 'disabled') ta.disabled = this.hasAttribute('disabled') || this._formDisabled;
+    if (name === 'readonly') ta.readOnly = boolAttr(this, 'readonly');
+    if (name === 'placeholder') ta.placeholder = v ?? '';
     if (name === 'label') this._syncLabel(v ?? '');
     if (name === 'hint') this._syncHint(v ?? '');
     if (name === 'rows') this._syncRows();
-    if (name === 'required' || name === 'required-message') {
-      this._ta.required = boolAttr(this, 'required');
-      this._syncValidity();
-    }
+  }
+
+  /** Attributes forwarded to the native textarea as-is. */
+  private _applyConstraintAttr(name: string, v: string | null): void {
     if (name === 'minlength' || name === 'maxlength') {
       this._syncNativeConstraint(name, v);
       this._syncValidity();
       if (name === 'maxlength') this._syncCounter();
+      return;
     }
     if (['autocomplete', 'inputmode', 'enterkeyhint', 'spellcheck'].includes(name)) {
       this._syncNativeConstraint(name, v);

@@ -114,7 +114,7 @@ export class EAvatarGroup extends HTMLElement {
 
   private _wired = false;
   private _group: HTMLElement | null = null;
-  private _avatarEls: HTMLElement[] = [];
+  private readonly _avatarEls: HTMLElement[] = [];
   private _overflowEl: HTMLElement | null = null;
 
   connectedCallback() {

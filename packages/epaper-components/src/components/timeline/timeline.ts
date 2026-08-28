@@ -52,7 +52,7 @@ export class ETimeline extends HTMLElement {
 
   private _wired = false;
   private _list: HTMLElement | null = null;
-  private _rows = new WeakMap<Element, TimelineRow>();
+  private readonly _rows = new WeakMap<Element, TimelineRow>();
   private _keys: HTMLElement[] = [];
 
   connectedCallback() {

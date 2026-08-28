@@ -59,7 +59,7 @@ function formatRun(run: string): string {
       // The href was escaped along with everything else, so an `&` in a query
       // string is `&amp;` by now. It is unescaped for the safety check and
       // then re-escaped as an attribute value.
-      .replace(/\[([^\]]{1,300})\]\(([^)\s]{1,2000})\)/g, (_m, label: string, href: string) => {
+      .replaceAll(/\[([^\]]{1,300})\]\(([^)\s]{1,2000})\)/g, (_m, label: string, href: string) => {
         const url = assertSafeHref(href.replaceAll('&amp;', '&'));
         const rel = /^https?:\/\//i.test(url) ? ' rel="noopener"' : '';
         return `<a class="ink-link" href="${esc(url)}"${rel}>${label}</a>`;
@@ -142,7 +142,7 @@ export function headingId(text: string): string {
   return text
     .toLowerCase()
     .replaceAll('`', '')
-    .replace(/[^a-z0-9]{1,300}/g, '-')
+    .replaceAll(/[^a-z0-9]{1,300}/g, '-')
     .replace(/^-{1,300}/, '')
     .replace(/-{1,300}$/, '');
 }
