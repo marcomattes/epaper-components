@@ -85,7 +85,7 @@ export const ROUTES: Route[] = [
     nav: 'Showcase',
     title: 'Showcase — EPaper chat, dashboards, shelf labels and forms in action',
     description:
-      'A live showcase of EPaper: a scripted AI chat with rich e-paper-safe replies, a sensor wall dashboard, an electronic shelf label, a form-associated form with validation, a sortable selectable table and a month calendar — all running as plain custom elements.',
+      'A live showcase of EPaper: a scripted AI chat with rich e-paper-safe replies, a sensor wall dashboard, an electronic shelf label, a meeting-room door sign, a parcel tracker, an e-reader page, a form-associated form with validation, a sortable selectable table and a month calendar — all running as plain custom elements.',
     heading: 'Live showcase.',
     folio: '04',
   },

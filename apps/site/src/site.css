@@ -633,6 +633,123 @@ body {
   margin: 0;
 }
 
+/* ---------- Showcase: room sign (page 4) ---------- */
+.site-room {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-4);
+  align-items: flex-start;
+}
+.site-room__device {
+  border: var(--ink-border-strong);
+  padding: var(--ink-space-4) var(--ink-space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-4);
+  width: 100%;
+  max-width: 560px;
+  box-sizing: border-box;
+}
+.site-room__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--ink-space-4);
+  border-bottom: var(--ink-border);
+  padding-bottom: var(--ink-space-3);
+}
+.site-room__name {
+  font-family: var(--ink-serif);
+  font-size: 26px;
+  line-height: 1.1;
+  margin: 0;
+}
+.site-room__sub {
+  font-size: var(--ink-text-body);
+  margin: var(--ink-space-1) 0 0;
+}
+/* The status pill: outlined when free, inverted when occupied — the state
+   is readable without color, from across a hallway. */
+.site-room__pill {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-small);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border: var(--ink-border-strong);
+  padding: 6px 14px;
+  margin: 0;
+  white-space: nowrap;
+}
+.site-room__pill[data-status='occupied'] {
+  background: var(--ink-bg-inverted);
+  color: var(--ink-fg-inverted);
+}
+.site-room__foot {
+  display: flex;
+  align-items: center;
+  gap: var(--ink-space-4);
+  border-top: var(--ink-border);
+  padding-top: var(--ink-space-3);
+}
+.site-room__hint {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-caption);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* ---------- Showcase: parcel tracking (page 4) ---------- */
+.site-track {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-4);
+  align-items: flex-start;
+  max-width: 720px;
+}
+.site-track__head {
+  width: 100%;
+}
+.site-track e-description-list,
+.site-track e-progress {
+  width: 100%;
+}
+
+/* ---------- Showcase: e-reader (page 4) ---------- */
+.site-reader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-4);
+  align-items: flex-start;
+}
+.site-reader__device {
+  border: var(--ink-border-strong);
+  padding: var(--ink-space-5) var(--ink-space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ink-space-4);
+  width: 100%;
+  max-width: 560px;
+  box-sizing: border-box;
+}
+.site-reader__chapter {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin: 0;
+}
+.site-reader__text {
+  font-family: var(--ink-serif);
+  font-size: var(--ink-text-prose);
+  line-height: 1.6;
+  margin: 0;
+  /* A fixed floor keeps the footer from jumping between short and long
+     pages — an e-reader's chrome never moves. */
+  min-height: 9.6em;
+}
+
 /* ---------- Footer (page 6) ---------- */
 .site-foot {
   border-top: var(--ink-border-strong);
@@ -786,6 +903,15 @@ e-site-pager {
   .site-shelf__device {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--ink-space-4);
+  }
+
+  /* Room sign and reader devices lose their side padding headroom. The
+     tracking steps already stack via the 900px .ink-steps rule above. */
+  .site-room__head {
+    flex-direction: column;
+  }
+  .site-reader__device {
+    padding: var(--ink-space-4);
   }
   .site-shelf__price {
     align-items: flex-start;

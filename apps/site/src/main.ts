@@ -12,7 +12,14 @@ import './site.css';
 // Side-effect import: registers <e-site-pager> via its own define() call.
 import './pager';
 import { esc } from '../../../packages/epaper-components/src/core/dom';
-import { DASH_READINGS, SHELF_PRODUCTS, type ComponentCategory } from './data';
+import {
+  DASH_READINGS,
+  READER_PAGES,
+  ROOM_SLOTS,
+  SHELF_PRODUCTS,
+  TRACKING_STAGES,
+  type ComponentCategory,
+} from './data';
 import {
   chatFallbackHtml,
   chatMessageHtml,
@@ -134,6 +141,9 @@ function wireShowcase(): void {
   wireChat();
   wireDashboard();
   wireShelf();
+  wireRoom();
+  wireTracking();
+  wireReader();
 }
 
 /* ---------- Scripted AI chat ---------- */
@@ -262,6 +272,84 @@ function wireShelf(): void {
     price?.setAttribute('value', p.price.toFixed(2));
 
     $('#shelf-qr')?.setAttribute('value', p.url);
+  });
+}
+
+/* ---------- Meeting-room door sign ---------- */
+function wireRoom(): void {
+  const clock = $('#room-clock');
+  if (!clock) return;
+
+  clock.addEventListener('e-change', (e) => {
+    const id = (e as CustomEvent<{ value: string }>).detail.value;
+    const slot = ROOM_SLOTS.find((s) => s.id === id);
+    if (!slot) return;
+
+    const pill = $('#room-status');
+    if (pill) {
+      if (pill.textContent !== slot.status) pill.textContent = slot.status;
+      if (pill.dataset['status'] !== slot.status) pill.dataset['status'] = slot.status;
+    }
+    const sub = document.querySelector('[data-room="sub"]');
+    if (sub && sub.textContent !== slot.sub) sub.textContent = slot.sub;
+
+    // The timeline renders its items once; the marker variant lives as a
+    // data attribute on each row, so a tick only repaints the markers.
+    const rows = document.querySelectorAll<HTMLElement>('#room-agenda .ink-timeline__item');
+    rows.forEach((row, i) => {
+      const variant = slot.agenda[i];
+      if (variant && row.dataset['variant'] !== variant) row.dataset['variant'] = variant;
+    });
+  });
+}
+
+/* ---------- Parcel tracking ---------- */
+function wireTracking(): void {
+  const advance = $('#track-advance');
+  if (!advance) return;
+
+  let index = 0;
+  advance.addEventListener('e-click', () => {
+    index = (index + 1) % TRACKING_STAGES.length;
+    const stage = TRACKING_STAGES[index];
+    if (!stage) return;
+
+    $('#track-steps')?.setAttribute('current', String(stage.step));
+
+    const location = $('#track-location');
+    if (location && location.textContent !== stage.location) {
+      location.textContent = stage.location;
+    }
+
+    const eta = $('#track-eta');
+    if (stage.etaPrev) eta?.setAttribute('previous', stage.etaPrev);
+    else eta?.removeAttribute('previous');
+    eta?.setAttribute('value', stage.eta);
+
+    $('#track-progress')?.setAttribute('value', String(stage.progress));
+
+    const result = $('#track-result');
+    if (result) result.hidden = !stage.delivered;
+  });
+}
+
+/* ---------- E-reader page ---------- */
+function wireReader(): void {
+  const pager = $('#reader-pager');
+  if (!pager) return;
+
+  pager.addEventListener('e-change', (e) => {
+    const current = (e as CustomEvent<{ value: number }>).detail.value;
+    const page = READER_PAGES[current - 1];
+    if (!page) return;
+
+    const chapter = document.querySelector('[data-reader="chapter"]');
+    if (chapter && chapter.textContent !== page.chapter) chapter.textContent = page.chapter;
+    const text = document.querySelector('[data-reader="text"]');
+    if (text && text.textContent !== page.text) text.textContent = page.text;
+
+    const percent = Math.round((current / READER_PAGES.length) * 100);
+    $('#reader-progress')?.setAttribute('value', String(percent));
   });
 }
 

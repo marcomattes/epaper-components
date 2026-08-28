@@ -413,6 +413,133 @@ export const SHELF_PRODUCTS: ShelfProduct[] = [
   },
 ];
 
+/* --------------------------------------------------------------------- *
+ * Showcase — meeting-room door sign
+ * --------------------------------------------------------------------- */
+
+export interface RoomAgendaEntry {
+  time: string;
+  title: string;
+  detail: string;
+}
+
+/** The day's agenda — rendered once; only the item variants get patched. */
+export const ROOM_AGENDA: RoomAgendaEntry[] = [
+  { time: '09:00', title: 'Stand-up', detail: 'Core team · 15 min' },
+  { time: '11:00', title: 'Design review', detail: 'EPaper V1.3 tokens' },
+  { time: '13:00', title: 'Customer call', detail: 'Kaleido rollout' },
+  { time: '16:00', title: 'Retro', detail: 'Sprint 42' },
+];
+
+export interface RoomSlot {
+  /** Segment value: the simulated wall-clock time. */
+  id: string;
+  status: 'free' | 'occupied';
+  /** Second line under the room name. */
+  sub: string;
+  /** Timeline marker variant per agenda entry, same order as ROOM_AGENDA. */
+  agenda: Array<'done' | 'default' | 'pending'>;
+}
+
+export const ROOM_SLOTS: RoomSlot[] = [
+  {
+    id: '08:30',
+    status: 'free',
+    sub: 'Next: Stand-up at 09:00',
+    agenda: ['pending', 'pending', 'pending', 'pending'],
+  },
+  {
+    id: '09:05',
+    status: 'occupied',
+    sub: 'Stand-up · until 09:15',
+    agenda: ['default', 'pending', 'pending', 'pending'],
+  },
+  {
+    id: '12:00',
+    status: 'free',
+    sub: 'Next: Customer call at 13:00',
+    agenda: ['done', 'done', 'pending', 'pending'],
+  },
+  {
+    id: '16:10',
+    status: 'occupied',
+    sub: 'Retro · until 17:00',
+    agenda: ['done', 'done', 'done', 'default'],
+  },
+];
+
+/* --------------------------------------------------------------------- *
+ * Showcase — parcel tracking
+ * --------------------------------------------------------------------- */
+
+/** The four steps of the shipment, rendered once into `<e-steps>`. */
+export const TRACKING_STEPS: Array<{ title: string; desc: string }> = [
+  { title: 'Ordered', desc: '28 Aug, 09:12' },
+  { title: 'Packed', desc: 'Fulfillment Leipzig' },
+  { title: 'In transit', desc: 'DHL · 00340 4344 71' },
+  { title: 'Delivered', desc: 'Against signature' },
+];
+
+export interface TrackingStage {
+  /** 0-based index into TRACKING_STEPS — the `current` of `<e-steps>`. */
+  step: number;
+  location: string;
+  /** Estimated delivery date; `etaPrev` drives the change cue when it moves. */
+  eta: string;
+  etaPrev?: string;
+  /** Route progress 0..100. */
+  progress: number;
+  delivered?: boolean;
+}
+
+/** "Advance shipment" cycles through these frames. */
+export const TRACKING_STAGES: TrackingStage[] = [
+  { step: 0, location: 'Web shop checkout', eta: '3 Sep', progress: 5 },
+  { step: 1, location: 'Fulfillment center Leipzig', eta: '3 Sep', progress: 25 },
+  { step: 2, location: 'Parcel hub Hannover', eta: '2 Sep', etaPrev: '3 Sep', progress: 70 },
+  {
+    step: 3,
+    location: 'Delivered · front desk',
+    eta: '2 Sep',
+    etaPrev: '3 Sep',
+    progress: 100,
+    delivered: true,
+  },
+];
+
+/* --------------------------------------------------------------------- *
+ * Showcase — e-reader page
+ * --------------------------------------------------------------------- */
+
+export interface ReaderPage {
+  chapter: string;
+  /** Public-domain excerpt (Lewis Carroll, Alice's Adventures in Wonderland, 1865). */
+  text: string;
+}
+
+export const READER_PAGES: ReaderPage[] = [
+  {
+    chapter: 'Chapter I · Down the Rabbit-Hole',
+    text: 'Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do: once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it, “and what is the use of a book,” thought Alice, “without pictures or conversations?”',
+  },
+  {
+    chapter: 'Chapter I · Down the Rabbit-Hole',
+    text: 'Down, down, down. Would the fall never come to an end? “I wonder how many miles I’ve fallen by this time?” she said aloud. “I must be getting somewhere near the centre of the earth.”',
+  },
+  {
+    chapter: 'Chapter II · The Pool of Tears',
+    text: '“Curiouser and curiouser!” cried Alice (she was so much surprised, that for the moment she quite forgot how to speak good English); “now I’m opening out like the largest telescope that ever was! Good-bye, feet!”',
+  },
+  {
+    chapter: 'Chapter VI · Pig and Pepper',
+    text: '“But I don’t want to go among mad people,” Alice remarked. “Oh, you can’t help that,” said the Cat: “we’re all mad here. I’m mad. You’re mad.” “How do you know I’m mad?” said Alice. “You must be,” said the Cat, “or you wouldn’t have come here.”',
+  },
+  {
+    chapter: 'Chapter XII · Alice’s Evidence',
+    text: '“Sentence first — verdict afterwards,” said the Queen. “Stuff and nonsense!” said Alice loudly. “The idea of having the sentence first!” At this the whole pack rose up into the air, and came flying down upon her.',
+  },
+];
+
 export const INSTALL_SNIPPETS = {
   npm: 'npm install @marcomattes/epaper-components',
   pnpm: 'pnpm add @marcomattes/epaper-components',

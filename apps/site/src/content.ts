@@ -27,9 +27,14 @@ import {
   FEATURES,
   IMPORT_SNIPPET,
   INSTALL_SNIPPETS,
+  READER_PAGES,
   ROADMAP,
   ROADMAP_INTRO,
+  ROOM_AGENDA,
+  ROOM_SLOTS,
   SHELF_PRODUCTS,
+  TRACKING_STAGES,
+  TRACKING_STEPS,
   TABLE_COLUMNS,
   TABLE_ROWS,
   USE_SNIPPET,
@@ -333,6 +338,119 @@ function shelfShowcase(): string {
             </div>`;
 }
 
+/**
+ * Panel: meeting-room door sign.
+ *
+ * The segmented control simulates the wall clock. Each tick patches the
+ * status pill, the sub-line and the agenda's marker variants — the timeline
+ * rows themselves are rendered once and never rebuilt.
+ */
+function roomShowcase(): string {
+  const slot = ROOM_SLOTS[1]!;
+  const segments = ROOM_SLOTS.map(
+    (s) => `<e-segment value="${esc(s.id)}" label="${esc(s.id)}"></e-segment>`,
+  ).join('');
+  const agenda = ROOM_AGENDA.map(
+    (a, i) => `
+                  <e-timeline-item time="${esc(a.time)}" title="${esc(a.title)}"
+                                   variant="${esc(slot.agenda[i] ?? 'pending')}">${esc(
+                                     a.detail,
+                                   )}</e-timeline-item>`,
+  ).join('');
+
+  return `
+            <div class="site-room">
+              <e-segmented id="room-clock" value="${esc(slot.id)}" aria-label="Simulated time">
+                ${segments}
+              </e-segmented>
+              <div class="site-room__device">
+                <header class="site-room__head">
+                  <div>
+                    <h3 class="site-room__name">Aurora · 4.2</h3>
+                    <p class="site-room__sub" data-room="sub">${esc(slot.sub)}</p>
+                  </div>
+                  <p class="site-room__pill" id="room-status" data-status="${esc(
+                    slot.status,
+                  )}">${esc(slot.status)}</p>
+                </header>
+                <e-timeline id="room-agenda">${agenda}
+                </e-timeline>
+                <footer class="site-room__foot">
+                  <e-qrcode value="https://epaper-components.dev/showcase/?book=aurora-4-2"
+                            scale="2"></e-qrcode>
+                  <p class="site-room__hint">Scan to book · 12 people · display &amp; whiteboard</p>
+                </footer>
+              </div>
+            </div>`;
+}
+
+/**
+ * Panel: parcel tracking.
+ *
+ * "Advance shipment" walks the fixed stages: the steps' `current`, the
+ * description-list details, the ETA change marker and the route progress
+ * are all attribute or text patches; the success result only appears on
+ * the final stage.
+ */
+function trackingShowcase(): string {
+  const stage = TRACKING_STAGES[0]!;
+  const steps = TRACKING_STEPS.map(
+    (s) => `<e-step title="${esc(s.title)}" description="${esc(s.desc)}"></e-step>`,
+  ).join('');
+
+  return `
+            <div class="site-track">
+              <div class="site-track__head">
+                <e-steps id="track-steps" current="${stage.step}" orientation="horizontal">
+                  ${steps}
+                </e-steps>
+              </div>
+              <e-description-list columns="2" bordered>
+                <e-desc-item term="Carrier">DHL Paket</e-desc-item>
+                <e-desc-item term="Tracking no.">00340 4344 71</e-desc-item>
+                <e-desc-item term="Last scan"><span id="track-location">${esc(
+                  stage.location,
+                )}</span></e-desc-item>
+                <e-desc-item term="Estimated delivery">
+                  <e-change-marker id="track-eta" value="${esc(stage.eta)}"
+                                   show-previous></e-change-marker>
+                </e-desc-item>
+              </e-description-list>
+              <e-progress id="track-progress" value="${stage.progress}"
+                          label="Route progress"></e-progress>
+              <e-result id="track-result" status="success" title="Delivered"
+                        description="Signed for at the front desk — 2 Sep, 10:41." hidden></e-result>
+              <e-button id="track-advance" variant="secondary">Advance shipment</e-button>
+            </div>`;
+}
+
+/**
+ * Panel: e-reader page.
+ *
+ * A page turn patches exactly three things — chapter line, text block and
+ * reading progress — which is the whole point of e-paper reading devices:
+ * the chrome never repaints, only the page does. Excerpts are public
+ * domain (Alice's Adventures in Wonderland, 1865).
+ */
+function readerShowcase(): string {
+  const page = READER_PAGES[0]!;
+
+  return `
+            <div class="site-reader">
+              <e-breadcrumb>
+                <e-breadcrumb-item title="Library"></e-breadcrumb-item>
+                <e-breadcrumb-item title="Lewis Carroll"></e-breadcrumb-item>
+                <e-breadcrumb-item title="Alice in Wonderland"></e-breadcrumb-item>
+              </e-breadcrumb>
+              <div class="site-reader__device">
+                <p class="site-reader__chapter" data-reader="chapter">${esc(page.chapter)}</p>
+                <p class="site-reader__text" data-reader="text">${esc(page.text)}</p>
+                <e-progress id="reader-progress" value="20" label="Reading progress"></e-progress>
+              </div>
+              <e-pagination id="reader-pager" current="1" total="${READER_PAGES.length}"></e-pagination>
+            </div>`;
+}
+
 function showcaseMain(route: Route): string {
   const tableCols = esc(JSON.stringify(TABLE_COLUMNS));
   const tableRows = esc(JSON.stringify(TABLE_ROWS));
@@ -341,10 +459,11 @@ function showcaseMain(route: Route): string {
   return `${pageHead(route)}
         <p class="site-lede">
           Every panel below is the shipped components, not screenshots. A scripted AI chat
-          renders rich replies — tables, sparklines, meters — as e-paper-safe chat content. The
-          dashboard and shelf label replay the two places e-paper actually ships, and the form,
-          table and calendar show <code>FormData</code>, sorting and events working as plain
-          custom elements.
+          renders rich replies — tables, sparklines, meters — as e-paper-safe chat content. Six
+          more panels replay the places e-paper actually ships: a sensor wall dashboard, an
+          electronic shelf label, a meeting-room door sign, a parcel tracker and an e-reader
+          page — plus the form, table and calendar showing <code>FormData</code>, sorting and
+          events as plain custom elements.
         </p>
 
         <e-tabs default-value="chat" id="showcase-tabs">
@@ -355,6 +474,15 @@ function showcaseMain(route: Route): string {
           </e-tab>
 
           <e-tab key="shelf" label="Shelf label">${shelfShowcase()}
+          </e-tab>
+
+          <e-tab key="room" label="Room sign">${roomShowcase()}
+          </e-tab>
+
+          <e-tab key="tracking" label="Tracking">${trackingShowcase()}
+          </e-tab>
+
+          <e-tab key="reader" label="Reader">${readerShowcase()}
           </e-tab>
           <e-tab key="form" label="Form">
             <e-form id="showcase-form">
