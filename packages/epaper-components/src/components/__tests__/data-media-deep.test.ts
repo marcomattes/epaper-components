@@ -902,11 +902,18 @@ describe('e-steps', () => {
     expect(items(el).map((x) => x.dataset['active'])).toEqual(['false', 'false', 'false']);
   });
 
-  it('consumes the authored e-step children', () => {
+  it('keeps the authored e-step children, hidden, as its data source', () => {
     const el = mount(THREE('current="1"'));
-    expect(el.querySelectorAll('e-step')).toHaveLength(0);
-    expect(el.children).toHaveLength(1);
-    expect(el.firstElementChild!.tagName).toBe('OL');
+    // v1.3.x: the authored items stay in the light DOM as the reactive
+    // source of truth instead of being consumed, hidden with inline
+    // `display:none` so they don't paint twice.
+    const steps = [...el.querySelectorAll('e-step')];
+    expect(steps).toHaveLength(3);
+    for (const step of steps) expect((step as HTMLElement).style.display).toBe('none');
+    expect(el.children).toHaveLength(4);
+    const ol = el.querySelector('ol')!;
+    expect(ol).not.toBeNull();
+    expect(steps.every((s) => !ol.contains(s))).toBe(true);
   });
 
   it('rebuilds only when the orientation actually changes', () => {

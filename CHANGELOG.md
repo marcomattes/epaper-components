@@ -171,6 +171,23 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   an `href` or `src` inside an item's slotted markup now re-renders it.
   **Behaviour change:** those two components previously ignored such an edit,
   contrary to what their carrier documentation promised.
+- `<e-select>`, `<e-checkbox-group>`, `<e-radio-group>`, `<e-tabs>` and
+  `<e-steps>` track their data carriers after mount, like every other
+  child-driven component. They read `<e-option>`, `<e-cbox-option>`,
+  `<e-radio>`, `<e-tab>` and `<e-step>` once at connect and never again, so an
+  entry appended or edited later never appeared and the host had to re-mount
+  the element — the full repaint the surgical-update rule exists to avoid.
+  `<e-step status>` is the clearest case: a step whose status changes over
+  time is what the component is for.
+  **Breaking:** the carriers are no longer consumed. They stay in the DOM,
+  hidden with `display: none`, because the observer needs them — the same
+  contract `<e-timeline>` and `<e-description-list>` already had. Code that
+  counted the group's children, or asserted that the carriers were gone after
+  connect, sees them now. Rendered output is unchanged.
+  **Breaking:** `<e-checkbox-group>` re-derives its selection from `value` on
+  reconnect, so a box toggled natively while the group was disconnected — and
+  therefore unobserved — is discarded instead of surviving into the next
+  reported value.
 
 ### Fixed
 
