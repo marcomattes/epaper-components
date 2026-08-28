@@ -1,36 +1,6 @@
 import { boolAttr, define, intAttr, patchAttr } from '../../core/dom';
 import { t } from '../../core/i18n';
-
-/** German umlauts and ß transliterate before the accent strip, not through it. */
-const TRANSLITERATE: Record<string, string> = {
-  ä: 'ae',
-  ö: 'oe',
-  ü: 'ue',
-  ß: 'ss',
-};
-
-/**
- * Turn heading text into a stable, DOM-id-valid slug.
- *
- * The result is also usable as a CSS id selector, which is why a slug that
- * would start with a digit is prefixed: `#2026-bilanz` is not a valid
- * selector, `#h-2026-bilanz` is.
- */
-export function slugifyTitle(raw: string): string {
-  const collapsed = raw
-    .toLowerCase()
-    .replaceAll(/[äöüß]/g, (c) => TRANSLITERATE[c] ?? c)
-    .normalize('NFKD')
-    .replaceAll(/[\u0300-\u036f]/g, '')
-    .replaceAll(/[^a-z\d]+/g, '-');
-  // Trimming with `/^-+|-+$/` is O(n^2) on a long run of separators: the engine
-  // backtracks the `+` from every start position. The collapse above already
-  // guarantees separators never repeat, so one unquantified character at each
-  // end is both sufficient and linear.
-  const base = collapsed.replace(/^-/, '').replace(/-$/, '');
-  if (!base) return '';
-  return /^\d/.test(base) ? `h-${base}` : base;
-}
+import { slugifyTitle, uniqueSlugId } from '../../core/slug';
 
 /**
  * @summary Heading element rendered as `<h1>`…`<h6>` based on `level`.
@@ -144,19 +114,8 @@ export class ETitle extends HTMLElement {
       this._autoId = '';
       return;
     }
-    this._autoId = this._uniqueId(slug);
+    this._autoId = uniqueSlugId(slug, (owner) => owner === h);
     patchAttr(h, 'id', this._autoId);
-  }
-
-  /** Appends `-2`, `-3`, … until the id is free, so repeated headings still resolve. */
-  private _uniqueId(slug: string): string {
-    let candidate = slug;
-    for (let n = 2; n < 1000; n++) {
-      const owner = document.getElementById(candidate);
-      if (!owner || owner === this._wrap) return candidate;
-      candidate = `${slug}-${n}`;
-    }
-    return candidate;
   }
 
   private _syncAnchor(): void {

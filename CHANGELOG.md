@@ -94,6 +94,16 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   formatted amount together with the parts a price display sets separately
   (major, minor, decimal separator, symbol and which side it belongs on).
 - `core/date.ts`: `parseHM()` and `hm()` for `HH:MM` times.
+- `<e-prose>`, `<e-redline>` and `<e-toc>` round out the publishing core.
+  `<e-prose>` is a pure class carrier — it styles slotted `<h2>`/`<p>`/
+  `<ul>`/`<ol>`/`<blockquote>`/`<figure>`/`<table>` markup through
+  `components.css`, so a document body needs no JS renderer of its own.
+  `<e-redline>` renders a word-level diff between two text versions with
+  `<ins>`/`<del>`, a changed-paragraph summary and a "changes only" view.
+  `<e-toc>` scans a document's headings, assigns them the same auto-id
+  `<e-title>` derives (now shared as `core/slug.ts`), and mirrors them into
+  an `<e-anchor>` it builds and keeps reactive to headings added, removed or
+  retitled after mount.
 
 ### Changed
 
@@ -146,6 +156,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   barcode encoder's symbology tables. Nothing changes for a consumer
   importing a single sub-path: `<e-button>` is still 1.6 KB and `<e-input>`
   2.05 KB.
+- The barrel's size budget moved again, to 62 KB brotli. `<e-prose>`,
+  `<e-redline>` and `<e-toc>` land it at 60.79 KB, mostly `<e-redline>`'s
+  word-level LCS diff. Single sub-path imports are unaffected.
 - The website's cover page (`/`) now carries the site's subject in prose
   instead of only in a masthead. It was roughly sixty words — a headline, a
   lede and three statistics — which left the FAQ as the only page that spelled

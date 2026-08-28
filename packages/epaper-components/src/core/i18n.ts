@@ -99,6 +99,11 @@ export interface LocaleStrings {
   statusCritical: string;
   statusOffline: string;
   statusNeutral: string;
+  /** `e-redline`; `{changed}` and `{total}` are substituted. */
+  redlineSummary: string;
+  redlineNoChanges: string;
+  redlineChangesOnly: string;
+  redlineShowAll: string;
 }
 
 /** The languages shipped in the library itself; authors can register more via `setLocaleStrings`. */
@@ -214,6 +219,14 @@ const BUILT_IN = {
   statusCritical: { en: 'Critical', de: 'Kritisch' },
   statusOffline: { en: 'Offline', de: 'Offline' },
   statusNeutral: { en: 'Neutral', de: 'Neutral' },
+  // `e-redline`; `{changed}` and `{total}` are substituted.
+  redlineSummary: {
+    en: '{changed} of {total} paragraphs changed',
+    de: '{changed} von {total} Absätzen geändert',
+  },
+  redlineNoChanges: { en: 'No changes', de: 'Keine Änderungen' },
+  redlineChangesOnly: { en: 'Changes only', de: 'Nur Änderungen' },
+  redlineShowAll: { en: 'Show all', de: 'Alle anzeigen' },
 } satisfies Record<keyof LocaleStrings, Record<BuiltInLocale, string>>;
 
 /** Every key of `LocaleStrings`, used to project `BUILT_IN` down to one language. */

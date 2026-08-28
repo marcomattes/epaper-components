@@ -72,8 +72,8 @@ const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
   }
   const unique = new Set(tags);
   assert(
-    'Custom Elements Manifest declares 105 unique custom elements',
-    tags.length === 105 && unique.size === 105,
+    'Custom Elements Manifest declares 108 unique custom elements',
+    tags.length === 108 && unique.size === 108,
     `found ${tags.length} declarations, ${unique.size} unique`,
   );
 }
@@ -207,7 +207,7 @@ await withPage(async (page, consoleErrors) => {
   await page.goto(`${base}/sample-app/fixtures/barrel.html`);
   await page.waitForTimeout(200);
 
-  // Barrel registers all 105 tags.
+  // Barrel registers all 108 tags.
   const tagCount = await page.evaluate(async () => {
     const cem = await (await fetch('/dist/custom-elements.json')).json();
     const tags = [];
@@ -218,7 +218,7 @@ await withPage(async (page, consoleErrors) => {
     }
     return tags.filter((t) => customElements.get(t)).length;
   });
-  assert('Barrel import registers all 105 elements', tagCount === 105, `${tagCount}/105 defined`);
+  assert('Barrel import registers all 108 elements', tagCount === 108, `${tagCount}/108 defined`);
 
   // Light DOM: no shadow roots anywhere in the fixture.
   const shadowCount = await page.evaluate(() => {

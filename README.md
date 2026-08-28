@@ -16,7 +16,7 @@
 > **[Storybook](https://epaper-components.dev/storybook/)**
 
 EPaper is a component library of plain custom elements for user interfaces that
-run on electrophoretic (e-paper, e-ink) displays. It ships 105 registered elements, a three-layer
+run on electrophoretic (e-paper, e-ink) displays. It ships 108 registered elements, a three-layer
 CSS token system, strict TypeScript types and a Custom Elements Manifest. There
 is no framework dependency and no runtime dependency at all; components extend
 `HTMLElement` or a shared `BaseFormControl` base class and render into the light
@@ -360,8 +360,8 @@ Sizes as of the current 1.0.1 build:
 
 ## Subpath imports and bundle size
 
-Every one of the 80 component modules is shipped as a separate ES module under
-`@marcomattes/epaper-components/<tag>`, and the barrel entry registers all 105
+Every one of the 83 component modules is shipped as a separate ES module under
+`@marcomattes/epaper-components/<tag>`, and the barrel entry registers all 108
 of the elements they define. The `sideEffects` allowlist in `package.json`
 covers the component modules and the public CSS files, so importing a single
 subpath pulls in that component plus its shared core chunks and nothing else,
@@ -370,8 +370,8 @@ in Vite, Rollup, esbuild and webpack 5.
 Compound elements that a parent component registers alongside itself — such as
 `<e-form-item>` (registered by `form.ts`) or `<e-option>` (registered by
 `select.ts`) — do not get their own subpath; importing the parent module
-registers them too. `package.json` exposes 110 subpaths in total: the barrel,
-81 component entries covering all 105 tags between them, five core-helper
+registers them too. `package.json` exposes 113 subpaths in total: the barrel,
+84 component entries covering all 108 tags between them, five core-helper
 entries, 22 CSS/source-map entries and the Custom Elements Manifest.
 
 | Goal               | Import                                                           |
