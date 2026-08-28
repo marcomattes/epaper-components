@@ -45,8 +45,39 @@ interface StoryEntry {
 const slug = (s: string): string =>
   s
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .replaceAll(/[^a-z\d]+/g, '-')
+    // Single unquantified characters: `/^-+|-+$/` backtracks super-linearly,
+    // and the collapse above already rules out repeats.
+    .replace(/^-/, '')
+    .replace(/-$/, '');
+
+/** Default args from argTypes, used when a story provides none of its own. */
+function argTypeDefaults(meta: NonNullable<StoryModule['default']>): Record<string, unknown> {
+  const defaults: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(meta.argTypes ?? {})) {
+    if (v && typeof v === 'object' && 'defaultValue' in v) {
+      defaults[k] = (v as { defaultValue?: unknown }).defaultValue;
+    }
+  }
+  return defaults;
+}
+
+/** The first real story export in a module — one representative per component. */
+function firstStory(
+  mod: StoryModule,
+  meta: NonNullable<StoryModule['default']>,
+  title: string,
+): StoryEntry | null {
+  const defaults = argTypeDefaults(meta);
+  for (const [exportName, value] of Object.entries(mod as Record<string, unknown>)) {
+    if (exportName === 'default') continue;
+    const story = value as { args?: Record<string, unknown> } | undefined;
+    if (!story || typeof story !== 'object') continue;
+    const args = { ...defaults, ...meta.args, ...(story.args ?? {}) };
+    return { title, storyName: exportName, template: meta.render!(args) };
+  }
+  return null;
+}
 
 function collectStories(): StoryEntry[] {
   const modules = import.meta.glob<StoryModule>('../../stories/**/*.stories.ts', {
@@ -56,26 +87,8 @@ function collectStories(): StoryEntry[] {
   for (const [path, mod] of Object.entries(modules)) {
     const meta = mod.default;
     if (!meta || typeof meta.render !== 'function') continue;
-    const title = meta.title ?? path;
-
-    // Default args from argTypes (used when story doesn't provide its own).
-    const argTypeDefaults: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(meta.argTypes ?? {})) {
-      if (v && typeof v === 'object' && 'defaultValue' in v) {
-        argTypeDefaults[k] = (v as { defaultValue?: unknown }).defaultValue;
-      }
-    }
-
-    for (const [exportName, value] of Object.entries(mod as Record<string, unknown>)) {
-      if (exportName === 'default') continue;
-      const story = value as { args?: Record<string, unknown> } | undefined;
-      if (!story || typeof story !== 'object') continue;
-      const args = { ...argTypeDefaults, ...meta.args, ...(story.args ?? {}) };
-      const template = meta.render(args);
-      out.push({ title, storyName: exportName, template });
-      // One stable representative baseline per component module.
-      break;
-    }
+    const entry = firstStory(mod, meta, meta.title ?? path);
+    if (entry) out.push(entry);
   }
   return out;
 }

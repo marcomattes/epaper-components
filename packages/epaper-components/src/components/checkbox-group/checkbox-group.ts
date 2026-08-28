@@ -1,4 +1,4 @@
-import { addCleanup, boolAttr, define, runCleanups } from '../../core/dom';
+import { addCleanup, boolAttr, define, patchAttr, runCleanups } from '../../core/dom';
 import { BaseFormControl } from '../../core/base-form-control';
 
 /**
@@ -11,6 +11,9 @@ import { BaseFormControl } from '../../core/base-form-control';
  * @attr {string} [value] - Comma-separated list of selected option values. Reactive.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
  * @attr {'horizontal'|'vertical'} [layout='vertical'] - Stacking direction. Reactive.
+ * @attr {boolean} [disabled] - Disables every option: none can be focused or toggled. Presence
+ *   alone disables, per the HTML spec for form-associated elements — `disabled="false"` still
+ *   disables. Also applied by a surrounding `<fieldset disabled>`.
  * @attr {boolean} [required] - Requires at least one selected option.
  * @attr {string} [required-message] - Message reported when no required option is selected.
  *
@@ -23,10 +26,16 @@ import { BaseFormControl } from '../../core/base-form-control';
  * </e-checkbox-group>
  */
 export class ECheckboxGroup extends BaseFormControl {
-  static readonly observedAttributes = ['value', 'layout', 'required', 'required-message'];
+  static readonly observedAttributes = [
+    'value',
+    'layout',
+    'disabled',
+    'required',
+    'required-message',
+  ];
 
   private _wired = false;
-  private _opts: Array<{ value: string; label: string }> = [];
+  private _opts: Array<{ value: string; label: string; disabled: boolean }> = [];
   private _container: HTMLDivElement | null = null;
 
   private _syncFormValue(values: string[]): void {
@@ -48,11 +57,42 @@ export class ECheckboxGroup extends BaseFormControl {
       this._opts = [...this.querySelectorAll('e-cbox-option')].map((o) => ({
         value: o.getAttribute('value') ?? '',
         label: o.getAttribute('label') || o.textContent || o.getAttribute('value') || '',
+        // `<e-cbox-option>` is a plain data carrier, not a form-associated
+        // element, so its `disabled` follows the boolean-attribute convention.
+        disabled: boolAttr(o, 'disabled'),
       }));
       this._build();
     }
+    this._applyDisabled();
     this.addEventListener('change', this._onChange);
     addCleanup(this, () => this.removeEventListener('change', this._onChange));
+  }
+
+  /**
+   * Effective disabled state. Presence alone disables — the HTML spec, not the
+   * library's `x="false"` convention, governs `disabled` on a form-associated
+   * element, and that is what the browser reports through `formDisabledCallback`.
+   */
+  private get _disabled(): boolean {
+    return this.hasAttribute('disabled') || this._formDisabled;
+  }
+
+  /**
+   * Forward the effective disabled state to every box. An option disabled in
+   * its own right (`<e-cbox-option disabled>`, marked with `aria-disabled` on
+   * its label) stays disabled when the group as a whole is enabled again.
+   */
+  private _applyDisabled(): void {
+    const disabled = this._disabled;
+    if (this._container) patchAttr(this._container, 'aria-disabled', disabled ? 'true' : null);
+    for (const label of this.querySelectorAll<HTMLElement>('label.ink-checkbox')) {
+      const input = label.querySelector<HTMLInputElement>('input[type="checkbox"]');
+      if (input) input.disabled = disabled || label.getAttribute('aria-disabled') === 'true';
+    }
+  }
+
+  protected override formDisabledChanged(): void {
+    this._applyDisabled();
   }
 
   disconnectedCallback() {
@@ -60,6 +100,7 @@ export class ECheckboxGroup extends BaseFormControl {
   }
 
   private readonly _onChange = (): void => {
+    if (this._disabled) return;
     const v = [...this.querySelectorAll<HTMLInputElement>('input:checked')].map((i) => i.value);
     this._value = v.join(',');
     this.setAttribute('value', this._value);
@@ -82,6 +123,8 @@ export class ECheckboxGroup extends BaseFormControl {
       if (this._container)
         this._container.style.flexDirection =
           this.getAttribute('layout') === 'horizontal' ? 'row' : 'column';
+    } else if (name === 'disabled') {
+      this._applyDisabled();
     } else if (name === 'required' || name === 'required-message') {
       this._syncValidity(this.value.split(',').filter(Boolean));
     }
@@ -102,6 +145,7 @@ export class ECheckboxGroup extends BaseFormControl {
     for (const o of this._opts) {
       const label = document.createElement('label');
       label.className = 'ink-checkbox';
+      if (o.disabled) label.setAttribute('aria-disabled', 'true');
 
       const wrapper = document.createElement('span');
       wrapper.style.position = 'relative';
@@ -111,6 +155,7 @@ export class ECheckboxGroup extends BaseFormControl {
       input.type = 'checkbox';
       input.value = o.value;
       input.checked = value.includes(o.value);
+      input.disabled = o.disabled;
 
       const box = document.createElement('span');
       box.className = 'ink-checkbox__box';
@@ -181,6 +226,9 @@ define('e-checkbox-group', ECheckboxGroup);
  *
  * @attr {string} value - Value contributed when this option is checked.
  * @attr {string} [label] - Visible label. Falls back to text content, then to `value`.
+ * @attr {boolean} [disabled] - Makes this single option untoggleable and unfocusable while the
+ *   rest of the group stays usable. Follows the library's boolean-attribute convention, so
+ *   `disabled="false"` leaves it toggleable. Read once, when the parent renders the group.
  */
 export class ECboxOption extends HTMLElement {}
 define('e-cbox-option', ECboxOption);

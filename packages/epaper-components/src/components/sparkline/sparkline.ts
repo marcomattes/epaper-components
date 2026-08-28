@@ -9,16 +9,27 @@ const TREND_META: Record<SparklineTrend, { text: string; glyph: string }> = {
   flat: { text: 'Flat', glyph: '—' },
 };
 
+/** Where the latest reading sits relative to the configured threshold. */
+type ThresholdState = 'above' | 'below' | 'at';
+
+const thresholdState = (value: number, threshold: number): ThresholdState => {
+  if (value > threshold) return 'above';
+  return value < threshold ? 'below' : 'at';
+};
+
 /** Accessible summary of the series: label, latest value and trend, or "No data". */
 function sparklineAriaLabel(
   label: string,
   hasData: boolean,
   lastValue: number | undefined,
   trendText: string,
+  threshold: number | null,
+  state: ThresholdState | null,
 ): string {
   const prefix = label ? `${label}: ` : '';
   if (!hasData) return `${prefix}No data`;
-  return `${prefix}${lastValue}; ${trendText.toLowerCase()}`;
+  const limit = threshold != null && state ? `; ${state} threshold ${threshold}` : '';
+  return `${prefix}${lastValue}; ${trendText.toLowerCase()}${limit}`;
 }
 
 const valuesFrom = (raw: string | null): number[] => {
@@ -41,21 +52,40 @@ const valuesFrom = (raw: string | null): number[] => {
  * The chart uses a single SVG polyline, no animation and no color-dependent
  * meaning. The first-to-last direction is repeated as readable text.
  *
+ * The dashed guide line marks the `threshold` when one is given. Without it the
+ * guide stays on the vertical mid-line it has always used, so an existing chart
+ * looks unchanged.
+ *
  * @attr {string} values - JSON array of finite numbers.
  * @attr {string} [label] - Visible and accessible series label.
  * @attr {number} [min] - Optional fixed lower bound.
  * @attr {number} [max] - Optional fixed upper bound.
+ * @attr {number} [threshold] - Value the dashed guide line marks — a warning limit, a target, a
+ *   setpoint. The latest reading's position relative to it is exposed as `data-threshold` on the
+ *   figure (`above` / `below` / `at`) and appended to the accessible label. Values outside
+ *   `min`…`max` are clamped onto the plot area. @since v1.3.0
  * @attr {boolean} [hide-caption] - Hides the label, latest value and trend caption.
  *
  * @example
  * <e-sparkline label="Requests" values="[12,18,15,24,28,31]"></e-sparkline>
+ *
+ * @example
+ * <e-sparkline label="Kesseldruck" values="[4.1,4.4,5.2,6.0]" max="8" threshold="5.5"></e-sparkline>
  */
 export class ESparkline extends HTMLElement {
-  static readonly observedAttributes = ['values', 'label', 'min', 'max', 'hide-caption'];
+  static readonly observedAttributes = [
+    'values',
+    'label',
+    'min',
+    'max',
+    'threshold',
+    'hide-caption',
+  ];
 
   private _wired = false;
   private _root: HTMLElement | null = null;
   private _svg: SVGSVGElement | null = null;
+  private _guide: SVGLineElement | null = null;
   private _line: SVGPolylineElement | null = null;
   private _last: SVGCircleElement | null = null;
   private _empty: HTMLElement | null = null;
@@ -106,6 +136,7 @@ export class ESparkline extends HTMLElement {
 
     this._root = root;
     this._svg = svg;
+    this._guide = guide;
     this._line = line;
     this._last = last;
     this._empty = empty;
@@ -135,16 +166,28 @@ export class ESparkline extends HTMLElement {
     return { min, max };
   }
 
+  /** Map a data value onto the 36-unit plot band, clamped to the visible range. */
+  private _yFor(value: number, min: number, max: number): number {
+    return 34 - ((Math.min(max, Math.max(min, value)) - min) / (max - min)) * 32;
+  }
+
   private _pointFor(value: number, index: number, count: number, min: number, max: number): string {
     const x = count === 1 ? 50 : 2 + (index / (count - 1)) * 96;
-    const y = 34 - ((Math.min(max, Math.max(min, value)) - min) / (max - min)) * 32;
-    return `${x.toFixed(2)},${y.toFixed(2)}`;
+    return `${x.toFixed(2)},${this._yFor(value, min, max).toFixed(2)}`;
+  }
+
+  /** The configured threshold, or `null` when the attribute is absent or unusable. */
+  private _threshold(): number | null {
+    if (!this.hasAttribute('threshold')) return null;
+    const raw = numAttr(this, 'threshold', Number.NaN);
+    return Number.isFinite(raw) ? raw : null;
   }
 
   private _patch(): void {
     if (
       !this._root ||
       !this._svg ||
+      !this._guide ||
       !this._line ||
       !this._last ||
       !this._empty ||
@@ -166,10 +209,23 @@ export class ESparkline extends HTMLElement {
     const lastPoint = points.at(-1)?.split(',') ?? [];
     const { text: trendText, glyph } = TREND_META[trend];
     const hasData = values.length > 0;
+    const threshold = this._threshold();
+    const state =
+      threshold != null && lastValue != null ? thresholdState(lastValue, threshold) : null;
+    // No threshold: the guide keeps the mid-line position it has had since
+    // v1.1.0, so an existing chart is not silently redrawn.
+    const guideY = threshold != null ? this._yFor(threshold, min, max).toFixed(2) : '18';
 
     patchAttr(this, 'role', 'img');
-    patchAttr(this, 'aria-label', sparklineAriaLabel(label, hasData, lastValue, trendText));
+    patchAttr(
+      this,
+      'aria-label',
+      sparklineAriaLabel(label, hasData, lastValue, trendText, threshold, state),
+    );
     patchAttr(this._root, 'data-trend', trend);
+    patchAttr(this._root, 'data-threshold', state);
+    patchAttr(this._guide, 'y1', guideY);
+    patchAttr(this._guide, 'y2', guideY);
     patchAttr(this._line, 'points', points.join(' '));
     patchAttr(this._last, 'cx', lastPoint[0] ?? null);
     patchAttr(this._last, 'cy', lastPoint[1] ?? null);

@@ -309,7 +309,7 @@ export function faqItems(): FaqItem[] {
 export function faqId(text: string): string {
   return text
     .toLowerCase()
-    .replace(/[^a-z0-9]{1,300}/g, '-')
+    .replaceAll(/[^a-z0-9]{1,300}/g, '-')
     .replace(/^-{1,300}/, '')
     .replace(/-{1,300}$/, '')
     .slice(0, 60);

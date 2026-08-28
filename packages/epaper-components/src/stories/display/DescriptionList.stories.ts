@@ -40,9 +40,13 @@ export const Default: Story = {
   args: { columns: 1, layout: 'horizontal', bordered: true },
   play: async ({ canvasElement }) => {
     await checkA11y(canvasElement);
-    const canvas = within(canvasElement);
-    expect(canvas.getByText('EP-2048-AX')).toBeInTheDocument();
-    expect(canvas.getByText('Carrier')).toBeInTheDocument();
+    // Since v1.3.0 the authored <e-desc-item> children stay in the light DOM
+    // as the list's data source, so a detail's text is in the document twice:
+    // once on the hidden item, once in the rendered <dd> clone. Scope the
+    // queries to the rendered <dl> so they still describe one element.
+    const list = within(canvasElement.querySelector('dl')!);
+    expect(list.getByText('EP-2048-AX')).toBeInTheDocument();
+    expect(list.getByText('Carrier')).toBeInTheDocument();
   },
 };
 

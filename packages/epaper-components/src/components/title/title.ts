@@ -1,4 +1,35 @@
-import { define, intAttr } from '../../core/dom';
+import { boolAttr, define, intAttr, patchAttr } from '../../core/dom';
+
+/** German umlauts and ß transliterate before the accent strip, not through it. */
+const TRANSLITERATE: Record<string, string> = {
+  ä: 'ae',
+  ö: 'oe',
+  ü: 'ue',
+  ß: 'ss',
+};
+
+/**
+ * Turn heading text into a stable, DOM-id-valid slug.
+ *
+ * The result is also usable as a CSS id selector, which is why a slug that
+ * would start with a digit is prefixed: `#2026-bilanz` is not a valid
+ * selector, `#h-2026-bilanz` is.
+ */
+export function slugifyTitle(raw: string): string {
+  const collapsed = raw
+    .toLowerCase()
+    .replaceAll(/[äöüß]/g, (c) => TRANSLITERATE[c] ?? c)
+    .normalize('NFKD')
+    .replaceAll(/[\u0300-\u036f]/g, '')
+    .replaceAll(/[^a-z\d]+/g, '-');
+  // Trimming with `/^-+|-+$/` is O(n^2) on a long run of separators: the engine
+  // backtracks the `+` from every start position. The collapse above already
+  // guarantees separators never repeat, so one unquantified character at each
+  // end is both sufficient and linear.
+  const base = collapsed.replace(/^-/, '').replace(/-$/, '');
+  if (!base) return '';
+  return /^\d/.test(base) ? `h-${base}` : base;
+}
 
 /**
  * @summary Heading element rendered as `<h1>`…`<h6>` based on `level`.
@@ -6,17 +37,38 @@ import { define, intAttr } from '../../core/dom';
  *
  * Children are used as the heading text.
  *
+ * Unless switched off, the heading receives a deterministic `id` derived from
+ * its own text, so a table of contents or a `#fragment` link has something to
+ * point at without every author hand-writing ids. An `id` on the host element
+ * always wins: the host is then already the jump target, and the heading is
+ * left untouched. Duplicate slugs in one document get a `-2`, `-3`, … suffix
+ * in document order.
+ *
+ * The slug is computed from the text present when the heading mounts (and
+ * again whenever `level`, `auto-id` or `anchor` change); later edits to the
+ * child nodes do not re-slug it, so a live id never moves out from under an
+ * existing link.
+ *
  * @attr {1|2|3|4|5|6} [level=1] - Heading level. Out-of-range values are clamped to `1`…`6`;
  *   fractional and non-numeric values fall back to `1`.
+ * @attr {boolean} [auto-id=true] - Derives the heading `id` from its text. Set `auto-id="false"` to opt out. @since v1.3.0
+ * @attr {boolean} [anchor] - Appends a self-link to the heading's own id. @since v1.3.0
+ * @attr {string} [anchor-label='Link to this section'] - Accessible name of the anchor link. @since v1.3.0
  *
  * @example
  * <e-title level="2">Section heading</e-title>
+ *
+ * @example
+ * <!-- id="jahresbilanz-2026", plus a "#" self-link -->
+ * <e-title level="2" anchor>Jahresbilanz 2026</e-title>
  */
 export class ETitle extends HTMLElement {
-  static readonly observedAttributes = ['level'];
+  static readonly observedAttributes = ['level', 'auto-id', 'anchor', 'anchor-label'];
 
   private _wrap: HTMLElement | null = null;
   private _level = 0;
+  private _anchor: HTMLAnchorElement | null = null;
+  private _autoId = '';
 
   connectedCallback() {
     if (!this._wrap) {
@@ -28,22 +80,106 @@ export class ETitle extends HTMLElement {
       this._level = level;
       h.className = `ink-title ink-title--${level}`;
     }
+    this._syncIdentity();
   }
 
   attributeChangedCallback() {
     if (!this._wrap) return;
     const level = this._readLevel();
-    if (level === this._level) return;
-    const next = document.createElement(`h${level}`);
-    while (this._wrap.firstChild) next.appendChild(this._wrap.firstChild);
-    next.className = `ink-title ink-title--${level}`;
-    this._wrap.replaceWith(next);
-    this._wrap = next;
-    this._level = level;
+    if (level !== this._level) {
+      const next = document.createElement(`h${level}`);
+      while (this._wrap.firstChild) next.appendChild(this._wrap.firstChild);
+      next.className = `ink-title ink-title--${level}`;
+      if (this._wrap.id) next.id = this._wrap.id;
+      this._wrap.replaceWith(next);
+      this._wrap = next;
+      this._level = level;
+    }
+    this._syncIdentity();
   }
 
   private _readLevel(): number {
     return Math.min(Math.max(intAttr(this, 'level', 1), 1), 6);
+  }
+
+  /** Heading text with the anchor affordance excluded, so it never self-feeds. */
+  private _headingText(): string {
+    if (!this._wrap) return '';
+    let text = '';
+    for (const node of this._wrap.childNodes) {
+      if (node !== this._anchor) text += node.textContent ?? '';
+    }
+    return text;
+  }
+
+  /**
+   * The fragment this heading is reachable by: the author's own host `id` when
+   * there is one, else the generated slug.
+   */
+  private _targetId(): string {
+    return this.id || this._wrap?.id || '';
+  }
+
+  private _syncIdentity(): void {
+    this._syncAutoId();
+    this._syncAnchor();
+  }
+
+  private _syncAutoId(): void {
+    const h = this._wrap;
+    if (!h) return;
+    // An author-set id on the host makes the host the jump target; generating
+    // a second one on the heading would only split the anchor surface.
+    const enabled = this.getAttribute('auto-id') !== 'false' && !this.id;
+    if (!enabled) {
+      // Only ever retract an id this component put there itself.
+      if (this._autoId && h.id === this._autoId) h.removeAttribute('id');
+      this._autoId = '';
+      return;
+    }
+    if (this._autoId && h.id === this._autoId) return;
+    const slug = slugifyTitle(this._headingText());
+    if (!slug) {
+      this._autoId = '';
+      return;
+    }
+    this._autoId = this._uniqueId(slug);
+    patchAttr(h, 'id', this._autoId);
+  }
+
+  /** Appends `-2`, `-3`, … until the id is free, so repeated headings still resolve. */
+  private _uniqueId(slug: string): string {
+    let candidate = slug;
+    for (let n = 2; n < 1000; n++) {
+      const owner = document.getElementById(candidate);
+      if (!owner || owner === this._wrap) return candidate;
+      candidate = `${slug}-${n}`;
+    }
+    return candidate;
+  }
+
+  private _syncAnchor(): void {
+    const h = this._wrap;
+    if (!h) return;
+    const target = this._targetId();
+    if (!boolAttr(this, 'anchor') || !target) {
+      this._anchor?.remove();
+      this._anchor = null;
+      return;
+    }
+    if (!this._anchor) {
+      const a = document.createElement('a');
+      a.className = 'ink-title__anchor';
+      a.textContent = '#';
+      this._anchor = a;
+    }
+    patchAttr(this._anchor, 'href', `#${target}`);
+    patchAttr(
+      this._anchor,
+      'aria-label',
+      this.getAttribute('anchor-label') || 'Link to this section',
+    );
+    if (this._anchor.parentElement !== h) h.appendChild(this._anchor);
   }
 }
 

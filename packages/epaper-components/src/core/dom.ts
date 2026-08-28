@@ -138,6 +138,77 @@ export function onGlobal(
   return remove;
 }
 
+/**
+ * Watch a host's authored data-carrier children (`<e-timeline-item>`,
+ * `<e-desc-item>`, `<e-option>`, …) and re-run `sync` when they change.
+ *
+ * Components that read their entries from child elements used to do so once,
+ * in `connectedCallback`, which froze them: an item appended later never
+ * rendered. This gives them a single reactive contract instead.
+ *
+ * Two things make it safe to observe a host that also renders into itself:
+ *
+ * - `isOutput` marks the component's own rendered subtree. Records whose
+ *   target sits inside it are dropped, so a sync never re-triggers itself.
+ *   Without this the observer would loop on its own writes.
+ * - Surviving records are coalesced into one `sync()` per microtask, so a
+ *   burst of appends repaints once rather than once per item — the same
+ *   reasoning as the patch helpers below.
+ *
+ * The observer is disconnected through the host's cleanup registry, so a
+ * component that already calls `runCleanups(this)` in `disconnectedCallback`
+ * needs no extra teardown.
+ */
+export function observeItems(
+  host: HTMLElement,
+  sync: () => void,
+  opts: { attributeFilter?: string[]; isOutput?: (node: Node) => boolean } = {},
+): MutationObserver {
+  const { attributeFilter, isOutput } = opts;
+  let queued = false;
+
+  const observer = new MutationObserver((records) => {
+    if (queued) return;
+    const relevant = isOutput ? records.some((r) => !isOutput(r.target)) : records.length > 0;
+    if (!relevant) return;
+    queued = true;
+    queueMicrotask(() => {
+      queued = false;
+      // Drop anything `sync` itself wrote, so the next real edit starts clean.
+      observer.takeRecords();
+      sync();
+    });
+  });
+
+  observer.observe(host, {
+    childList: true,
+    subtree: true,
+    characterData: true,
+    ...(attributeFilter ? { attributes: true, attributeFilter } : {}),
+  });
+  addCleanup(host, () => observer.disconnect());
+  return observer;
+}
+
+/**
+ * Copy a data carrier's child nodes into `target`, replacing whatever was
+ * there before.
+ *
+ * The nodes are cloned rather than moved, because the carrier stays in the
+ * light DOM as the component's source of truth (see {@link observeItems}) and
+ * must keep its own content to re-sync from. Cloning an `id` would put the
+ * same one in the document twice, which is invalid HTML and quietly breaks
+ * `getElementById` and every `label[for]` pointing at it — so ids are dropped
+ * from the copy. The authored element keeps its id and remains the one a page
+ * script addresses; edits to it flow back through the observer.
+ */
+export function cloneItemBody(item: Element, target: Element): void {
+  const fragment = document.createDocumentFragment();
+  for (const node of item.childNodes) fragment.appendChild(node.cloneNode(true));
+  for (const el of fragment.querySelectorAll('[id]')) el.removeAttribute('id');
+  target.replaceChildren(fragment);
+}
+
 /* ----------------------------------------------------------------------- *
  * Reactive patch helpers (E-paper friendly).
  *

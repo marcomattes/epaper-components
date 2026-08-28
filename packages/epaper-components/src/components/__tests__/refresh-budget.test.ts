@@ -37,6 +37,7 @@ beforeAll(async () => {
     import('../meter/meter'),
     import('../sparkline/sparkline'),
     import('../status-board/status-board'),
+    import('../status-pill/status-pill'),
     import('../change-marker/change-marker'),
     import('../last-updated/last-updated'),
     import('../diff/diff'),
@@ -165,6 +166,40 @@ const scenarios: RefreshScenario[] = [
     budget: { mutations: 4, elementChurn: 0, dirtyAreaRatio: 0.5 },
   },
   {
+    // The polling path: a table re-reads `data` on every tick. Only the one
+    // cell that actually changed may be touched — a rebuilt <tbody> would
+    // cost a full-panel GC16 flash instead of a single dirty rectangle.
+    name: 'table keyed data update',
+    html: `<e-table row-key="id" columns='[{"key":"id","title":"ID"},{"key":"title","title":"Title"}]' data='[{"id":"a","title":"A"},{"id":"b","title":"B"},{"id":"c","title":"C"}]'></e-table>`,
+    selector: 'e-table',
+    action: (host) =>
+      host.setAttribute(
+        'data',
+        '[{"id":"a","title":"A"},{"id":"b","title":"B2"},{"id":"c","title":"C"}]',
+      ),
+    // Measured: 2 mutations, 0 churn, 15 % dirty area (the one <td>). Before
+    // keyed diffing this was a `replaceChildren` on the host — churn 2,
+    // rootReplacements 1 and a retained-node ratio of 0.
+    budget: { mutations: 3, elementChurn: 0, dirtyAreaRatio: 0.2, retainedNodeRatio: 1 },
+  },
+  {
+    // Same guarantee when rows are re-ordered: one `insertBefore` move of an
+    // existing <tr>. That is recorded as a remove + an add of the *same* node
+    // (churn 2), which is why `retainedNodeRatio` is the assertion that
+    // matters here — no row is rebuilt, and no cell text is touched at all.
+    name: 'table keyed row reorder',
+    html: `<e-table row-key="id" columns='[{"key":"id","title":"ID"},{"key":"title","title":"Title"}]' data='[{"id":"a","title":"A"},{"id":"b","title":"B"},{"id":"c","title":"C"}]'></e-table>`,
+    selector: 'e-table',
+    action: (host) =>
+      host.setAttribute(
+        'data',
+        '[{"id":"c","title":"C"},{"id":"a","title":"A"},{"id":"b","title":"B"}]',
+      ),
+    // The dirty target of a move is the <tbody>, so the approximated rectangle
+    // covers the body — but no cell text is repainted and no node is rebuilt.
+    budget: { mutations: 4, elementChurn: 2, dirtyAreaRatio: 0.8, retainedNodeRatio: 1 },
+  },
+  {
     name: 'select option update',
     html: '<e-select value="a"><e-option value="a" label="A"></e-option><e-option value="b" label="B"></e-option></e-select>',
     selector: 'e-select',
@@ -207,6 +242,16 @@ const scenarios: RefreshScenario[] = [
         '[{"key":"queue","label":"Queue","value":9,"status":"ok"},{"key":"workers","label":"Workers","value":8,"status":"ok"}]',
       ),
     budget: { mutations: 8, elementChurn: 0, dirtyAreaRatio: 0.6 },
+  },
+  {
+    // A door sign repaints this on every poll, so it belongs to the same
+    // budget as the other live-value components rather than being trusted
+    // to stay surgical on inspection alone.
+    name: 'status-pill status change',
+    html: `<e-status-pill statuses='{"free":{"symbol":"○","label":"Frei"},"busy":{"symbol":"●","label":"Belegt"}}' status="free"></e-status-pill>`,
+    selector: 'e-status-pill',
+    action: (host) => host.setAttribute('status', 'busy'),
+    budget: { mutations: 4, elementChurn: 0, dirtyAreaRatio: 1, retainedNodeRatio: 1 },
   },
   {
     name: 'change-marker value update',

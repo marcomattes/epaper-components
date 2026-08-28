@@ -1,8 +1,19 @@
 // EPaper · Component Library entry point.
 // Importing this module registers all custom elements as side effects.
 
-export { ICONS, iconSvg, SVG_NS } from './core/icons';
+export { ICONS, iconSvg, registerIcon, iconNames, SVG_NS } from './core/icons';
 export type { IconName } from './core/icons';
+export {
+  formatNumber,
+  formatDate,
+  formatRelativeTime,
+  resolveLocale,
+  weekdayLabels,
+  monthLabel,
+} from './core/format';
+export type { NumberFormatOptions } from './core/format';
+export { setLocaleStrings, strings, t } from './core/i18n';
+export type { LocaleStrings } from './core/i18n';
 export type { EChangeDetail, CascaderOption, TreeNode, CalendarEvent } from './core/types';
 
 // Components
@@ -67,7 +78,13 @@ export { EStatistic } from './components/statistic/statistic';
 export { EMeter } from './components/meter/meter';
 export { ESparkline } from './components/sparkline/sparkline';
 export { EStatusBoard } from './components/status-board/status-board';
-export type { StatusBoardItem, StatusBoardStatus } from './components/status-board/status-board';
+export type {
+  StatusBoardItem,
+  StatusBoardStatus,
+  StatusMeta,
+} from './components/status-board/status-board';
+export { EStatusPill } from './components/status-pill/status-pill';
+export type { StatusPillMeta } from './components/status-pill/status-pill';
 export { EChangeMarker } from './components/change-marker/change-marker';
 export { ELastUpdated } from './components/last-updated/last-updated';
 export type { UpdateFreshness } from './components/last-updated/last-updated';

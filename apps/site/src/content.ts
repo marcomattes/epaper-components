@@ -62,7 +62,7 @@ export interface ContentOptions {
 
 /** Storybook docs deep-link. Mirrors Storybook's slug rule. */
 function storybookHref(base: string, entry: ComponentEntry): string {
-  const slug = `${entry.category}-${entry.name}`.toLowerCase().replace(/[^a-z0-9-]+/g, '-');
+  const slug = `${entry.category}-${entry.name}`.toLowerCase().replaceAll(/[^a-z0-9-]+/g, '-');
   return `${base}/?path=/docs/${slug}--docs`;
 }
 
