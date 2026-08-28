@@ -257,7 +257,7 @@ function homeGraph(): Record<string, unknown>[] {
       applicationSubCategory: 'Web component library',
       operatingSystem: 'Any browser with custom elements and ElementInternals',
       description:
-        'A library of 71 e-ink web components: vanilla custom elements for e-paper displays, with surgical DOM updates, no animations, no :hover states and no Shadow DOM.',
+        'A library of 81 e-ink web components: vanilla custom elements for e-paper displays, with surgical DOM updates, no animations, no :hover states and no Shadow DOM.',
       softwareRequirements: 'Evergreen Chrome, Edge, Firefox or Safari 16.4+',
       featureList: FEATURES.map((f) => f.title),
       isBasedOn: { '@id': `${SITE_ORIGIN}/#software` },
@@ -740,7 +740,7 @@ export function llmsTxt(opts: { version: string; stars: string }): string {
   return `# ${SITE_NAME}
 
 > A vanilla custom-element library of e-ink web components. ${COMPONENTS.length}
-> framework-agnostic components for e-paper displays in about 40 KB gzipped, MIT
+> framework-agnostic components for e-paper displays in about 58 KB brotli, MIT
 > licensed, zero runtime dependencies.
 
 EPaper is built for electrophoretic (e-ink) panels rather than backlit screens. The
@@ -780,7 +780,7 @@ ships only what it uses.
 - Repository: ${REPO_URL} (${opts.stars} stars)
 - Author: Marco Mattes — https://mattes.dev
 - Components: ${COMPONENTS.length}
-- Bundle: about 40 KB gzipped for the full barrel
+- Bundle: about 58 KB brotli for the full barrel
 - Requires: evergreen browsers with custom elements and \`ElementInternals\`
 
 ## Pages

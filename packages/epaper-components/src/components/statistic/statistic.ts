@@ -1,4 +1,4 @@
-import { clampedNumAttr, define, numAttr, patchAttr, patchText } from '../../core/dom';
+import { boolAttr, clampedNumAttr, define, numAttr, patchAttr, patchText } from '../../core/dom';
 import { formatNumber, resolveLocale, type NumberFormatOptions } from '../../core/format';
 import { t, type LocaleStrings } from '../../core/i18n';
 
@@ -135,8 +135,8 @@ export class EStatistic extends HTMLElement {
    */
   private _numberOptions(): NumberFormatOptions | null {
     const currency = this.getAttribute('currency');
-    const percent = this.hasAttribute('percent');
-    const grouping = this.hasAttribute('grouping');
+    const percent = boolAttr(this, 'percent');
+    const grouping = boolAttr(this, 'grouping');
     const precision = this.hasAttribute('precision');
     if (!currency && !percent && !grouping && !precision) return null;
     // A currency amount or a percentage is a composed figure and carries its

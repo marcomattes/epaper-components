@@ -1,4 +1,5 @@
 import { define, esc, intAttr, patchAttr } from '../../core/dom';
+import { t } from '../../core/i18n';
 
 /* ============================================================================
  * Self-contained QR Code encoder (byte mode).
@@ -587,13 +588,20 @@ export class EQrcode extends HTMLElement {
       const svg = this._wrap.firstElementChild;
       if (svg) {
         patchAttr(svg, 'role', 'img');
-        patchAttr(svg, 'aria-label', this.getAttribute('label') || `QR code for ${value}`);
+        patchAttr(svg, 'aria-label', this.getAttribute('label') || t(this, 'qrCodeFor', { value }));
       }
     } catch (err) {
-      const errHtml = `<div class="ink-qrcode__error" role="img" aria-label="QR code error">${esc((err as Error).message)}</div>`;
-      if (this._lastContent !== errHtml) {
-        this._wrap.innerHTML = errHtml;
-        this._lastContent = errHtml;
+      const message = (err as Error).message;
+      // Prefixed so a message can never collide with a symbol's markup.
+      const key = `error:${message}`;
+      if (this._lastContent !== key) {
+        const node = document.createElement('div');
+        node.className = 'ink-qrcode__error';
+        node.setAttribute('role', 'img');
+        node.setAttribute('aria-label', t(this, 'qrCodeError'));
+        node.textContent = message;
+        this._wrap.replaceChildren(node);
+        this._lastContent = key;
       }
     }
   }

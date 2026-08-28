@@ -1,6 +1,7 @@
 import { addCleanup, boolAttr, define, esc, patchAttr, runCleanups } from '../../core/dom';
 import { iconSvg } from '../../core/icons';
 import { BaseFormControl } from '../../core/base-form-control';
+import { t } from '../../core/i18n';
 
 /**
  * @summary Drop-zone file picker with live file list and per-file removal.
@@ -141,7 +142,7 @@ export class EUpload extends BaseFormControl<File[]> {
   private _applyAccept(accept: string): void {
     if (accept) this._input!.setAttribute('accept', accept);
     else this._input!.removeAttribute('accept');
-    this._hint!.textContent = accept ? `ACCEPTS · ${accept.toUpperCase()}` : 'ANY FILE TYPE';
+    this._hint!.textContent = accept ? `ACCEPTS · ${accept.toUpperCase()}` : t(this, 'anyFileType');
   }
 
   private _applyMultiple(): void {

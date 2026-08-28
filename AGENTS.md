@@ -193,6 +193,12 @@ Default: `{ value: T }`. Known exceptions to be aware of (do not
 - `e-dropdown` → `{ index: number }` (event name `e-select`, not `e-change`)
 - `e-button` → `{ originalEvent: MouseEvent }` (event name `e-click`)
 - `e-form` → `{ form: HTMLFormElement }` (event name `e-submit`)
+- `e-calendar` → `{ year: number, month: number }` (event name `e-month-change`,
+  not `e-change`)
+- `e-form` → `{ controls: HTMLElement[], form: HTMLFormElement }` (event name
+  `e-invalid`, not `e-change`)
+- `e-meter` → `{ value: number, band: 'low'|'normal'|'high' }` (event name
+  `e-change`, with an extra `band` key alongside `value`)
 
 If you write a new component, use `{ value: T }` and `e-change` unless
 there is a specific reason not to.

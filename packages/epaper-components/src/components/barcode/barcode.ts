@@ -1,5 +1,24 @@
 import { define, intAttr } from '../../core/dom';
-import { t } from '../../core/i18n';
+import { t, type LocaleStrings } from '../../core/i18n';
+
+/**
+ * Thrown by the encoding functions below instead of a plain `Error` so
+ * `<e-barcode>` can localize what it paints on the panel. `message` stays the
+ * plain English sentence — unchanged for any code that calls
+ * `normalizeValue`/`encodeBarcode` directly and reads `.message` — while
+ * `key` and `vars` let the component look up the same sentence through the
+ * string table via `t()`.
+ */
+export class BarcodeEncodeError extends Error {
+  constructor(
+    message: string,
+    public readonly key: keyof LocaleStrings,
+    public readonly vars?: Record<string, string | number>,
+  ) {
+    super(message);
+    this.name = 'BarcodeEncodeError';
+  }
+}
 
 /* ============================================================================
  * Self-contained linear barcode encoder.
@@ -252,7 +271,11 @@ function encodeCode128(value: string): string {
     for (const char of value) {
       const code = char.charCodeAt(0);
       if (code < 32 || code > 126) {
-        throw new Error(`Code 128 cannot encode character "${char}".`);
+        throw new BarcodeEncodeError(
+          `Code 128 cannot encode character "${char}".`,
+          'code128CannotEncode',
+          { char },
+        );
       }
       values.push(code - 32);
     }
@@ -290,18 +313,31 @@ export function detectFormat(value: string): BarcodeFormat {
  */
 export function normalizeValue(value: string, format: BarcodeFormat): string {
   if (format === 'code128') {
-    if (!value) throw new Error('Barcode value is empty.');
+    if (!value) throw new BarcodeEncodeError('Barcode value is empty.', 'barcodeValueEmpty');
     return value;
   }
-  if (!isDigits(value)) throw new Error(`${format.toUpperCase()} accepts digits only.`);
+  const symbology = format.toUpperCase();
+  if (!isDigits(value)) {
+    throw new BarcodeEncodeError(`${symbology} accepts digits only.`, 'barcodeDigitsOnly', {
+      format: symbology,
+    });
+  }
   const full = FIXED_LENGTH[format];
   if (value.length === full - 1) return value + String(checkDigit(value));
   if (value.length !== full) {
-    throw new Error(`${format.toUpperCase()} needs ${full - 1} or ${full} digits.`);
+    throw new BarcodeEncodeError(
+      `${symbology} needs ${full - 1} or ${full} digits.`,
+      'barcodeNeedsDigits',
+      { format: symbology, min: full - 1, max: full },
+    );
   }
   const expected = String(checkDigit(value.slice(0, -1)));
   if (value.slice(-1) !== expected) {
-    throw new Error(`Check digit is ${value.slice(-1)}, expected ${expected}.`);
+    throw new BarcodeEncodeError(
+      `Check digit is ${value.slice(-1)}, expected ${expected}.`,
+      'barcodeCheckDigit',
+      { found: value.slice(-1), expected },
+    );
   }
   return value;
 }
@@ -424,7 +460,9 @@ export class EBarcode extends HTMLElement {
       this._paintSymbol(svg, format, value);
       this._paintCaption(this.hasAttribute('show-text') ? humanReadable(value, format) : '');
     } catch (err) {
-      this._paintMessage('error', (err as Error).message, t(this, 'barcodeError'));
+      const message =
+        err instanceof BarcodeEncodeError ? t(this, err.key, err.vars) : (err as Error).message;
+      this._paintMessage('error', message, t(this, 'barcodeError'));
     }
   }
 
@@ -446,7 +484,10 @@ export class EBarcode extends HTMLElement {
     const svg = wrap.firstElementChild;
     if (svg) {
       svg.setAttribute('role', 'img');
-      svg.setAttribute('aria-label', `${format.toUpperCase()} barcode ${value}`);
+      svg.setAttribute(
+        'aria-label',
+        t(this, 'barcodeLabel', { format: format.toUpperCase(), value }),
+      );
     }
   }
 

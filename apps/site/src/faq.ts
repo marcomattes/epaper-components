@@ -36,8 +36,8 @@ export const FAQ: FaqGroup[] = [
       {
         q: 'What is EPaper?',
         a: [
-          'EPaper is an open-source library of 71 web components built for e-paper and e-ink (also spelled "eink") displays. The components are vanilla custom elements — they extend `HTMLElement` directly, use no Shadow DOM, ship no animations and depend on no framework.',
-          'It is published as `@marcomattes/epaper-components` under the MIT licence, and the full barrel is roughly 40 KB gzipped.',
+          'EPaper is an open-source library of 81 web components built for e-paper and e-ink (also spelled "eink") displays. The components are vanilla custom elements — they extend `HTMLElement` directly, use no Shadow DOM, ship no animations and depend on no framework.',
+          'It is published as `@marcomattes/epaper-components` under the MIT licence, and the full barrel is roughly 58 KB brotli.',
         ],
       },
       {
@@ -267,7 +267,7 @@ return <e-input ref={ref} label="Name" />;`,
       {
         q: 'How big is it?',
         a: [
-          'About 40 KB gzipped for the full barrel with all 71 components registered. Individual components are far smaller — the size budget enforced in CI is 6 KB for `<e-button>` and 8 KB for `<e-input>`, both gzipped.',
+          'About 58 KB brotli for the full barrel with all 81 components registered. Individual components are far smaller — the size budget enforced in CI is 6 KB for `<e-button>` and 8 KB for `<e-input>`, both brotli.',
         ],
       },
       {
@@ -330,7 +330,7 @@ const HOME_QUESTIONS: Array<{ q: string; teaser: string }> = [
   {
     q: 'What is EPaper?',
     teaser:
-      'An MIT-licensed set of 71 web components for e-paper and e-ink displays, published as `@marcomattes/epaper-components`.',
+      'An MIT-licensed set of 81 web components for e-paper and e-ink displays, published as `@marcomattes/epaper-components`.',
   },
   {
     q: 'Do I need an e-paper display to use this?',
@@ -344,7 +344,7 @@ const HOME_QUESTIONS: Array<{ q: string; teaser: string }> = [
   },
   {
     q: 'How big is it?',
-    teaser: 'About 40 KB gzipped for all 71 components; a single component is far smaller.',
+    teaser: 'About 58 KB brotli for all 81 components; a single component is far smaller.',
   },
 ];
 

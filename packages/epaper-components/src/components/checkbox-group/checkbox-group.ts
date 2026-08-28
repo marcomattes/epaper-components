@@ -1,11 +1,38 @@
-import { addCleanup, boolAttr, define, patchAttr, runCleanups } from '../../core/dom';
+import {
+  addCleanup,
+  boolAttr,
+  define,
+  observeItems,
+  patchAttr,
+  patchText,
+  runCleanups,
+} from '../../core/dom';
 import { BaseFormControl } from '../../core/base-form-control';
+
+/** Rendered `<label>`/`<input>` pair for a single `<e-cbox-option>`. */
+interface CboxRow {
+  label: HTMLLabelElement;
+  input: HTMLInputElement;
+  text: HTMLElement;
+}
 
 /**
  * @summary Group of checkbox options sharing a single comma-separated value.
  * @since v1.0.1
  *
- * Reads options from `<e-cbox-option>` children at connect time.
+ * Reads options from `<e-cbox-option>` children and keeps them live: the
+ * authored items stay in the light DOM as the source of truth, and a
+ * `MutationObserver` re-syncs the rendered checkboxes whenever one is added,
+ * removed, reordered, relabelled or re-valued. Rows keep their DOM identity by
+ * position, and `checked` is always re-derived from the group's own `value` —
+ * the same source of truth an attribute-driven update already used — so an
+ * unrelated option changing never moves the current selection.
+ *
+ * Because the items stay put they would otherwise render twice, so each one is
+ * hidden with an inline `display:none` when it is first wired. The stable form
+ * of that is a `e-cbox-option { display: none; }` rule in `components.css`;
+ * the inline style is what guarantees it without one.
+ *
  * Form-associated: each selected option is appended to FormData under `name`.
  *
  * @attr {string} [value] - Comma-separated list of selected option values. Reactive.
@@ -18,6 +45,8 @@ import { BaseFormControl } from '../../core/base-form-control';
  * @attr {string} [required-message] - Message reported when no required option is selected.
  *
  * @fires {CustomEvent<{value: string[]}>} e-change - Fired when the selection changes. `value` is the array of selected option values.
+ *
+ * @slot - Default slot for `<e-cbox-option>` children.
  *
  * @example
  * <e-checkbox-group value="a,b" layout="horizontal">
@@ -35,8 +64,8 @@ export class ECheckboxGroup extends BaseFormControl {
   ];
 
   private _wired = false;
-  private _opts: Array<{ value: string; label: string; disabled: boolean }> = [];
   private _container: HTMLDivElement | null = null;
+  private readonly _rows: CboxRow[] = [];
 
   private _syncFormValue(values: string[]): void {
     const name = this.getAttribute('name');
@@ -54,18 +83,28 @@ export class ECheckboxGroup extends BaseFormControl {
   connectedCallback() {
     if (!this._wired) {
       this._wired = true;
-      this._opts = [...this.querySelectorAll('e-cbox-option')].map((o) => ({
-        value: o.getAttribute('value') ?? '',
-        label: o.getAttribute('label') || o.textContent || o.getAttribute('value') || '',
-        // `<e-cbox-option>` is a plain data carrier, not a form-associated
-        // element, so its `disabled` follows the boolean-attribute convention.
-        disabled: boolAttr(o, 'disabled'),
-      }));
-      this._build();
+      const layout = this.getAttribute('layout') === 'horizontal' ? 'row' : 'column';
+      const container = document.createElement('div');
+      container.setAttribute('role', 'group');
+      container.style.display = 'flex';
+      container.style.flexDirection = layout;
+      container.style.gap = '10px';
+      container.style.flexWrap = 'wrap';
+      this._container = container;
+      this.appendChild(container);
+
+      this._value = (this.getAttribute('value') || '').split(',').filter(Boolean).join(',');
+      this._sync();
+    } else {
+      this._sync();
     }
     this._applyDisabled();
     this.addEventListener('change', this._onChange);
     addCleanup(this, () => this.removeEventListener('change', this._onChange));
+    observeItems(this, this._sync, {
+      attributeFilter: ['value', 'label', 'disabled'],
+      isOutput: (n) => this._container?.contains(n) ?? false,
+    });
   }
 
   /**
@@ -85,9 +124,8 @@ export class ECheckboxGroup extends BaseFormControl {
   private _applyDisabled(): void {
     const disabled = this._disabled;
     if (this._container) patchAttr(this._container, 'aria-disabled', disabled ? 'true' : null);
-    for (const label of this.querySelectorAll<HTMLElement>('label.ink-checkbox')) {
-      const input = label.querySelector<HTMLInputElement>('input[type="checkbox"]');
-      if (input) input.disabled = disabled || label.getAttribute('aria-disabled') === 'true';
+    for (const row of this._rows) {
+      row.input.disabled = disabled || row.label.getAttribute('aria-disabled') === 'true';
     }
   }
 
@@ -115,69 +153,88 @@ export class ECheckboxGroup extends BaseFormControl {
       if (next === this._value) return;
       this._value = next;
       const set = new Set(next.split(',').filter(Boolean));
-      this.querySelectorAll<HTMLInputElement>('input[type="checkbox"]').forEach((cb) => {
-        cb.checked = set.has(cb.value);
-      });
+      for (const row of this._rows) row.input.checked = set.has(row.input.value);
       this._syncFormValue([...set]);
     } else if (name === 'layout') {
-      if (this._container)
+      if (this._container) {
         this._container.style.flexDirection =
           this.getAttribute('layout') === 'horizontal' ? 'row' : 'column';
+      }
     } else if (name === 'disabled') {
       this._applyDisabled();
     } else if (name === 'required' || name === 'required-message') {
-      this._syncValidity(this.value.split(',').filter(Boolean));
+      this._syncValidity(this._value.split(',').filter(Boolean));
     }
   }
 
-  private _build(): void {
-    const value = (this.getAttribute('value') || '').split(',').filter(Boolean);
-    const layout = this.getAttribute('layout') === 'horizontal' ? 'row' : 'column';
+  /** Authored options, excluding anything inside the rendered group. */
+  private _items(): HTMLElement[] {
+    return [...this.querySelectorAll<HTMLElement>('e-cbox-option')].filter(
+      (o) => !this._container?.contains(o),
+    );
+  }
 
-    const container = document.createElement('div');
-    container.setAttribute('role', 'group');
-    container.style.display = 'flex';
-    container.style.flexDirection = layout;
-    container.style.gap = '10px';
-    container.style.flexWrap = 'wrap';
-    this._container = container;
+  private readonly _sync = (): void => {
+    const container = this._container;
+    if (!container) return;
+    const items = this._items();
+    const selected = new Set(this._value.split(',').filter(Boolean));
+    const disabledAll = this._disabled;
 
-    for (const o of this._opts) {
-      const label = document.createElement('label');
-      label.className = 'ink-checkbox';
-      if (o.disabled) label.setAttribute('aria-disabled', 'true');
+    while (this._rows.length > items.length) this._rows.pop()!.label.remove();
 
-      const wrapper = document.createElement('span');
-      wrapper.style.position = 'relative';
-      wrapper.style.display = 'inline-flex';
+    items.forEach((item, i) => {
+      if (item.style.display !== 'none') item.style.display = 'none';
+      const value = item.getAttribute('value') ?? '';
+      const label = item.getAttribute('label') || item.textContent || value;
+      const itemDisabled = boolAttr(item, 'disabled');
 
-      const input = document.createElement('input');
-      input.type = 'checkbox';
-      input.value = o.value;
-      input.checked = value.includes(o.value);
-      input.disabled = o.disabled;
+      let row = this._rows[i];
+      if (!row) {
+        row = ECheckboxGroup._makeRow();
+        container.appendChild(row.label);
+        this._rows.push(row);
+      }
+      if (row.input.value !== value) row.input.value = value;
+      patchText(row.text, label);
+      patchAttr(row.label, 'aria-disabled', itemDisabled ? 'true' : null);
+      row.input.checked = selected.has(value);
+      const rowDisabled = disabledAll || itemDisabled;
+      if (row.input.disabled !== rowDisabled) row.input.disabled = rowDisabled;
+    });
 
-      const box = document.createElement('span');
-      box.className = 'ink-checkbox__box';
-      box.innerHTML =
-        '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">' +
-        '<path d="M2 8.5l4 4 8-9" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="square"/>' +
-        '</svg>';
+    const checked = [...container.querySelectorAll<HTMLInputElement>('input:checked')].map(
+      (i) => i.value,
+    );
+    this._syncFormValue(checked);
+  };
 
-      wrapper.appendChild(input);
-      wrapper.appendChild(box);
+  private static _makeRow(): CboxRow {
+    const label = document.createElement('label');
+    label.className = 'ink-checkbox';
 
-      const text = document.createElement('span');
-      text.textContent = o.label;
+    const wrapper = document.createElement('span');
+    wrapper.style.position = 'relative';
+    wrapper.style.display = 'inline-flex';
 
-      label.appendChild(wrapper);
-      label.appendChild(text);
-      container.appendChild(label);
-    }
+    const input = document.createElement('input');
+    input.type = 'checkbox';
 
-    this.replaceChildren(container);
-    this._value = value.join(',');
-    this._syncFormValue(value);
+    const box = document.createElement('span');
+    box.className = 'ink-checkbox__box';
+    box.innerHTML =
+      '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">' +
+      '<path d="M2 8.5l4 4 8-9" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="square"/>' +
+      '</svg>';
+
+    wrapper.appendChild(input);
+    wrapper.appendChild(box);
+
+    const text = document.createElement('span');
+
+    label.appendChild(wrapper);
+    label.appendChild(text);
+    return { label, input, text };
   }
 
   override get value(): string {
@@ -222,13 +279,14 @@ define('e-checkbox-group', ECheckboxGroup);
 /**
  * @summary Single option entry inside an `<e-checkbox-group>`.
  *
- * Acts as a data carrier; the parent renders the actual checkbox.
+ * Acts as a data carrier; the parent renders the actual checkbox and hides
+ * this element. Changing its attributes after mount updates the rendered row.
  *
  * @attr {string} value - Value contributed when this option is checked.
  * @attr {string} [label] - Visible label. Falls back to text content, then to `value`.
  * @attr {boolean} [disabled] - Makes this single option untoggleable and unfocusable while the
  *   rest of the group stays usable. Follows the library's boolean-attribute convention, so
- *   `disabled="false"` leaves it toggleable. Read once, when the parent renders the group.
+ *   `disabled="false"` leaves it toggleable.
  */
 export class ECboxOption extends HTMLElement {}
 define('e-cbox-option', ECboxOption);

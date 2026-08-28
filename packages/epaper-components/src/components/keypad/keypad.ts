@@ -228,7 +228,7 @@ export class EKeypad extends BaseFormControl {
         kind: 'decimal',
         key: separator,
         label: separator,
-        ariaLabel: 'Decimal separator',
+        ariaLabel: t(this, 'decimalSeparator'),
       });
     } else {
       keys.push({

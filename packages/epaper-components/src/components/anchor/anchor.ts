@@ -8,6 +8,7 @@ import {
   patchText,
   runCleanups,
 } from '../../core/dom';
+import { t } from '../../core/i18n';
 
 interface AnchorEntry {
   href: string | null;
@@ -85,10 +86,10 @@ export class EAnchor extends HTMLElement {
   private _build(): void {
     const nav = document.createElement('nav');
     nav.className = 'ink-anchor';
-    nav.setAttribute('aria-label', 'In-page navigation');
+    nav.setAttribute('aria-label', t(this, 'inPageNavigation'));
     const title = document.createElement('div');
     title.className = 'ink-anchor__title';
-    title.textContent = 'ON THIS PAGE';
+    title.textContent = t(this, 'onThisPage');
     const list = document.createElement('ul');
     list.className = 'ink-anchor__list';
     nav.append(title, list);

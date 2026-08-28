@@ -118,8 +118,8 @@ function coverMain(opts: ContentOptions): string {
               )}</div>
             </div>
             <div>
-              <div class="site-cover__stat-label">Bundle (gz)</div>
-              <div class="site-cover__stat-value">40 KB</div>
+              <div class="site-cover__stat-label">Bundle (brotli)</div>
+              <div class="site-cover__stat-value">58 KB</div>
             </div>
             <div>
               <div class="site-cover__stat-label">GitHub stars</div>

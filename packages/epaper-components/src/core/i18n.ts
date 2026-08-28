@@ -68,6 +68,37 @@ export interface LocaleStrings {
   clear: string;
   backspace: string;
   decimalSeparator: string;
+  /** `e-barcode` visible fallback and error text; `{format}`, `{value}`, `{min}`, `{max}`, `{found}`, `{expected}` and `{char}` are substituted. */
+  barcodeLabel: string;
+  barcodeValueEmpty: string;
+  barcodeDigitsOnly: string;
+  barcodeNeedsDigits: string;
+  barcodeCheckDigit: string;
+  code128CannotEncode: string;
+  /** `e-change-marker`; `{value}` is substituted. */
+  changed: string;
+  from: string;
+  /** `e-sparkline`; `{state}` and `{threshold}` are substituted. */
+  sparklineThreshold: string;
+  thresholdAbove: string;
+  thresholdBelow: string;
+  thresholdAt: string;
+  /** `e-anchor`. */
+  onThisPage: string;
+  inPageNavigation: string;
+  /** `e-qrcode`; `{value}` is substituted. */
+  qrCodeFor: string;
+  qrCodeError: string;
+  /** `e-title`. */
+  linkToSection: string;
+  /** `e-upload`. */
+  anyFileType: string;
+  /** `e-status-pill` built-in vocabulary. */
+  statusOk: string;
+  statusWarning: string;
+  statusCritical: string;
+  statusOffline: string;
+  statusNeutral: string;
   /** `e-redline`; `{changed}` and `{total}` are substituted. */
   redlineSummary: string;
   redlineNoChanges: string;
@@ -75,99 +106,146 @@ export interface LocaleStrings {
   redlineShowAll: string;
 }
 
-const EN: LocaleStrings = {
-  fresh: 'Fresh',
-  stale: 'Stale',
-  expired: 'Expired',
-  invalidDate: 'Invalid date',
-  bandLow: 'Low',
-  bandNormal: 'In range',
-  bandHigh: 'High',
-  increased: 'Increased by',
-  decreased: 'Decreased by',
-  unchanged: 'Unchanged',
-  previous: 'Previous',
-  next: 'Next',
-  pageOf: 'Page {page} of {total}',
-  required: 'Please fill out this field.',
-  agendaDay: 'Agenda · Day',
-  agendaWeek: 'Agenda · Week',
-  allDay: 'All day',
-  freeUntil: 'Free until',
-  now: 'Now',
-  severityInfo: 'Info',
-  severityWarning: 'Warning',
-  severityError: 'Error',
-  severityCritical: 'Critical',
-  acknowledged: 'ACK',
-  noEvents: 'No events',
-  wasPrice: 'Was',
-  noPrice: 'No price',
-  barcodeEmpty: 'Empty barcode',
-  barcodeError: 'Barcode error',
-  rating: 'Rating',
-  ratingOf: '{value} of {max}',
-  slider: 'Slider',
-  code: 'Code',
-  digitOf: 'Digit {index} of {length}',
-  signaturePad: 'Signature pad',
-  signatureUnavailable: 'Signature capture is unavailable on this device.',
-  keypad: 'Keypad',
-  clear: 'Clear',
-  backspace: 'Backspace',
-  decimalSeparator: 'Decimal separator',
-  redlineSummary: '{changed} of {total} paragraphs changed',
-  redlineNoChanges: 'No changes',
-  redlineChangesOnly: 'Changes only',
-  redlineShowAll: 'Show all',
-};
+/** The languages shipped in the library itself; authors can register more via `setLocaleStrings`. */
+type BuiltInLocale = 'en' | 'de';
 
-const DE: LocaleStrings = {
-  fresh: 'Aktuell',
-  stale: 'Veraltet',
-  expired: 'Abgelaufen',
-  invalidDate: 'Ungültiges Datum',
-  bandLow: 'Niedrig',
-  bandNormal: 'Im Bereich',
-  bandHigh: 'Hoch',
-  increased: 'Gestiegen um',
-  decreased: 'Gefallen um',
-  unchanged: 'Unverändert',
-  previous: 'Zurück',
-  next: 'Weiter',
-  pageOf: 'Seite {page} von {total}',
-  required: 'Bitte füllen Sie dieses Feld aus.',
-  agendaDay: 'Agenda · Tag',
-  agendaWeek: 'Agenda · Woche',
-  allDay: 'Ganztägig',
-  freeUntil: 'Frei bis',
-  now: 'Jetzt',
-  severityInfo: 'Info',
-  severityWarning: 'Warnung',
-  severityError: 'Fehler',
-  severityCritical: 'Kritisch',
-  acknowledged: 'QUIT',
-  noEvents: 'Keine Ereignisse',
-  wasPrice: 'Vorher',
-  noPrice: 'Kein Preis',
-  barcodeEmpty: 'Leerer Barcode',
-  barcodeError: 'Barcode-Fehler',
-  rating: 'Bewertung',
-  ratingOf: '{value} von {max}',
-  slider: 'Schieberegler',
-  code: 'Code',
-  digitOf: 'Ziffer {index} von {length}',
-  signaturePad: 'Unterschriftenfeld',
-  signatureUnavailable: 'Unterschriften sind auf diesem Gerät nicht verfügbar.',
-  keypad: 'Tastenfeld',
-  clear: 'Löschen',
-  backspace: 'Rücktaste',
-  decimalSeparator: 'Dezimaltrennzeichen',
-  redlineSummary: '{changed} von {total} Absätzen geändert',
-  redlineNoChanges: 'Keine Änderungen',
-  redlineChangesOnly: 'Nur Änderungen',
-  redlineShowAll: 'Alle anzeigen',
-};
+// Each key's translations sit side by side rather than in one table per
+// language, so a key can never be added to one language and forgotten in the
+// other. Grouping comments match `LocaleStrings` above: they are the only map
+// from key to the component that owns it, so keep them in sync when a key is
+// added or moved.
+const BUILT_IN = {
+  // `e-last-updated` freshness states.
+  fresh: { en: 'Fresh', de: 'Aktuell' },
+  stale: { en: 'Stale', de: 'Veraltet' },
+  expired: { en: 'Expired', de: 'Abgelaufen' },
+  invalidDate: { en: 'Invalid date', de: 'Ungültiges Datum' },
+  // `e-meter` band labels.
+  bandLow: { en: 'Low', de: 'Niedrig' },
+  bandNormal: { en: 'In range', de: 'Im Bereich' },
+  bandHigh: { en: 'High', de: 'Hoch' },
+  // `e-statistic` / `e-change-marker` trend verbs.
+  increased: { en: 'Increased by', de: 'Gestiegen um' },
+  decreased: { en: 'Decreased by', de: 'Gefallen um' },
+  unchanged: { en: 'Unchanged', de: 'Unverändert' },
+  // `e-pagination` controls.
+  previous: { en: 'Previous', de: 'Zurück' },
+  next: { en: 'Next', de: 'Weiter' },
+  // Pager summary; `{page}` and `{total}` are substituted.
+  pageOf: { en: 'Page {page} of {total}', de: 'Seite {page} von {total}' },
+  // Generic required-field message shared by the composite form controls.
+  required: { en: 'Please fill out this field.', de: 'Bitte füllen Sie dieses Feld aus.' },
+  // `e-agenda` axis and entry labels.
+  agendaDay: { en: 'Agenda · Day', de: 'Agenda · Tag' },
+  agendaWeek: { en: 'Agenda · Week', de: 'Agenda · Woche' },
+  allDay: { en: 'All day', de: 'Ganztägig' },
+  freeUntil: { en: 'Free until', de: 'Frei bis' },
+  now: { en: 'Now', de: 'Jetzt' },
+  // `e-event-log` severities, acknowledgement chip and empty state.
+  severityInfo: { en: 'Info', de: 'Info' },
+  severityWarning: { en: 'Warning', de: 'Warnung' },
+  severityError: { en: 'Error', de: 'Fehler' },
+  severityCritical: { en: 'Critical', de: 'Kritisch' },
+  acknowledged: { en: 'ACK', de: 'QUIT' },
+  noEvents: { en: 'No events', de: 'Keine Ereignisse' },
+  // `e-price`: the struck-through previous price, and the empty amount.
+  wasPrice: { en: 'Was', de: 'Vorher' },
+  noPrice: { en: 'No price', de: 'Kein Preis' },
+  // `e-barcode` fallback states.
+  barcodeEmpty: { en: 'Empty barcode', de: 'Leerer Barcode' },
+  barcodeError: { en: 'Barcode error', de: 'Barcode-Fehler' },
+  // `e-rating`; `{value}` and `{max}` are substituted.
+  rating: { en: 'Rating', de: 'Bewertung' },
+  ratingOf: { en: '{value} of {max}', de: '{value} von {max}' },
+  // `e-slider`, `e-pin-input`; `{index}` and `{length}` are substituted.
+  slider: { en: 'Slider', de: 'Schieberegler' },
+  code: { en: 'Code', de: 'Code' },
+  digitOf: { en: 'Digit {index} of {length}', de: 'Ziffer {index} von {length}' },
+  // `e-signature`.
+  signaturePad: { en: 'Signature pad', de: 'Unterschriftenfeld' },
+  signatureUnavailable: {
+    en: 'Signature capture is unavailable on this device.',
+    de: 'Unterschriften sind auf diesem Gerät nicht verfügbar.',
+  },
+  // `e-keypad`, and the clear control `e-signature` shares with it.
+  keypad: { en: 'Keypad', de: 'Tastenfeld' },
+  clear: { en: 'Clear', de: 'Löschen' },
+  backspace: { en: 'Backspace', de: 'Rücktaste' },
+  decimalSeparator: { en: 'Decimal separator', de: 'Dezimaltrennzeichen' },
+  // `e-barcode` visible fallback and error text; `{format}`, `{value}`, `{min}`, `{max}`,
+  // `{found}`, `{expected}` and `{char}` are substituted.
+  barcodeLabel: { en: '{format} barcode {value}', de: '{format} Barcode {value}' },
+  barcodeValueEmpty: { en: 'Barcode value is empty.', de: 'Barcode ist leer.' },
+  barcodeDigitsOnly: {
+    en: '{format} accepts digits only.',
+    de: '{format} akzeptiert nur Ziffern.',
+  },
+  barcodeNeedsDigits: {
+    en: '{format} needs {min} or {max} digits.',
+    de: '{format} benötigt {min} oder {max} Ziffern.',
+  },
+  barcodeCheckDigit: {
+    en: 'Check digit is {found}, expected {expected}.',
+    de: 'Prüfziffer ist {found}, erwartet {expected}.',
+  },
+  code128CannotEncode: {
+    en: 'Code 128 cannot encode character "{char}".',
+    de: 'Code 128 kann das Zeichen „{char}“ nicht codieren.',
+  },
+  // `e-change-marker`; `{value}` is substituted.
+  changed: { en: 'Changed', de: 'Geändert' },
+  from: { en: 'from', de: 'von' },
+  // `e-sparkline`; `{state}` and `{threshold}` are substituted.
+  sparklineThreshold: {
+    en: '; {state} threshold {threshold}',
+    de: '; {state} Schwellenwert {threshold}',
+  },
+  thresholdAbove: { en: 'above', de: 'über' },
+  thresholdBelow: { en: 'below', de: 'unter' },
+  thresholdAt: { en: 'at', de: 'am' },
+  // `e-anchor`.
+  onThisPage: { en: 'ON THIS PAGE', de: 'AUF DIESER SEITE' },
+  inPageNavigation: { en: 'In-page navigation', de: 'Seiteninterne Navigation' },
+  // `e-qrcode`; `{value}` is substituted.
+  qrCodeFor: { en: 'QR code for {value}', de: 'QR-Code für {value}' },
+  qrCodeError: { en: 'QR code error', de: 'QR-Code-Fehler' },
+  // `e-title`.
+  linkToSection: { en: 'Link to this section', de: 'Link zu diesem Abschnitt' },
+  // `e-upload`.
+  anyFileType: { en: 'ANY FILE TYPE', de: 'BELIEBIGER DATEITYP' },
+  // `e-status-pill` built-in vocabulary.
+  statusOk: { en: 'OK', de: 'OK' },
+  statusWarning: { en: 'Warning', de: 'Warnung' },
+  statusCritical: { en: 'Critical', de: 'Kritisch' },
+  statusOffline: { en: 'Offline', de: 'Offline' },
+  statusNeutral: { en: 'Neutral', de: 'Neutral' },
+  // `e-redline`; `{changed}` and `{total}` are substituted.
+  redlineSummary: {
+    en: '{changed} of {total} paragraphs changed',
+    de: '{changed} von {total} Absätzen geändert',
+  },
+  redlineNoChanges: { en: 'No changes', de: 'Keine Änderungen' },
+  redlineChangesOnly: { en: 'Changes only', de: 'Nur Änderungen' },
+  redlineShowAll: { en: 'Show all', de: 'Alle anzeigen' },
+} satisfies Record<keyof LocaleStrings, Record<BuiltInLocale, string>>;
+
+/** Every key of `LocaleStrings`, used to project `BUILT_IN` down to one language. */
+const BUILT_IN_KEYS = Object.keys(BUILT_IN) as (keyof LocaleStrings)[];
+
+/** Build the flat `LocaleStrings` table for one of the shipped languages. */
+function builtInTable(locale: BuiltInLocale): LocaleStrings {
+  // The loop below assigns every key `BUILT_IN_KEYS` enumerates (one full
+  // pass over `LocaleStrings`'s keys), so the object is complete before it
+  // is returned — the cast just tells TS what the loop guarantees.
+  const out = {} as LocaleStrings;
+  for (const key of BUILT_IN_KEYS) {
+    out[key] = BUILT_IN[key][locale];
+  }
+  return out;
+}
+
+const EN: LocaleStrings = builtInTable('en');
+const DE: LocaleStrings = builtInTable('de');
 
 const REGISTRY = new Map<string, LocaleStrings>([
   ['en', EN],

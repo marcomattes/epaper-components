@@ -1,11 +1,39 @@
-import { boolAttr, define, esc, patchAttr, randId } from '../../core/dom';
+import {
+  addCleanup,
+  boolAttr,
+  define,
+  observeItems,
+  patchAttr,
+  patchText,
+  randId,
+  runCleanups,
+} from '../../core/dom';
 import { BaseFormControl } from '../../core/base-form-control';
+
+/** Rendered `<label>`/`<input>` pair for a single `<e-radio>`. */
+interface RadioRow {
+  label: HTMLLabelElement;
+  input: HTMLInputElement;
+  text: Text;
+}
 
 /**
  * @summary Group of radio options sharing a single value.
  * @since v1.0.1
  *
- * Reads options from `<e-radio>` children at connect time.
+ * Reads options from `<e-radio>` children and keeps them live: the authored
+ * items stay in the light DOM as the source of truth, and a
+ * `MutationObserver` re-syncs the rendered radios whenever one is added,
+ * removed, reordered, relabelled or re-valued. Rows keep their DOM identity by
+ * position, and `checked` is always re-derived from the group's own `value` —
+ * the same source of truth an attribute-driven update already used — so an
+ * unrelated option changing never moves the current selection.
+ *
+ * Because the items stay put they would otherwise render twice, so each one is
+ * hidden with an inline `display:none` when it is first wired. The stable form
+ * of that is a `e-radio { display: none; }` rule in `components.css`; the
+ * inline style is what guarantees it without one.
+ *
  * Form-associated: participates in `<form>` submission and FormData.
  *
  * @attr {string} [value] - Currently selected option value.
@@ -18,6 +46,8 @@ import { BaseFormControl } from '../../core/base-form-control';
  * @attr {string} [required-message] - Message reported when no required option is selected.
  *
  * @fires {CustomEvent<{value: string}>} e-change - Fired when the selection changes.
+ *
+ * @slot - Default slot for `<e-radio>` children.
  *
  * @example
  * <e-radio-group value="a" layout="horizontal">
@@ -35,59 +65,51 @@ export class ERadioGroup extends BaseFormControl {
   ];
 
   private _wired = false;
+  private _group: HTMLElement | null = null;
+  private _name = '';
+  private readonly _rows: RadioRow[] = [];
 
   connectedCallback() {
-    if (this._wired) {
-      this._applyDisabled();
-      return;
+    if (!this._wired) {
+      this._wired = true;
+      this._name = randId('e-rg');
+      const layout = this.getAttribute('layout') === 'vertical' ? 'vertical' : 'horizontal';
+      const group = document.createElement('div');
+      group.className =
+        'ink-radio-group' + (layout === 'vertical' ? ' ink-radio-group--vertical' : '');
+      group.setAttribute('role', 'radiogroup');
+      this._group = group;
+      this.appendChild(group);
+
+      this._value = this.getAttribute('value') ?? '';
+      this.internals.setFormValue(this._value);
+      this._sync();
+      this._syncValidity();
+    } else {
+      this._sync();
     }
-    this._wired = true;
-    const name = randId('e-rg');
-    const value = this.getAttribute('value') ?? '';
-    const layout = this.getAttribute('layout') === 'vertical' ? 'vertical' : 'horizontal';
-    const radios = [...this.querySelectorAll('e-radio')].map((r) => ({
-      value: r.getAttribute('value') ?? '',
-      label: r.getAttribute('label') || r.textContent || '',
-      // `<e-radio>` is a plain data carrier, not a form-associated element, so
-      // its `disabled` follows the library's boolean-attribute convention.
-      disabled: boolAttr(r, 'disabled'),
-    }));
-    // `name` is randId('e-rg') — an internally generated id, never a
-    // free-form string — so it can't carry the characters esc() escapes,
-    // and wrapping it would only cost bundle bytes against the size-limit
-    // budget.
-    /* eslint-disable local/no-unescaped-innerhtml */
-    this.innerHTML = `<div class="ink-radio-group${layout === 'vertical' ? ' ink-radio-group--vertical' : ''}" role="radiogroup">
-      ${radios
-        .map(
-          (r) => `
-        <label class="ink-radio"${r.disabled ? ' aria-disabled="true"' : ''}>
-          <input type="radio" name="${name}" value="${esc(r.value)}" ${r.value === value ? 'checked' : ''} ${r.disabled ? 'disabled' : ''}/>
-          <span class="ink-radio__dot"></span>
-          ${esc(r.label)}
-        </label>`,
-        )
-        .join('')}
-    </div>`;
-    /* eslint-enable local/no-unescaped-innerhtml */
-    this._value = value;
-    this.internals.setFormValue(value);
-    this._syncValidity();
     this._applyDisabled();
-    this.addEventListener('change', (e) => {
-      const target = e.target as HTMLInputElement;
-      if (this._disabled) return;
-      if (target.matches('input[type="radio"]')) {
-        this.setAttribute('value', target.value);
-        this.dispatchEvent(
-          new CustomEvent('e-change', {
-            detail: { value: target.value },
-            bubbles: true,
-          }),
-        );
-      }
+    this.addEventListener('change', this._onChange);
+    addCleanup(this, () => this.removeEventListener('change', this._onChange));
+    observeItems(this, this._sync, {
+      attributeFilter: ['value', 'label', 'disabled'],
+      isOutput: (n) => this._group?.contains(n) ?? false,
     });
   }
+
+  disconnectedCallback() {
+    runCleanups(this);
+  }
+
+  private readonly _onChange = (e: Event): void => {
+    const target = e.target as HTMLInputElement;
+    if (this._disabled) return;
+    if (!target.matches('input[type="radio"]')) return;
+    this.setAttribute('value', target.value);
+    this.dispatchEvent(
+      new CustomEvent('e-change', { detail: { value: target.value }, bubbles: true }),
+    );
+  };
 
   /**
    * Effective disabled state. Presence alone disables — the HTML spec, not the
@@ -105,11 +127,9 @@ export class ERadioGroup extends BaseFormControl {
    */
   private _applyDisabled(): void {
     const disabled = this._disabled;
-    const group = this.querySelector<HTMLElement>('[role="radiogroup"]');
-    if (group) patchAttr(group, 'aria-disabled', disabled ? 'true' : null);
-    for (const label of this.querySelectorAll<HTMLElement>('label.ink-radio')) {
-      const input = label.querySelector<HTMLInputElement>('input[type="radio"]');
-      if (input) input.disabled = disabled || label.getAttribute('aria-disabled') === 'true';
+    if (this._group) patchAttr(this._group, 'aria-disabled', disabled ? 'true' : null);
+    for (const row of this._rows) {
+      row.input.disabled = disabled || row.label.getAttribute('aria-disabled') === 'true';
     }
   }
 
@@ -118,13 +138,15 @@ export class ERadioGroup extends BaseFormControl {
   }
 
   attributeChangedCallback(name: string, _old: string | null, v: string | null) {
+    if (!this._wired) return;
     if (name === 'disabled') {
       this._applyDisabled();
       return;
     }
     if (name === 'layout') {
-      const group = this.querySelector<HTMLElement>('.ink-radio-group');
-      if (group) group.classList.toggle('ink-radio-group--vertical', v === 'vertical');
+      if (this._group) {
+        this._group.classList.toggle('ink-radio-group--vertical', v === 'vertical');
+      }
       return;
     }
     if (name === 'required' || name === 'required-message') {
@@ -136,10 +158,57 @@ export class ERadioGroup extends BaseFormControl {
     if (newValue === this._value) return;
     this._value = newValue;
     this.internals.setFormValue(newValue);
-    this.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((r) => {
-      r.checked = r.value === newValue;
-    });
+    for (const row of this._rows) row.input.checked = row.input.value === newValue;
     this._syncValidity();
+  }
+
+  /** Authored radios, excluding anything inside the rendered group. */
+  private _items(): HTMLElement[] {
+    return [...this.querySelectorAll<HTMLElement>('e-radio')].filter(
+      (r) => !this._group?.contains(r),
+    );
+  }
+
+  private readonly _sync = (): void => {
+    const group = this._group;
+    if (!group) return;
+    const items = this._items();
+    const disabledAll = this._disabled;
+
+    while (this._rows.length > items.length) this._rows.pop()!.label.remove();
+
+    items.forEach((item, i) => {
+      if (item.style.display !== 'none') item.style.display = 'none';
+      const value = item.getAttribute('value') ?? '';
+      const label = item.getAttribute('label') || item.textContent || '';
+      const itemDisabled = boolAttr(item, 'disabled');
+
+      let row = this._rows[i];
+      if (!row) {
+        row = ERadioGroup._makeRow(this._name);
+        group.appendChild(row.label);
+        this._rows.push(row);
+      }
+      if (row.input.value !== value) row.input.value = value;
+      patchText(row.text, label);
+      patchAttr(row.label, 'aria-disabled', itemDisabled ? 'true' : null);
+      row.input.checked = value === this._value;
+      const rowDisabled = disabledAll || itemDisabled;
+      if (row.input.disabled !== rowDisabled) row.input.disabled = rowDisabled;
+    });
+  };
+
+  private static _makeRow(name: string): RadioRow {
+    const label = document.createElement('label');
+    label.className = 'ink-radio';
+    const input = document.createElement('input');
+    input.type = 'radio';
+    input.name = name;
+    const dot = document.createElement('span');
+    dot.className = 'ink-radio__dot';
+    const text = document.createTextNode('');
+    label.append(input, dot, text);
+    return { label, input, text };
   }
 
   override get value(): string {
@@ -157,9 +226,8 @@ export class ERadioGroup extends BaseFormControl {
   }
 
   private _syncValidity(): void {
-    const group = this.querySelector<HTMLElement>('[role="radiogroup"]') ?? undefined;
-    group?.setAttribute('aria-required', String(boolAttr(this, 'required')));
-    this.applyRequiredValidity(!!this.value, group, 'Please select an option.');
+    this._group?.setAttribute('aria-required', String(boolAttr(this, 'required')));
+    this.applyRequiredValidity(!!this.value, this._group ?? undefined, 'Please select an option.');
   }
 }
 define('e-radio-group', ERadioGroup);
@@ -167,11 +235,17 @@ define('e-radio-group', ERadioGroup);
 /**
  * @summary Single option entry inside an `<e-radio-group>`.
  *
+ * Acts as a data carrier; the parent renders the actual radio input and hides
+ * this element. Changing its attributes after mount updates the rendered row.
+ *
  * @attr {string} value - Value contributed when this option is selected.
  * @attr {string} [label] - Visible label. Falls back to text content.
  * @attr {boolean} [disabled] - Makes this single option unselectable and unfocusable while the
  *   rest of the group stays usable. Follows the library's boolean-attribute convention, so
- *   `disabled="false"` leaves it selectable. Read once, when the parent renders the group.
+ *   `disabled="false"` leaves it selectable.
+ *
+ * @example
+ * <e-radio value="a" label="Apples"></e-radio>
  */
 export class ERadio extends HTMLElement {}
 define('e-radio', ERadio);

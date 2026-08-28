@@ -33,3 +33,8 @@ Review.md
 # in .claude/ is per-machine and stays ignored.
 .claude/*
 !.claude/skills/
+# Vitest writes a screenshot of the page when a browser-mode test fails, into
+# __screenshots__/<file>.test.ts/<test name>-1.png. Those are failure
+# artifacts, not baselines — the committed baselines sit flat in
+# __screenshots__/ — and a pair of them was swept into the repo once already.
+**/__screenshots__/*.test.ts/

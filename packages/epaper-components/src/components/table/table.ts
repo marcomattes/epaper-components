@@ -487,8 +487,19 @@ export class ETable extends HTMLElement {
           key = `k:${String(v)}`;
         }
       }
-      // A duplicate key would collapse two rows onto one `<tr>`; disambiguate.
-      if (seen.has(key)) key = `${key}#${i}`;
+      // A duplicate key would collapse two rows onto one `<tr>`; disambiguate,
+      // re-checking the disambiguated form itself — an authored value can
+      // collide with it (e.g. keys "a" and "a#2" both present), so keep
+      // bumping the suffix until it lands on something nothing else has used.
+      if (seen.has(key)) {
+        let suffix = i;
+        let candidate = `${key}#${suffix}`;
+        while (seen.has(candidate)) {
+          suffix++;
+          candidate = `${key}#${suffix}`;
+        }
+        key = candidate;
+      }
       seen.add(key);
       keys.push(key);
     }

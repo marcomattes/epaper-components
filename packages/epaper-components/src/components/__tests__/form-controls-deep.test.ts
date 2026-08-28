@@ -1032,10 +1032,18 @@ describe('e-checkbox-group · building options', () => {
     expect(groupValues(el)).toEqual(['a', 'b', 'c', '']);
     expect(groupLabels(el)).toEqual(['Apples', 'Bananas', 'c', '']);
     expect(groupChecked(el)).toEqual([true, false, true, false]);
-    expect(el.querySelector('e-cbox-option')).toBeNull();
     expect(el.value).toBe('a,c');
 
+    // v1.3.x: the authored carriers stay in the light DOM as the reactive
+    // source of truth, hidden rather than removed, and contribute nothing to
+    // the rendered group besides the row `_sync` builds from them.
+    const carriers = [...el.querySelectorAll('e-cbox-option')];
+    expect(carriers).toHaveLength(4);
+    for (const carrier of carriers) expect((carrier as HTMLElement).style.display).toBe('none');
+
     const container = el.querySelector<HTMLElement>('[role="group"]')!;
+    expect(carriers.every((c) => !container.contains(c))).toBe(true);
+    expect(container.children).toHaveLength(4); // rendered rows only, not the carriers
     expect(container.style.display).toBe('flex');
     expect(container.style.flexDirection).toBe('column');
     expect(container.style.flexWrap).toBe('wrap');
@@ -1126,10 +1134,15 @@ describe('e-checkbox-group · value, events and reconnection', () => {
     document.body.appendChild(el);
     roots.push(el);
     expect(el.querySelectorAll('[role="group"]')).toHaveLength(1);
+    // v1.3.x: reconnecting re-syncs from the `value` attribute — selection is
+    // always re-derived from it, never cached per row — so the stray native
+    // toggle on 'b' above is discarded rather than surviving into the value
+    // the next real click reports.
+    expect(boxes()[1]!.checked).toBe(false);
     boxes()[2]!.click();
     expect(changes).toHaveLength(1);
-    expect(detailsOf(changes)).toEqual([{ value: ['a', 'b', 'c'] }]);
-    expect(el.getAttribute('value')).toBe('a,b,c');
+    expect(detailsOf(changes)).toEqual([{ value: ['a', 'c'] }]);
+    expect(el.getAttribute('value')).toBe('a,c');
   });
 });
 

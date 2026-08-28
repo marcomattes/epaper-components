@@ -9,6 +9,7 @@ import {
   randId,
 } from '../../core/dom';
 import { BaseFormControl } from '../../core/base-form-control';
+import { formatNumber } from '../../core/format';
 import { t } from '../../core/i18n';
 
 const MAX_TICKS = 21;
@@ -237,10 +238,12 @@ export class ESlider extends BaseFormControl<number> {
     const { min, max } = this._bounds();
     const unit = this.getAttribute('unit') || '';
     const suffix = unit ? ` ${unit}` : '';
-    patchText(this._output, `${this._value}${suffix}`);
+    // Grouping stays off: the readout sits inline next to the track, the same
+    // choice `<e-meter>` makes for its own single-figure reading.
+    patchText(this._output, `${formatNumber(this, this._value, { grouping: false })}${suffix}`);
     patchAttr(this._output, 'hidden', boolAttr(this, 'hide-value') ? '' : null);
-    patchText(this._scaleMin, `${min}${suffix}`);
-    patchText(this._scaleMax, `${max}${suffix}`);
+    patchText(this._scaleMin, `${formatNumber(this, min, { grouping: false })}${suffix}`);
+    patchText(this._scaleMax, `${formatNumber(this, max, { grouping: false })}${suffix}`);
     const scale = this._scaleMin.parentElement;
     if (scale) patchAttr(scale, 'hidden', boolAttr(this, 'hide-scale') ? '' : null);
   }

@@ -91,6 +91,7 @@ e-date-picker[aria-disabled='true'],
 e-time-picker[aria-disabled='true'],
 e-input-number[aria-disabled='true'],
 e-upload[aria-disabled='true'],
+e-signature[aria-disabled='true'],
 e-select [aria-disabled='true'],
 e-radio-group [aria-disabled='true'],
 e-checkbox-group [aria-disabled='true'],
@@ -99,7 +100,8 @@ e-tree-select [aria-disabled='true'],
 e-date-picker [aria-disabled='true'],
 e-time-picker [aria-disabled='true'],
 e-input-number [aria-disabled='true'],
-e-upload [aria-disabled='true'] {
+e-upload [aria-disabled='true'],
+e-signature [aria-disabled='true'] {
   background-image: var(--ink-hatch-disabled);
   cursor: not-allowed;
 }
@@ -1859,6 +1861,12 @@ e-toc {
   position: relative;
   border: var(--ink-border);
   background: var(--ink-bg);
+}
+/* Readonly still shows a captured signature, so it gets a shape cue instead
+   of the disabled hatch, which would clutter the ink underneath. */
+e-signature[data-readonly='true'] .ink-signature__pad {
+  border-style: dashed;
+  cursor: not-allowed;
 }
 .ink-signature__canvas {
   display: block;

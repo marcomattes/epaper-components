@@ -466,6 +466,25 @@ describe('e-table keyed row diffing', () => {
     expect(rows.map((r) => [...r.querySelectorAll('td')][1].textContent)).toEqual(['Anna', 'Ada']);
   });
 
+  it('re-disambiguates when a duplicate key collides with the generated suffix', () => {
+    // Row 1's authored key ("a#2") is exactly the form row 2's duplicate "a"
+    // would naively be rewritten to — the fix must keep bumping the suffix
+    // instead of colliding with it.
+    const el = mount(
+      `<e-table row-key="id" columns='${KCOLS}' data='${keyed([
+        row('a', 'Anna', 'Editor'),
+        row('a#2', 'Ben', 'Admin'),
+        row('a', 'Ada', 'Reviewer'),
+      ])}'></e-table>`,
+    );
+    const rows = bodyRows(el);
+    expect(rows).toHaveLength(3);
+    const cellsOf = (r: Element) => [...r.querySelectorAll('td')].map((td) => td.textContent);
+    expect(cellsOf(rows[0])).toEqual(['a', 'Anna', 'Editor']);
+    expect(cellsOf(rows[1])).toEqual(['a#2', 'Ben', 'Admin']);
+    expect(cellsOf(rows[2])).toEqual(['a', 'Ada', 'Reviewer']);
+  });
+
   it('swaps between the row set and the empty state without rebuilding the table', () => {
     const el = mount(`<e-table row-key="id" columns='${KCOLS}' data='${KROWS}'></e-table>`);
     const table = el.querySelector('table')!;
