@@ -53,10 +53,15 @@ export const ROUTES: Route[] = [
     path: '/',
     dir: '',
     nav: 'Cover',
-    title: 'EPaper — Web Components for E-Paper Displays',
+    // The head term this page competes for is "e-ink web components", and it
+    // has to appear as that phrase — in the title, in the <h1> and in the
+    // first paragraph of the body. Before that was true the FAQ outranked
+    // the cover for the site's own subject, simply because the FAQ was the
+    // only page that spelled "e-ink" next to "web components" in prose.
+    title: 'EPaper — E-Ink Web Components for E-Paper Displays',
     description:
-      'A vanilla custom-element library tuned for e-paper and e-ink displays: surgical DOM updates, no animations, no :hover, no Shadow DOM. 71 framework-agnostic components in 40 KB gzipped, MIT licensed.',
-    heading: 'Web components for ink & paper.',
+      'EPaper is an open-source library of 71 e-ink web components: vanilla custom elements for e-paper (eink) displays, with surgical DOM updates, no animations, no :hover and no Shadow DOM. 40 KB gzipped, MIT licensed.',
+    heading: 'Web components for e-ink & e-paper.',
     folio: '01',
   },
   {

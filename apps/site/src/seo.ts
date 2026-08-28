@@ -25,10 +25,12 @@ import {
 } from './routes';
 import { ARTICLES, articlePath, articlesOfKind, readingMinutes, type Article } from './articles';
 import { blocksMarkdown } from './blocks';
-import { FAQ, faqItems } from './faq';
+import { FAQ, faqItems, homeQuestions } from './faq';
 import {
   COMPONENTS,
+  EINK_CONSTRAINTS,
   FEATURES,
+  HOME_INTRO,
   IMPORT_SNIPPET,
   INSTALL_SNIPPETS,
   ROADMAP,
@@ -67,6 +69,8 @@ function softwareGraph(version: string): Record<string, unknown> {
     maintainer: AUTHOR,
     url: SITE_ORIGIN,
     keywords: [
+      'e-ink web components',
+      'e-paper web components',
       'web components',
       'custom elements',
       'e-paper',
@@ -226,6 +230,57 @@ function guidesGraph(): Record<string, unknown>[] {
   ];
 }
 
+/**
+ * Structured data for the cover.
+ *
+ * The cover used to contribute nothing beyond the graph every page carries,
+ * which made it the least described page on a site about the thing it
+ * describes. Two additions, both restating text now visible on the page:
+ *
+ *   • `SoftwareApplication` — the type an engine resolves when someone asks
+ *     for a library rather than for a repository. `SoftwareSourceCode` (in
+ *     the shared graph) answers "where is the code"; this answers "what do I
+ *     install, and what does it cost", which is the question behind the
+ *     query.
+ *   • `ItemList` of the sections — the site's own shape, stated once on the
+ *     page that should be entered first. It is what a sitelinks block is
+ *     built from.
+ */
+function homeGraph(): Record<string, unknown>[] {
+  return [
+    {
+      '@type': 'SoftwareApplication',
+      '@id': `${SITE_ORIGIN}/#app`,
+      name: SITE_NAME,
+      alternateName: PACKAGE_NAME,
+      applicationCategory: 'DeveloperApplication',
+      applicationSubCategory: 'Web component library',
+      operatingSystem: 'Any browser with custom elements and ElementInternals',
+      description:
+        'A library of 71 e-ink web components: vanilla custom elements for e-paper displays, with surgical DOM updates, no animations, no :hover states and no Shadow DOM.',
+      softwareRequirements: 'Evergreen Chrome, Edge, Firefox or Safari 16.4+',
+      featureList: FEATURES.map((f) => f.title),
+      isBasedOn: { '@id': `${SITE_ORIGIN}/#software` },
+      author: AUTHOR,
+      // Free and MIT — stated because "is it free" is a question an engine
+      // answers from the offer, not from the licence URL.
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+      license: 'https://spdx.org/licenses/MIT.html',
+    },
+    {
+      '@type': 'ItemList',
+      name: 'EPaper documentation',
+      itemListElement: ROUTES.filter((r) => r.dir !== '').map((r, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: r.nav,
+        description: r.description,
+        url: absoluteUrl(r.path),
+      })),
+    },
+  ];
+}
+
 /** Route-specific structured data — the part an answer engine can cite. */
 function routeGraph(
   route: Route,
@@ -235,6 +290,8 @@ function routeGraph(
   if (route.article) return [articleGraph(route, route.article)];
 
   switch (route.dir) {
+    case '':
+      return homeGraph();
     case 'guides':
       return guidesGraph();
     case 'faq':
@@ -344,11 +401,18 @@ export function routeMarkdown(route: Route, opts: { version: string; stars: stri
   const lines = [`# ${route.title}`, '', route.description, '', `Canonical: ${canonical}`, ''];
 
   switch (route.dir) {
+    // The cover's markdown twin carries the same prose the page does. It used
+    // to be a two-sentence summary, which meant an engine following the
+    // markdown alternate saw a thinner home page than a browser did — and the
+    // alternate is the copy it quotes.
     case '':
       lines.push(
-        '## Summary',
+        '## What EPaper is',
         '',
-        `EPaper is a vanilla custom-element library tuned for e-paper displays. It ships ${COMPONENTS.length} components, no Shadow DOM, no animations and no \`:hover\`-only UI states.`,
+        ...HOME_INTRO.flatMap((para) => [para, '']),
+        '## What makes a web component e-ink-ready',
+        '',
+        ...EINK_CONSTRAINTS.map((c) => `- **${plainText(c.term)}**: ${c.def}`),
         '',
         '## Install',
         '',
@@ -359,6 +423,16 @@ export function routeMarkdown(route: Route, opts: { version: string; stars: stri
         '```js',
         IMPORT_SNIPPET,
         '```',
+        '',
+        `## Components (${COMPONENTS.length})`,
+        '',
+        `Every component is a standalone custom element with its own sub-path export. Form controls are form-associated: they submit through \`FormData\` and validate through \`ElementInternals\`. Full inventory: ${absoluteUrl('/components/')}`,
+        '',
+        '## Common questions',
+        '',
+        ...homeQuestions().map(
+          (item) => `- **${item.q}** ${item.teaser} — ${absoluteUrl('/faq/')}#${item.anchor}`,
+        ),
       );
       break;
     case 'features':
@@ -503,6 +577,12 @@ export function headHtml(
       description: route.description,
       isPartOf: { '@id': `${SITE_ORIGIN}/#website` },
       about: { '@id': `${SITE_ORIGIN}/#software` },
+      // Only the cover claims the library as its *primary* entity. Every page
+      // is `about` it; saying "this page is the one that is it" on all of them
+      // would be the same non-answer the graph already gives.
+      ...(route.dir === '' && !notFound
+        ? { mainEntity: { '@id': `${SITE_ORIGIN}/#software` } }
+        : {}),
       inLanguage: 'en',
     },
     softwareGraph(opts.version),
@@ -653,8 +733,9 @@ export function llmsTxt(opts: { version: string; stars: string }): string {
 
   return `# ${SITE_NAME}
 
-> A vanilla custom-element library for e-paper displays. ${COMPONENTS.length} framework-agnostic
-> components in about 40 KB gzipped, MIT licensed, zero runtime dependencies.
+> A vanilla custom-element library of e-ink web components. ${COMPONENTS.length}
+> framework-agnostic components for e-paper displays in about 40 KB gzipped, MIT
+> licensed, zero runtime dependencies.
 
 EPaper is built for electrophoretic (e-ink) panels rather than backlit screens. The
 constraints that follow from that are deliberate and apply to every component:
