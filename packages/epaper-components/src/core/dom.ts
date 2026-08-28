@@ -138,6 +138,58 @@ export function onGlobal(
   return remove;
 }
 
+/**
+ * Watch a host's authored data-carrier children (`<e-timeline-item>`,
+ * `<e-desc-item>`, `<e-option>`, …) and re-run `sync` when they change.
+ *
+ * Components that read their entries from child elements used to do so once,
+ * in `connectedCallback`, which froze them: an item appended later never
+ * rendered. This gives them a single reactive contract instead.
+ *
+ * Two things make it safe to observe a host that also renders into itself:
+ *
+ * - `isOutput` marks the component's own rendered subtree. Records whose
+ *   target sits inside it are dropped, so a sync never re-triggers itself.
+ *   Without this the observer would loop on its own writes.
+ * - Surviving records are coalesced into one `sync()` per microtask, so a
+ *   burst of appends repaints once rather than once per item — the same
+ *   reasoning as the patch helpers below.
+ *
+ * The observer is disconnected through the host's cleanup registry, so a
+ * component that already calls `runCleanups(this)` in `disconnectedCallback`
+ * needs no extra teardown.
+ */
+export function observeItems(
+  host: HTMLElement,
+  sync: () => void,
+  opts: { attributeFilter?: string[]; isOutput?: (node: Node) => boolean } = {},
+): MutationObserver {
+  const { attributeFilter, isOutput } = opts;
+  let queued = false;
+
+  const observer = new MutationObserver((records) => {
+    if (queued) return;
+    const relevant = isOutput ? records.some((r) => !isOutput(r.target)) : records.length > 0;
+    if (!relevant) return;
+    queued = true;
+    queueMicrotask(() => {
+      queued = false;
+      // Drop anything `sync` itself wrote, so the next real edit starts clean.
+      observer.takeRecords();
+      sync();
+    });
+  });
+
+  observer.observe(host, {
+    childList: true,
+    subtree: true,
+    characterData: true,
+    ...(attributeFilter ? { attributes: true, attributeFilter } : {}),
+  });
+  addCleanup(host, () => observer.disconnect());
+  return observer;
+}
+
 /* ----------------------------------------------------------------------- *
  * Reactive patch helpers (E-paper friendly).
  *
