@@ -1,5 +1,6 @@
 import { boolAttr, define, intAttr, patchAttr, patchText, randId } from '../../core/dom';
 import { BaseFormControl } from '../../core/base-form-control';
+import { t } from '../../core/i18n';
 
 const MAX_LENGTH = 12;
 
@@ -141,7 +142,7 @@ export class EPinInput extends BaseFormControl {
   }
 
   private _normalize(raw: string): string {
-    return raw.replace(/\D/g, '').slice(0, this._length());
+    return raw.replaceAll(/\D/g, '').slice(0, this._length());
   }
 
   private _disabled(): boolean {
@@ -161,7 +162,7 @@ export class EPinInput extends BaseFormControl {
       box.autocomplete = 'off';
       box.maxLength = 1;
       box.dataset['index'] = String(index);
-      box.setAttribute('aria-label', `Digit ${index + 1} of ${length}`);
+      box.setAttribute('aria-label', t(this, 'digitOf', { index: index + 1, length }));
       box.addEventListener('input', this._onInput);
       box.addEventListener('keydown', this._onKeydown);
       box.addEventListener('paste', this._onPaste);
@@ -179,7 +180,7 @@ export class EPinInput extends BaseFormControl {
   private readonly _onInput = (e: Event): void => {
     const box = e.target as HTMLInputElement;
     const index = Number(box.dataset['index']);
-    const digits = box.value.replace(/\D/g, '');
+    const digits = box.value.replaceAll(/\D/g, '');
     if (!digits) {
       this._commit(this._removeAt(index), false);
       return;
@@ -215,7 +216,7 @@ export class EPinInput extends BaseFormControl {
 
   private readonly _onPaste = (e: ClipboardEvent): void => {
     const text = e.clipboardData?.getData('text') ?? '';
-    const digits = text.replace(/\D/g, '');
+    const digits = text.replaceAll(/\D/g, '');
     if (!digits) return;
     e.preventDefault();
     const index = Number((e.target as HTMLInputElement).dataset['index']);
@@ -251,7 +252,11 @@ export class EPinInput extends BaseFormControl {
     const hint = this.getAttribute('hint') || '';
     patchText(this._hintEl, hint);
     patchAttr(this._hintEl, 'hidden', hint ? null : '');
-    patchAttr(this._group, 'aria-label', label || this.getAttribute('aria-label') || 'Code');
+    patchAttr(
+      this._group,
+      'aria-label',
+      label || this.getAttribute('aria-label') || t(this, 'code'),
+    );
   }
 
   private _paint(): void {
@@ -270,7 +275,7 @@ export class EPinInput extends BaseFormControl {
     this.applyRequiredValidity(
       this._value.length === this._length(),
       this._group ?? undefined,
-      'Please enter the complete code.',
+      t(this, 'required'),
     );
   }
 }

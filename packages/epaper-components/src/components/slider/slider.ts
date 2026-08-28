@@ -9,6 +9,7 @@ import {
   randId,
 } from '../../core/dom';
 import { BaseFormControl } from '../../core/base-form-control';
+import { t } from '../../core/i18n';
 
 const MAX_TICKS = 21;
 
@@ -206,7 +207,7 @@ export class ESlider extends BaseFormControl<number> {
     patchAttr(
       this._input,
       'aria-label',
-      label ? null : this.getAttribute('aria-label') || 'Slider',
+      label ? null : this.getAttribute('aria-label') || t(this, 'slider'),
     );
   }
 

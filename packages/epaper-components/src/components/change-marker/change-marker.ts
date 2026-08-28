@@ -1,4 +1,6 @@
 import { clampedNumAttr, define, patchAttr, patchText } from '../../core/dom';
+import { formatNumber, resolveLocale } from '../../core/format';
+import { t } from '../../core/i18n';
 
 type ChangeDirection = 'up' | 'down' | 'changed' | 'unchanged';
 
@@ -10,6 +12,11 @@ type ChangeDirection = 'up' | 'down' | 'changed' | 'unchanged';
  * generic changed marker. A configurable tolerance suppresses insignificant
  * numeric changes.
  *
+ * The direction words come from the locale string table, so a German board
+ * reads "▲ Gestiegen um 0,6 °C" instead of the English wording. Numbers are
+ * localized only once `precision` says how many decimals to render — without
+ * it the marker keeps passing the raw value through, as it always has.
+ *
  * @attr {string|number} value - Current value.
  * @attr {string|number} [previous] - Previous value used for comparison.
  * @attr {string} [label] - Caption for the value.
@@ -19,9 +26,12 @@ type ChangeDirection = 'up' | 'down' | 'changed' | 'unchanged';
  * @attr {number} [tolerance=0] - Absolute numeric change treated as unchanged.
  * @attr {boolean} [show-previous] - Adds the previous value to the change cue.
  * @attr {boolean} [announce] - Exposes updates as a polite live status.
+ * @attr {string} [locale] - BCP-47 tag for the cue words and the number format. Falls back to the nearest `lang`, then the document language. (since v1.3.0)
  *
  * @example
  * <e-change-marker label="Temperature" previous="21.8" value="22.4" suffix=" °C" precision="1"></e-change-marker>
+ * @example
+ * <e-change-marker locale="de" previous="21.8" value="22.4" suffix=" °C" precision="1"></e-change-marker>
  */
 export class EChangeMarker extends HTMLElement {
   static readonly observedAttributes = [
@@ -34,6 +44,7 @@ export class EChangeMarker extends HTMLElement {
     'tolerance',
     'show-previous',
     'announce',
+    'locale',
   ];
 
   private _wired = false;
@@ -69,8 +80,18 @@ export class EChangeMarker extends HTMLElement {
     const precision = this._precision();
     const value = Number(raw);
     if (precision != null && raw.trim() !== '' && Number.isFinite(value))
-      return value.toFixed(precision);
+      return this._formatNumber(value, precision);
     return raw;
+  }
+
+  /**
+   * Locale-aware replacement for `toFixed()`. Grouping stays off: the marker
+   * sits inline next to a label, and a thousands separator would also change
+   * the rendering of every existing English deployment that only asked for a
+   * fixed number of decimals.
+   */
+  private _formatNumber(value: number, precision: number): string {
+    return formatNumber(this, value, { precision, grouping: false });
   }
 
   private _direction(value: string, previous: string | null): ChangeDirection {
@@ -106,13 +127,12 @@ export class EChangeMarker extends HTMLElement {
       return `≠ Changed${fromPrevious}`;
     }
     const delta = Number(value) - Number(previous);
+    const precision = this._precision();
     const formattedDelta =
-      this._precision() == null
-        ? String(Math.abs(delta))
-        : Math.abs(delta).toFixed(this._precision()!);
-    const word = direction === 'up' ? 'Increased' : 'Decreased';
+      precision == null ? String(Math.abs(delta)) : this._formatNumber(Math.abs(delta), precision);
+    const word = t(this, direction === 'up' ? 'increased' : 'decreased');
     const symbol = direction === 'up' ? '▲' : '▼';
-    return `${symbol} ${word} by ${formattedDelta}${suffix}${fromPrevious}`;
+    return `${symbol} ${word} ${formattedDelta}${suffix}${fromPrevious}`;
   }
 
   private _patch(): void {
@@ -135,7 +155,11 @@ export class EChangeMarker extends HTMLElement {
     patchAttr(this, 'role', this.hasAttribute('announce') ? 'status' : 'group');
     patchAttr(this, 'aria-live', this.hasAttribute('announce') ? 'polite' : null);
     const labelPrefix = label ? `${label}: ` : '';
-    const cueSuffix = cue ? `; ${cue}` : '; unchanged';
+    // The cue reads as the tail of a sentence ("42; unchanged"), so the
+    // capitalized table entry is lowercased for the resolved locale.
+    const cueSuffix = cue
+      ? `; ${cue}`
+      : `; ${t(this, 'unchanged').toLocaleLowerCase(resolveLocale(this))}`;
     patchAttr(this, 'aria-label', `${labelPrefix}${value}${cueSuffix}`);
   }
 }

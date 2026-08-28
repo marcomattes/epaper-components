@@ -1,5 +1,6 @@
 import { boolAttr, define, intAttr, patchAttr, patchText, randId } from '../../core/dom';
 import { BaseFormControl } from '../../core/base-form-control';
+import { t } from '../../core/i18n';
 
 type KeyKind = 'digit' | 'decimal' | 'backspace' | 'clear';
 
@@ -234,7 +235,7 @@ export class EKeypad extends BaseFormControl {
         kind: 'clear',
         key: 'clear',
         label: this.getAttribute('clear-label') || 'C',
-        ariaLabel: 'Clear',
+        ariaLabel: t(this, 'clear'),
       });
     }
     keys.push({ kind: 'digit', key: '0', label: '0', ariaLabel: '0' });
@@ -242,14 +243,14 @@ export class EKeypad extends BaseFormControl {
       kind: 'backspace',
       key: 'backspace',
       label: this.getAttribute('backspace-label') || '⌫',
-      ariaLabel: 'Backspace',
+      ariaLabel: t(this, 'backspace'),
     });
     if (boolAttr(this, 'decimal')) {
       keys.push({
         kind: 'clear',
         key: 'clear',
         label: this.getAttribute('clear-label') || 'C',
-        ariaLabel: 'Clear',
+        ariaLabel: t(this, 'clear'),
       });
     }
     return keys;
@@ -280,7 +281,11 @@ export class EKeypad extends BaseFormControl {
     const hint = this.getAttribute('hint') || '';
     patchText(this._hintEl, hint);
     patchAttr(this._hintEl, 'hidden', hint ? null : '');
-    patchAttr(this._grid, 'aria-label', label || this.getAttribute('aria-label') || 'Keypad');
+    patchAttr(
+      this._grid,
+      'aria-label',
+      label || this.getAttribute('aria-label') || t(this, 'keypad'),
+    );
   }
 
   private _syncDisplay(): void {
@@ -298,7 +303,7 @@ export class EKeypad extends BaseFormControl {
     this.applyRequiredValidity(
       this._value.length > 0,
       this._grid ?? undefined,
-      'Please enter a value.',
+      t(this, 'required'),
     );
   }
 }

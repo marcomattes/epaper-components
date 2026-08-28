@@ -1,6 +1,8 @@
 import { boolAttr, define, intAttr, patchAttr, patchText } from '../../core/dom';
 import { hm, parseHM, parseYMD, ymd } from '../../core/date';
 import { isCalendarEvents } from '../../core/data';
+import { formatDate } from '../../core/format';
+import { label, t } from '../../core/i18n';
 import type { CalendarEvent, CalendarEventStatus } from '../../core/types';
 
 const DAY_MINUTES = 24 * 60;
@@ -16,6 +18,10 @@ interface AgendaBlock {
   label: string;
   status: CalendarEventStatus | null;
 }
+
+/** Shared so `Intl` can cache the formatter — a new literal per call cannot. */
+const RANGE_START: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
+const RANGE_END: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' };
 
 const pct = (value: number): number => Math.round(value * 100) / 100;
 
@@ -55,10 +61,10 @@ function readNow(raw: string | null): { date: string | null; minutes: number } |
  * @attr {number} [week-start=1] - First weekday of the week view (0 = Sunday).
  * @attr {number} [min-gap=15] - Shortest free stretch, in minutes, that still gets a label.
  * @attr {boolean} [hide-gaps] - Hides the free-time labels and draws only the entries.
- * @attr {string} [free-label='Free until'] - Prefix of a free-time label.
- * @attr {string} [all-day-label='All day'] - Heading of the all-day row.
- * @attr {string} [now-label='Now'] - Label of the "now" marker.
- * @attr {string} [locale] - Locale for the date headings. Defaults to the document language.
+ * @attr {string} [free-label] - Prefix of a free-time label. Defaults to the string table's `freeUntil`.
+ * @attr {string} [all-day-label] - Heading of the all-day row. Defaults to the string table's `allDay`.
+ * @attr {string} [now-label] - Label of the "now" marker. Defaults to the string table's `now`.
+ * @attr {string} [locale] - Formatting locale for the headings. Defaults to the nearest `lang`, then the document language.
  *
  * @example
  * <e-agenda
@@ -197,7 +203,7 @@ export class EAgenda extends HTMLElement {
     if (boolAttr(this, 'hide-gaps')) return blocks;
 
     const minGap = Math.max(1, intAttr(this, 'min-gap', 15));
-    const freeLabel = this.getAttribute('free-label') || 'Free until';
+    const freeLabel = label(this, 'free-label', 'freeUntil');
     const gaps: AgendaBlock[] = [];
     let cursor = from;
     const pushGap = (until: number): void => {
@@ -275,13 +281,11 @@ export class EAgenda extends HTMLElement {
     if (!this._root || !this._axis || !this._tracks || !this._heads) return;
     const columns = this._columns();
     const week = columns.length > 1;
-    const locale =
-      this.getAttribute('locale') || this.lang || document.documentElement.lang || undefined;
     const now = readNow(this.getAttribute('now'));
 
     patchAttr(this._root, 'data-view', week ? 'week' : 'day');
-    this._renderHead(columns, week, locale);
-    this._renderAllDay(columns, week, locale);
+    this._renderHead(columns, week);
+    this._renderAllDay(columns, week);
     this._renderAxis();
     this._syncCount(this._heads, columns.length, 'div', 'ink-agenda__col-head');
     this._syncCount(this._tracks, columns.length, 'div', 'ink-agenda__track');
@@ -290,7 +294,7 @@ export class EAgenda extends HTMLElement {
       const headCell = this._heads!.children[index] as HTMLElement;
       const day = parseYMD(key);
       patchAttr(headCell, 'hidden', week ? null : '');
-      patchText(headCell, day ? this._columnHeading(day, locale) : key);
+      patchText(headCell, day ? this._columnHeading(day) : key);
       patchAttr(headCell, 'data-today', now?.date === key ? 'true' : null);
 
       const track = this._tracks!.children[index] as HTMLElement;
@@ -300,25 +304,21 @@ export class EAgenda extends HTMLElement {
       track.style.setProperty('--ink-agenda-hours', String(Math.max(1, (end - start) / 60)));
       patchAttr(track, 'data-date', key);
       patchAttr(track, 'role', 'list');
-      patchAttr(
-        track,
-        'aria-label',
-        day ? day.toLocaleDateString(locale, { dateStyle: 'full' }) : key,
-      );
+      patchAttr(track, 'aria-label', day ? formatDate(this, day, { dateStyle: 'full' }) : key);
       this._renderTrack(track, this._blocksFor(key));
       this._renderNow(track, now, key, columns.length === 1);
     });
   }
 
-  private _columnHeading(day: Date, locale: string | undefined): string {
-    return `${day.toLocaleDateString(locale, { weekday: 'short' })} ${day.getDate()}`;
+  private _columnHeading(day: Date): string {
+    return `${formatDate(this, day, { weekday: 'short' })} ${day.getDate()}`;
   }
 
-  private _renderHead(columns: string[], week: boolean, locale: string | undefined): void {
+  private _renderHead(columns: string[], week: boolean): void {
     if (!this._eyebrow || !this._title) return;
     const first = parseYMD(columns[0]);
-    const last = parseYMD(columns[columns.length - 1]);
-    patchText(this._eyebrow, week ? 'AGENDA · WEEK' : 'AGENDA · DAY');
+    const last = parseYMD(columns.at(-1));
+    patchText(this._eyebrow, t(this, week ? 'agendaWeek' : 'agendaDay'));
     if (!first || !last) {
       patchText(this._title, columns.join(' – '));
       return;
@@ -326,24 +326,24 @@ export class EAgenda extends HTMLElement {
     patchText(
       this._title,
       week
-        ? `${first.toLocaleDateString(locale, { day: 'numeric', month: 'short' })} – ${last.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })}`
-        : first.toLocaleDateString(locale, { dateStyle: 'full' }),
+        ? `${formatDate(this, first, RANGE_START)} – ${formatDate(this, last, RANGE_END)}`
+        : formatDate(this, first, { dateStyle: 'full' }),
     );
   }
 
-  private _renderAllDay(columns: string[], week: boolean, locale: string | undefined): void {
+  private _renderAllDay(columns: string[], week: boolean): void {
     if (!this._allDay || !this._allDayLabel || !this._allDayList) return;
     const entries: Array<{ key: string; event: CalendarEvent }> = [];
     for (const key of columns) {
       for (const event of this._allDayFor(key)) entries.push({ key, event });
     }
     patchAttr(this._allDay, 'hidden', entries.length ? null : '');
-    patchText(this._allDayLabel, this.getAttribute('all-day-label') || 'All day');
+    patchText(this._allDayLabel, label(this, 'all-day-label', 'allDay'));
     this._syncCount(this._allDayList, entries.length, 'li', 'ink-agenda__all-day-item');
     entries.forEach((entry, index) => {
       const item = this._allDayList!.children[index] as HTMLElement;
       const day = week ? parseYMD(entry.key) : null;
-      const prefix = day ? `${day.toLocaleDateString(locale, { weekday: 'short' })} · ` : '';
+      const prefix = day ? `${formatDate(this, day, { weekday: 'short' })} · ` : '';
       patchText(item, `${prefix}${entry.event.title}`);
       patchAttr(item, 'data-status', readStatus(entry.event.status));
     });
@@ -426,12 +426,9 @@ export class EAgenda extends HTMLElement {
       track.appendChild(marker);
     }
     marker.style.top = `${pct(((now!.minutes - start) / (end - start)) * 100)}%`;
-    patchText(marker.children[0] as HTMLElement, this.getAttribute('now-label') || 'Now');
-    patchAttr(
-      marker,
-      'aria-label',
-      `${this.getAttribute('now-label') || 'Now'} ${hm(now!.minutes)}`,
-    );
+    const nowLabel = label(this, 'now-label', 'now');
+    patchText(marker.children[0] as HTMLElement, nowLabel);
+    patchAttr(marker, 'aria-label', `${nowLabel} ${hm(now!.minutes)}`);
   }
 
   /** Grow or shrink `parent` to exactly `count` children of the given shape. */

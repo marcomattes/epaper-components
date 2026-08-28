@@ -44,30 +44,104 @@ export const ICONS = {
   copy: 'M9 9h11v11H9zM4 4h11v3M4 4v11h3',
   edit: 'M4 20l4-1 11-11-3-3L5 16l-1 4zM14 6l3 3',
   flip: 'M4 12h16M9 7l-5 5 5 5M15 7l5 5-5 5',
+
+  // Status / industrial. `warning` and `error` exist so `e-alert` can stop
+  // borrowing `bell` and `close` for severities they do not mean.
+  warning: 'M12 3 1.5 21h21zM12 9v5M12 18h.01',
+  error: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM9 9l6 6M15 9l-6 6',
+  info: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 11v6M12 7.5h.01',
+  thermometer: 'M10 14V5a2 2 0 1 1 4 0v9a4 4 0 1 1-4 0zM12 17h.01',
+  gauge: 'M4 18a8 8 0 1 1 16 0M12 14l4-4',
+  play: 'M7 4l12 8-12 8z',
+  pause: 'M8 5v14M16 5v14',
+  stop: 'M6 6h12v12H6z',
+  power: 'M12 4v8M6.5 7a8 8 0 1 0 11 0',
+
+  // Retail.
+  cart: 'M3 4h3l2.5 11h9L20 7H7M9 20h.01M18 20h.01',
+  pricetag: 'M4 4h7l9 9-7 7-9-9zM8 8h.01',
+  euro: 'M18 6.5A6.5 6.5 0 0 0 8 12a6.5 6.5 0 0 0 10 5.5M5 10.5h7M5 13.5h7',
+  percent: 'M6 6h.01M18 18h.01M5 19 19 5',
+  box: 'M4 8l8-4 8 4v8l-8 4-8-4zM4 8l8 4M20 8l-8 4M12 12v8',
+  truck: 'M3 6h11v11H3zM14 10h4l3 3v4h-7M7 20a2 2 0 1 0 0-.01M18 20a2 2 0 1 0 0-.01',
+  barcode: 'M4 5v14M7 5v14M10 5v10M13 5v14M16 5v10M20 5v14',
+
+  // Office / wayfinding.
+  calendar: 'M4 6h16v14H4zM4 10h16M9 3v4M15 3v4',
+  clock: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7v5l3.5 2',
+  door: 'M6 3h12v18H6zM14 12h.01',
+  users:
+    'M9 5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7zM2 20c0-3.5 3.5-5 7-5s7 1.5 7 5M17 6.5a3 3 0 0 1 0 6M18 15c2.5.5 4 2 4 5',
+  arrowUR: 'M7 17 17 7M9 7h8v8',
+  arrowUL: 'M17 17 7 7M15 7H7v8',
+  arrowDR: 'M7 7l10 10M17 9v8H9',
+  arrowDL: 'M17 7 7 17M9 9v8h8',
 } as const satisfies Record<string, string>;
 
 export type IconName = keyof typeof ICONS;
+
+/**
+ * Icons registered at runtime by the host application. Kept separate from
+ * `ICONS` so the built-in set stays statically typed while an app can still
+ * add its own glyphs — previously the registry was closed, and a project
+ * needing a domain symbol had to fork the library.
+ */
+const CUSTOM_ICONS = new Map<string, string>();
+
+/**
+ * Path data is interpolated straight into an SVG `d` attribute, so it is
+ * held to the SVG path grammar: commands, numbers and separators only. A
+ * quote or angle bracket would break out of the attribute, which is the same
+ * class of hole `esc()` closes everywhere else in the library.
+ */
+const SAFE_PATH = /^[MmLlHhVvCcSsQqTtAaZz0-9\s,.+\-eE]+$/;
+
+/**
+ * Register a custom icon under `name`, usable anywhere an icon name is
+ * accepted (`<e-icon name="…">`, `e-menu-item`'s `icon`, …).
+ *
+ * Paths must be drawn on a 24×24 viewBox and stroked, not filled — fills
+ * dither badly below 32px on Kaleido panels.
+ *
+ * @throws If the name is empty, collides with a built-in, or the path data
+ * is not valid SVG path syntax.
+ */
+export function registerIcon(name: string, path: string): void {
+  const key = name.trim();
+  if (!key) throw new Error('registerIcon: name must not be empty.');
+  if (Object.hasOwn(ICONS, key)) {
+    throw new Error(`registerIcon: "${key}" is a built-in icon and cannot be replaced.`);
+  }
+  if (!SAFE_PATH.test(path)) {
+    throw new Error(`registerIcon: "${key}" has invalid SVG path data.`);
+  }
+  CUSTOM_ICONS.set(key, path);
+}
+
+/** Every icon name currently available, built-in and registered. */
+export const iconNames = (): string[] => [...Object.keys(ICONS), ...CUSTOM_ICONS.keys()];
 
 export const SVG_NS = 'http://www.w3.org/2000/svg';
 
 const escAttr = (s: string): string =>
   s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
 
 /**
  * True when `name` is an own key of the icon registry. Uses `Object.hasOwn`
  * so inherited `Object.prototype` members (`toString`, `constructor`,
  * `valueOf`, `hasOwnProperty`, …) are not mistaken for icon names.
  */
-export const hasIcon = (name: string): name is IconName => Object.hasOwn(ICONS, name);
+export const hasIcon = (name: string): name is IconName =>
+  Object.hasOwn(ICONS, name) || CUSTOM_ICONS.has(name);
 
 export function iconSvg(name: string, size: number = 20, label?: string | null): string {
   if (!hasIcon(name)) return '';
-  const d = ICONS[name];
+  const d = Object.hasOwn(ICONS, name) ? ICONS[name as IconName] : CUSTOM_ICONS.get(name)!;
   const role = label ? 'img' : 'presentation';
   const a11y = label ? `aria-label="${escAttr(label)}"` : 'aria-hidden="true"';
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" role="${role}" ${a11y}><path d="${d}" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="square" stroke-linejoin="miter"/></svg>`;

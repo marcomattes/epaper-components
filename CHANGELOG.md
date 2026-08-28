@@ -9,6 +9,118 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Added
 
+- `<e-status-pill>`: the single-value counterpart to `<e-status-board>`, for
+  the "free / busy", "in stock / sold out", "running / stopped" marker a door
+  sign, shelf label or machine tile leads with. Its status vocabulary is open
+  — `statuses` declares whatever keys a deployment needs — because the five
+  built-in ones could only be bent into shape, which is why the project's own
+  room-sign demo hand-built this pill instead of using the library.
+- `core/format.ts` and `core/i18n.ts`: `formatNumber`, `formatDate`,
+  `formatRelativeTime`, `weekdayLabels` and `monthLabel` wrap `Intl` with one
+  locale resolution (`locale` attribute → nearest `lang` → document), and
+  `setLocaleStrings()` overrides the words `Intl` cannot supply. German ships
+  alongside English.
+- `registerIcon()` opens the icon registry, which was closed, so a project
+  needing a domain glyph had to fork the library. The built-in set gains
+  status, industrial, retail and wayfinding symbols.
+- `<e-table>`: `row-key`, per-column `format` (number/currency/date), a
+  `status` column type, `caption`, `sticky-header` and `max-height`.
+- `disabled` on the ten form controls that ignored it, plus option-level
+  `disabled` on `<e-select>`, `<e-radio-group>` and `<e-checkbox-group>`, and
+  `capture` on `<e-upload>` so a kiosk can reach the camera.
+- `<e-form>` fires `e-invalid` and moves focus to the first failing control;
+  `<e-form-item>` links its hint and error to the control with
+  `aria-describedby` and can surface the control's own `validationMessage`.
+- Threshold semantics on `<e-statistic>` (`low`/`high`/`status`), a band-change
+  `e-change` on `<e-meter>`, `e-month-change` on `<e-calendar>` (without which
+  a host cannot load the new month's events), `show-summary` and arrow-key
+  navigation on `<e-pagination>`, `week-start` on `<e-calendar>`.
+- Maturity additions across the display and typography set: image covers on
+  `<e-card-image>`, `label`/`hint`/`rows`/counter on `<e-textarea>`, a settable
+  `value` on `<e-tabs>`, per-step status on `<e-steps>`, automatic heading ids
+  and self-links on `<e-title>`, `caption`/`strike`/`align` on `<e-text>`,
+  `target`/`rel`/`external` on `<e-link>`, `ordered` on `<e-list>`, a
+  configurable `threshold` on `<e-sparkline>`, and `variant`/`size` on
+  `<e-badge>`, `placement`/`inverted` on `<e-ribbon>`.
+
+### Changed
+
+- **Breaking for DOM queries:** components that read their entries from child
+  data carriers — `<e-timeline>`, `<e-description-list>`, `<e-breadcrumb>`,
+  `<e-avatar-group>`, `<e-segmented>`, `<e-anchor>` — no longer destroy those
+  children at connect. The carriers stay in the light DOM (hidden) as the
+  component's source of truth, and the rendered output is a sibling of them.
+  That is what makes the components reactive: an item appended or edited after
+  mount now renders, where before it was silently ignored and the host had to
+  re-mount the whole element — the full repaint the library exists to avoid.
+  Code that relied on `host.firstElementChild` being the rendered node, on
+  `host.children` having length 1, or on the carriers being gone should query
+  by tag or `.ink-*` class instead. Item bodies are cloned rather than moved,
+  with `id`s dropped from the copy so none appears twice in the document.
+- `<e-table>` patches rows in place instead of rebuilding. A `data` change
+  used to run `replaceChildren` on the host, so a table polled every ten
+  seconds threw away its whole DOM each tick — a GC16 full refresh instead of
+  a bounded dirty rectangle, on the one component that carries live tabular
+  overviews. Measured on a three-row table with one changed cell: root
+  replacements 1 → 0, retained node ratio 0 → 1.
+- Locale-dependent output is no longer hard-coded. English rendering is
+  byte-identical, so existing pages do not shift.
+- `<e-alert>` uses the `info`, `warning` and `error` glyphs instead of
+  borrowing `doc`, `bell` and `close`, which meant something else.
+- `<e-qrcode>` paints with `currentColor` on a `--ink-bg` quiet zone instead of
+  hard-coded `#000`/`#fff`, so it follows both theme packs; `<e-watermark>`
+  resolves its ink from the theme the same way.
+
+- The nine components above render every locale-dependent value through
+  `core/format.ts` and take every word they invent from `core/i18n.ts`, the
+  way the rest of the library now does: `<e-price>` splits its amount with
+  `formatMoneyParts`, `<e-agenda>` and `<e-event-log>` date and time through
+  `formatDate`, and the labels — "Free until", "All day", "Now", the event
+  severities, the acknowledgement chip, "Was" — are string-table entries with
+  the same per-instance attribute overrides as before. English defaults are
+  unchanged; German ships with them.
+- `core/format.ts` gained `formatMoneyParts` and `formatUnitPrice`.
+  `formatNumber(el, value, { currency })` already produced a formatted string;
+  a price display needs the pieces separately — the major unit large, the
+  minor unit small and raised, the symbol wherever the locale puts it — and
+  `Intl.formatToParts` is the documented way to get them.
+- The barrel's size budget moved to 60 KB brotli. The nine components above
+  add 9.6 KB to it (48.42 KB → 58.03 KB), most of it the self-contained
+  barcode encoder's symbology tables. Nothing changes for a consumer
+  importing a single sub-path: `<e-button>` is still 1.6 KB and `<e-input>`
+  2.05 KB.
+- The website's cover page (`/`) now carries the site's subject in prose
+  instead of only in a masthead. It was roughly sixty words — a headline, a
+  lede and three statistics — which left the FAQ as the only page that spelled
+  "e-ink" next to "web components" in body text, and search results reflected
+  that. The cover keeps the same first screen and continues below the fold
+  with what EPaper is, the four constraints that make a component e-ink-ready,
+  the install snippets, the component categories, the guides and four question
+  teasers, each block linking to the page that covers it in full rather than
+  restating it. Title, `<h1>` and description now name e-ink as well as
+  e-paper.
+- The cover's structured data gained a `SoftwareApplication` node (what to
+  install, and that it is free) and an `ItemList` of the site's sections,
+  alongside the `SoftwareSourceCode` node every page already carried.
+- `/index.md` and `llms.txt` mirror the expanded cover copy, so the markdown
+  alternate an answer engine reads is no longer thinner than the HTML page.
+
+### Fixed
+
+- Composite form controls reported `aria-invalid` on their own anchor — a
+  select trigger, a radiogroup, a drop zone — and no CSS rule targeted any of
+  them. On a greyscale panel with no colour and no animation, a rejected
+  required field looked exactly like an untouched one. Both the invalid and
+  the disabled state now have a rule, carried by border weight and texture.
+- `<e-input-number>` painted `aria-invalid` directly instead of going through
+  `_markInvalid`, making it the one control that bypassed the deferred
+  validation gate and flagged an untouched required field on first paint.
+- `<e-card-image>`'s `cover` accepts an image URL. It previously rendered any
+  value as a hatch pattern or as literal text, so the component its name
+  promises could not show a picture.
+- `<e-qrcode>` applied a changed `label` even when the geometry was unchanged;
+  the update was previously swallowed by the cached-SVG guard.
+
 - `<e-agenda>`: day and week agenda on a real time axis. Entries are drawn as
   blocks whose height is their actual duration, and the free time between two
   of them is labelled ("Free until 14:00") instead of left blank, so a glance
@@ -61,31 +173,6 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   formatted amount together with the parts a price display sets separately
   (major, minor, decimal separator, symbol and which side it belongs on).
 - `core/date.ts`: `parseHM()` and `hm()` for `HH:MM` times.
-
-### Changed
-
-- The barrel's size budget moved from 45 KB to 52 KB brotli. The nine
-  components above add 9.2 KB to it (40.97 KB → 50.21 KB), most of it the
-  self-contained barcode encoder's symbology tables. Nothing changes for a
-  consumer importing a single sub-path: `<e-button>` is still 1.6 KB and
-  `<e-input>` 2.05 KB.
-- The website's cover page (`/`) now carries the site's subject in prose
-  instead of only in a masthead. It was roughly sixty words — a headline, a
-  lede and three statistics — which left the FAQ as the only page that spelled
-  "e-ink" next to "web components" in body text, and search results reflected
-  that. The cover keeps the same first screen and continues below the fold
-  with what EPaper is, the four constraints that make a component e-ink-ready,
-  the install snippets, the component categories, the guides and four question
-  teasers, each block linking to the page that covers it in full rather than
-  restating it. Title, `<h1>` and description now name e-ink as well as
-  e-paper.
-- The cover's structured data gained a `SoftwareApplication` node (what to
-  install, and that it is free) and an `ItemList` of the site's sections,
-  alongside the `SoftwareSourceCode` node every page already carried.
-- `/index.md` and `llms.txt` mirror the expanded cover copy, so the markdown
-  alternate an answer engine reads is no longer thinner than the HTML page.
-
-### Fixed
 
 - `<e-calendar>`: on narrow containers the week grid lost its column
   alignment — a bare `1fr` column floors at the content's min-content

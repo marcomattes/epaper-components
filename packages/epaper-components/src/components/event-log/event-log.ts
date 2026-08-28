@@ -1,13 +1,23 @@
 import { boolAttr, define, intAttr, patchAttr, patchText } from '../../core/dom';
 import { isEventLogEntries } from '../../core/data';
 import type { EventLogEntry, EventLogSeverity } from '../../core/types';
+import { formatDate } from '../../core/format';
+import { t } from '../../core/i18n';
+import type { LocaleStrings } from '../../core/i18n';
 
-const SEVERITY_META: Record<EventLogSeverity, { cue: string; label: string; rank: number }> = {
-  info: { cue: 'i', label: 'Info', rank: 0 },
-  warning: { cue: '!', label: 'Warning', rank: 1 },
-  error: { cue: '×', label: 'Error', rank: 2 },
-  critical: { cue: '‼', label: 'Critical', rank: 3 },
+const SEVERITY_META: Record<
+  EventLogSeverity,
+  { cue: string; key: keyof LocaleStrings; rank: number }
+> = {
+  info: { cue: 'i', key: 'severityInfo', rank: 0 },
+  warning: { cue: '!', key: 'severityWarning', rank: 1 },
+  error: { cue: '×', key: 'severityError', rank: 2 },
+  critical: { cue: '‼', key: 'severityCritical', rank: 3 },
 };
+
+/** Shared so `Intl` can cache the formatter — a new literal per row cannot. */
+const TIME_ONLY: Intl.DateTimeFormatOptions = { timeStyle: 'medium' };
+const DATE_TIME: Intl.DateTimeFormatOptions = { dateStyle: 'short', timeStyle: 'medium' };
 
 const severityOf = (raw: string | undefined): EventLogSeverity =>
   raw && Object.hasOwn(SEVERITY_META, raw) ? (raw as EventLogSeverity) : 'info';
@@ -33,8 +43,8 @@ const timestampOf = (ts: string): number => {
  * @attr {'newest'|'oldest'} [order='newest'] - Sort direction of the `ts` field.
  * @attr {'time'|'datetime'} [time-format='time'] - Whether a row shows the time alone or the full timestamp.
  * @attr {boolean} [hide-source] - Hides the source column.
- * @attr {string} [locale] - Locale for the timestamps. Defaults to the document language.
- * @attr {string} [empty-text='No events'] - Text shown while the log is empty.
+ * @attr {string} [locale] - Formatting locale for the timestamps. Defaults to the nearest `lang`, then the document language.
+ * @attr {string} [empty-text] - Text shown while the log is empty. Defaults to the string table's `noEvents`.
  *
  * @example
  * <e-event-log
@@ -186,7 +196,7 @@ export class EEventLog extends HTMLElement {
       previous = row;
     }
 
-    patchText(this._empty, this.getAttribute('empty-text') || 'No events');
+    patchText(this._empty, this.getAttribute('empty-text') || t(this, 'noEvents'));
     patchAttr(this._empty, 'hidden', ordered.length ? '' : null);
     patchAttr(this._list, 'hidden', ordered.length ? null : '');
   }
@@ -229,29 +239,22 @@ export class EEventLog extends HTMLElement {
     // following cell one column to the left, breaking the row alignment.
     patchText(row.children[2] as HTMLElement, showSource ? source : '');
     patchText(row.children[3] as HTMLElement, entry.message);
-    patchText(row.children[4] as HTMLElement, acknowledged ? 'ACK' : '');
+    patchText(row.children[4] as HTMLElement, acknowledged ? t(this, 'acknowledged') : '');
     patchAttr(
       row,
       'aria-label',
-      [meta.label, this._formatTime(entry.ts), showSource ? source : '', entry.message]
+      [t(this, meta.key), this._formatTime(entry.ts), showSource ? source : '', entry.message]
         .filter(Boolean)
         .join(' · '),
     );
   }
 
+  /** An unparsable timestamp is printed verbatim: it is the operator's data. */
   private _formatTime(ts: string): string {
     const parsed = timestampOf(ts);
     if (Number.isNaN(parsed)) return ts;
-    const locale =
-      this.getAttribute('locale') || this.lang || document.documentElement.lang || undefined;
-    const date = new Date(parsed);
-    try {
-      return this.getAttribute('time-format') === 'datetime'
-        ? date.toLocaleString(locale)
-        : date.toLocaleTimeString(locale);
-    } catch {
-      return date.toISOString();
-    }
+    const options = this.getAttribute('time-format') === 'datetime' ? DATE_TIME : TIME_ONLY;
+    return formatDate(this, parsed, options);
   }
 }
 

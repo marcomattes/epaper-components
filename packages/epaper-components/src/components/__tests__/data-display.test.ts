@@ -399,6 +399,224 @@ describe('e-table', () => {
   });
 });
 
+describe('e-table keyed row diffing', () => {
+  const KCOLS = JSON.stringify([
+    { key: 'id', title: 'ID' },
+    { key: 'name', title: 'Name' },
+    { key: 'role', title: 'Role' },
+  ]);
+  const row = (id: string, name: string, role: string) => ({ id, name, role });
+  const KROWS = JSON.stringify([row('a', 'Anna', 'Editor'), row('b', 'Ben', 'Admin')]);
+
+  const keyed = (data: unknown[]): string => JSON.stringify(data);
+  const bodyRows = (el: HTMLElement) => [...el.querySelectorAll('tbody tr')];
+
+  it('keeps every row node and patches only the cell whose value changed', () => {
+    const el = mount(`<e-table row-key="id" columns='${KCOLS}' data='${KROWS}'></e-table>`);
+    const table = el.querySelector('table')!;
+    const before = bodyRows(el);
+    const cells = [...before[0].querySelectorAll('td')];
+
+    el.setAttribute('data', keyed([row('a', 'Anna', 'Lead'), row('b', 'Ben', 'Admin')]));
+
+    // Same <table>, same <tr>s, same <td>s — nothing was recreated.
+    expect(el.querySelector('table')).toBe(table);
+    expect(bodyRows(el)).toEqual(before);
+    expect([...before[0].querySelectorAll('td')]).toEqual(cells);
+    expect(cells[2].textContent).toBe('Lead');
+    expect(cells[1].textContent).toBe('Anna');
+  });
+
+  it('moves re-ordered rows with insertBefore instead of recreating them', () => {
+    const el = mount(`<e-table row-key="id" columns='${KCOLS}' data='${KROWS}'></e-table>`);
+    const [anna, ben] = bodyRows(el);
+
+    el.setAttribute('data', keyed([row('b', 'Ben', 'Admin'), row('a', 'Anna', 'Editor')]));
+
+    expect(bodyRows(el)).toEqual([ben, anna]);
+  });
+
+  it('removes dropped rows and creates only the genuinely new ones', () => {
+    const el = mount(`<e-table row-key="id" columns='${KCOLS}' data='${KROWS}'></e-table>`);
+    const [anna, ben] = bodyRows(el);
+
+    el.setAttribute('data', keyed([row('b', 'Ben', 'Admin'), row('c', 'Clara', 'Reviewer')]));
+    const after = bodyRows(el);
+    expect(after[0]).toBe(ben);
+    expect(after).toHaveLength(2);
+    expect(after[1]).not.toBe(anna);
+    expect(after[1].querySelector('td')!.textContent).toBe('c');
+    expect(anna.isConnected).toBe(false);
+  });
+
+  it('diffs by row index when row-key is absent', () => {
+    const el = mount(`<e-table columns='${KCOLS}' data='${KROWS}'></e-table>`);
+    const before = bodyRows(el);
+    el.setAttribute('data', keyed([row('a', 'Anna', 'Editor'), row('b', 'Ben', 'Owner')]));
+    expect(bodyRows(el)).toEqual(before);
+    expect([...before[1].querySelectorAll('td')][2].textContent).toBe('Owner');
+  });
+
+  it('disambiguates duplicate row-key values instead of collapsing the rows', () => {
+    const el = mount(
+      `<e-table row-key="id" columns='${KCOLS}' data='${keyed([row('a', 'Anna', 'Editor'), row('a', 'Ada', 'Admin')])}'></e-table>`,
+    );
+    const rows = bodyRows(el);
+    expect(rows).toHaveLength(2);
+    expect(rows.map((r) => [...r.querySelectorAll('td')][1].textContent)).toEqual(['Anna', 'Ada']);
+  });
+
+  it('swaps between the row set and the empty state without rebuilding the table', () => {
+    const el = mount(`<e-table row-key="id" columns='${KCOLS}' data='${KROWS}'></e-table>`);
+    const table = el.querySelector('table')!;
+
+    el.setAttribute('data', '[]');
+    expect(el.querySelector('table')).toBe(table);
+    expect(bodyRows(el)).toHaveLength(1);
+    expect(el.querySelector('.ink-table__empty')!.textContent).toBe('No data');
+
+    el.setAttribute('empty-text', 'Nothing');
+    expect(el.querySelector('.ink-table__empty')!.textContent).toBe('Nothing');
+
+    el.setAttribute('data', KROWS);
+    expect(el.querySelector('table')).toBe(table);
+    expect(el.querySelector('.ink-table__empty')).toBeNull();
+    expect(bodyRows(el)).toHaveLength(2);
+  });
+
+  it('re-indexes checkboxes when rows are re-ordered so selection stays correct', () => {
+    const el = mount(
+      `<e-table row-key="id" selectable columns='${KCOLS}' data='${KROWS}'></e-table>`,
+    );
+    const [anna] = bodyRows(el);
+    el.setAttribute('data', keyed([row('b', 'Ben', 'Admin'), row('a', 'Anna', 'Editor')]));
+
+    const annaCb = anna.querySelector<HTMLInputElement>('.ink-table__cb')!;
+    expect(annaCb.dataset['rowIndex']).toBe('1');
+    expect(annaCb.getAttribute('aria-label')).toBe('Select row 2');
+
+    let detail: { value: number[] } | null = null;
+    el.addEventListener('e-select', (e) => {
+      detail = (e as CustomEvent<{ value: number[] }>).detail;
+    });
+    annaCb.checked = true;
+    annaCb.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(detail!.value).toEqual([1]);
+    expect(anna.hasAttribute('data-selected')).toBe(true);
+  });
+
+  it('still rebuilds when columns change', () => {
+    const el = mount(`<e-table row-key="id" columns='${KCOLS}' data='${KROWS}'></e-table>`);
+    const before = bodyRows(el);
+    el.setAttribute('columns', JSON.stringify([{ key: 'name', title: 'Name' }]));
+    expect(el.querySelectorAll('thead th')).toHaveLength(1);
+    expect(bodyRows(el)[0]).not.toBe(before[0]);
+    expect(bodyRows(el)[0].querySelectorAll('td')).toHaveLength(1);
+  });
+});
+
+describe('e-table cell formatting, status and chrome', () => {
+  const rows = JSON.stringify([{ amount: 1299.5, ratio: 1234.5, due: '2026-04-09' }]);
+  const cells = (el: HTMLElement) => [...el.querySelectorAll<HTMLTableCellElement>('tbody td')];
+
+  it('formats number, currency and date cells through the resolved locale', () => {
+    const cols = JSON.stringify([
+      { key: 'ratio', title: 'Ratio', format: 'number', precision: 2 },
+      { key: 'amount', title: 'Amount', format: 'currency', currency: 'EUR' },
+      { key: 'due', title: 'Due', format: 'date' },
+    ]);
+    const el = mount(`<e-table locale="de-DE" columns='${cols}' data='${rows}'></e-table>`);
+    const [ratio, amount, due] = cells(el);
+    expect(ratio.textContent).toBe('1.234,50');
+    expect(amount.textContent).toContain('1.299,50');
+    expect(amount.textContent).toContain('€');
+    expect(due.textContent).toBe(
+      new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' }).format(new Date('2026-04-09')),
+    );
+  });
+
+  it('leaves cells without a format as the raw string', () => {
+    const cols = JSON.stringify([{ key: 'amount', title: 'Amount' }]);
+    const el = mount(`<e-table locale="de-DE" columns='${cols}' data='${rows}'></e-table>`);
+    expect(cells(el)[0].textContent).toBe('1299.5');
+  });
+
+  it('falls back to the raw string when a value cannot be formatted', () => {
+    const cols = JSON.stringify([
+      { key: 'a', title: 'A', format: 'number' },
+      { key: 'b', title: 'B', format: 'date' },
+      { key: 'c', title: 'C', format: 'currency' },
+    ]);
+    const data = JSON.stringify([{ a: 'n/a', b: 'someday', c: 12 }]);
+    const el = mount(`<e-table locale="de-DE" columns='${cols}' data='${data}'></e-table>`);
+    const [a, b, c] = cells(el);
+    expect(a.textContent).toBe('n/a');
+    expect(b.textContent).toBe('someday');
+    // No `currency` code given → falls back to a plain localized number.
+    expect(c.textContent).toBe('12');
+  });
+
+  it('mirrors a status column onto data-status without ever rendering markup', () => {
+    const cols = JSON.stringify([
+      { key: 'line', title: 'Line' },
+      { key: 'state', title: 'State', type: 'status' },
+    ]);
+    const data = JSON.stringify([
+      { line: 'L1', state: 'warning' },
+      { line: 'L2', state: '<b onclick="x()">boom</b>' },
+    ]);
+    const el = mount(`<e-table columns='${cols}' data='${data}'></e-table>`);
+    const [, first, , second] = cells(el);
+
+    expect(first.className).toBe('ink-table__status');
+    expect(first.getAttribute('data-status')).toBe('warning');
+    expect(first.textContent).toBe('warning');
+    // Unknown values degrade to the neutral token; the text is left untouched.
+    expect(second.getAttribute('data-status')).toBe('neutral');
+    expect(second.textContent).toBe('<b onclick="x()">boom</b>');
+    expect(second.querySelector('b')).toBeNull();
+
+    el.setAttribute('data', JSON.stringify([{ line: 'L1', state: 'critical' }]));
+    expect(cells(el)[1]).toBe(first);
+    expect(first.getAttribute('data-status')).toBe('critical');
+  });
+
+  it('renders a semantic caption and adds, updates and removes it in place', () => {
+    const cols = JSON.stringify([{ key: 'line', title: 'Line' }]);
+    const el = mount(`<e-table caption="Line throughput" columns='${cols}' data='[]'></e-table>`);
+    const table = el.querySelector('table')!;
+    const caption = el.querySelector('caption')!;
+    expect(caption).toBe(table.firstElementChild);
+    expect(caption.textContent).toBe('Line throughput');
+
+    el.setAttribute('caption', 'Line throughput (day)');
+    expect(el.querySelector('caption')).toBe(caption);
+    expect(caption.textContent).toBe('Line throughput (day)');
+
+    el.removeAttribute('caption');
+    expect(el.querySelector('caption')).toBeNull();
+
+    el.setAttribute('caption', 'Back');
+    expect(el.querySelector('caption')!.textContent).toBe('Back');
+    expect(el.querySelector('caption')).toBe(el.querySelector('table')!.firstElementChild);
+  });
+
+  it('hands max-height to CSS as a custom property and leaves sticky-header alone', () => {
+    const cols = JSON.stringify([{ key: 'line', title: 'Line' }]);
+    const el = mount(
+      `<e-table sticky-header max-height="320px" columns='${cols}' data='[]'></e-table>`,
+    );
+    expect(el.style.getPropertyValue('--ink-table-max-height')).toBe('320px');
+    expect(el.hasAttribute('sticky-header')).toBe(true);
+
+    el.setAttribute('max-height', '200px');
+    expect(el.style.getPropertyValue('--ink-table-max-height')).toBe('200px');
+
+    el.removeAttribute('max-height');
+    expect(el.style.getPropertyValue('--ink-table-max-height')).toBe('');
+  });
+});
+
 describe('global listener cleanup (data-display)', () => {
   it('e-table cleans up its click and change listeners on disconnect', () => {
     const el = document.createElement('e-table');
@@ -1093,10 +1311,32 @@ describe('e-price', () => {
     const p = parts(el);
     expect(el.querySelector('.ink-price__original')!.tagName).toBe('S');
     expect(p.original).toContain('4,99');
-    expect(el.querySelector('.ink-price__original')!.getAttribute('aria-label')).toContain('Was');
+    // The element carries `locale="de-DE"`, so the prefix comes from the
+    // German string table rather than the English default.
+    expect(el.querySelector('.ink-price__original')!.getAttribute('aria-label')).toContain(
+      'Vorher',
+    );
     expect(p.unit).toContain('7,98');
     expect(p.unit.endsWith('/kg')).toBe(true);
     expect(p.note).toBe('incl. VAT');
+  });
+
+  it('takes the struck-through prefix from the string table, and lets an attribute win', () => {
+    const en = mount(`<e-price value="1" original="2" locale="en-GB"></e-price>`);
+    expect(en.querySelector('.ink-price__original')!.getAttribute('aria-label')).toContain('Was');
+    const override = mount(
+      `<e-price value="1" original="2" locale="de-DE" original-label="Statt"></e-price>`,
+    );
+    expect(override.querySelector('.ink-price__original')!.getAttribute('aria-label')).toContain(
+      'Statt',
+    );
+  });
+
+  it('reads the locale from an ancestor lang when it has none of its own', () => {
+    const wrap = mount(`<div lang="de-DE"><e-price value="3.99"></e-price></div>`);
+    const price = wrap.querySelector('e-price')!;
+    expect(price.querySelector('.ink-price__minor')!.textContent).toBe(',99');
+    expect(price.querySelector('.ink-price__currency')!.textContent).toBe('€');
   });
 
   it('hides the optional parts when their attributes are removed', () => {

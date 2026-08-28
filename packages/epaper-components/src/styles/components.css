@@ -43,6 +43,113 @@
   background-image: var(--ink-hatch-disabled);
   cursor: not-allowed;
 }
+
+/* Composite controls report `aria-invalid` on their own anchor — a select
+   trigger, a radiogroup, a drop zone — not on an `.ink-control`. Without
+   these rules that state rendered nothing at all: on a greyscale panel with
+   no colour and no animation, a rejected required field looked exactly like
+   an untouched one. Both the host and the inner anchor are listed, so the
+   rule holds whichever element a control chooses to mark. */
+e-select[aria-invalid='true'],
+e-radio-group[aria-invalid='true'],
+e-checkbox-group[aria-invalid='true'],
+e-cascader[aria-invalid='true'],
+e-tree-select[aria-invalid='true'],
+e-date-picker[aria-invalid='true'],
+e-time-picker[aria-invalid='true'],
+e-input-number[aria-invalid='true'],
+e-upload[aria-invalid='true'],
+e-select [aria-invalid='true'],
+e-radio-group [aria-invalid='true'],
+e-checkbox-group [aria-invalid='true'],
+e-cascader [aria-invalid='true'],
+e-tree-select [aria-invalid='true'],
+e-date-picker [aria-invalid='true'],
+e-time-picker [aria-invalid='true'],
+e-input-number [aria-invalid='true'],
+e-upload [aria-invalid='true'] {
+  box-shadow: inset 0 0 0 var(--ink-border-width-error) var(--ink-fg);
+}
+
+/* Same reasoning for the disabled state: `formDisabledChanged` marks the
+   composite controls with `aria-disabled`, which needs the hatch treatment
+   the native `.ink-control` already gets. */
+e-select[aria-disabled='true'],
+e-radio-group[aria-disabled='true'],
+e-checkbox-group[aria-disabled='true'],
+e-cascader[aria-disabled='true'],
+e-tree-select[aria-disabled='true'],
+e-date-picker[aria-disabled='true'],
+e-time-picker[aria-disabled='true'],
+e-input-number[aria-disabled='true'],
+e-upload[aria-disabled='true'],
+e-select [aria-disabled='true'],
+e-radio-group [aria-disabled='true'],
+e-checkbox-group [aria-disabled='true'],
+e-cascader [aria-disabled='true'],
+e-tree-select [aria-disabled='true'],
+e-date-picker [aria-disabled='true'],
+e-time-picker [aria-disabled='true'],
+e-input-number [aria-disabled='true'],
+e-upload [aria-disabled='true'] {
+  background-image: var(--ink-hatch-disabled);
+  cursor: not-allowed;
+}
+
+/* What the aria-disabled block above does not reach: inner elements that take
+   the *native* `disabled` (step buttons, group radios and boxes), plus a
+   second, shape-based carrier for the whole control. Texture and border shape
+   carry the state, never colour alone. */
+.ink-number__btn[disabled],
+.ink-timepicker__step[disabled] {
+  background-color: var(--ink-bg);
+  background-image: var(--ink-hatch-disabled);
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+/* A single disabled option inside an otherwise usable group: the control
+   glyph itself is hatched, so the row reads as unavailable even without the
+   group-level hatch. */
+.ink-radio input[type='radio'][disabled] + .ink-radio__dot,
+.ink-checkbox input[type='checkbox'][disabled] ~ .ink-checkbox__box {
+  background-image: var(--ink-hatch-disabled);
+  border-style: dashed;
+}
+.ink-radio[aria-disabled='true'],
+.ink-checkbox[aria-disabled='true'] {
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+/* A disabled <e-option>: `.ink-select__option[aria-selected='true']` paints a
+   solid --ink-fg ground the hatch would vanish into, so the row is pulled
+   back onto a readable ground and struck through instead. */
+.ink-select__option[aria-disabled='true'] {
+  background-color: var(--ink-bg);
+  color: var(--ink-fg);
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+e-select .ink-select__trigger[aria-disabled='true'],
+e-cascader .ink-select__trigger[aria-disabled='true'],
+.ink-datepicker__trigger[aria-disabled='true'],
+.ink-timepicker__cell[aria-disabled='true'],
+.ink-number__input[aria-disabled='true'],
+e-tree-select .ink-tree[aria-disabled='true'],
+e-radio-group [role='radiogroup'][aria-disabled='true'],
+e-checkbox-group [role='group'][aria-disabled='true'] {
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+/* `.ink-upload` carries its visible frame as an `outline`, not a `border`
+   (its border is transparent), so it needs its own rule. */
+.ink-upload[aria-disabled='true'] {
+  outline-style: dashed;
+  cursor: not-allowed;
+}
 .ink-control::placeholder {
   color: var(--ink-fg);
   opacity: 1;
@@ -63,6 +170,15 @@
   border-left: var(--ink-border);
   padding-left: var(--ink-space-2);
   margin-top: var(--ink-space-2);
+}
+
+/* A passive readout under a textarea, shown only while maxlength is set. */
+.ink-textarea__counter {
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-caption);
+  line-height: 1.4;
+  text-align: right;
+  margin-top: var(--ink-space-1);
 }
 /* Author `display` on these blocks beats the UA sheet's
  * `[hidden] { display: none }`, so every control that toggles a label or a
@@ -176,6 +292,30 @@
 }
 .ink-card__cover--hatch {
   background-image: var(--ink-hatch-cover);
+}
+
+/* Image cover mode. The cover box already centres its content with flex, so
+   in image mode the <img> simply fills it. */
+.ink-card__cover--image {
+  padding: 0;
+}
+.ink-card__cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* Shown only after a load failure, sitting on the hatch the cover falls back
+   to — so it needs its own solid backing to stay legible against the stripes. */
+.ink-card__cover-fallback {
+  background: var(--ink-fg);
+  color: var(--ink-bg);
+  padding: var(--ink-space-1) var(--ink-space-2);
+  font-family: var(--ink-sans);
+  font-size: var(--ink-text-small);
+  font-weight: 700;
+  max-width: 80%;
+  text-align: center;
 }
 .ink-card__footer {
   padding: 12px 18px;
@@ -321,6 +461,24 @@
   background: var(--ink-fg);
   color: var(--ink-bg);
 }
+/* `variant` and `size` are data-attributes so they compose with the
+   pre-existing `--inverted` class instead of competing for the same
+   modifier slot. A discount stamp needs to outweigh a caption. */
+.ink-badge[data-variant='solid'] {
+  background: var(--ink-fg);
+  color: var(--ink-bg);
+}
+.ink-badge[data-variant='dashed'] {
+  border-style: dashed;
+}
+.ink-badge[data-size='sm'] {
+  font-size: var(--ink-text-caption);
+  padding: 2px 6px;
+}
+.ink-badge[data-size='lg'] {
+  font-size: var(--ink-text-body);
+  padding: 6px 12px;
+}
 
 /* ============================================================
  * Typography
@@ -356,6 +514,18 @@
   letter-spacing: -0.005em;
 }
 
+/* Always visible: a self-link that only appears on :hover is unreachable on
+   a panel with no pointer. */
+.ink-title__anchor {
+  margin-left: var(--ink-space-2);
+  font-family: var(--ink-mono);
+  font-size: 0.6em;
+  font-weight: 400;
+  color: var(--ink-fg);
+  text-decoration: none;
+  vertical-align: middle;
+}
+
 .ink-text {
   font-family: var(--ink-sans);
   font-size: var(--ink-text-body);
@@ -384,12 +554,49 @@
   text-transform: uppercase;
 }
 
+.ink-text--caption {
+  font-family: var(--ink-sans);
+  font-size: var(--ink-text-caption);
+  line-height: 1.4;
+}
+.ink-text--strike {
+  font-family: var(--ink-sans);
+  font-size: var(--ink-text-body);
+  line-height: var(--ink-lh-body);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+/* data-align, not a class: the ink-text-- prefix belongs to `kind`, and
+   patchClassModifier strips every other class under that prefix. */
+.ink-text[data-align='start'] {
+  display: block;
+  text-align: start;
+}
+.ink-text[data-align='center'] {
+  display: block;
+  text-align: center;
+}
+.ink-text[data-align='end'] {
+  display: block;
+  text-align: end;
+}
+.ink-text[data-align='justify'] {
+  display: block;
+  text-align: justify;
+}
+
 .ink-link {
   color: var(--ink-fg);
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-underline-offset: 3px;
   font-weight: 600;
+}
+
+.ink-link[data-external]::after {
+  content: ' ↗';
+  font-size: 0.85em;
+  text-decoration: none;
 }
 
 /* ============================================================
@@ -569,9 +776,23 @@ e-avatar-group,
 e-badge-count,
 e-ribbon,
 e-input-number,
-e-radio,
-e-segment {
+e-radio {
   display: inline-flex;
+}
+
+/* Data carriers. These elements only hold data for their parent component,
+   which renders the visible output into its own container and leaves them in
+   the light DOM so it can keep observing them — see `observeItems` in
+   `core/dom.ts`. Before that they were consumed and removed at connect, which
+   is why they never needed a rule. The components also set `display: none`
+   inline as a belt-and-braces guard; this is the intended stable form. */
+e-timeline-item,
+e-desc-item,
+e-breadcrumb-item,
+e-avatar-item,
+e-anchor-item,
+e-segment {
+  display: none;
 }
 e-title {
   display: block;
@@ -1738,6 +1959,22 @@ e-text {
   font-family: var(--ink-mono);
   cursor: default;
 }
+.ink-pagination__summary {
+  display: inline-flex;
+  align-items: center;
+  height: var(--ink-control-h-md);
+  padding: 0 10px;
+  border-left: var(--ink-border);
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-mono);
+  color: var(--ink-fg);
+  white-space: nowrap;
+}
+/* An author `display` beats `[hidden] { display: none }` from the UA sheet —
+   the same trap as `.ink-dialog__header[hidden]`. */
+.ink-pagination__summary[hidden] {
+  display: none;
+}
 
 /* ============================================================
  * Steps
@@ -1791,6 +2028,29 @@ e-text {
 .ink-steps__item[data-done='true'] .ink-steps__bubble {
   background: var(--ink-fg);
   color: var(--ink-bg);
+}
+
+/* Per-step status. Severity has to survive greyscale, so it is carried by
+   border weight and a hatch fill, never by colour alone — same rule as
+   e-alert. */
+.ink-steps__item[data-status] .ink-steps__bubble {
+  border-width: var(--ink-border-width-error);
+}
+.ink-steps__item[data-status='error'] .ink-steps__bubble {
+  background-image: var(--ink-hatch-error);
+  border-color: var(--ink-danger);
+}
+.ink-steps__item[data-status='warning'] .ink-steps__bubble {
+  border-color: var(--ink-warning);
+  border-style: dashed;
+}
+.ink-steps__item[data-status] .ink-steps__status {
+  font-weight: 700;
+}
+/* The active step inverts its whole cell in horizontal mode; keep the status
+   bubble readable inside that inversion. */
+.ink-steps--horizontal .ink-steps__item[data-active='true'][data-status] .ink-steps__bubble {
+  border-color: var(--ink-bg);
 }
 .ink-steps--horizontal .ink-steps__item[data-active='true'] .ink-steps__bubble {
   border-color: var(--ink-bg);
@@ -1948,12 +2208,32 @@ e-text {
   right: -2px;
   background: var(--ink-fg);
   color: var(--ink-bg);
+  /* `placement` overrides these below; the defaults keep the pre-1.3.0
+     top-right corner for every ribbon that does not ask for another. */
   font-family: var(--ink-mono);
   font-size: var(--ink-text-label);
   font-weight: 700;
   letter-spacing: var(--ink-tracking-label);
   padding: 4px 10px;
   border: var(--ink-border);
+}
+.ink-ribbon__tag[data-placement='top-left'] {
+  right: auto;
+  left: -2px;
+}
+.ink-ribbon__tag[data-placement='bottom-right'] {
+  top: auto;
+  bottom: 8px;
+}
+.ink-ribbon__tag[data-placement='bottom-left'] {
+  top: auto;
+  right: auto;
+  bottom: 8px;
+  left: -2px;
+}
+.ink-ribbon__tag[data-inverted] {
+  background: var(--ink-bg);
+  color: var(--ink-fg);
 }
 
 /* ============================================================
@@ -2572,6 +2852,27 @@ e-text {
 .ink-list[data-split] .ink-list__body > e-list-item + e-list-item {
   border-top: var(--ink-border);
 }
+
+/* Ordered mode. The rows are <e-list-item>, not <li>, so the numbering comes
+   from a counter rather than a native marker. */
+.ink-list[data-ordered] .ink-list__body {
+  counter-reset: ink-list-item;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.ink-list[data-ordered] .ink-list__body > e-list-item {
+  counter-increment: ink-list-item;
+}
+.ink-list[data-ordered] .ink-list__body > e-list-item > .ink-list__item::before {
+  content: counter(ink-list-item) '.';
+  flex-shrink: 0;
+  min-width: 2ch;
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-small);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
 .ink-list__item {
   display: flex;
   align-items: center;
@@ -2679,6 +2980,52 @@ e-text {
   letter-spacing: var(--ink-tracking-mono);
   text-transform: uppercase;
 }
+.ink-table__caption {
+  caption-side: top;
+  padding: 0 0 var(--ink-space-2);
+  color: var(--ink-fg);
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-label);
+  text-align: left;
+  text-transform: uppercase;
+}
+
+/* Status cells. `border-collapse: collapse` swallows per-cell borders, so the
+   cue is an inset shadow or a fill instead. Every token has its own shape or
+   fill — never colour alone. */
+.ink-table__status {
+  font-family: var(--ink-mono);
+  font-weight: 700;
+}
+.ink-table__status[data-status='warning'] {
+  box-shadow: inset 0 0 0 var(--ink-border-width) var(--ink-fg);
+}
+.ink-table__status[data-status='critical'] {
+  background: var(--ink-fg);
+  color: var(--ink-bg);
+}
+.ink-table__status[data-status='offline'] {
+  background-image: var(--ink-hatch-disabled);
+}
+
+/* Scroll box and sticky header. `--ink-table-max-height` is written onto the
+   host by the component from its `max-height` attribute. */
+e-table[max-height] {
+  display: block;
+  max-height: var(--ink-table-max-height);
+  overflow-y: auto;
+}
+/* The background repeats here on purpose: `thead`'s own background does not
+   paint behind a sticky child, so rows would scroll through the header. */
+e-table[sticky-header] .ink-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--ink-fg);
+  color: var(--ink-bg);
+}
 
 /* ============================================================
  * Statistic ÔÇó KPI value with label and trend
@@ -2738,6 +3085,29 @@ e-text {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+/* Threshold status. Deliberately mirrors `.ink-meter[data-band]`: border
+   shape rather than colour, so the state survives a greyscale panel. */
+.ink-statistic__status {
+  align-self: flex-start;
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-label);
+  text-transform: uppercase;
+  border: var(--ink-border);
+  padding: 2px 6px;
+}
+e-statistic[data-status='low'] .ink-statistic__status {
+  border-style: double;
+  border-width: var(--ink-border-width-strong);
+}
+e-statistic[data-status='normal'] .ink-statistic__status {
+  border-style: dashed;
+}
+e-statistic[data-status='high'] .ink-statistic__status {
+  background: var(--ink-fg);
+  color: var(--ink-bg);
 }
 
 /* ============================================================
@@ -2920,6 +3290,14 @@ e-text {
   stroke-dasharray: 3 3;
   vector-effect: non-scaling-stroke;
 }
+
+/* The guide already strokes with currentColor; a breached threshold thickens
+   and dashes it so the warning reads without colour. */
+.ink-sparkline[data-threshold='above'] .ink-sparkline__guide,
+.ink-sparkline[data-threshold='at'] .ink-sparkline__guide {
+  stroke-width: 1.5;
+  stroke-dasharray: 4 2;
+}
 .ink-sparkline__line {
   fill: none;
   stroke: currentColor;
@@ -3060,6 +3438,54 @@ e-status-board {
 .ink-status-board__grid[hidden],
 .ink-status-board__empty[hidden] {
   display: none;
+}
+
+/* ============================================================
+ * Status pill · single-value status marker
+ * ============================================================ */
+e-status-pill {
+  display: inline-block;
+}
+.ink-status-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--ink-space-2);
+  border: var(--ink-border);
+  padding: 2px 8px;
+  background: var(--ink-bg);
+  color: var(--ink-fg);
+  font-family: var(--ink-mono);
+  font-size: var(--ink-text-label);
+  font-weight: 700;
+  letter-spacing: var(--ink-tracking-label);
+  text-transform: uppercase;
+}
+.ink-status-pill__symbol {
+  font-size: 1em;
+  line-height: 1;
+}
+/* The built-in states differentiate by border treatment and fill, never by
+   colour alone — the label beside the symbol always carries the meaning, so
+   an unknown custom status still reads correctly with the neutral frame. */
+.ink-status-pill[data-status='warning'] {
+  border-style: double;
+  border-width: var(--ink-border-width-strong);
+}
+.ink-status-pill[data-status='critical'] {
+  background: var(--ink-fg);
+  color: var(--ink-bg);
+}
+.ink-status-pill[data-status='offline'] {
+  border-style: dashed;
+}
+.ink-status-pill[data-size='sm'] {
+  font-size: var(--ink-text-caption);
+  padding: 1px 6px;
+}
+.ink-status-pill[data-size='lg'] {
+  padding: 6px 14px;
+  font-size: var(--ink-text-h3);
+  letter-spacing: normal;
 }
 
 /* ============================================================
@@ -3618,6 +4044,9 @@ e-diff {
   display: inline-block;
   border: var(--ink-border);
   background: var(--ink-bg);
+  /* The SVG path paints with currentColor, so the wrapper pins the ink token
+     instead of inheriting whatever colour the host happens to set. */
+  color: var(--ink-fg);
   padding: var(--ink-space-2);
   line-height: 0;
   box-sizing: border-box;

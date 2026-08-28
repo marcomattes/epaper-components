@@ -11,8 +11,8 @@ core changes.
 
 ## 1 · What EPaper is (and what it isn't)
 
-EPaper is a **vanilla web component library** (79 component modules
-registering 104 custom elements) built around a single hard constraint:
+EPaper is a **vanilla web component library** (80 component modules
+registering 105 custom elements) built around a single hard constraint:
 **every component must render cleanly on electrophoretic displays**. Every
 other design decision follows from that constraint, not from taste.
 
@@ -53,7 +53,7 @@ other design decision follows from that constraint, not from taste.
         ┌─────────────────────┴────────────────────┐
         ▼                                           ▼
 ┌────────────────┐                          ┌────────────────┐
-│ src/components │  79 modules / 104 tags   │  src/styles    │
+│ src/components │  80 modules / 105 tags   │  src/styles    │
 │  *.ts          │  (1 file = 1+ component) │  tokens / base │
 │                │                          │  components    │
 └────────────────┘                          └────────────────┘

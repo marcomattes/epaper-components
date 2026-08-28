@@ -11,12 +11,17 @@ const componentEntries = Object.fromEntries(
     .map(([name, entryFile]) => [`components/${name}`, entryFile]),
 );
 
+// Hand-maintained, and it has to stay in step with the `./core/*` subpaths in
+// package.json `exports`: an export whose entry is missing here points at a
+// dist file the build never writes. `apps/sample-app`'s validator is what
+// catches that, by resolving every declared subpath against the built output.
 const coreEntries = {
   'core/dom': resolve(__dirname, 'src/core/dom.ts'),
   'core/icons': resolve(__dirname, 'src/core/icons.ts'),
   'core/types': resolve(__dirname, 'src/core/types.ts'),
   'core/date': resolve(__dirname, 'src/core/date.ts'),
   'core/format': resolve(__dirname, 'src/core/format.ts'),
+  'core/i18n': resolve(__dirname, 'src/core/i18n.ts'),
   'core/base-form-control': resolve(__dirname, 'src/core/base-form-control.ts'),
 };
 

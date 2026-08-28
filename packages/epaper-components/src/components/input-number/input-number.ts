@@ -15,6 +15,10 @@ import { BaseFormControl } from '../../core/base-form-control';
  * @attr {string} [min] - Lower bound (inclusive).
  * @attr {string} [max] - Upper bound (inclusive).
  * @attr {string} [step='1'] - Step size for the buttons and native input.
+ * @attr {boolean} [disabled] - Disables interaction: the field and both step buttons leave the
+ *   tab flow and no click, hold or keystroke changes the value. Presence alone disables, per the
+ *   HTML spec for form-associated elements — `disabled="false"` still disables. Also applied by a
+ *   surrounding `<fieldset disabled>`.
  * @attr {boolean} [required] - Requires a numeric value.
  * @attr {string} [required-message] - Overrides the native message reported for an empty required value.
  *
@@ -30,12 +34,14 @@ export class EInputNumber extends BaseFormControl<string> {
     'max',
     'step',
     'aria-label',
+    'disabled',
     'required',
     'required-message',
   ];
 
   private _wired = false;
   private _input: HTMLInputElement | null = null;
+  private _btns: HTMLButtonElement[] = [];
   private _holdTimer: ReturnType<typeof setInterval> | null = null;
   private _holdDelay: ReturnType<typeof setTimeout> | null = null;
 
@@ -50,9 +56,11 @@ export class EInputNumber extends BaseFormControl<string> {
         <button type="button" class="ink-number__btn" data-step="1" aria-label="Increment">${iconSvg('plus', 18)}</button>
       </div>`;
       this._input = this.querySelector('input');
+      this._btns = [...this.querySelectorAll<HTMLButtonElement>('.ink-number__btn')];
       this._initialiseInput();
     }
 
+    this._applyDisabled();
     this.addEventListener('click', this._onClick);
     this.addEventListener('mousedown', this._onMouseDown);
     this.addEventListener('mouseup', this._stopHold);
@@ -100,6 +108,7 @@ export class EInputNumber extends BaseFormControl<string> {
       this._syncValidity();
     }
     if (name === 'aria-label') patchAttr(this._input, 'aria-label', v);
+    if (name === 'disabled') this._applyDisabled();
     if (name === 'required' || name === 'required-message') {
       this._input.required = this.hasAttribute('required');
       this._syncValidity();
@@ -135,8 +144,33 @@ export class EInputNumber extends BaseFormControl<string> {
     this._syncValidity();
   }
 
+  /**
+   * Effective disabled state. Presence alone disables — the HTML spec, not the
+   * library's `x="false"` convention, governs `disabled` on a form-associated
+   * element, and that is what the browser reports through `formDisabledCallback`.
+   */
+  private get _disabled(): boolean {
+    return this.hasAttribute('disabled') || this._formDisabled;
+  }
+
+  /** Forward the effective disabled state to the field and both step buttons. */
+  private _applyDisabled(): void {
+    const disabled = this._disabled;
+    if (this._input) {
+      this._input.disabled = disabled;
+      patchAttr(this._input, 'aria-disabled', disabled ? 'true' : null);
+    }
+    for (const btn of this._btns) btn.disabled = disabled;
+    // A press-and-hold in flight would keep stepping past the disable.
+    if (disabled) this._stopHold();
+  }
+
+  protected override formDisabledChanged(): void {
+    this._applyDisabled();
+  }
+
   private _step(direction: number): void {
-    if (!this._input) return;
+    if (!this._input || this._disabled) return;
     if (direction > 0) this._input.stepUp(direction);
     else this._input.stepDown(Math.abs(direction));
     const next = this._input.value;
@@ -181,6 +215,7 @@ export class EInputNumber extends BaseFormControl<string> {
   };
 
   private readonly _onMouseDown = (e: MouseEvent): void => {
+    if (this._disabled) return;
     const button = (e.target as Element).closest<HTMLElement>('[data-step]');
     if (!button) return;
     const direction = Number(button.dataset['step']);
@@ -217,11 +252,17 @@ export class EInputNumber extends BaseFormControl<string> {
     if (this._input.validity.valueMissing) {
       const message = this.getAttribute('required-message');
       if (message) {
+        // Only the message differs from the native one; when the violation is
+        // shown stays with the base class's deferred-validation gate. Painting
+        // `aria-invalid` here directly would mark an untouched required field
+        // as broken on first render.
         this.internals.setValidity({ valueMissing: true }, message, this._input);
-        this._input.setAttribute('aria-invalid', 'true');
+        this._markInvalid(this._input);
         return;
       }
     }
+    // The valid path — and the clearing of a previously painted violation —
+    // goes through the base class's native-validity mirror.
     this.mirrorNativeValidity(this._input);
   }
 }

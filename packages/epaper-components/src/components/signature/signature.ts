@@ -1,5 +1,9 @@
 import { boolAttr, define, intAttr, patchAttr, patchText, randId } from '../../core/dom';
 import { BaseFormControl } from '../../core/base-form-control';
+import { label as i18nLabel, t } from '../../core/i18n';
+
+/** `''` for a nullish assignment — a `set` accessor cannot take a default. */
+const nonNull = (value: string): string => value ?? '';
 
 /** Decode a `data:image/png;base64,...` URL into the bytes of a PNG file. */
 function dataUrlToFile(dataUrl: string, name: string): File | null {
@@ -33,8 +37,8 @@ function dataUrlToFile(dataUrl: string, name: string): File | null {
  * @attr {number} [pen-width=3] - Stroke width in canvas pixels.
  * @attr {string} [label] - Label rendered above the pad.
  * @attr {string} [hint] - Helper text rendered below the pad.
- * @attr {string} [clear-label='Clear'] - Text of the clear button.
- * @attr {string} [fallback-text] - Shown instead of the pad when the browser has no 2D canvas.
+ * @attr {string} [clear-label] - Text of the clear button. Defaults to the string table's `clear`.
+ * @attr {string} [fallback-text] - Shown instead of the pad when the browser has no 2D canvas. Defaults to the string table's `signatureUnavailable`.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
  * @attr {boolean} [readonly] - Shows the current signature without accepting input.
  * @attr {boolean} [disabled] - Disables interaction. Presence alone disables.
@@ -147,7 +151,9 @@ export class ESignature extends BaseFormControl {
     return this._value;
   }
   override set value(v: string) {
-    const next = v ?? '';
+    // A setter parameter cannot carry a default, so the nullish guard reads
+    // the value through a helper rather than re-assigning the parameter.
+    const next = nonNull(v);
     // `formStateRestoreCallback` assigns the object URL `parseFile` just
     // created, so only a *different* value invalidates the restored file.
     if (next !== this._restoredUrl) this._dropRestored();
@@ -321,16 +327,15 @@ export class ESignature extends BaseFormControl {
     const hint = this.getAttribute('hint') || '';
     patchText(this._hintEl, hint);
     patchAttr(this._hintEl, 'hidden', hint ? null : '');
-    patchText(this._clearBtn, this.getAttribute('clear-label') || 'Clear');
+    patchText(this._clearBtn, i18nLabel(this, 'clear-label', 'clear'));
     patchAttr(this._canvas, 'role', 'img');
     patchAttr(
       this._canvas,
       'aria-label',
-      label || this.getAttribute('aria-label') || 'Signature pad',
+      label || this.getAttribute('aria-label') || t(this, 'signaturePad'),
     );
 
-    const fallback =
-      this.getAttribute('fallback-text') || 'Signature capture is unavailable on this device.';
+    const fallback = i18nLabel(this, 'fallback-text', 'signatureUnavailable');
     patchText(this._fallback, fallback);
     const usable = !!this._ctx;
     patchAttr(this._fallback, 'hidden', usable ? '' : null);
@@ -346,7 +351,7 @@ export class ESignature extends BaseFormControl {
   }
 
   private _syncValidity(): void {
-    this.applyRequiredValidity(!!this._value, this._canvas ?? undefined, 'Please sign here.');
+    this.applyRequiredValidity(!!this._value, this._canvas ?? undefined, t(this, 'required'));
   }
 }
 

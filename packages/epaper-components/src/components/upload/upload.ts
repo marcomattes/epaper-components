@@ -1,4 +1,4 @@
-import { addCleanup, boolAttr, define, esc, runCleanups } from '../../core/dom';
+import { addCleanup, boolAttr, define, esc, patchAttr, runCleanups } from '../../core/dom';
 import { iconSvg } from '../../core/icons';
 import { BaseFormControl } from '../../core/base-form-control';
 
@@ -13,7 +13,15 @@ import { BaseFormControl } from '../../core/base-form-control';
  *
  * @attr {string} [accept] - Comma-separated MIME types or extensions forwarded to the underlying file input.
  * @attr {boolean} [multiple] - Accept more than one file. When absent, picking a new file replaces the prior one; removing the attribute while several files are held keeps the first and fires `e-change`.
+ * @attr {string} [capture] - Forwarded verbatim to the native `capture` attribute, so a kiosk
+ *   terminal opens the camera instead of the file browser. Present with no value picks the
+ *   implementation-defined facing mode; `user` and `environment` name one explicitly. Read once,
+ *   when the file input is built.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
+ * @attr {boolean} [disabled] - Disables interaction: the drop zone leaves the tab flow and no
+ *   click, key or drop adds or removes a file. Presence alone disables, per the HTML spec for
+ *   form-associated elements — `disabled="false"` still disables. Also applied by a surrounding
+ *   `<fieldset disabled>`.
  * @attr {string} [max-size] - Maximum size per file in bytes. Files exceeding the limit are rejected and the control is marked invalid.
  * @attr {string} [max-files] - Maximum number of files allowed in multi-file mode.
  * @attr {boolean} [required] - Requires at least one selected file.
@@ -30,6 +38,7 @@ export class EUpload extends BaseFormControl<File[]> {
     'multiple',
     'max-size',
     'max-files',
+    'disabled',
     'required',
     'required-message',
   ];
@@ -46,13 +55,16 @@ export class EUpload extends BaseFormControl<File[]> {
       this._wired = true;
       const accept = this.getAttribute('accept') || '';
       const multiple = boolAttr(this, 'multiple');
+      // `capture` is enumerated, not boolean: presence alone means "the default
+      // facing mode", so the value is forwarded verbatim rather than filtered.
+      const capture = this.getAttribute('capture');
       this.innerHTML = `
       <div>
         <div class="ink-upload" role="button" tabindex="0" aria-label="Choose files">
           ${iconSvg('upload', 28)}
           <div class="ink-upload__title">Drop files here or click to upload</div>
           <div class="ink-upload__hint">${accept ? `ACCEPTS · ${esc(accept.toUpperCase())}` : 'ANY FILE TYPE'}</div>
-          <input type="file" ${accept ? `accept="${esc(accept)}"` : ''} ${multiple ? 'multiple' : ''} style="display:none"/>
+          <input type="file" ${accept ? `accept="${esc(accept)}"` : ''} ${multiple ? 'multiple' : ''} ${capture == null ? '' : `capture="${esc(capture)}"`} style="display:none"/>
         </div>
         <ul class="ink-upload__list" hidden></ul>
       </div>`;
@@ -64,6 +76,7 @@ export class EUpload extends BaseFormControl<File[]> {
     }
     this._syncFormValue();
     this._validate(this._value);
+    this._applyDisabled();
     this._drop?.addEventListener('click', this._onDropClick);
     this._drop?.addEventListener('keydown', this._onDropKeydown);
     this._drop?.addEventListener('dragover', this._onDragOver);
@@ -86,29 +99,64 @@ export class EUpload extends BaseFormControl<File[]> {
     runCleanups(this);
   }
 
+  /**
+   * Effective disabled state. Presence alone disables — the HTML spec, not the
+   * library's `x="false"` convention, governs `disabled` on a form-associated
+   * element, and that is what the browser reports through `formDisabledCallback`.
+   */
+  private get _disabled(): boolean {
+    return this.hasAttribute('disabled') || this._formDisabled;
+  }
+
+  /**
+   * Forward the effective disabled state to the drop zone, the hidden file
+   * input and every per-file remove button.
+   */
+  private _applyDisabled(): void {
+    const disabled = this._disabled;
+    if (this._drop) {
+      // The drop zone is a `div[role=button]`, so the tab stop is its own to
+      // give up — there is no native disabled state to set.
+      this._drop.tabIndex = disabled ? -1 : 0;
+      patchAttr(this._drop, 'aria-disabled', disabled ? 'true' : null);
+    }
+    if (this._input) this._input.disabled = disabled;
+    for (const btn of this.querySelectorAll<HTMLButtonElement>('[data-remove]')) {
+      btn.disabled = disabled;
+    }
+  }
+
+  protected override formDisabledChanged(): void {
+    this._applyDisabled();
+  }
+
   attributeChangedCallback(name: string, _old: string | null, v: string | null) {
     if (!this._input || !this._hint) return;
-    if (name === 'accept') {
-      const accept = v || '';
-      if (accept) this._input.setAttribute('accept', accept);
-      else this._input.removeAttribute('accept');
-      this._hint.textContent = accept ? `ACCEPTS · ${accept.toUpperCase()}` : 'ANY FILE TYPE';
-    } else if (name === 'multiple') {
-      if (boolAttr(this, 'multiple')) this._input.setAttribute('multiple', '');
-      else {
-        this._input.removeAttribute('multiple');
-        // Dropping to single-file mode discards the surplus files, which is a
-        // value change like any other and is announced as one.
-        if (this._value.length > 1) {
-          this._value = this._value.slice(0, 1);
-          this._rebuildList();
-          this._syncFormValue();
-          this._emitChange();
-        }
-      }
-    } else {
-      this._validate(this._value);
+    if (name === 'accept') this._applyAccept(v || '');
+    else if (name === 'multiple') this._applyMultiple();
+    else if (name === 'disabled') this._applyDisabled();
+    else this._validate(this._value);
+  }
+
+  private _applyAccept(accept: string): void {
+    if (accept) this._input!.setAttribute('accept', accept);
+    else this._input!.removeAttribute('accept');
+    this._hint!.textContent = accept ? `ACCEPTS · ${accept.toUpperCase()}` : 'ANY FILE TYPE';
+  }
+
+  private _applyMultiple(): void {
+    if (boolAttr(this, 'multiple')) {
+      this._input!.setAttribute('multiple', '');
+      return;
     }
+    this._input!.removeAttribute('multiple');
+    // Dropping to single-file mode discards the surplus files, which is a
+    // value change like any other and is announced as one.
+    if (this._value.length <= 1) return;
+    this._value = this._value.slice(0, 1);
+    this._rebuildList();
+    this._syncFormValue();
+    this._emitChange();
   }
 
   protected override resetValue(): void {
@@ -249,6 +297,7 @@ export class EUpload extends BaseFormControl<File[]> {
     removeBtn.style.width = '24px';
     removeBtn.style.height = '24px';
     removeBtn.setAttribute('aria-label', 'Remove');
+    removeBtn.disabled = this._disabled;
     removeBtn.innerHTML = iconSvg('close', 12);
 
     li.appendChild(docIcon);
@@ -279,16 +328,19 @@ export class EUpload extends BaseFormControl<File[]> {
   }
 
   private readonly _onDropClick = (e: Event): void => {
+    if (this._disabled) return;
     if (e.target !== this._input) this._input?.click();
   };
 
   private readonly _onDropKeydown = (e: KeyboardEvent): void => {
+    if (this._disabled) return;
     if (e.key !== 'Enter' && e.key !== ' ') return;
     e.preventDefault();
     this._input?.click();
   };
 
   private readonly _onDragOver = (e: DragEvent): void => {
+    if (this._disabled) return;
     e.preventDefault();
     if (this._drop?.dataset['drag'] !== 'true' && this._drop) this._drop.dataset['drag'] = 'true';
   };
@@ -298,16 +350,19 @@ export class EUpload extends BaseFormControl<File[]> {
   };
 
   private readonly _onDrop = (e: DragEvent): void => {
+    if (this._disabled) return;
     e.preventDefault();
     if (this._drop) this._drop.dataset['drag'] = 'false';
     if (e.dataTransfer?.files) this._handleFiles(e.dataTransfer.files);
   };
 
   private readonly _onInputChange = (): void => {
+    if (this._disabled) return;
     if (this._input?.files) this._handleFiles(this._input.files);
   };
 
   private readonly _onListClick = (e: Event): void => {
+    if (this._disabled) return;
     const remove = (e.target as Element).closest<HTMLElement>('[data-remove]');
     if (!remove || !this._list?.contains(remove)) return;
     const index = Number(remove.dataset['remove']);

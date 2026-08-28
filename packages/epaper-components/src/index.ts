@@ -1,8 +1,22 @@
 // EPaper · Component Library entry point.
 // Importing this module registers all custom elements as side effects.
 
-export { ICONS, iconSvg, SVG_NS } from './core/icons';
+export { ICONS, iconSvg, registerIcon, iconNames, SVG_NS } from './core/icons';
 export type { IconName } from './core/icons';
+export {
+  formatNumber,
+  formatDate,
+  formatMoneyParts,
+  formatRelativeTime,
+  formatUnitPrice,
+  MONEY_PLACEHOLDER,
+  resolveLocale,
+  weekdayLabels,
+  monthLabel,
+} from './core/format';
+export type { NumberFormatOptions, MoneyOptions, MoneyParts } from './core/format';
+export { setLocaleStrings, strings, t } from './core/i18n';
+export type { LocaleStrings } from './core/i18n';
 export type {
   EChangeDetail,
   CascaderOption,
@@ -12,8 +26,6 @@ export type {
   EventLogEntry,
   EventLogSeverity,
 } from './core/types';
-export { formatMoney, formatUnitPrice, MONEY_PLACEHOLDER } from './core/format';
-export type { MoneyParts } from './core/format';
 
 // Components
 export { EIcon } from './components/icon/icon';
@@ -84,7 +96,13 @@ export { EPrice } from './components/price/price';
 export { EMeter } from './components/meter/meter';
 export { ESparkline } from './components/sparkline/sparkline';
 export { EStatusBoard } from './components/status-board/status-board';
-export type { StatusBoardItem, StatusBoardStatus } from './components/status-board/status-board';
+export type {
+  StatusBoardItem,
+  StatusBoardStatus,
+  StatusMeta,
+} from './components/status-board/status-board';
+export { EStatusPill } from './components/status-pill/status-pill';
+export type { StatusPillMeta } from './components/status-pill/status-pill';
 export { EChangeMarker } from './components/change-marker/change-marker';
 export { ELastUpdated } from './components/last-updated/last-updated';
 export type { UpdateFreshness } from './components/last-updated/last-updated';

@@ -48,7 +48,7 @@ export const STORYBOOK_BASE = import.meta.env?.['VITE_STORYBOOK_BASE'] ?? 'http:
  * Mirrors Storybook's slug rule: lowercase, slashes → hyphens.
  */
 export function storybookUrl(entry: ComponentEntry): string {
-  const slug = `${entry.category}-${entry.name}`.toLowerCase().replace(/[^a-z0-9-]+/g, '-');
+  const slug = `${entry.category}-${entry.name}`.toLowerCase().replaceAll(/[^a-z0-9-]+/g, '-');
   return `${STORYBOOK_BASE}/?path=/docs/${slug}--docs`;
 }
 

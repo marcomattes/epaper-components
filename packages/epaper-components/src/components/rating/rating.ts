@@ -9,6 +9,7 @@ import {
 } from '../../core/dom';
 import { ICONS, SVG_NS } from '../../core/icons';
 import { BaseFormControl } from '../../core/base-form-control';
+import { t } from '../../core/i18n';
 
 const SMILEY = {
   face: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z',
@@ -37,7 +38,7 @@ const SMILEY = {
  * @attr {boolean} [readonly] - Renders the current rating without accepting input.
  * @attr {boolean} [disabled] - Disables interaction. Presence alone disables.
  * @attr {boolean} [required] - Requires a rating of at least 1.
- * @attr {string} [required-message] - Message reported when `required` is not satisfied.
+ * @attr {string} [required-message] - Message reported when `required` is not satisfied. Defaults to the string table's `required`.
  * @attr {boolean} [allow-clear] - Re-selecting the current rating clears it back to `0`.
  *
  * @fires {CustomEvent<{value: number}>} e-change - Fired when the rating changes.
@@ -302,7 +303,7 @@ export class ERating extends BaseFormControl<number> {
       const on = step <= this._value;
       patchAttr(button, 'aria-checked', String(step === this._value));
       patchAttr(button, 'data-on', on ? 'true' : null);
-      patchAttr(button, 'aria-label', `${step} of ${max}`);
+      patchAttr(button, 'aria-label', t(this, 'ratingOf', { value: step, max }));
       button.disabled = !interactive;
       // The focused step is the selected one, or the first when unrated:
       // one tab stop for the whole group, as a radio group requires.
@@ -315,11 +316,7 @@ export class ERating extends BaseFormControl<number> {
   }
 
   private _syncValidity(): void {
-    this.applyRequiredValidity(
-      this._value > 0,
-      this._group ?? undefined,
-      'Please select a rating.',
-    );
+    this.applyRequiredValidity(this._value > 0, this._group ?? undefined, t(this, 'required'));
   }
 }
 

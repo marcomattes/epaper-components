@@ -8,6 +8,7 @@
 // Assertions marked `QUIRK:` pin current behaviour that looks wrong, so a
 // future fix surfaces as a failing test rather than as silent drift.
 import { describe, it, expect, beforeAll, afterEach } from 'vitest';
+import { ICONS } from '../../core/icons';
 
 beforeAll(async () => {
   await import('../badge-count/badge-count');
@@ -32,6 +33,16 @@ beforeAll(async () => {
   await import('../timeline/timeline');
   await import('../diff/diff');
   await import('../button/button');
+  // v1.3.0 maturity work — see the "v1.3.0" sections at the end of this file.
+  await import('../textarea/textarea');
+  await import('../tabs/tabs');
+  await import('../steps/steps');
+  await import('../title/title');
+  await import('../text/text');
+  await import('../list/list');
+  await import('../sparkline/sparkline');
+  await import('../qrcode/qrcode');
+  await import('../alert/alert');
 });
 
 const mounted: HTMLElement[] = [];
@@ -54,6 +65,12 @@ const remount = (el: HTMLElement): void => {
   el.remove();
   parent.appendChild(el);
 };
+
+/**
+ * Let `observeItems` run. A MutationObserver delivers on a microtask and the
+ * helper coalesces onto another one, so a task turn is the reliable wait.
+ */
+const flushObserver = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
 
 /** Collect every dispatched event of `type` so the detail shape can be asserted. */
 const listen = <T>(el: HTMLElement, type: string): Array<CustomEvent<T>> => {
@@ -200,8 +217,10 @@ describe('e-breadcrumb', () => {
 
   it('builds a nav with anchors, separators and a current span', () => {
     const el = mount(trail);
-    const nav = el.firstElementChild as HTMLElement;
-    expect(el.children).toHaveLength(1);
+    // Since v1.3.0 the authored items stay in the light DOM as the component's
+    // data source, so the rendered nav is a sibling of them, not the only child.
+    const nav = el.querySelector('nav')!;
+    expect(el.children).toHaveLength(4);
     expect(nav.tagName).toBe('NAV');
     expect(nav.className).toBe('ink-breadcrumb');
     expect(nav.getAttribute('aria-label')).toBe('Breadcrumb');
@@ -215,7 +234,7 @@ describe('e-breadcrumb', () => {
 
   it('QUIRK: the last item is never an anchor even when it has an href', () => {
     const el = mount(trail);
-    const nav = el.firstElementChild!;
+    const nav = el.querySelector('nav')!;
     const current = nav.querySelector('.ink-breadcrumb__current')!;
     expect(current.tagName).toBe('SPAN');
     expect(current.textContent).toBe('C');
@@ -299,20 +318,24 @@ describe('e-breadcrumb', () => {
     expect(nav.children).toHaveLength(0);
   });
 
-  it('destroys the authored e-breadcrumb-item elements', () => {
+  it('keeps the authored e-breadcrumb-item elements, hidden, as its data source', () => {
     const el = mount(trail);
-    expect(el.querySelectorAll('e-breadcrumb-item')).toHaveLength(0);
+    const items = el.querySelectorAll<HTMLElement>('e-breadcrumb-item');
+    expect(items).toHaveLength(3);
+    for (const item of items) expect(item.style.display).toBe('none');
   });
 
-  it('ignores items appended after connect (_wired snapshot)', () => {
+  it('renders items appended after connect', async () => {
     const el = mount(trail);
     const nav = el.querySelector('nav')!;
-    const before = nav.children.length;
     const late = document.createElement('e-breadcrumb-item');
     late.textContent = 'D';
     el.appendChild(late);
-    expect(nav.children).toHaveLength(before);
-    expect(el.querySelector('.ink-breadcrumb__current')!.textContent).toBe('C');
+    await flushObserver();
+    // The new item becomes the trail's current page, and the old one demotes
+    // to a link — the whole point of making these components observable.
+    expect(el.querySelector('.ink-breadcrumb__current')!.textContent).toBe('D');
+    expect(nav.querySelector('a[href="/c"]')).not.toBeNull();
   });
 
   it('does not rebuild on reconnect', () => {
@@ -1993,10 +2016,12 @@ describe('e-description-list', () => {
     '<e-desc-item term="Tracking"><b id="code">EP-2048</b></e-desc-item>' +
     '</e-description-list>';
 
-  it('renders a dl of dt/dd pairs and moves the detail nodes across', () => {
+  it('renders a dl of dt/dd pairs and clones the detail nodes across', () => {
     const el = mount(sample);
-    const dl = el.firstElementChild as HTMLElement;
-    expect(el.children).toHaveLength(1);
+    // v1.3.0: the authored items remain as the data source and the detail
+    // nodes are cloned rather than moved, so the component can re-sync them.
+    const dl = el.querySelector('dl')!;
+    expect(el.children).toHaveLength(3);
     expect(dl.tagName).toBe('DL');
     expect(dl.className).toBe('ink-desc-list ink-desc-list--horizontal ink-desc-list--bordered');
     const pairs = dl.querySelectorAll('.ink-desc-list__pair');
@@ -2007,8 +2032,14 @@ describe('e-description-list', () => {
     expect(pairs[0]!.children[1]!.tagName).toBe('DD');
     expect(pairs[0]!.children[1]!.className).toBe('ink-desc-list__detail');
     expect(pairs[0]!.children[1]!.textContent).toBe('Shipped');
-    expect(pairs[1]!.querySelector('#code')).not.toBeNull();
-    expect(el.querySelectorAll('e-desc-item')).toHaveLength(0);
+    // The clone carries the content but not the id: duplicating one would put
+    // it in the document twice. The authored carrier keeps it, and edits there
+    // flow back through the observer.
+    expect(pairs[1]!.querySelector('#code')).toBeNull();
+    expect(pairs[1]!.textContent).toContain('EP-2048');
+    expect(el.querySelector('e-desc-item #code')).not.toBeNull();
+    expect(el.querySelectorAll('#code')).toHaveLength(1);
+    expect(el.querySelectorAll('e-desc-item')).toHaveLength(2);
   });
 
   it('clamps columns into 1..4 and rejects fractions back to the default', () => {
@@ -2069,12 +2100,13 @@ describe('e-description-list', () => {
     expect(dl.style.gridTemplateColumns).toBe('repeat(3, minmax(0px, 1fr))');
   });
 
-  it('ignores items appended after connect', () => {
+  it('renders items appended after connect', async () => {
     const el = mount(sample);
     const late = document.createElement('e-desc-item');
     late.setAttribute('term', 'Late');
     el.appendChild(late);
-    expect(el.querySelectorAll('.ink-desc-list__pair')).toHaveLength(2);
+    await flushObserver();
+    expect(el.querySelectorAll('.ink-desc-list__pair')).toHaveLength(3);
   });
 
   it('does not rebuild on reconnect', () => {
@@ -2119,8 +2151,8 @@ describe('e-timeline', () => {
 
   it('renders an ordered list with marker, time, title and body', () => {
     const el = mount(sample);
-    const list = el.firstElementChild as HTMLElement;
-    expect(el.children).toHaveLength(1);
+    const list = el.querySelector('ol')!;
+    expect(el.children).toHaveLength(3);
     expect(list.tagName).toBe('OL');
     expect(list.className).toBe('ink-timeline ink-timeline--time-left');
     const rows = list.querySelectorAll('li.ink-timeline__item');
@@ -2138,8 +2170,12 @@ describe('e-timeline', () => {
     expect(rail.firstElementChild!.className).toBe('ink-timeline__marker');
     expect(first.querySelector('.ink-timeline__title')!.textContent).toBe('Stand-up');
     expect(first.querySelector('.ink-timeline__body')!.textContent).toBe('Daily sync.');
-    expect(first.querySelector('#sync')).not.toBeNull();
-    expect(el.querySelectorAll('e-timeline-item')).toHaveLength(0);
+    // As above: the rendered body is an id-free clone, the authored item keeps
+    // the id, and the document therefore still holds exactly one.
+    expect(first.querySelector('#sync')).toBeNull();
+    expect(el.querySelector('e-timeline-item #sync')).not.toBeNull();
+    expect(el.querySelectorAll('#sync')).toHaveLength(1);
+    expect(el.querySelectorAll('e-timeline-item')).toHaveLength(2);
   });
 
   it('omits the title and body blocks for an item that has neither', () => {
@@ -2177,12 +2213,13 @@ describe('e-timeline', () => {
     expect(list.className).toBe('ink-timeline ink-timeline--time-right');
   });
 
-  it('ignores items appended after connect', () => {
+  it('renders items appended after connect', async () => {
     const el = mount(sample);
     const late = document.createElement('e-timeline-item');
     late.setAttribute('time', '13:00');
     el.appendChild(late);
-    expect(el.querySelectorAll('li.ink-timeline__item')).toHaveLength(2);
+    await flushObserver();
+    expect(el.querySelectorAll('li.ink-timeline__item')).toHaveLength(3);
   });
 
   it('does not rebuild on reconnect', () => {
@@ -2460,5 +2497,1137 @@ describe('e-form integration', () => {
     expect(submits).toHaveLength(1);
     expect(submits[0]!.detail.form).toBe(form);
     expect(el.querySelector('.ink-form-item__label')!.textContent).toBe('Name');
+  });
+});
+
+/* ===================================================================== *
+ * v1.3.0 — maturity gaps closed on already-shipped components
+ *
+ * Every block below covers behaviour added in v1.3.0. The pre-v1.3.0
+ * contract of each component is asserted in its own historical suite
+ * (display-deep, data-media-deep, overlays-nav-deep, data-display); these
+ * tests deliberately re-assert the *old* path wherever the new feature had
+ * to stay opt-in, so a future refactor cannot quietly widen it.
+ * ===================================================================== */
+
+/* --------------------------------------------------------------------- *
+ * e-card-image — image covers
+ * --------------------------------------------------------------------- */
+
+describe('e-card-image image cover (v1.3.0)', () => {
+  // 1×1 transparent GIF: loads for real, in-process, with no network.
+  const PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+  const cover = (el: HTMLElement): HTMLElement =>
+    el.querySelector<HTMLElement>('.ink-card__cover')!;
+  const img = (el: HTMLElement): HTMLImageElement | null =>
+    el.querySelector<HTMLImageElement>('.ink-card__cover-img');
+
+  it('renders a path-like cover as an <img> with cover-alt', () => {
+    const el = mount(
+      '<e-card-image cover="/media/produkt.jpg" cover-alt="Produktfoto">B</e-card-image>',
+    );
+    const image = img(el)!;
+    expect(image).not.toBeNull();
+    expect(image.getAttribute('src')).toBe('/media/produkt.jpg');
+    expect(image.getAttribute('alt')).toBe('Produktfoto');
+    expect(image.decoding).toBe('async');
+    expect(cover(el).className).toBe('ink-card__cover ink-card__cover--image');
+    expect(cover(el).textContent).toBe('');
+  });
+
+  it.each([
+    ['an absolute https URL', 'https://cdn.example.com/a.jpg'],
+    ['a data: image URL', PIXEL],
+    ['a blob: URL', 'blob:https://example.com/2f1a'],
+    ['a root-relative path', '/a/b.png'],
+    ['a ./ relative path', './b.webp'],
+    ['a ../ relative path', '../b.avif'],
+    ['a bare filename with a known extension', 'cover.SVG'],
+    ['an extension followed by a query', 'cover.png?v=2'],
+  ])('treats %s as an image URL', (_label, value) => {
+    const el = mount(`<e-card-image cover="${value}">B</e-card-image>`);
+    expect(img(el)).not.toBeNull();
+    expect(cover(el).classList.contains('ink-card__cover--image')).toBe(true);
+  });
+
+  it.each([
+    ['a plain word', 'Photo'],
+    ['a hatch keyword', 'hatch'],
+    ['a hatch variant', 'hatch-dense'],
+    ['a phrase containing a path-looking word', 'Foto /media/x.jpg'],
+    ['markup-looking text', '<b>c</b>'],
+    ['an extension inside a sentence', 'Siehe cover.png im Anhang'],
+    ['an empty value', ''],
+  ])('keeps %s out of image mode', (_label, value) => {
+    const el = mount(`<e-card-image cover="${value}">B</e-card-image>`);
+    expect(img(el)).toBeNull();
+    expect(cover(el).classList.contains('ink-card__cover--image')).toBe(false);
+  });
+
+  it('switches between text, hatch and image mode without leaking the previous mode', () => {
+    const el = mount('<e-card-image cover="Photo">B</e-card-image>');
+    expect(cover(el).textContent).toBe('Photo');
+
+    el.setAttribute('cover', '/a.jpg');
+    expect(cover(el).textContent).toBe('');
+    expect(img(el)!.getAttribute('src')).toBe('/a.jpg');
+    expect(cover(el).className).toBe('ink-card__cover ink-card__cover--image');
+
+    el.setAttribute('cover', 'hatch');
+    expect(img(el)).toBeNull();
+    expect(cover(el).className).toBe('ink-card__cover ink-card__cover--hatch');
+    expect(cover(el).textContent).toBe('');
+
+    el.setAttribute('cover', 'Photo');
+    expect(cover(el).textContent).toBe('Photo');
+    expect(img(el)).toBeNull();
+  });
+
+  it('patches the src in place rather than recreating the <img>', () => {
+    const el = mount('<e-card-image cover="/a.jpg">B</e-card-image>');
+    const first = img(el)!;
+    el.setAttribute('cover', '/b.jpg');
+    expect(img(el)).toBe(first);
+    expect(first.getAttribute('src')).toBe('/b.jpg');
+  });
+
+  it('patches cover-alt on its own without touching the src', () => {
+    const el = mount('<e-card-image cover="/a.jpg" cover-alt="Alt A">B</e-card-image>');
+    const image = img(el)!;
+    el.setAttribute('cover-alt', 'Alt B');
+    expect(img(el)).toBe(image);
+    expect(image.getAttribute('alt')).toBe('Alt B');
+    expect(image.getAttribute('src')).toBe('/a.jpg');
+  });
+
+  it('falls back to the hatch pattern and fires e-error when the image fails', () => {
+    const el = mount('<e-card-image cover="/missing.jpg" cover-alt="Produktfoto">B</e-card-image>');
+    const errors = listen<{ value: string }>(el, 'e-error');
+    const image = img(el)!;
+
+    image.dispatchEvent(new Event('error'));
+
+    expect(errors).toHaveLength(1);
+    expect(errors[0]!.detail.value).toBe('/missing.jpg');
+    expect(image.hidden).toBe(true);
+    expect(image.dataset['state']).toBe('error');
+    expect(cover(el).className).toBe('ink-card__cover ink-card__cover--hatch');
+    expect(el.querySelector('.ink-card__cover-fallback')!.textContent).toBe('Produktfoto');
+  });
+
+  it('recovers from a failed cover when a new URL arrives', () => {
+    const el = mount('<e-card-image cover="/missing.jpg" cover-alt="A">B</e-card-image>');
+    img(el)!.dispatchEvent(new Event('error'));
+    expect(el.querySelector('.ink-card__cover-fallback')).not.toBeNull();
+
+    el.setAttribute('cover', '/other.jpg');
+    const image = img(el)!;
+    expect(image.hidden).toBe(false);
+    expect(image.hasAttribute('data-state')).toBe(false);
+    expect(el.querySelector('.ink-card__cover-fallback')).toBeNull();
+    expect(cover(el).className).toBe('ink-card__cover ink-card__cover--image');
+  });
+
+  it('drops the whole cover, image and all, when the attribute is removed', () => {
+    const el = mount('<e-card-image cover="/a.jpg">B</e-card-image>');
+    el.removeAttribute('cover');
+    expect(el.querySelector('.ink-card__cover')).toBeNull();
+    expect(img(el)).toBeNull();
+  });
+
+  it('keeps the cover first, before the header, in image mode', () => {
+    const el = mount('<e-card-image cover="/a.jpg" title="T">B</e-card-image>');
+    expect([...el.querySelector('section')!.children].map((c) => c.className)).toEqual([
+      'ink-card__cover ink-card__cover--image',
+      'ink-card__header',
+      'ink-card__body',
+    ]);
+  });
+
+  it('loads a real data: URI cover', async () => {
+    const el = mount(`<e-card-image cover="${PIXEL}" cover-alt="Pixel">B</e-card-image>`);
+    const image = img(el)!;
+    await image.decode();
+    expect(image.naturalWidth).toBe(1);
+    expect(cover(el).classList.contains('ink-card__cover--image')).toBe(true);
+  });
+});
+
+/* --------------------------------------------------------------------- *
+ * e-textarea — label / hint / rows / counter
+ * --------------------------------------------------------------------- */
+
+describe('e-textarea label, hint, rows and counter (v1.3.0)', () => {
+  const ta = (el: HTMLElement): HTMLTextAreaElement => el.querySelector('textarea')!;
+
+  it('renders no label, no hint and no counter by default', () => {
+    const el = mount('<e-textarea></e-textarea>');
+    expect(el.querySelector('label.ink-label')).toBeNull();
+    expect(el.querySelector('.ink-hint')).toBeNull();
+    expect(el.querySelector('.ink-textarea__counter')).toBeNull();
+    // The pre-v1.3.0 sizing is what an unattributed textarea still gets.
+    expect(ta(el).style.minHeight).toBe('96px');
+    expect(ta(el).hasAttribute('rows')).toBe(false);
+  });
+
+  it('renders label and hint with the same class names e-input uses, and wires the label', () => {
+    const el = mount('<e-textarea label="Notiz" hint="Max. 280 Zeichen"></e-textarea>');
+    const label = el.querySelector<HTMLLabelElement>('label.ink-label')!;
+    expect(label.textContent).toBe('Notiz');
+    expect(label.htmlFor).toBe(ta(el).id);
+    expect(ta(el).id).not.toBe('');
+    expect(el.querySelector('.ink-hint')!.textContent).toBe('Max. 280 Zeichen');
+    // label first, textarea second, hint last
+    expect([...el.children].map((c) => c.tagName)).toEqual(['LABEL', 'TEXTAREA', 'DIV']);
+  });
+
+  it('derives the control id from the host id when there is one', () => {
+    const el = mount('<e-textarea id="notes" label="N"></e-textarea>');
+    expect(ta(el).id).toBe('notes-control');
+    expect(el.querySelector<HTMLLabelElement>('label')!.htmlFor).toBe('notes-control');
+  });
+
+  it('adds, patches and removes the label after mount', () => {
+    const el = mount('<e-textarea></e-textarea>');
+    el.setAttribute('label', 'A');
+    const label = el.querySelector<HTMLLabelElement>('label.ink-label')!;
+    expect(label.textContent).toBe('A');
+    expect(label.htmlFor).toBe(ta(el).id);
+
+    el.setAttribute('label', 'B');
+    expect(el.querySelector('label.ink-label')).toBe(label);
+    expect(label.textContent).toBe('B');
+
+    el.removeAttribute('label');
+    expect(el.querySelector('label.ink-label')).toBeNull();
+  });
+
+  it('adds, patches and removes the hint after mount', () => {
+    const el = mount('<e-textarea></e-textarea>');
+    el.setAttribute('hint', 'A');
+    const hint = el.querySelector('.ink-hint')!;
+    expect(hint.textContent).toBe('A');
+    el.setAttribute('hint', 'B');
+    expect(el.querySelector('.ink-hint')).toBe(hint);
+    expect(hint.textContent).toBe('B');
+    el.removeAttribute('hint');
+    expect(el.querySelector('.ink-hint')).toBeNull();
+  });
+
+  it('escapes label and hint rather than injecting markup', () => {
+    const el = mount(
+      '<e-textarea label="<img src=x onerror=alert(1)>" hint="<script>y</script>"></e-textarea>',
+    );
+    expect(el.querySelector('img')).toBeNull();
+    expect(el.querySelector('script')).toBeNull();
+    expect(el.querySelector('label.ink-label')!.textContent).toBe('<img src=x onerror=alert(1)>');
+    expect(el.querySelector('.ink-hint')!.textContent).toBe('<script>y</script>');
+  });
+
+  it('lets rows own the height and hands it back when rows goes away', () => {
+    const el = mount('<e-textarea rows="6"></e-textarea>');
+    expect(ta(el).rows).toBe(6);
+    expect(ta(el).style.minHeight).toBe('');
+
+    el.setAttribute('rows', '10');
+    expect(ta(el).rows).toBe(10);
+
+    el.removeAttribute('rows');
+    expect(ta(el).hasAttribute('rows')).toBe(false);
+    expect(ta(el).style.minHeight).toBe('96px');
+  });
+
+  it.each([['0'], ['-3'], ['abc'], ['2.5'], ['']])(
+    'ignores the unusable rows value %j and keeps the min-height',
+    (raw) => {
+      const el = mount(`<e-textarea rows="${raw}"></e-textarea>`);
+      expect(ta(el).hasAttribute('rows')).toBe(false);
+      expect(ta(el).style.minHeight).toBe('96px');
+    },
+  );
+
+  it('renders a character counter only while maxlength is set', () => {
+    const el = mount('<e-textarea maxlength="10" value="abc"></e-textarea>');
+    const counter = el.querySelector('.ink-textarea__counter')!;
+    expect(counter.textContent).toBe('3 / 10');
+    // between the control and the hint
+    expect(counter.previousElementSibling).toBe(ta(el));
+
+    el.setAttribute('maxlength', '20');
+    expect(el.querySelector('.ink-textarea__counter')).toBe(counter);
+    expect(counter.textContent).toBe('3 / 20');
+
+    el.removeAttribute('maxlength');
+    expect(el.querySelector('.ink-textarea__counter')).toBeNull();
+
+    el.setAttribute('maxlength', '5');
+    expect(el.querySelector('.ink-textarea__counter')!.textContent).toBe('3 / 5');
+  });
+
+  it('updates the counter on input, on the value attribute and on the property', () => {
+    const el = mount('<e-textarea maxlength="10"></e-textarea>') as HTMLElement & { value: string };
+    const counter = el.querySelector('.ink-textarea__counter')!;
+    expect(counter.textContent).toBe('0 / 10');
+
+    ta(el).value = 'abcd';
+    ta(el).dispatchEvent(new Event('input', { bubbles: true }));
+    expect(counter.textContent).toBe('4 / 10');
+
+    el.setAttribute('value', 'ab');
+    expect(counter.textContent).toBe('2 / 10');
+
+    el.value = 'abcdef';
+    expect(counter.textContent).toBe('6 / 10');
+  });
+
+  it('still round-trips its value with a label, a hint and rows in play', () => {
+    const el = mount(
+      '<e-textarea name="n" label="L" hint="H" rows="4" value="hallo"></e-textarea>',
+    ) as HTMLElement & { value: string };
+    expect(el.value).toBe('hallo');
+    expect(ta(el).value).toBe('hallo');
+  });
+});
+
+/* --------------------------------------------------------------------- *
+ * e-tabs — programmatic value
+ * --------------------------------------------------------------------- */
+
+describe('e-tabs programmatic value (v1.3.0)', () => {
+  const markup = (attrs = ''): string => `<e-tabs ${attrs}>
+      <e-tab key="a" label="A">Alpha</e-tab>
+      <e-tab key="b" label="B">Beta</e-tab>
+      <e-tab key="c" label="C">Gamma</e-tab>
+    </e-tabs>`;
+  const panel = (el: HTMLElement, key: string): HTMLElement =>
+    el.querySelector<HTMLElement>(`[data-panel="${key}"]`)!;
+  const selected = (el: HTMLElement): string[] =>
+    [...el.querySelectorAll<HTMLButtonElement>('.ink-tabs__tab')].map((b) =>
+      b.getAttribute('aria-selected')!,
+    );
+
+  it('exposes the active key through the value property', () => {
+    const el = mount<HTMLElement & { value: string }>(markup());
+    expect(el.value).toBe('a');
+    el.querySelectorAll<HTMLButtonElement>('.ink-tabs__tab')[2]!.click();
+    expect(el.value).toBe('c');
+  });
+
+  it('honours an authored value at mount, outranking default-value', () => {
+    const el = mount<HTMLElement & { value: string }>(markup('value="c" default-value="b"'));
+    expect(el.value).toBe('c');
+    expect(selected(el)).toEqual(['false', 'false', 'true']);
+    expect(panel(el, 'c').hidden).toBe(false);
+  });
+
+  it('switches on a value attribute change without emitting e-change', () => {
+    const el = mount<HTMLElement & { value: string }>(markup());
+    const changes = listen<{ value: string }>(el, 'e-change');
+
+    el.setAttribute('value', 'b');
+    expect(el.value).toBe('b');
+    expect(selected(el)).toEqual(['false', 'true', 'false']);
+    expect(panel(el, 'a').hidden).toBe(true);
+    expect(panel(el, 'b').hidden).toBe(false);
+    expect(changes).toEqual([]);
+  });
+
+  it('switches on a value property assignment without emitting e-change', () => {
+    const el = mount<HTMLElement & { value: string }>(markup());
+    const changes = listen<{ value: string }>(el, 'e-change');
+    el.value = 'c';
+    expect(el.value).toBe('c');
+    expect(panel(el, 'c').hidden).toBe(false);
+    expect(changes).toEqual([]);
+  });
+
+  it('keeps every panel mounted, so nested form state survives a switch', () => {
+    const el = mount<HTMLElement & { value: string }>(`<e-tabs>
+        <e-tab key="a" label="A"><input id="fa" value="typed"></e-tab>
+        <e-tab key="b" label="B">Beta</e-tab>
+      </e-tabs>`);
+    const field = el.querySelector<HTMLInputElement>('#fa')!;
+    field.value = 'edited';
+
+    el.value = 'b';
+    el.value = 'a';
+
+    expect(el.querySelector('#fa')).toBe(field);
+    expect(field.value).toBe('edited');
+  });
+
+  it('moves the tabIndex and the inverted badge with a programmatic switch', () => {
+    const el = mount<HTMLElement & { value: string }>(`<e-tabs>
+        <e-tab key="a" label="A">Alpha</e-tab>
+        <e-tab key="b" label="B" count="3">Beta</e-tab>
+      </e-tabs>`);
+    const buttons = [...el.querySelectorAll<HTMLButtonElement>('.ink-tabs__tab')];
+    el.value = 'b';
+    expect(buttons[0]!.tabIndex).toBe(-1);
+    expect(buttons[1]!.tabIndex).toBe(0);
+    expect(buttons[1]!.querySelector('e-badge')!.hasAttribute('inverted')).toBe(true);
+  });
+
+  it('ignores a value naming no tab and keeps the current one', () => {
+    const el = mount<HTMLElement & { value: string }>(markup('value="b"'));
+    el.value = 'nope';
+    expect(el.value).toBe('b');
+    expect(panel(el, 'b').hidden).toBe(false);
+  });
+
+  it('falls back to the first tab for a value matching no tab at mount', () => {
+    const el = mount<HTMLElement & { value: string }>(markup('value="zzz"'));
+    expect(el.value).toBe('a');
+    expect(selected(el)).toEqual(['true', 'false', 'false']);
+  });
+
+  it('stores a value assigned before connection and applies it on mount', () => {
+    const host = document.createElement('e-tabs') as HTMLElement & { value: string };
+    host.innerHTML = '<e-tab key="a" label="A">Alpha</e-tab><e-tab key="b" label="B">Beta</e-tab>';
+    host.value = 'b';
+    expect(host.getAttribute('value')).toBe('b');
+
+    const wrap = document.createElement('div');
+    document.body.appendChild(wrap);
+    mounted.push(wrap);
+    wrap.appendChild(host);
+
+    expect(host.value).toBe('b');
+    expect(panel(host, 'b').hidden).toBe(false);
+  });
+});
+
+/* --------------------------------------------------------------------- *
+ * e-steps — aria-current and per-step status
+ * --------------------------------------------------------------------- */
+
+describe('e-steps aria-current and status (v1.3.0)', () => {
+  const items = (el: HTMLElement): HTMLElement[] => [
+    ...el.querySelectorAll<HTMLElement>('.ink-steps__item'),
+  ];
+  const bubblePath = (li: HTMLElement): string | null =>
+    li.querySelector('.ink-steps__bubble path')?.getAttribute('d') ?? null;
+
+  it('marks exactly the active step with aria-current="step"', () => {
+    const el = mount(`<e-steps current="1">
+        <e-step title="Plan"></e-step><e-step title="Build"></e-step><e-step title="Ship"></e-step>
+      </e-steps>`);
+    expect(items(el).map((li) => li.getAttribute('aria-current'))).toEqual([null, 'step', null]);
+  });
+
+  it('moves aria-current as current changes and drops it when out of range', () => {
+    const el = mount(`<e-steps>
+        <e-step title="Plan"></e-step><e-step title="Build"></e-step>
+      </e-steps>`);
+    const li = items(el);
+    expect(li.map((x) => x.getAttribute('aria-current'))).toEqual(['step', null]);
+
+    el.setAttribute('current', '1');
+    expect(li.map((x) => x.getAttribute('aria-current'))).toEqual([null, 'step']);
+
+    el.setAttribute('current', '99');
+    expect(li.map((x) => x.getAttribute('aria-current'))).toEqual([null, null]);
+  });
+
+  it('carries a per-step status onto the item and the bubble glyph', () => {
+    const el = mount(`<e-steps current="0">
+        <e-step title="Plan"></e-step>
+        <e-step title="Prüfung" status="error"></e-step>
+        <e-step title="Ship" status="warning"></e-step>
+      </e-steps>`);
+    const li = items(el);
+    expect(li.map((x) => x.dataset['status'])).toEqual([undefined, 'error', 'warning']);
+    expect(bubblePath(li[1]!)).toBe(ICONS.error);
+    expect(bubblePath(li[2]!)).toBe(ICONS.warning);
+    // Untouched step keeps its ordinal.
+    expect(li[0]!.querySelector('.ink-steps__bubble')!.textContent).toBe('1');
+  });
+
+  it('lets a status outrank the done check mark when current moves past it', () => {
+    const el = mount(`<e-steps>
+        <e-step title="Prüfung" status="error"></e-step><e-step title="Ship"></e-step>
+      </e-steps>`);
+    const li = items(el);
+    el.setAttribute('current', '1');
+    expect(li[0]!.dataset['done']).toBe('true');
+    expect(bubblePath(li[0]!)).toBe(ICONS.error);
+  });
+
+  it('replaces the vertical status label with the step status', () => {
+    const el = mount(`<e-steps orientation="vertical" current="1">
+        <e-step title="Plan"></e-step>
+        <e-step title="Prüfung" status="error"></e-step>
+        <e-step title="Ship" status="warning"></e-step>
+      </e-steps>`);
+    expect([...el.querySelectorAll('.ink-steps__status')].map((s) => s.textContent)).toEqual([
+      'DONE',
+      'ERROR',
+      'WARNING',
+    ]);
+  });
+
+  it('keeps the status label after a current change repatches the list', () => {
+    const el = mount(`<e-steps orientation="vertical">
+        <e-step title="Plan"></e-step><e-step title="Prüfung" status="error"></e-step>
+      </e-steps>`);
+    el.setAttribute('current', '1');
+    expect([...el.querySelectorAll('.ink-steps__status')].map((s) => s.textContent)).toEqual([
+      'DONE',
+      'ERROR',
+    ]);
+  });
+
+  it.each([['done'], ['nonsense'], ['']])('ignores the unknown status %j', (raw) => {
+    const el = mount(`<e-steps><e-step title="Plan" status="${raw}"></e-step></e-steps>`);
+    const li = items(el)[0]!;
+    expect(li.dataset['status']).toBeUndefined();
+    expect(li.querySelector('.ink-steps__bubble')!.textContent).toBe('1');
+  });
+
+  it('survives an orientation rebuild without losing the status', () => {
+    const el = mount(`<e-steps>
+        <e-step title="Prüfung" status="error"></e-step><e-step title="Ship"></e-step>
+      </e-steps>`);
+    el.setAttribute('orientation', 'vertical');
+    expect(items(el)[0]!.dataset['status']).toBe('error');
+    expect(bubblePath(items(el)[0]!)).toBe(ICONS.error);
+  });
+});
+
+/* --------------------------------------------------------------------- *
+ * e-title — deterministic ids and anchors
+ * --------------------------------------------------------------------- */
+
+describe('e-title auto id and anchor (v1.3.0)', () => {
+  const h = (el: HTMLElement): HTMLElement => el.firstElementChild as HTMLElement;
+
+  it('slugs the heading text into an id by default', () => {
+    const el = mount('<e-title level="2">Jahresbilanz 2026</e-title>');
+    expect(h(el).id).toBe('jahresbilanz-2026');
+    expect(h(el).textContent).toBe('Jahresbilanz 2026');
+  });
+
+  it.each([
+    ['Grüße aus Köln', 'gruesse-aus-koeln'],
+    ['Maßnahmen', 'massnahmen'],
+    ['Café & Bar', 'cafe-bar'],
+    ['  Trim  me  ', 'trim-me'],
+    ['A—B', 'a-b'],
+    ['2026 Bilanz', 'h-2026-bilanz'],
+  ])('slugs %j to %j', (text, slug) => {
+    const el = mount(`<e-title>${text}</e-title>`);
+    expect(h(el).id).toBe(slug);
+    // The slug is always a usable CSS id selector.
+    expect(document.querySelector(`#${slug}`)).toBe(h(el));
+  });
+
+  it('leaves the heading id-less when the text slugs to nothing', () => {
+    for (const text of ['', '   ', '—— ——']) {
+      const el = mount(`<e-title>${text}</e-title>`);
+      expect(h(el).hasAttribute('id')).toBe(false);
+    }
+  });
+
+  it('suffixes duplicate slugs in document order', () => {
+    const wrap = document.createElement('div');
+    wrap.innerHTML =
+      '<e-title>Anlagen</e-title><e-title>Anlagen</e-title><e-title>Anlagen</e-title>';
+    document.body.appendChild(wrap);
+    mounted.push(wrap);
+    expect([...wrap.querySelectorAll('h1')].map((x) => x.id)).toEqual([
+      'anlagen',
+      'anlagen-2',
+      'anlagen-3',
+    ]);
+  });
+
+  it('never generates an id when the author put one on the host', () => {
+    const el = mount('<e-title id="mein-anker">Jahresbilanz</e-title>');
+    expect(h(el).hasAttribute('id')).toBe(false);
+    expect(el.id).toBe('mein-anker');
+  });
+
+  it('opts out with auto-id="false" and retracts an id it had generated', () => {
+    expect(h(mount('<e-title auto-id="false">Bilanz</e-title>')).hasAttribute('id')).toBe(false);
+
+    const el = mount('<e-title>Bilanz</e-title>');
+    expect(h(el).id).toBe('bilanz');
+    el.setAttribute('auto-id', 'false');
+    expect(h(el).hasAttribute('id')).toBe(false);
+    el.setAttribute('auto-id', 'true');
+    expect(h(el).id).toBe('bilanz');
+  });
+
+  it('carries the id across a level swap', () => {
+    const el = mount('<e-title level="2">Jahresbilanz</e-title>');
+    expect(h(el).id).toBe('jahresbilanz');
+    el.setAttribute('level', '4');
+    expect(h(el).tagName).toBe('H4');
+    expect(h(el).id).toBe('jahresbilanz');
+    expect(el.children).toHaveLength(1);
+  });
+
+  it('renders no anchor unless asked', () => {
+    const el = mount('<e-title>Bilanz</e-title>');
+    expect(el.querySelector('.ink-title__anchor')).toBeNull();
+    expect(h(el).textContent).toBe('Bilanz');
+  });
+
+  it('appends a self-link inside the heading for anchor', () => {
+    const el = mount('<e-title level="2" anchor>Jahresbilanz</e-title>');
+    const a = el.querySelector<HTMLAnchorElement>('.ink-title__anchor')!;
+    expect(a.parentElement).toBe(h(el));
+    expect(a).toBe(h(el).lastElementChild);
+    expect(a.getAttribute('href')).toBe('#jahresbilanz');
+    expect(a.getAttribute('aria-label')).toBe('Link to this section');
+    // still one child of the host: the heading
+    expect(el.children).toHaveLength(1);
+  });
+
+  it('points the anchor at an author-set host id', () => {
+    const el = mount('<e-title id="mein-anker" anchor>Bilanz</e-title>');
+    expect(el.querySelector('.ink-title__anchor')!.getAttribute('href')).toBe('#mein-anker');
+  });
+
+  it('honours anchor-label and toggles the anchor after mount', () => {
+    const el = mount('<e-title>Bilanz</e-title>');
+    el.setAttribute('anchor', '');
+    const a = el.querySelector<HTMLAnchorElement>('.ink-title__anchor')!;
+    el.setAttribute('anchor-label', 'Sprungmarke');
+    expect(el.querySelector('.ink-title__anchor')).toBe(a);
+    expect(a.getAttribute('aria-label')).toBe('Sprungmarke');
+
+    el.removeAttribute('anchor');
+    expect(el.querySelector('.ink-title__anchor')).toBeNull();
+  });
+
+  it('excludes the anchor glyph from the slug it feeds back into', () => {
+    const el = mount('<e-title anchor>Bilanz</e-title>');
+    expect(h(el).id).toBe('bilanz');
+    el.setAttribute('level', '3');
+    expect(h(el).id).toBe('bilanz');
+    expect(el.querySelectorAll('.ink-title__anchor')).toHaveLength(1);
+  });
+
+  it('carries the anchor across a level swap and re-points it', () => {
+    const el = mount('<e-title level="2" anchor>Bilanz</e-title>');
+    el.setAttribute('level', '5');
+    const a = el.querySelector<HTMLAnchorElement>('.ink-title__anchor')!;
+    expect(h(el).tagName).toBe('H5');
+    expect(a.parentElement).toBe(h(el));
+    expect(a.getAttribute('href')).toBe('#bilanz');
+  });
+
+  it('drops the anchor when there is nothing to point at', () => {
+    const el = mount('<e-title auto-id="false" anchor>Bilanz</e-title>');
+    expect(el.querySelector('.ink-title__anchor')).toBeNull();
+  });
+});
+
+/* --------------------------------------------------------------------- *
+ * e-text — caption / strike kinds and alignment
+ * --------------------------------------------------------------------- */
+
+describe('e-text caption, strike and align (v1.3.0)', () => {
+  const wrap = (el: HTMLElement): HTMLElement => el.firstElementChild as HTMLElement;
+
+  it.each([['caption'], ['strike']])('applies the %s kind modifier', (kind) => {
+    const el = mount(`<e-text kind="${kind}">X</e-text>`);
+    expect(wrap(el).className).toBe(`ink-text ink-text--${kind}`);
+  });
+
+  it('swaps between the new kinds and back to body', () => {
+    const el = mount('<e-text kind="caption">X</e-text>');
+    const w = wrap(el);
+    el.setAttribute('kind', 'strike');
+    expect(w.className).toBe('ink-text ink-text--strike');
+    el.setAttribute('kind', 'body');
+    expect(w.className).toBe('ink-text');
+  });
+
+  it.each([['start'], ['center'], ['end'], ['justify']])(
+    'carries align=%s as data-align without touching the class list',
+    (align) => {
+      const el = mount(`<e-text kind="caption" align="${align}">X</e-text>`);
+      expect(wrap(el).dataset['align']).toBe(align);
+      expect(wrap(el).className).toBe('ink-text ink-text--caption');
+    },
+  );
+
+  it.each([['left'], ['middle'], [''], ['CENTER']])('ignores the unknown align %j', (align) => {
+    const el = mount(`<e-text align="${align}">X</e-text>`);
+    expect(wrap(el).hasAttribute('data-align')).toBe(false);
+  });
+
+  it('adds and removes data-align after mount', () => {
+    const el = mount('<e-text>X</e-text>');
+    expect(wrap(el).hasAttribute('data-align')).toBe(false);
+    el.setAttribute('align', 'center');
+    expect(wrap(el).dataset['align']).toBe('center');
+    el.setAttribute('align', 'end');
+    expect(wrap(el).dataset['align']).toBe('end');
+    el.removeAttribute('align');
+    expect(wrap(el).hasAttribute('data-align')).toBe(false);
+  });
+
+  it('survives a kind change without losing the alignment', () => {
+    const el = mount('<e-text align="center" kind="caption">X</e-text>');
+    el.setAttribute('kind', 'strike');
+    expect(wrap(el).dataset['align']).toBe('center');
+    expect(wrap(el).className).toBe('ink-text ink-text--strike');
+  });
+
+  it('re-applies the alignment onto a wrapper rebuilt by an as change', () => {
+    const el = mount('<e-text as="span" align="justify" kind="caption">X</e-text>');
+    el.setAttribute('as', 'p');
+    const w = wrap(el);
+    expect(w.tagName).toBe('P');
+    expect(w.className).toBe('ink-text ink-text--caption');
+    expect(w.dataset['align']).toBe('justify');
+  });
+});
+
+/* --------------------------------------------------------------------- *
+ * e-link — target, rel and external
+ * --------------------------------------------------------------------- */
+
+describe('e-link target, rel and external (v1.3.0)', () => {
+  const a = (el: HTMLElement): HTMLAnchorElement => el.querySelector('a')!;
+
+  it('adds no target, rel or marker by default', () => {
+    const el = mount('<e-link href="/a">x</e-link>');
+    expect(a(el).hasAttribute('target')).toBe(false);
+    expect(a(el).hasAttribute('rel')).toBe(false);
+    expect(a(el).hasAttribute('data-external')).toBe(false);
+  });
+
+  it('forwards target and auto-applies a safe rel for _blank', () => {
+    const el = mount('<e-link href="https://bund.de" target="_blank">x</e-link>');
+    expect(a(el).getAttribute('target')).toBe('_blank');
+    expect(a(el).getAttribute('rel')).toBe('noopener noreferrer');
+  });
+
+  it('does not invent a rel for a non-_blank target', () => {
+    const el = mount('<e-link href="/a" target="_self">x</e-link>');
+    expect(a(el).getAttribute('target')).toBe('_self');
+    expect(a(el).hasAttribute('rel')).toBe(false);
+  });
+
+  it('never overwrites an authored rel', () => {
+    const el = mount('<e-link href="/a" target="_blank" rel="author">x</e-link>');
+    expect(a(el).getAttribute('rel')).toBe('author');
+  });
+
+  it.each([[''], ['   ']])('treats the blank rel %j as unset and still protects _blank', (rel) => {
+    const el = mount(`<e-link href="/a" target="_blank" rel="${rel}">x</e-link>`);
+    expect(a(el).getAttribute('rel')).toBe('noopener noreferrer');
+  });
+
+  it('adds and retracts the safe rel as target changes after mount', () => {
+    const el = mount('<e-link href="/a">x</e-link>');
+    const anchor = a(el);
+
+    el.setAttribute('target', '_blank');
+    expect(anchor.getAttribute('rel')).toBe('noopener noreferrer');
+
+    el.setAttribute('rel', 'nofollow');
+    expect(anchor.getAttribute('rel')).toBe('nofollow');
+
+    el.removeAttribute('rel');
+    expect(anchor.getAttribute('rel')).toBe('noopener noreferrer');
+
+    el.removeAttribute('target');
+    expect(anchor.hasAttribute('target')).toBe(false);
+    expect(anchor.hasAttribute('rel')).toBe(false);
+    // patched in place throughout
+    expect(el.querySelector('a')).toBe(anchor);
+  });
+
+  it('marks external links with data-external and honours boolAttr semantics', () => {
+    const el = mount('<e-link href="/a" external>x</e-link>');
+    expect(a(el).hasAttribute('data-external')).toBe(true);
+    el.setAttribute('external', 'false');
+    expect(a(el).hasAttribute('data-external')).toBe(false);
+    el.setAttribute('external', '');
+    expect(a(el).hasAttribute('data-external')).toBe(true);
+    el.removeAttribute('external');
+    expect(a(el).hasAttribute('data-external')).toBe(false);
+  });
+
+  it('treats target="" as no target at all', () => {
+    const el = mount('<e-link href="/a" target="">x</e-link>');
+    expect(a(el).hasAttribute('target')).toBe(false);
+  });
+});
+
+/* --------------------------------------------------------------------- *
+ * e-list — ordered mode
+ * --------------------------------------------------------------------- */
+
+describe('e-list ordered mode (v1.3.0)', () => {
+  const body = (el: HTMLElement): HTMLElement => el.querySelector<HTMLElement>('.ink-list__body')!;
+  const root = (el: HTMLElement): HTMLElement => el.querySelector<HTMLElement>('.ink-list')!;
+
+  it('keeps a plain div body and no data-ordered by default', () => {
+    const el = mount('<e-list><e-list-item title="A"></e-list-item></e-list>');
+    expect(body(el).tagName).toBe('DIV');
+    expect(root(el).hasAttribute('data-ordered')).toBe(false);
+  });
+
+  it('renders the row container as an <ol> for ordered', () => {
+    const el = mount(`<e-list ordered header-title="Tagesordnung">
+        <e-list-item title="Eröffnung"></e-list-item>
+        <e-list-item title="Haushaltssatzung"></e-list-item>
+      </e-list>`);
+    expect(body(el).tagName).toBe('OL');
+    expect(body(el).className).toBe('ink-list__body');
+    expect(root(el).hasAttribute('data-ordered')).toBe(true);
+    expect(body(el).children).toHaveLength(2);
+    expect(el.querySelector('.ink-list__header-title')!.textContent).toBe('Tagesordnung');
+  });
+
+  it('swaps the container on toggle and moves the rows across untouched', () => {
+    const el = mount(
+      '<e-list><e-list-item id="r1" title="A"></e-list-item><e-list-item id="r2" title="B"></e-list-item></e-list>',
+    );
+    const rows = [...body(el).children];
+
+    el.setAttribute('ordered', '');
+    expect(body(el).tagName).toBe('OL');
+    expect([...body(el).children]).toEqual(rows);
+    expect(root(el).hasAttribute('data-ordered')).toBe(true);
+
+    el.removeAttribute('ordered');
+    expect(body(el).tagName).toBe('DIV');
+    expect([...body(el).children]).toEqual(rows);
+    expect(root(el).hasAttribute('data-ordered')).toBe(false);
+  });
+
+  it('follows boolAttr semantics for ordered="false"', () => {
+    const el = mount('<e-list ordered="false"><e-list-item title="A"></e-list-item></e-list>');
+    expect(body(el).tagName).toBe('DIV');
+    el.setAttribute('ordered', 'yes');
+    expect(body(el).tagName).toBe('OL');
+  });
+
+  it('does not churn the container when ordered is re-set to the same value', () => {
+    const el = mount('<e-list ordered><e-list-item title="A"></e-list-item></e-list>');
+    const ol = body(el);
+    el.setAttribute('ordered', 'ordered');
+    expect(body(el)).toBe(ol);
+  });
+
+  it('keeps header and footer around the swapped container', () => {
+    const el = mount(`<e-list header-title="H">
+        <e-list-item title="A"></e-list-item>
+        <div slot="footer" id="ft">F</div>
+      </e-list>`);
+    el.setAttribute('ordered', '');
+    const children = [...root(el).children].map((c) => c.className);
+    expect(children).toEqual(['ink-list__header', 'ink-list__body', 'ink-list__footer']);
+    expect(el.querySelector('.ink-list__footer #ft')).not.toBeNull();
+  });
+
+  it('still patches header-title after the container swap', () => {
+    const el = mount('<e-list ordered><e-list-item title="A"></e-list-item></e-list>');
+    el.setAttribute('header-title', 'Tagesordnung');
+    expect(el.querySelector('.ink-list__header-title')!.textContent).toBe('Tagesordnung');
+    expect(el.querySelector('.ink-list__header')!.nextElementSibling).toBe(body(el));
+  });
+
+  it('leaves split and bordered working in ordered mode', () => {
+    const el = mount('<e-list ordered bordered><e-list-item title="A"></e-list-item></e-list>');
+    expect(root(el).hasAttribute('data-bordered')).toBe(true);
+    expect(root(el).hasAttribute('data-split')).toBe(true);
+  });
+});
+
+/* --------------------------------------------------------------------- *
+ * e-sparkline — configurable threshold guide
+ * --------------------------------------------------------------------- */
+
+describe('e-sparkline threshold (v1.3.0)', () => {
+  const guide = (el: HTMLElement): SVGLineElement =>
+    el.querySelector<SVGLineElement>('.ink-sparkline__guide')!;
+  const figure = (el: HTMLElement): HTMLElement => el.querySelector<HTMLElement>('.ink-sparkline')!;
+
+  it('keeps the historic mid-line guide when no threshold is set', () => {
+    const el = mount('<e-sparkline values="[0,10]"></e-sparkline>');
+    expect(guide(el).getAttribute('y1')).toBe('18');
+    expect(guide(el).getAttribute('y2')).toBe('18');
+    expect(figure(el).hasAttribute('data-threshold')).toBe(false);
+    expect(el.getAttribute('aria-label')).toBe('10; rising');
+  });
+
+  it('places the guide on the threshold using the same scale as the line', () => {
+    // min 0 / max 10 → value 10 maps to y=2, value 0 to y=34, midpoint 5 to y=18.
+    const el = mount('<e-sparkline values="[0,10]" min="0" max="10" threshold="10"></e-sparkline>');
+    expect(guide(el).getAttribute('y1')).toBe('2.00');
+    el.setAttribute('threshold', '0');
+    expect(guide(el).getAttribute('y1')).toBe('34.00');
+    el.setAttribute('threshold', '5');
+    expect(guide(el).getAttribute('y1')).toBe('18.00');
+    expect(guide(el).getAttribute('y2')).toBe('18.00');
+  });
+
+  it('clamps a threshold outside the plotted range onto the plot edges', () => {
+    const el = mount('<e-sparkline values="[0,10]" min="0" max="10" threshold="99"></e-sparkline>');
+    expect(guide(el).getAttribute('y1')).toBe('2.00');
+    el.setAttribute('threshold', '-99');
+    expect(guide(el).getAttribute('y1')).toBe('34.00');
+  });
+
+  it.each([
+    ['4', 'above'],
+    ['10', 'at'],
+    ['12', 'below'],
+  ])('reports the latest value 10 against threshold %s as %s', (threshold, state) => {
+    const el = mount(`<e-sparkline values="[1,10]" threshold="${threshold}"></e-sparkline>`);
+    expect(figure(el).getAttribute('data-threshold')).toBe(state);
+    expect(el.getAttribute('aria-label')).toBe(`10; rising; ${state} threshold ${threshold}`);
+  });
+
+  it('names the label and the threshold together in the accessible summary', () => {
+    const el = mount(
+      '<e-sparkline label="Kesseldruck" values="[4,6]" threshold="5"></e-sparkline>',
+    );
+    expect(el.getAttribute('aria-label')).toBe('Kesseldruck: 6; rising; above threshold 5');
+  });
+
+  it('leaves the empty state untouched by a threshold', () => {
+    const el = mount('<e-sparkline label="Load" values="[]" threshold="5"></e-sparkline>');
+    expect(el.getAttribute('aria-label')).toBe('Load: No data');
+    expect(figure(el).hasAttribute('data-threshold')).toBe(false);
+  });
+
+  it.each([['abc'], ['']])('ignores the unusable threshold %j', (raw) => {
+    const el = mount(`<e-sparkline values="[0,10]" threshold="${raw}"></e-sparkline>`);
+    expect(guide(el).getAttribute('y1')).toBe('18');
+    expect(figure(el).hasAttribute('data-threshold')).toBe(false);
+  });
+
+  it('retracts the guide and the state when the threshold is removed', () => {
+    const el = mount('<e-sparkline values="[0,10]" min="0" max="10" threshold="10"></e-sparkline>');
+    expect(figure(el).getAttribute('data-threshold')).toBe('at');
+    el.removeAttribute('threshold');
+    expect(guide(el).getAttribute('y1')).toBe('18');
+    expect(figure(el).hasAttribute('data-threshold')).toBe(false);
+  });
+
+  it('patches the guide in place rather than replacing it', () => {
+    const el = mount('<e-sparkline values="[0,10]" threshold="5"></e-sparkline>');
+    const g = guide(el);
+    el.setAttribute('threshold', '7');
+    expect(guide(el)).toBe(g);
+  });
+});
+
+/* --------------------------------------------------------------------- *
+ * e-qrcode — theme colors, label and width
+ * --------------------------------------------------------------------- */
+
+describe('e-qrcode theming, label and width (v1.3.0)', () => {
+  const svg = (el: HTMLElement): SVGSVGElement =>
+    el.querySelector<SVGSVGElement>('.ink-qrcode > svg')!;
+
+  it('paints the modules and the quiet zone from the theme, not from #000/#fff', () => {
+    const el = mount('<e-qrcode value="hello"></e-qrcode>');
+    expect(svg(el).querySelector('path')!.getAttribute('fill')).toBe('currentColor');
+    expect(svg(el).querySelector('rect')!.getAttribute('fill')).toBe('var(--ink-bg, #fff)');
+  });
+
+  it('defaults the accessible name to the encoded value', () => {
+    const el = mount('<e-qrcode value="hello"></e-qrcode>');
+    expect(svg(el).getAttribute('aria-label')).toBe('QR code for hello');
+  });
+
+  it('lets label replace the raw value in the accessible name', () => {
+    const el = mount(
+      '<e-qrcode value="https://amt.example.de/az/2026-0815" label="Vorgang 2026-0815"></e-qrcode>',
+    );
+    expect(svg(el).getAttribute('aria-label')).toBe('Vorgang 2026-0815');
+    expect(svg(el).getAttribute('role')).toBe('img');
+  });
+
+  it('patches the label without re-encoding the code', () => {
+    const el = mount('<e-qrcode value="hello" label="A"></e-qrcode>');
+    const path = svg(el).querySelector('path')!;
+    el.setAttribute('label', 'B');
+    // The geometry is untouched — only the accessible name moved.
+    expect(svg(el).querySelector('path')).toBe(path);
+    expect(svg(el).getAttribute('aria-label')).toBe('B');
+    el.removeAttribute('label');
+    expect(svg(el).getAttribute('aria-label')).toBe('QR code for hello');
+  });
+
+  it('treats an empty label as absent', () => {
+    const el = mount('<e-qrcode value="hello" label=""></e-qrcode>');
+    expect(svg(el).getAttribute('aria-label')).toBe('QR code for hello');
+  });
+
+  it('fits the code into width with a whole-pixel module size', () => {
+    // "hello" at level M is version 1: 21 modules + 2×2 quiet zone = 25.
+    const el = mount('<e-qrcode value="hello" width="180"></e-qrcode>');
+    // floor(180 / 25) = 7 → 175px, never wider than the target.
+    expect(svg(el).getAttribute('width')).toBe('175');
+    expect(svg(el).getAttribute('viewBox')).toBe('0 0 175 175');
+  });
+
+  it('lets width override scale and hands control back when it is removed', () => {
+    const el = mount('<e-qrcode value="hello" scale="4" width="180"></e-qrcode>');
+    expect(svg(el).getAttribute('width')).toBe('175');
+    el.removeAttribute('width');
+    expect(svg(el).getAttribute('width')).toBe('100');
+  });
+
+  it.each([['0'], ['-40'], ['abc'], ['']])(
+    'falls back to scale for the unusable width %j',
+    (raw) => {
+      const el = mount(`<e-qrcode value="hello" scale="4" width="${raw}"></e-qrcode>`);
+      expect(svg(el).getAttribute('width')).toBe('100');
+    },
+  );
+
+  it('never drops below a one-pixel module for an impossibly small width', () => {
+    const el = mount('<e-qrcode value="hello" width="4"></e-qrcode>');
+    expect(svg(el).getAttribute('width')).toBe('25');
+  });
+
+  it('accounts for the quiet zone when fitting to width', () => {
+    // border=0 → 21 modules; floor(180/21) = 8 → 168px.
+    const el = mount('<e-qrcode value="hello" width="180" border="0"></e-qrcode>');
+    expect(svg(el).getAttribute('width')).toBe('168');
+  });
+});
+
+/* --------------------------------------------------------------------- *
+ * e-watermark — theme ink and multi-line content
+ * --------------------------------------------------------------------- */
+
+describe('e-watermark ink color and multi-line content (v1.3.0)', () => {
+  const layer = (el: HTMLElement): HTMLElement => el.querySelector('.ink-watermark__layer')!;
+  const svgOf = (el: HTMLElement): string => {
+    const raw = layer(el).style.backgroundImage;
+    const match = /^url\("?data:image\/svg\+xml;utf8,(.*?)"?\)$/.exec(raw);
+    return match ? decodeURIComponent(match[1]!) : '';
+  };
+  const lines = (el: HTMLElement): string[] =>
+    [...svgOf(el).matchAll(/<tspan[^>]*>([^<]*)<\/tspan>/g)].map((m) => m[1]!);
+
+  it('resolves the ink color instead of hard-coding #000', () => {
+    const el = mount('<e-watermark content="DRAFT"></e-watermark>');
+    const svg = svgOf(el);
+    expect(svg).not.toContain('fill="#000"');
+    expect(/ fill="[^"]+"/.test(svg)).toBe(true);
+    // fill-opacity still travels separately.
+    expect(svg).toContain('fill-opacity="0.18"');
+  });
+
+  it('honours an explicit color attribute and drops back to the theme without it', () => {
+    const el = mount('<e-watermark content="DRAFT" color="#336699"></e-watermark>');
+    expect(svgOf(el)).toContain('fill="#336699"');
+    el.removeAttribute('color');
+    expect(svgOf(el)).not.toContain('fill="#336699"');
+  });
+
+  it.each([[''], ['   ']])('ignores the blank color %j', (raw) => {
+    const el = mount(`<e-watermark content="DRAFT" color="${raw}"></e-watermark>`);
+    expect(/ fill="[^"]+"/.test(svgOf(el))).toBe(true);
+  });
+
+  it('renders a single line exactly as before', () => {
+    const el = mount('<e-watermark content="DRAFT"></e-watermark>');
+    expect(lines(el)).toEqual(['DRAFT']);
+    expect(svgOf(el)).toContain('>DRAFT<');
+  });
+
+  it.each([
+    ['a literal \\n escape', 'ENTWURF\\nNICHT ZUR VERÖFFENTLICHUNG'],
+    ['a real newline', 'ENTWURF\nNICHT ZUR VERÖFFENTLICHUNG'],
+  ])('splits %s into stacked tspans', (_label, content) => {
+    const el = mount('<e-watermark></e-watermark>');
+    el.setAttribute('content', content);
+    expect(lines(el)).toEqual(['ENTWURF', 'NICHT ZUR VERÖFFENTLICHUNG']);
+  });
+
+  it('centres the line block on the tile', () => {
+    const el = mount('<e-watermark font-size="20"></e-watermark>');
+    el.setAttribute('content', 'A\\nB\\nC');
+    const dys = [...svgOf(el).matchAll(/dy="(-?[\d.]+)"/g)].map((m) => Number(m[1]));
+    // three lines, 25px apart → first lifted by one full step, then +25 each.
+    expect(dys).toEqual([-25, 25, 25]);
+  });
+
+  it('leaves a single line unshifted', () => {
+    const el = mount('<e-watermark content="DRAFT" font-size="20"></e-watermark>');
+    expect(svgOf(el)).toContain('dy="0.00"');
+  });
+
+  it('trims each line and drops blank ones', () => {
+    const el = mount('<e-watermark></e-watermark>');
+    el.setAttribute('content', '  ENTWURF  \\n\\n  KOPIE \\n   ');
+    expect(lines(el)).toEqual(['ENTWURF', 'KOPIE']);
+  });
+
+  it('clears the layer for content that is nothing but separators', () => {
+    const el = mount('<e-watermark content="DRAFT"></e-watermark>');
+    el.setAttribute('content', '\\n  \\n');
+    expect(layer(el).style.backgroundImage).toBe('');
+    expect(layer(el).style.backgroundSize).toBe('');
+  });
+
+  it('escapes every line rather than emitting markup', () => {
+    const el = mount('<e-watermark></e-watermark>');
+    el.setAttribute('content', '<script>a</script>\\n<b>c</b>');
+    const svg = svgOf(el);
+    expect(svg).toContain('&lt;script&gt;a&lt;/script&gt;');
+    expect(svg).toContain('&lt;b&gt;c&lt;/b&gt;');
+    expect(el.querySelector('script')).toBeNull();
+    expect(layer(el).style.backgroundImage).not.toContain('%3Cscript%3E');
+  });
+});
+
+/* --------------------------------------------------------------------- *
+ * e-alert — severity glyphs
+ * --------------------------------------------------------------------- */
+
+describe('e-alert severity glyphs (v1.3.0)', () => {
+  const iconPath = (el: HTMLElement): string | null =>
+    el.querySelector('.ink-alert__icon path')?.getAttribute('d') ?? null;
+
+  it.each([
+    ['info', 'info'],
+    ['success', 'check'],
+    ['warning', 'warning'],
+    ['error', 'error'],
+  ])('renders variant %s with the %s glyph', (variant, icon) => {
+    const el = mount(`<e-alert variant="${variant}">x</e-alert>`);
+    expect(iconPath(el)).toBe(ICONS[icon as keyof typeof ICONS]);
+  });
+
+  it('no longer borrows bell for warning or close for error', () => {
+    expect(iconPath(mount('<e-alert variant="warning">x</e-alert>'))).not.toBe(ICONS.bell);
+    expect(iconPath(mount('<e-alert variant="error">x</e-alert>'))).not.toBe(ICONS.close);
+    expect(iconPath(mount('<e-alert variant="info">x</e-alert>'))).not.toBe(ICONS.doc);
+  });
+
+  it('falls back to the info glyph for an unknown variant', () => {
+    expect(iconPath(mount('<e-alert variant="nonsense">x</e-alert>'))).toBe(ICONS.info);
+    expect(iconPath(mount('<e-alert>x</e-alert>'))).toBe(ICONS.info);
+  });
+
+  it('swaps the glyph when the variant changes after mount', () => {
+    const el = mount('<e-alert>x</e-alert>');
+    el.setAttribute('variant', 'error');
+    expect(iconPath(el)).toBe(ICONS.error);
+    el.setAttribute('variant', 'warning');
+    expect(iconPath(el)).toBe(ICONS.warning);
+    el.removeAttribute('variant');
+    expect(iconPath(el)).toBe(ICONS.info);
+  });
+
+  it('keeps the dismiss button on the close glyph, which does mean close', () => {
+    const el = mount('<e-alert variant="error" closable>x</e-alert>');
+    expect(el.querySelector('.ink-alert__close path')!.getAttribute('d')).toBe(ICONS.close);
   });
 });

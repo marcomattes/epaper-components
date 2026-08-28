@@ -15,6 +15,10 @@ import { isTreeData } from '../../core/data';
  * @attr {string} [options='[]'] - Legacy alias for `data`. When both are set, `data` wins.
  * @attr {string} [value] - Comma-separated value path (e.g. `a,b,c`).
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
+ * @attr {boolean} [disabled] - Disables interaction: the trigger leaves the tab flow, the column
+ *   menu cannot open (and closes if it is open) and no item can be picked. Presence alone
+ *   disables, per the HTML spec for form-associated elements — `disabled="false"` still disables.
+ *   Also applied by a surrounding `<fieldset disabled>`.
  * @attr {boolean} [required] - Requires a completed selection path.
  * @attr {string} [required-message] - Message reported when no required path is selected.
  *
@@ -30,6 +34,7 @@ export class ECascader extends BaseFormControl {
     'data',
     'options',
     'placeholder',
+    'disabled',
     'required',
     'required-message',
   ];
@@ -54,14 +59,45 @@ export class ECascader extends BaseFormControl {
       this._syncValidity();
     }
     this._bindEvents();
+    this._applyDisabled();
   }
 
   disconnectedCallback() {
     runCleanups(this);
   }
 
+  /**
+   * Effective disabled state. Presence alone disables — the HTML spec, not the
+   * library's `x="false"` convention, governs `disabled` on a form-associated
+   * element, and that is what the browser reports through `formDisabledCallback`.
+   */
+  private get _disabled(): boolean {
+    return this.hasAttribute('disabled') || this._formDisabled;
+  }
+
+  /** Forward the effective disabled state to the trigger and close the menu. */
+  private _applyDisabled(): void {
+    if (!this._built) return;
+    const disabled = this._disabled;
+    this._trigger.disabled = disabled;
+    patchAttr(this._trigger, 'aria-disabled', disabled ? 'true' : null);
+    // Columns left open would still take clicks behind a dead trigger.
+    if (disabled && !this._menu.hidden) {
+      this._menu.hidden = true;
+      this._trigger.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  protected override formDisabledChanged(): void {
+    this._applyDisabled();
+  }
+
   attributeChangedCallback(name: string, old: string | null, val: string | null) {
     if (!this._built || old === val) return;
+    if (name === 'disabled') {
+      this._applyDisabled();
+      return;
+    }
     if (name === 'options' || name === 'data') {
       this._parseOptions();
       this._colKeys = [];
@@ -187,6 +223,7 @@ export class ECascader extends BaseFormControl {
   }
 
   private readonly _onTriggerClick = (): void => {
+    if (this._disabled) return;
     const open = this._menu.hidden;
     this._menu.hidden = !open;
     this._trigger.setAttribute('aria-expanded', String(open));
@@ -194,6 +231,7 @@ export class ECascader extends BaseFormControl {
   };
 
   private readonly _onTriggerKeydown = (e: KeyboardEvent): void => {
+    if (this._disabled) return;
     if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       if (this._menu.hidden) {
@@ -214,6 +252,7 @@ export class ECascader extends BaseFormControl {
   }
 
   private readonly _onMenuKeydown = (e: KeyboardEvent): void => {
+    if (this._disabled) return;
     const item = (e.target as Element).closest<HTMLElement>('.ink-cascader__item');
     if (!item) return;
     const level = Number(item.dataset['level']);
@@ -255,6 +294,7 @@ export class ECascader extends BaseFormControl {
   };
 
   private readonly _onMenuClick = (e: Event): void => {
+    if (this._disabled) return;
     const item = (e.target as Element).closest<HTMLElement>('.ink-cascader__item');
     if (!item) return;
     const level = Number(item.dataset['level']);

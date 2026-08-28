@@ -2124,8 +2124,9 @@ describe('e-qrcode', () => {
     expect(svg.getAttribute('width')).toBe('100');
     expect(svg.getAttribute('height')).toBe('100');
     expect(svg.getAttribute('shape-rendering')).toBe('crispEdges');
-    expect(svg.querySelector('rect')!.getAttribute('fill')).toBe('#fff');
-    expect(svg.querySelector('path')!.getAttribute('fill')).toBe('#000');
+    // Theme-aware since v1.3.0: hard-coded #fff/#000 ignored both theme packs.
+    expect(svg.querySelector('rect')!.getAttribute('fill')).toBe('var(--ink-bg, #fff)');
+    expect(svg.querySelector('path')!.getAttribute('fill')).toBe('currentColor');
     expect(svg.querySelector('path')!.getAttribute('d')!.length).toBeGreaterThan(0);
   });
 
@@ -2275,62 +2276,6 @@ describe('e-qrcode', () => {
 });
 
 /* ========================================================================= *
- * e-calendar · month announcements
- * ========================================================================= */
-
-describe('e-calendar month change', () => {
-  const step = (el: HTMLElement, direction: number): void =>
-    el.querySelector<HTMLButtonElement>(`[data-step="${direction}"]`)!.click();
-
-  it('announces the displayed month when a stepper is used', () => {
-    const el = mount(`<e-calendar value="2026-04-15"></e-calendar>`);
-    const seen = collect<{ value: string; year: number; month: number }>(el, 'e-month-change');
-    step(el, 1);
-    expect(seen).toEqual([{ value: '2026-05', year: 2026, month: 5 }]);
-    expect(el.querySelector('.ink-calendar__title')!.textContent).toBe('May');
-    step(el, -1);
-    step(el, -1);
-    expect(seen.map((d) => d.value)).toEqual(['2026-05', '2026-04', '2026-03']);
-  });
-
-  it('announces a year rollover in both directions', () => {
-    const el = mount(`<e-calendar value="2026-12-15"></e-calendar>`);
-    const seen = collect<{ value: string; year: number; month: number }>(el, 'e-month-change');
-    step(el, 1);
-    expect(seen[0]).toEqual({ value: '2027-01', year: 2027, month: 1 });
-    step(el, -1);
-    expect(seen[1]).toEqual({ value: '2026-12', year: 2026, month: 12 });
-  });
-
-  it('announces a month crossed by keyboard navigation, and only then', () => {
-    const el = mount(`<e-calendar value="2026-04-01"></e-calendar>`);
-    const cell = el.querySelector<HTMLButtonElement>('[data-day="1"]')!;
-    cell.focus();
-    const seen = collect<{ value: string }>(el, 'e-month-change');
-    key(cell, 'ArrowRight');
-    // Still inside April — nothing to load.
-    expect(seen).toHaveLength(0);
-    key(el.querySelector<HTMLButtonElement>('[data-day="2"]')!, 'ArrowUp');
-    expect(seen.map((d) => d.value)).toEqual(['2026-03']);
-  });
-
-  it('bubbles, so a host can listen on an ancestor', () => {
-    const el = mount(`<e-calendar value="2026-04-15"></e-calendar>`);
-    const seen = collect<{ value: string }>(el.parentElement!, 'e-month-change');
-    step(el, 1);
-    expect(seen.map((d) => d.value)).toEqual(['2026-05']);
-  });
-
-  it('does not announce anything when only the selection changes', () => {
-    const el = mount(`<e-calendar value="2026-04-15"></e-calendar>`);
-    const seen = collect<{ value: string }>(el, 'e-month-change');
-    el.querySelector<HTMLButtonElement>('[data-day="20"]')!.click();
-    expect(seen).toHaveLength(0);
-    expect(el.getAttribute('value')).toBe('2026-04-20');
-  });
-});
-
-/* ========================================================================= *
  * e-agenda
  * ========================================================================= */
 
@@ -2416,7 +2361,8 @@ describe('e-agenda', () => {
     expect(tracks.map((t) => t.dataset['date'])[0]).toBe('2026-08-24');
     expect(tracks[6].dataset['date']).toBe('2026-08-30');
     expect(el.querySelector('.ink-agenda__col-head')!.hasAttribute('hidden')).toBe(false);
-    expect(el.querySelector('.ink-agenda__eyebrow')!.textContent).toBe('AGENDA · WEEK');
+    // The eyebrow is a string-table entry; CSS, not the component, uppercases it.
+    expect(el.querySelector('.ink-agenda__eyebrow')!.textContent).toBe('Agenda · Week');
 
     el.setAttribute('week-start', '0');
     expect(el.querySelector<HTMLElement>('.ink-agenda__track')!.dataset['date']).toBe('2026-08-23');
@@ -2532,6 +2478,19 @@ describe('e-agenda', () => {
     expect(text(el, '.ink-agenda__gap .ink-agenda__block-label')).toBe(
       '<svg onload=alert(1)> 09:00',
     );
+  });
+
+  it('takes its labels from the string table, and lets an attribute win', () => {
+    const de = mountAgenda('date="2026-08-28" locale="de-DE" start-hour="8" end-hour="18"');
+    expect(text(de, '.ink-agenda__eyebrow')).toBe('Agenda · Tag');
+    expect(text(de, '.ink-agenda__all-day-label')).toBe('Ganztägig');
+    expect(text(de, '.ink-agenda__gap .ink-agenda__block-label')).toContain('Frei bis');
+
+    const override = mountAgenda(
+      'date="2026-08-28" locale="de-DE" free-label="Offen bis" all-day-label="Ganzer Tag"',
+    );
+    expect(text(override, '.ink-agenda__all-day-label')).toBe('Ganzer Tag');
+    expect(text(override, '.ink-agenda__gap .ink-agenda__block-label')).toContain('Offen bis');
   });
 
   it('honours the locale for its headings', () => {

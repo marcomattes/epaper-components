@@ -1,5 +1,7 @@
 import { define, numAttr, patchAttr, patchText } from '../../core/dom';
-import { formatMoney, formatUnitPrice, MONEY_PLACEHOLDER } from '../../core/format';
+import { formatMoneyParts, formatUnitPrice, MONEY_PLACEHOLDER } from '../../core/format';
+import type { MoneyOptions, MoneyParts } from '../../core/format';
+import { label, t } from '../../core/i18n';
 
 const SIZES: readonly string[] = ['xs', 'sm', 'md', 'lg', 'xl'];
 
@@ -107,68 +109,69 @@ export class EPrice extends HTMLElement {
     if (this._wired) this._render();
   }
 
+  /** Currency and precision, resolved once per render for all three amounts. */
+  private _moneyOptions(): MoneyOptions {
+    const precision = optionalNumber(this, 'fraction-digits');
+    const currency = this.getAttribute('currency') || 'EUR';
+    return precision === null ? { currency } : { currency, precision };
+  }
+
   private _render(): void {
     if (!this._root || !this._original || !this._amount || !this._currency) return;
     if (!this._major || !this._minor || !this._a11y || !this._unit || !this._note) return;
 
-    const locale =
-      this.getAttribute('locale') || this.lang || document.documentElement.lang || undefined;
-    const currencyCode = this.getAttribute('currency') || 'EUR';
-    const digits = optionalNumber(this, 'fraction-digits');
+    const options = this._moneyOptions();
+    // `formatMoneyParts` resolves the locale from this element — its own
+    // `locale` attribute, then the nearest `lang`, then the document.
+    const money = formatMoneyParts(this, numAttr(this, 'value', Number.NaN), options);
     const size = this.getAttribute('size');
-    const value = numAttr(this, 'value', Number.NaN);
-    const money = formatMoney(value, currencyCode, locale, digits ?? undefined);
 
     patchAttr(this._root, 'data-size', size && SIZES.includes(size) ? size : 'md');
     patchAttr(this._root, 'data-negative', money.negative ? 'true' : null);
+    this._renderAmount(money);
+    this._renderOriginal(options);
+    this._renderFootnotes(options);
+    patchText(this._a11y, money.text === MONEY_PLACEHOLDER ? t(this, 'noPrice') : money.text);
+  }
 
-    patchText(this._currency, money.currency);
-    patchAttr(this._currency, 'hidden', money.currency ? null : '');
-    patchText(this._major, money.major);
-    patchText(this._minor, money.minor ? `${money.decimal}${money.minor}` : '');
-    patchAttr(this._minor, 'hidden', money.minor ? null : '');
+  private _renderAmount(money: MoneyParts): void {
+    patchText(this._currency!, money.currency);
+    patchAttr(this._currency!, 'hidden', money.currency ? null : '');
+    patchText(this._major!, money.major);
+    patchText(this._minor!, money.minor ? `${money.decimal}${money.minor}` : '');
+    patchAttr(this._minor!, 'hidden', money.minor ? null : '');
     // The locale decides which side the symbol sits on; moving one node is
     // cheaper than re-rendering the amount.
-    const symbolFirst = money.currencyFirst;
-    const currencyIsFirst = this._amount.firstElementChild === this._currency;
-    if (symbolFirst !== currencyIsFirst) {
-      if (symbolFirst) this._amount.insertBefore(this._currency, this._major);
-      else this._amount.appendChild(this._currency);
-    }
+    const currencyIsFirst = this._amount!.firstElementChild === this._currency;
+    if (money.currencyFirst === currencyIsFirst) return;
+    if (money.currencyFirst) this._amount!.insertBefore(this._currency!, this._major!);
+    else this._amount!.appendChild(this._currency!);
+  }
 
-    const originalValue = optionalNumber(this, 'original');
-    const originalText =
-      originalValue === null
-        ? ''
-        : formatMoney(originalValue, currencyCode, locale, digits ?? undefined).text;
-    patchText(this._original, originalText);
-    patchAttr(this._original, 'hidden', originalText ? null : '');
-    const originalLabel = this.getAttribute('original-label') || 'Was';
+  private _renderOriginal(options: MoneyOptions): void {
+    const original = optionalNumber(this, 'original');
+    const text = original === null ? '' : formatMoneyParts(this, original, options).text;
+    patchText(this._original!, text);
+    patchAttr(this._original!, 'hidden', text ? null : '');
     patchAttr(
-      this._original,
+      this._original!,
       'aria-label',
-      originalText ? `${originalLabel} ${originalText}` : null,
+      text ? `${label(this, 'original-label', 'wasPrice')} ${text}` : null,
     );
+  }
 
+  private _renderFootnotes(options: MoneyOptions): void {
     const unitValue = optionalNumber(this, 'unit-price');
     const unitText =
       unitValue === null
         ? ''
-        : formatUnitPrice(
-            unitValue,
-            currencyCode,
-            this.getAttribute('unit') || '',
-            locale,
-            digits ?? undefined,
-          );
-    patchText(this._unit, unitText);
-    patchAttr(this._unit, 'hidden', unitText ? null : '');
+        : formatUnitPrice(this, unitValue, this.getAttribute('unit') || '', options);
+    patchText(this._unit!, unitText);
+    patchAttr(this._unit!, 'hidden', unitText ? null : '');
 
     const note = this.getAttribute('note') || '';
-    patchText(this._note, note);
-    patchAttr(this._note, 'hidden', note ? null : '');
-
-    patchText(this._a11y, money.text === MONEY_PLACEHOLDER ? 'No price' : money.text);
+    patchText(this._note!, note);
+    patchAttr(this._note!, 'hidden', note ? null : '');
   }
 }
 

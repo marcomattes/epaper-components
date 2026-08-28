@@ -1,12 +1,20 @@
 import { define, intAttr, patchAttr, patchText } from '../../core/dom';
 
+/** The built-in status vocabulary. `statuses` can add to it at runtime. */
 export type StatusBoardStatus = 'ok' | 'warning' | 'critical' | 'offline' | 'neutral';
+
+/** Symbol and text label rendered as a cell's status cue. */
+export interface StatusMeta {
+  symbol: string;
+  label: string;
+}
 
 export interface StatusBoardItem {
   key: string;
   label: string;
   value: string | number;
-  status?: StatusBoardStatus;
+  /** A built-in {@link StatusBoardStatus} or a key declared via `statuses`. */
+  status?: string;
   detail?: string;
 }
 
@@ -21,15 +29,16 @@ interface StatusCell {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-const statusFrom = (value: unknown): StatusBoardStatus => {
-  if (value === 'ok' || value === 'warning' || value === 'critical' || value === 'offline') {
-    return value;
-  }
-  return 'neutral';
-};
+const statusFrom = (value: unknown, known: ReadonlySet<string>): string =>
+  typeof value === 'string' && value !== 'neutral' && known.has(value) ? value : 'neutral';
 
 /** Validates and normalizes one raw entry, deduping its key against `keys`. */
-function parseStatusItem(entry: unknown, index: number, keys: Set<string>): StatusBoardItem | null {
+function parseStatusItem(
+  entry: unknown,
+  index: number,
+  keys: Set<string>,
+  known: ReadonlySet<string>,
+): StatusBoardItem | null {
   if (!isRecord(entry)) return null;
   const value = entry['value'];
   if (typeof value !== 'string' && typeof value !== 'number') return null;
@@ -38,12 +47,12 @@ function parseStatusItem(entry: unknown, index: number, keys: Set<string>): Stat
     typeof entry['key'] === 'string' && entry['key'] ? entry['key'] : String(index);
   const key = keys.has(requestedKey) ? `${requestedKey}-${index}` : requestedKey;
   keys.add(key);
-  const item: StatusBoardItem = { key, label, value, status: statusFrom(entry['status']) };
+  const item: StatusBoardItem = { key, label, value, status: statusFrom(entry['status'], known) };
   if (typeof entry['detail'] === 'string') item.detail = entry['detail'];
   return item;
 }
 
-const dataFrom = (raw: string | null): StatusBoardItem[] => {
+const dataFrom = (raw: string | null, known: ReadonlySet<string>): StatusBoardItem[] => {
   if (!raw) return [];
   try {
     const parsed: unknown = JSON.parse(raw);
@@ -51,7 +60,7 @@ const dataFrom = (raw: string | null): StatusBoardItem[] => {
     const keys = new Set<string>();
     const items: StatusBoardItem[] = [];
     for (const [index, entry] of parsed.entries()) {
-      const item = parseStatusItem(entry, index, keys);
+      const item = parseStatusItem(entry, index, keys, known);
       if (item) items.push(item);
     }
     return items.slice(0, 100);
@@ -60,13 +69,38 @@ const dataFrom = (raw: string | null): StatusBoardItem[] => {
   }
 };
 
-const STATUS_META: Record<StatusBoardStatus, { symbol: string; label: string }> = {
+const STATUS_META: Record<StatusBoardStatus, StatusMeta> = {
   ok: { symbol: '✓', label: 'OK' },
   warning: { symbol: '!', label: 'Warning' },
   critical: { symbol: '×', label: 'Critical' },
   offline: { symbol: '○', label: 'Offline' },
   neutral: { symbol: '—', label: 'Neutral' },
 };
+
+/**
+ * Merge the author's `statuses` map over the built-ins. A board tracking room
+ * occupancy or stock needs "free"/"busy" or "in stock"/"sold out"; bending
+ * those onto `ok`/`warning`/`critical` made the cue read wrong. Entries with a
+ * missing or non-string `symbol`/`label` are skipped rather than rendering
+ * `undefined`, and the five built-ins can be relabelled but not removed.
+ */
+function metaFrom(raw: string | null): Record<string, StatusMeta> {
+  if (!raw) return STATUS_META;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!isRecord(parsed)) return STATUS_META;
+    const merged: Record<string, StatusMeta> = { ...STATUS_META };
+    for (const [key, value] of Object.entries(parsed)) {
+      if (!key || !isRecord(value)) continue;
+      const { symbol, label } = value;
+      if (typeof symbol !== 'string' || typeof label !== 'string') continue;
+      merged[key] = { symbol, label };
+    }
+    return merged;
+  } catch {
+    return STATUS_META;
+  }
+}
 
 /**
  * @summary Stable KPI matrix with text-and-pattern status cues.
@@ -76,6 +110,7 @@ const STATUS_META: Record<StatusBoardStatus, { symbol: string; label: string }> 
  * keep e-paper dirty rectangles bounded to the metrics that changed.
  *
  * @attr {string} data - JSON array of `{key, label, value, status?, detail?}` items.
+ * @attr {string} [statuses] - JSON map of extra status keys to `{symbol, label}`, merged over the built-in `ok`/`warning`/`critical`/`offline`/`neutral`.
  * @attr {string} [label='Status board'] - Accessible board label and optional heading.
  * @attr {number} [columns=3] - Grid columns (1..6).
  * @attr {string} [empty-text='No metrics'] - Message shown for an empty data set.
@@ -83,9 +118,20 @@ const STATUS_META: Record<StatusBoardStatus, { symbol: string; label: string }> 
  *
  * @example
  * <e-status-board data='[{"key":"queue","label":"Queue","value":12,"status":"warning"}]'></e-status-board>
+ * @example
+ * <e-status-board
+ *   statuses='{"free":{"symbol":"○","label":"Frei"},"busy":{"symbol":"●","label":"Belegt"}}'
+ *   data='[{"key":"r1","label":"Raum 1","value":"09:00","status":"busy"}]'></e-status-board>
  */
 export class EStatusBoard extends HTMLElement {
-  static readonly observedAttributes = ['data', 'label', 'columns', 'empty-text', 'hide-label'];
+  static readonly observedAttributes = [
+    'data',
+    'statuses',
+    'label',
+    'columns',
+    'empty-text',
+    'hide-label',
+  ];
 
   private _wired = false;
   private _heading: HTMLElement | null = null;
@@ -128,26 +174,27 @@ export class EStatusBoard extends HTMLElement {
     return { root, label, value, cue, detail };
   }
 
-  private _patchCell(cell: StatusCell, item: StatusBoardItem): void {
+  private _patchCell(
+    cell: StatusCell,
+    item: StatusBoardItem,
+    meta: Record<string, StatusMeta>,
+  ): void {
     const status = item.status ?? 'neutral';
-    const meta = STATUS_META[status];
+    const cue = meta[status] ?? STATUS_META.neutral;
     patchAttr(cell.root, 'data-status', status);
     patchText(cell.label, item.label);
     patchText(cell.value, String(item.value));
-    patchText(cell.cue, `${meta.symbol} ${meta.label}`);
+    patchText(cell.cue, `${cue.symbol} ${cue.label}`);
     patchText(cell.detail, item.detail ?? '');
     patchAttr(cell.detail, 'hidden', item.detail ? null : '');
     const detailSuffix = item.detail ? `; ${item.detail}` : '';
-    patchAttr(
-      cell.root,
-      'aria-label',
-      `${item.label}: ${item.value}; ${meta.label}${detailSuffix}`,
-    );
+    patchAttr(cell.root, 'aria-label', `${item.label}: ${item.value}; ${cue.label}${detailSuffix}`);
   }
 
   private _patch(): void {
     if (!this._heading || !this._grid || !this._empty) return;
-    const items = dataFrom(this.getAttribute('data'));
+    const meta = metaFrom(this.getAttribute('statuses'));
+    const items = dataFrom(this.getAttribute('data'), new Set(Object.keys(meta)));
     const label = this.getAttribute('label') || 'Status board';
     const columns = Math.max(1, Math.min(6, intAttr(this, 'columns', 3)));
     const liveKeys = new Set(items.map((item) => item.key));
@@ -172,7 +219,7 @@ export class EStatusBoard extends HTMLElement {
         cell = this._makeCell(item.key);
         this._cells.set(item.key, cell);
       }
-      this._patchCell(cell, item);
+      this._patchCell(cell, item, meta);
       const current = this._grid.children[index] ?? null;
       if (current !== cell.root) this._grid.insertBefore(cell.root, current);
     }

@@ -20,6 +20,10 @@ beforeAll(async () => {
   await import('../calendar/calendar');
   await import('../cascader/cascader');
   await import('../date-picker/date-picker');
+  await import('../timeline/timeline');
+  await import('../description-list/description-list');
+  await import('../breadcrumb/breadcrumb');
+  await import('../anchor/anchor');
   await import('../agenda/agenda');
   await import('../event-log/event-log');
   await import('../price/price');
@@ -657,5 +661,284 @@ describe('collection patching', () => {
     el.setAttribute('value', '3');
     expect([...el.querySelectorAll('.ink-rating__symbol')]).toEqual(symbols);
     expect(symbols.map((s) => (s as HTMLElement).dataset['on'])).toEqual(['true', 'true', 'true']);
+  });
+});
+
+// Components that read their entries from data-carrier children keep those
+// children in the light DOM and re-sync through `observeItems`. The observer
+// coalesces onto a microtask, so every assertion after a DOM edit has to wait
+// a turn first.
+const flush = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
+
+describe('data-carrier children stay reactive', () => {
+  it('e-timeline adds, patches and drops rows as its items change', async () => {
+    const el = mount<HTMLElement>(
+      `<e-timeline><e-timeline-item time="08:00" title="A"></e-timeline-item></e-timeline>`,
+    );
+    const rows = (): HTMLElement[] => [
+      ...el.querySelectorAll<HTMLElement>('li.ink-timeline__item'),
+    ];
+    expect(rows()).toHaveLength(1);
+    const first = rows()[0];
+
+    // (a) appended after mount
+    const late = document.createElement('e-timeline-item');
+    late.setAttribute('time', '09:00');
+    late.setAttribute('title', 'B');
+    late.textContent = 'Body';
+    el.appendChild(late);
+    await flush();
+    expect(rows()).toHaveLength(2);
+    expect(rows()[0]).toBe(first); // the existing row keeps its identity
+    expect(rows()[1].querySelector('.ink-timeline__time')!.textContent).toBe('09:00');
+    expect(rows()[1].querySelector('.ink-timeline__title')!.textContent).toBe('B');
+    expect(rows()[1].querySelector('.ink-timeline__body')!.textContent).toBe('Body');
+    // The authored item stays put but must not paint twice.
+    expect(late.style.display).toBe('none');
+
+    // (b) attributes and body content patched in place
+    const secondRow = rows()[1];
+    late.setAttribute('title', 'B2');
+    late.setAttribute('variant', 'done');
+    late.textContent = 'Body 2';
+    await flush();
+    expect(rows()[1]).toBe(secondRow);
+    expect(secondRow.querySelector('.ink-timeline__title')!.textContent).toBe('B2');
+    expect(secondRow.getAttribute('data-variant')).toBe('done');
+    expect(secondRow.querySelector('.ink-timeline__body')!.textContent).toBe('Body 2');
+
+    // (c) removed again
+    late.remove();
+    await flush();
+    expect(rows()).toHaveLength(1);
+    expect(rows()[0]).toBe(first);
+  });
+
+  it('e-description-list adds, patches and drops pairs as its items change', async () => {
+    const el = mount<HTMLElement>(
+      `<e-description-list><e-desc-item term="Status">Shipped</e-desc-item></e-description-list>`,
+    );
+    const pairs = (): HTMLElement[] => [
+      ...el.querySelectorAll<HTMLElement>('.ink-desc-list__pair'),
+    ];
+    expect(pairs()).toHaveLength(1);
+    const first = pairs()[0];
+
+    const late = document.createElement('e-desc-item');
+    late.setAttribute('term', 'Tracking');
+    late.textContent = 'EP-2048';
+    el.appendChild(late);
+    await flush();
+    expect(pairs()).toHaveLength(2);
+    expect(pairs()[0]).toBe(first);
+    expect(pairs()[1].querySelector('dt')!.textContent).toBe('Tracking');
+    expect(pairs()[1].querySelector('dd')!.textContent).toBe('EP-2048');
+    expect(late.style.display).toBe('none');
+
+    late.setAttribute('term', 'Parcel');
+    late.textContent = 'EP-4096';
+    await flush();
+    expect(pairs()[1].querySelector('dt')!.textContent).toBe('Parcel');
+    expect(pairs()[1].querySelector('dd')!.textContent).toBe('EP-4096');
+
+    late.remove();
+    await flush();
+    expect(pairs()).toHaveLength(1);
+    expect(pairs()[0]).toBe(first);
+  });
+
+  it('e-breadcrumb re-roles the trail as items are added and removed', async () => {
+    const el = mount<HTMLElement>(
+      `<e-breadcrumb><e-breadcrumb-item href="/a" title="A"></e-breadcrumb-item>` +
+        `<e-breadcrumb-item title="B"></e-breadcrumb-item></e-breadcrumb>`,
+    );
+    const nav = el.querySelector('nav')!;
+    const kinds = (): string[] => [...nav.children].map((c) => c.tagName);
+    const current = (): string | null =>
+      el.querySelector('.ink-breadcrumb__current')?.textContent ?? null;
+    expect(kinds()).toEqual(['A', 'SPAN', 'SPAN']);
+    expect(current()).toBe('B');
+
+    const late = document.createElement('e-breadcrumb-item');
+    late.setAttribute('title', 'C');
+    el.appendChild(late);
+    await flush();
+    // B stops being the current page and C takes over.
+    expect(kinds()).toEqual(['A', 'SPAN', 'SPAN', 'SPAN', 'SPAN']);
+    expect(current()).toBe('C');
+    expect(el.querySelector('nav')).toBe(nav); // patched, not rebuilt
+    expect(late.style.display).toBe('none');
+
+    late.setAttribute('title', 'C2');
+    await flush();
+    expect(current()).toBe('C2');
+
+    late.remove();
+    await flush();
+    expect(kinds()).toEqual(['A', 'SPAN', 'SPAN']);
+    expect(current()).toBe('B');
+  });
+
+  it('e-avatar-group tracks avatar items added, renamed and removed', async () => {
+    const el = mount<HTMLElement>(
+      `<e-avatar-group max="4"><e-avatar-item name="Ada"></e-avatar-item></e-avatar-group>`,
+    );
+    const avatars = (): HTMLElement[] => [
+      ...el.querySelectorAll<HTMLElement>('.ink-avatar-group > e-avatar'),
+    ];
+    expect(avatars()).toHaveLength(1);
+    const first = avatars()[0];
+
+    const late = document.createElement('e-avatar-item');
+    late.setAttribute('name', 'Linus');
+    el.appendChild(late);
+    await flush();
+    expect(avatars()).toHaveLength(2);
+    expect(avatars()[0]).toBe(first);
+    expect(avatars()[1].getAttribute('name')).toBe('Linus');
+    expect(late.style.display).toBe('none');
+
+    late.setAttribute('name', 'Grace');
+    await flush();
+    expect(avatars()[1].getAttribute('name')).toBe('Grace');
+
+    // A sixth item overflows the max of 4 and brings the chip in.
+    for (const name of ['Alan', 'Edsger', 'Barbara']) {
+      const extra = document.createElement('e-avatar-item');
+      extra.setAttribute('name', name);
+      el.appendChild(extra);
+    }
+    await flush();
+    expect(avatars()).toHaveLength(4);
+    expect(el.querySelector('.ink-avatar-group__overflow')!.textContent).toBe('+1');
+
+    late.remove();
+    await flush();
+    expect(avatars()).toHaveLength(4);
+    expect(avatars().map((a) => a.getAttribute('name'))).toEqual([
+      'Ada',
+      'Alan',
+      'Edsger',
+      'Barbara',
+    ]);
+    expect(el.querySelector('.ink-avatar-group__overflow')).toBeNull();
+  });
+
+  it('e-segmented tracks segments added, relabelled and removed', async () => {
+    const el = mount<HTMLElement>(
+      `<e-segmented value="a"><e-segment value="a" label="A"></e-segment></e-segmented>`,
+    );
+    const btns = (): HTMLButtonElement[] => [
+      ...el.querySelectorAll<HTMLButtonElement>('.ink-segmented__btn'),
+    ];
+    expect(btns()).toHaveLength(1);
+    const first = btns()[0];
+
+    const late = document.createElement('e-segment');
+    late.setAttribute('value', 'b');
+    late.setAttribute('label', 'B');
+    el.appendChild(late);
+    await flush();
+    expect(btns()).toHaveLength(2);
+    expect(btns()[0]).toBe(first);
+    expect(btns()[1].textContent).toBe('B');
+    expect(btns()[1].dataset['value']).toBe('b');
+    expect(btns()[1].getAttribute('aria-checked')).toBe('false');
+    expect(late.style.display).toBe('none');
+
+    // A late segment is fully wired: clicking it selects and reports.
+    let detail: { value: string } | null = null;
+    el.addEventListener('e-change', (e) => {
+      detail = (e as CustomEvent<{ value: string }>).detail;
+    });
+    btns()[1].click();
+    expect(detail).toEqual({ value: 'b' });
+    expect(btns()[1].getAttribute('aria-checked')).toBe('true');
+
+    late.setAttribute('label', 'Beta');
+    await flush();
+    expect(btns()[1].textContent).toBe('Beta');
+
+    late.remove();
+    await flush();
+    expect(btns()).toHaveLength(1);
+    expect(btns()[0]).toBe(first);
+  });
+
+  it('e-anchor tracks items added, retitled and removed', async () => {
+    const el = mount<HTMLElement>(
+      `<e-anchor><e-anchor-item href="#rx-a" title="Intro"></e-anchor-item></e-anchor>`,
+    );
+    const links = (): HTMLAnchorElement[] => [
+      ...el.querySelectorAll<HTMLAnchorElement>('.ink-anchor__link'),
+    ];
+    expect(links()).toHaveLength(1);
+    const first = links()[0];
+
+    const late = document.createElement('e-anchor-item');
+    late.setAttribute('href', '#rx-b');
+    late.setAttribute('title', 'API');
+    late.setAttribute('depth', '1');
+    el.appendChild(late);
+    await flush();
+    expect(links()).toHaveLength(2);
+    expect(links()[0]).toBe(first);
+    expect(links()[1].getAttribute('href')).toBe('#rx-b');
+    expect(links()[1].textContent).toContain('API');
+    expect(links()[1].style.paddingLeft).toBe('28px');
+    expect(late.style.display).toBe('none');
+
+    late.setAttribute('title', 'Reference');
+    late.setAttribute('depth', '0');
+    await flush();
+    expect(links()[1].textContent).toContain('Reference');
+    expect(links()[1].style.paddingLeft).toBe('14px');
+
+    late.remove();
+    await flush();
+    expect(links()).toHaveLength(1);
+    expect(links()[0]).toBe(first);
+    el.remove();
+  });
+
+  it('e-anchor reports a moved highlight with e-change', () => {
+    // Fixed rather than absolute: the sections then sit at a known viewport
+    // offset no matter how far an earlier test scrolled the page.
+    const targets = mount<HTMLElement>(
+      `<div>
+         <div id="rx-sec-a" style="position:fixed;top:0;left:0;width:1px;height:1px"></div>
+         <div id="rx-sec-b" style="position:fixed;top:4000px;left:0;width:1px;height:1px"></div>
+       </div>`,
+    );
+    const el = mount<HTMLElement>(
+      `<e-anchor offset-top="80">
+         <e-anchor-item href="#rx-sec-a" title="Intro"></e-anchor-item>
+         <e-anchor-item href="#rx-sec-b" title="API"></e-anchor-item>
+       </e-anchor>`,
+    );
+    const details: Array<{ value: string }> = [];
+    el.addEventListener('e-change', (e) => {
+      details.push((e as CustomEvent<{ value: string }>).detail);
+    });
+    expect(
+      el.querySelector('.ink-anchor__link[href="#rx-sec-a"]')!.getAttribute('aria-current'),
+    ).toBe('true');
+
+    // A 5000px offset puts the second section above the line as well.
+    el.setAttribute('offset-top', '5000');
+    expect(details).toEqual([{ value: '#rx-sec-b' }]);
+    expect(
+      el.querySelector('.ink-anchor__link[href="#rx-sec-b"]')!.getAttribute('aria-current'),
+    ).toBe('true');
+
+    // Re-applying the same active target must not re-announce it.
+    el.setAttribute('offset-top', '6000');
+    expect(details).toEqual([{ value: '#rx-sec-b' }]);
+
+    el.setAttribute('offset-top', '80');
+    expect(details).toEqual([{ value: '#rx-sec-b' }, { value: '#rx-sec-a' }]);
+
+    el.remove();
+    targets.remove();
   });
 });

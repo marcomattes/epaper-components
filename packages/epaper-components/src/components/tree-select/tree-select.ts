@@ -1,4 +1,4 @@
-import { define, addCleanup, runCleanups } from '../../core/dom';
+import { define, addCleanup, patchAttr, runCleanups } from '../../core/dom';
 import { BaseFormControl } from '../../core/base-form-control';
 import { TreeView, parseTreeAttr } from '../../core/tree';
 
@@ -13,6 +13,10 @@ import { TreeView, parseTreeAttr } from '../../core/tree';
  * @attr {string} [value] - Currently selected node value.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
  * @attr {string} [default-expanded] - Comma-separated list of node values that are expanded on first render.
+ * @attr {boolean} [disabled] - Disables interaction: every row leaves the tab flow and no click or
+ *   key selects, expands or collapses a node. Presence alone disables, per the HTML spec for
+ *   form-associated elements — `disabled="false"` still disables. Also applied by a surrounding
+ *   `<fieldset disabled>`.
  * @attr {boolean} [required] - Requires a selected tree node.
  * @attr {string} [required-message] - Message reported when no required node is selected.
  *
@@ -23,7 +27,14 @@ import { TreeView, parseTreeAttr } from '../../core/tree';
  * <e-tree-select data='[{"value":"a","label":"A","children":[{"value":"a1","label":"A1"}]}]' default-expanded="a"></e-tree-select>
  */
 export class ETreeSelect extends BaseFormControl {
-  static readonly observedAttributes = ['value', 'data', 'options', 'required', 'required-message'];
+  static readonly observedAttributes = [
+    'value',
+    'data',
+    'options',
+    'disabled',
+    'required',
+    'required-message',
+  ];
 
   private _built = false;
   private readonly _view = new TreeView(this, {
@@ -47,10 +58,42 @@ export class ETreeSelect extends BaseFormControl {
     this.addEventListener('keydown', this._onKeydown);
     addCleanup(this, () => this.removeEventListener('click', this._onClick));
     addCleanup(this, () => this.removeEventListener('keydown', this._onKeydown));
+    this._applyDisabled();
   }
 
   disconnectedCallback() {
     runCleanups(this);
+  }
+
+  /**
+   * Effective disabled state. Presence alone disables — the HTML spec, not the
+   * library's `x="false"` convention, governs `disabled` on a form-associated
+   * element, and that is what the browser reports through `formDisabledCallback`.
+   */
+  private get _disabled(): boolean {
+    return this.hasAttribute('disabled') || this._formDisabled;
+  }
+
+  /**
+   * Forward the effective disabled state to the tree. The rows carry a roving
+   * tabindex owned by `TreeView`, so disabling strips every tab stop and
+   * re-enabling hands the job back to `normalizeTabStop()`.
+   */
+  private _applyDisabled(): void {
+    if (!this._built) return;
+    const disabled = this._disabled;
+    const tree = this.querySelector<HTMLElement>('[role="tree"]');
+    if (tree) patchAttr(tree, 'aria-disabled', disabled ? 'true' : null);
+    const rows = [...this._view.rows()];
+    if (disabled) {
+      for (const row of rows) row.tabIndex = -1;
+    } else if (!rows.some((row) => row.tabIndex === 0)) {
+      this._view.normalizeTabStop();
+    }
+  }
+
+  protected override formDisabledChanged(): void {
+    this._applyDisabled();
   }
 
   attributeChangedCallback(name: string, old: string | null, val: string | null) {
@@ -58,12 +101,17 @@ export class ETreeSelect extends BaseFormControl {
     if (name === 'data' || name === 'options') {
       this._loadData();
       this._view.render();
+      // A fresh render re-derives the tab stop; re-assert the disabled state.
+      this._applyDisabled();
     } else if (name === 'value') {
       const oldVal = old ?? '';
       this._value = val ?? '';
       this.internals.setFormValue(this._value);
       this._view.patchSelection(oldVal, this._value);
       this._syncValidity();
+      this._applyDisabled();
+    } else if (name === 'disabled') {
+      this._applyDisabled();
     } else if (name === 'required' || name === 'required-message') {
       this._syncValidity();
     }
@@ -79,14 +127,17 @@ export class ETreeSelect extends BaseFormControl {
   }
 
   private readonly _onClick = (e: Event): void => {
+    if (this._disabled) return;
     this._view.handleClick(e);
   };
 
   private readonly _onKeydown = (e: Event): void => {
+    if (this._disabled) return;
     this._view.handleKeydown(e as KeyboardEvent);
   };
 
   private _selectValue(v: string): void {
+    if (this._disabled) return;
     this._value = v;
     this.internals.setFormValue(v);
     this.setAttribute('value', v);

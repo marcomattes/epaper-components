@@ -1,4 +1,14 @@
-import { addCleanup, define, esc, onGlobal, patchText, randId, runCleanups } from '../../core/dom';
+import {
+  addCleanup,
+  boolAttr,
+  define,
+  esc,
+  onGlobal,
+  patchAttr,
+  patchText,
+  randId,
+  runCleanups,
+} from '../../core/dom';
 import { ICONS, iconSvg } from '../../core/icons';
 import { BaseFormControl } from '../../core/base-form-control';
 
@@ -19,6 +29,10 @@ import { BaseFormControl } from '../../core/base-form-control';
  * @attr {string} [placeholder='Select…'] - Trigger label while nothing is selected. An absent
  *   *or empty* attribute falls back to `Select…`.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
+ * @attr {boolean} [disabled] - Disables interaction: the trigger leaves the tab flow, the menu
+ *   cannot open and no key or click changes the value. Presence alone disables, per the HTML spec
+ *   for form-associated elements — `disabled="false"` still disables. Also applied by a
+ *   surrounding `<fieldset disabled>`.
  * @attr {boolean} [required] - Requires a selected option.
  * @attr {string} [required-message] - Message reported when no required option is selected.
  *
@@ -31,14 +45,20 @@ import { BaseFormControl } from '../../core/base-form-control';
  * </e-select>
  */
 export class ESelect extends BaseFormControl {
-  static readonly observedAttributes = ['value', 'placeholder', 'required', 'required-message'];
+  static readonly observedAttributes = [
+    'value',
+    'placeholder',
+    'disabled',
+    'required',
+    'required-message',
+  ];
 
   private _wired = false;
-  private _trigger: HTMLElement | null = null;
+  private _trigger: HTMLButtonElement | null = null;
   private _menu: HTMLElement | null = null;
   private _triggerLabel: HTMLElement | null = null;
   private _chevPath: SVGPathElement | null = null;
-  private _opts: Array<{ value: string; label: string }> = [];
+  private _opts: Array<{ value: string; label: string; disabled: boolean }> = [];
   private _optEls: HTMLElement[] = [];
   private _selectedEl: HTMLElement | null = null;
   private _placeholder = 'Select…';
@@ -56,6 +76,9 @@ export class ESelect extends BaseFormControl {
       this._opts = [...this.querySelectorAll('e-option')].map((o) => ({
         value: o.getAttribute('value') ?? '',
         label: o.getAttribute('label') || o.textContent || '',
+        // `<e-option>` is a plain data carrier, not a form-associated element,
+        // so its `disabled` follows the library's boolean-attribute convention.
+        disabled: boolAttr(o, 'disabled'),
       }));
       const selIdx = this._matchIndex();
       const current = selIdx >= 0 ? this._opts[selIdx] : undefined;
@@ -72,7 +95,7 @@ export class ESelect extends BaseFormControl {
         ${this._opts
           .map(
             (o, i) => `<li class="ink-select__option" role="option"
-          data-value="${esc(o.value)}" aria-selected="${i === selIdx}">
+          data-value="${esc(o.value)}" aria-selected="${i === selIdx}"${o.disabled ? ' aria-disabled="true"' : ''}>
           <span style="flex:1">${esc(o.label)}</span>
           ${i === selIdx ? iconSvg('check', 16) : ''}
         </li>`,
@@ -92,8 +115,9 @@ export class ESelect extends BaseFormControl {
       // Cache the initially-selected option element.
       this._selectedEl = selIdx >= 0 ? (this._optEls[selIdx] ?? null) : null;
 
-      for (const opt of this._optEls) {
-        opt.tabIndex = opt.getAttribute('aria-selected') === 'true' ? 0 : -1;
+      for (const [i, opt] of this._optEls.entries()) {
+        opt.tabIndex =
+          !this._opts[i]?.disabled && opt.getAttribute('aria-selected') === 'true' ? 0 : -1;
       }
       this._syncValidity();
     }
@@ -117,6 +141,35 @@ export class ESelect extends BaseFormControl {
         this._trigger!.focus();
       }
     });
+
+    this._applyDisabled();
+  }
+
+  /**
+   * Effective disabled state. Presence alone disables — the HTML spec, not the
+   * library's `x="false"` convention, governs `disabled` on a form-associated
+   * element, and that is what the browser reports through `formDisabledCallback`.
+   */
+  private get _disabled(): boolean {
+    return this.hasAttribute('disabled') || this._formDisabled;
+  }
+
+  /** Forward the effective disabled state to the trigger and the option list. */
+  private _applyDisabled(): void {
+    if (!this._trigger || !this._menu) return;
+    const disabled = this._disabled;
+    this._trigger.disabled = disabled;
+    patchAttr(this._trigger, 'aria-disabled', disabled ? 'true' : null);
+    if (disabled) {
+      // A menu left open would still be clickable behind a dead trigger.
+      this._setOpen(false);
+      for (const opt of this._optEls) opt.tabIndex = -1;
+    } else {
+      for (const [i, opt] of this._optEls.entries()) {
+        opt.tabIndex =
+          !this._opts[i]?.disabled && opt.getAttribute('aria-selected') === 'true' ? 0 : -1;
+      }
+    }
   }
 
   /**
@@ -130,16 +183,26 @@ export class ESelect extends BaseFormControl {
 
   private _setOpen(open: boolean): void {
     if (!this._menu || !this._trigger) return;
+    if (open && this._disabled) return;
     this._menu.hidden = !open;
     this._trigger.setAttribute('aria-expanded', String(open));
     if (this._chevPath) this._chevPath.setAttribute('d', open ? ICONS.chevU : ICONS.chevD);
   }
 
-  private _focusOption(index: number): void {
-    if (this._optEls.length === 0) return;
-    const normalized = ((index % this._optEls.length) + this._optEls.length) % this._optEls.length;
+  /**
+   * Move focus to option `index`, skipping over disabled options in the
+   * direction of travel (`step`) so they are never a keyboard stop.
+   */
+  private _focusOption(index: number, step = 1): void {
+    const count = this._optEls.length;
+    if (count === 0) return;
+    const wrap = (i: number): number => ((i % count) + count) % count;
+    let normalized = wrap(index);
+    for (let tried = 0; tried < count && this._opts[normalized]?.disabled; tried++) {
+      normalized = wrap(normalized + step);
+    }
     const target = this._optEls[normalized];
-    if (!target) return;
+    if (!target || this._opts[normalized]?.disabled) return;
     for (const option of this._optEls) option.tabIndex = -1;
     target.tabIndex = 0;
     target.focus();
@@ -156,7 +219,10 @@ export class ESelect extends BaseFormControl {
     const count = this._opts.length;
     for (let step = 1; step <= count; step++) {
       const idx = (fromIndex + step) % count;
-      if (this._opts[idx]?.label.toLowerCase().startsWith(query)) return idx;
+      const opt = this._opts[idx];
+      // A disabled option is not a type-ahead target: it cannot be selected,
+      // so jumping to it would strand the search on an unusable row.
+      if (opt && !opt.disabled && opt.label.toLowerCase().startsWith(query)) return idx;
     }
     return -1;
   }
@@ -167,21 +233,26 @@ export class ESelect extends BaseFormControl {
   }
 
   private _selectOption(value: string): void {
+    if (this._disabled) return;
     this.setAttribute('value', value);
     this._setOpen(false);
     this.dispatchEvent(new CustomEvent('e-change', { detail: { value }, bubbles: true }));
     this._trigger?.focus();
   }
 
-  private readonly _onTriggerClick = (): void => this._setOpen(!!this._menu?.hidden);
+  private readonly _onTriggerClick = (): void => {
+    if (this._disabled) return;
+    this._setOpen(!!this._menu?.hidden);
+  };
 
   private readonly _onTriggerKeydown = (e: KeyboardEvent): void => {
+    if (this._disabled) return;
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
       this._setOpen(true);
       let target = this._optEls.findIndex((o) => o.getAttribute('aria-selected') === 'true');
       if (target < 0) target = e.key === 'ArrowDown' ? 0 : this._optEls.length - 1;
-      this._focusOption(target);
+      this._focusOption(target, e.key === 'ArrowDown' ? 1 : -1);
       return;
     }
     if (this._isTypeaheadKey(e)) {
@@ -195,7 +266,8 @@ export class ESelect extends BaseFormControl {
 
   private readonly _onMenuClick = (e: Event): void => {
     const option = (e.target as Element).closest<HTMLElement>('.ink-select__option');
-    if (option) this._selectOption(option.dataset['value'] ?? '');
+    if (!option || option.getAttribute('aria-disabled') === 'true') return;
+    this._selectOption(option.dataset['value'] ?? '');
   };
 
   /** Target index for a navigation key, relative to `current` (-1 if unfocused). */
@@ -215,19 +287,22 @@ export class ESelect extends BaseFormControl {
   }
 
   private readonly _onMenuKeydown = (e: KeyboardEvent): void => {
-    if (this._menu?.hidden) return;
+    if (this._menu?.hidden || this._disabled) return;
     const current = this._optEls.indexOf(document.activeElement as HTMLElement);
 
     const navIndex = this._navigationIndex(e.key, current);
     if (navIndex != null) {
-      this._focusOption(navIndex);
+      this._focusOption(navIndex, e.key === 'ArrowUp' || e.key === 'End' ? -1 : 1);
       e.preventDefault();
       return;
     }
 
     if (e.key === 'Enter' || e.key === ' ') {
       const focused = document.activeElement as HTMLElement | null;
-      if (focused?.classList.contains('ink-select__option')) {
+      if (
+        focused?.classList.contains('ink-select__option') &&
+        focused.getAttribute('aria-disabled') !== 'true'
+      ) {
         this._selectOption(focused.dataset['value'] ?? '');
       }
       e.preventDefault();
@@ -253,6 +328,10 @@ export class ESelect extends BaseFormControl {
       if (this._matchIndex() < 0 && this._triggerLabel) {
         patchText(this._triggerLabel, this._placeholder);
       }
+      return;
+    }
+    if (name === 'disabled') {
+      this._applyDisabled();
       return;
     }
     if (name === 'required' || name === 'required-message') {
@@ -282,7 +361,7 @@ export class ESelect extends BaseFormControl {
     const newEl = newIdx >= 0 ? (this._optEls[newIdx] ?? null) : null;
     if (newEl) {
       newEl.setAttribute('aria-selected', 'true');
-      newEl.tabIndex = 0;
+      newEl.tabIndex = this._disabled || this._opts[newIdx]?.disabled ? -1 : 0;
       if (!newEl.querySelector('svg')) newEl.insertAdjacentHTML('beforeend', iconSvg('check', 16));
     }
     this._selectedEl = newEl;
@@ -316,6 +395,10 @@ export class ESelect extends BaseFormControl {
       'Please select an option.',
     );
   }
+
+  protected override formDisabledChanged(): void {
+    this._applyDisabled();
+  }
 }
 define('e-select', ESelect);
 
@@ -326,6 +409,10 @@ define('e-select', ESelect);
  *   without the attribute carries `''` and is only ever selected once the parent's own
  *   `value` attribute is written — an unset parent selects nothing.
  * @attr {string} [label] - Visible label. Falls back to text content.
+ * @attr {boolean} [disabled] - Makes this single option unselectable: it is skipped by arrow-key
+ *   navigation and type-ahead, ignores clicks, and is exposed as `aria-disabled="true"`. Follows
+ *   the library's boolean-attribute convention, so `disabled="false"` leaves it selectable. Read
+ *   once, when the parent `<e-select>` renders its option list.
  *
  * @example
  * <e-option value="a" label="Apples"></e-option>

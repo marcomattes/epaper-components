@@ -136,10 +136,10 @@ function shotImage(
  */
 function plainText(text: string): string {
   return text
-    .replace(/`([^`]{1,300})`/g, '$1')
-    .replace(/\*\*([^*]{1,300})\*\*/g, '$1')
-    .replace(/\*([^*]{1,300})\*/g, '$1')
-    .replace(/\[([^\]]{1,300})\]\([^)\s]{1,2000}\)/g, '$1');
+    .replaceAll(/`([^`]{1,300})`/g, '$1')
+    .replaceAll(/\*\*([^*]{1,300})\*\*/g, '$1')
+    .replaceAll(/\*([^*]{1,300})\*/g, '$1')
+    .replaceAll(/\[([^\]]{1,300})\]\([^)\s]{1,2000}\)/g, '$1');
 }
 
 /** Rough word count of an article body, for `wordCount` in the schema. */
@@ -318,7 +318,7 @@ function routeGraph(
           itemListElement: COMPONENTS.map((c, i) => {
             const storybookSlug = `${c.category}-${c.name}`
               .toLowerCase()
-              .replace(/[^a-z0-9-]+/g, '-');
+              .replaceAll(/[^a-z0-9-]+/g, '-');
             return {
               '@type': 'ListItem',
               position: i + 1,

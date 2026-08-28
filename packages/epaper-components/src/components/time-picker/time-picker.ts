@@ -11,6 +11,10 @@ import { BaseFormControl } from '../../core/base-form-control';
  *
  * @attr {string} [value='00:00'] - Current time in `HH:MM` format. Wraps around the 24-hour and 60-minute boundaries.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
+ * @attr {boolean} [disabled] - Disables interaction: both spinbuttons leave the tab flow, the
+ *   stepper buttons are inert and no click or key changes the time. Presence alone disables, per
+ *   the HTML spec for form-associated elements — `disabled="false"` still disables. Also applied
+ *   by a surrounding `<fieldset disabled>`.
  * @attr {boolean} [required] - Requires a valid time value. The default `00:00` satisfies this constraint.
  * @attr {string} [required-message] - Message reported when no required time is selected.
  *
@@ -20,11 +24,12 @@ import { BaseFormControl } from '../../core/base-form-control';
  * <e-time-picker value="09:30"></e-time-picker>
  */
 export class ETimePicker extends BaseFormControl {
-  static readonly observedAttributes = ['value', 'required', 'required-message'];
+  static readonly observedAttributes = ['value', 'disabled', 'required', 'required-message'];
 
   private _wired = false;
   private _hCell: HTMLElement | null = null;
   private _mCell: HTMLElement | null = null;
+  private _steps: HTMLButtonElement[] = [];
 
   connectedCallback() {
     if (!this._wired) {
@@ -36,6 +41,7 @@ export class ETimePicker extends BaseFormControl {
       this._syncValidity();
     }
 
+    this._applyDisabled();
     this.addEventListener('click', this._onClick);
     this.addEventListener('keydown', this._onKeydown);
     addCleanup(this, () => this.removeEventListener('click', this._onClick));
@@ -46,7 +52,37 @@ export class ETimePicker extends BaseFormControl {
     runCleanups(this);
   }
 
+  /**
+   * Effective disabled state. Presence alone disables — the HTML spec, not the
+   * library's `x="false"` convention, governs `disabled` on a form-associated
+   * element, and that is what the browser reports through `formDisabledCallback`.
+   */
+  private get _disabled(): boolean {
+    return this.hasAttribute('disabled') || this._formDisabled;
+  }
+
+  /** Forward the effective disabled state to the two cells and the steppers. */
+  private _applyDisabled(): void {
+    const disabled = this._disabled;
+    for (const cell of [this._hCell, this._mCell]) {
+      if (!cell) continue;
+      // The cells are `div[role=spinbutton]`, so the tab stop is theirs to give
+      // up — there is no native disabled state to set.
+      cell.tabIndex = disabled ? -1 : 0;
+      patchAttr(cell, 'aria-disabled', disabled ? 'true' : null);
+    }
+    for (const step of this._steps) step.disabled = disabled;
+  }
+
+  protected override formDisabledChanged(): void {
+    this._applyDisabled();
+  }
+
   attributeChangedCallback(name: string, _old: string | null, v: string | null) {
+    if (name === 'disabled') {
+      this._applyDisabled();
+      return;
+    }
     if (name === 'required' || name === 'required-message') {
       this._syncValidity();
       return;
@@ -122,6 +158,7 @@ export class ETimePicker extends BaseFormControl {
     wrap.appendChild(makeSteppers('m'));
 
     this.replaceChildren(wrap);
+    this._steps = [...wrap.querySelectorAll<HTMLButtonElement>('.ink-timepicker__step')];
   }
 
   private _applyValue(value: string): void {
@@ -145,6 +182,7 @@ export class ETimePicker extends BaseFormControl {
   }
 
   private _step(axis: 'h' | 'm', direction: number): void {
+    if (this._disabled) return;
     let [hours, minutes] = this._parts(this._normalize(this.getAttribute('value')));
     if (axis === 'h') hours = (hours + direction + 24) % 24;
     else minutes = (minutes + direction + 60) % 60;
@@ -154,11 +192,13 @@ export class ETimePicker extends BaseFormControl {
   }
 
   private readonly _onClick = (e: Event): void => {
+    if (this._disabled) return;
     const button = (e.target as Element).closest<HTMLElement>('[data-axis]');
     if (button) this._step(button.dataset['axis'] as 'h' | 'm', Number(button.dataset['dir']));
   };
 
   private readonly _onKeydown = (e: KeyboardEvent): void => {
+    if (this._disabled) return;
     const cell = (e.target as Element).closest<HTMLElement>('[data-cell]');
     if (!cell) return;
     const axis = cell.dataset['cell'] as 'h' | 'm';

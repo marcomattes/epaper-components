@@ -308,39 +308,48 @@ export class TreeView {
     if (wasOpen) this._expanded.delete(value);
     else this._expanded.add(value);
 
-    const group = this._groups.get(value);
-    if (group) {
-      if (open && group.children.length === 0) {
-        const node = this._nodes.get(value);
-        const depth = Number(this._rows.get(value)?.dataset['depth'] ?? '0');
-        for (const child of node?.children ?? []) this._buildNode(group, child, depth + 1);
-      }
-      patchBoolAttr(group, 'hidden', !open);
-    }
-
-    const btn = this._toggles.get(value);
-    if (btn) {
-      const node = this._nodes.get(value);
-      btn.innerHTML = iconSvg(open ? 'minus' : 'plus', 12);
-      btn.setAttribute('aria-label', `${open ? 'Collapse' : 'Expand'} ${node?.label ?? value}`);
-    }
-
+    this._syncGroup(value, open);
+    this._syncToggleButton(value, open);
     const row = this._rows.get(value);
     if (row) patchAttr(row, 'aria-expanded', String(open));
-
-    // Collapsing a branch that holds the tab stop hands it to the branch
-    // itself, which is where the ARIA tree pattern puts focus and what the
-    // user is looking at. Then re-derive, because expanding also materialises
-    // rows that have no tab index yet.
-    if (!open) {
-      const node = this._nodes.get(value);
-      if (node && this._focus !== value && collectSubtree(node).includes(this._focus)) {
-        this._focus = value;
-      }
-    }
+    if (!open) this._rescueFocusFrom(value);
+    // Re-derive either way: expanding also materialises rows that have no tab
+    // index yet.
     this.normalizeTabStop();
 
     this.config.onToggle?.(value, open);
+  }
+
+  /** Materialise children on first open, then show or hide the group. */
+  private _syncGroup(value: string, open: boolean): void {
+    const group = this._groups.get(value);
+    if (!group) return;
+    if (open && group.children.length === 0) {
+      const node = this._nodes.get(value);
+      const depth = Number(this._rows.get(value)?.dataset['depth'] ?? '0');
+      for (const child of node?.children ?? []) this._buildNode(group, child, depth + 1);
+    }
+    patchBoolAttr(group, 'hidden', !open);
+  }
+
+  private _syncToggleButton(value: string, open: boolean): void {
+    const btn = this._toggles.get(value);
+    if (!btn) return;
+    const node = this._nodes.get(value);
+    btn.innerHTML = iconSvg(open ? 'minus' : 'plus', 12);
+    btn.setAttribute('aria-label', `${open ? 'Collapse' : 'Expand'} ${node?.label ?? value}`);
+  }
+
+  /**
+   * Collapsing a branch that holds the tab stop hands it to the branch itself,
+   * which is where the ARIA tree pattern puts focus and what the user is
+   * looking at.
+   */
+  private _rescueFocusFrom(value: string): void {
+    const node = this._nodes.get(value);
+    if (node && this._focus !== value && collectSubtree(node).includes(this._focus)) {
+      this._focus = value;
+    }
   }
 
   /** Rows that are not hidden behind a collapsed ancestor, in document order. */
@@ -407,30 +416,12 @@ export class TreeView {
         return true;
       case 'End':
         e.preventDefault();
-        this.focusRow(visible[visible.length - 1]);
+        this.focusRow(visible.at(-1));
         return true;
-      case 'ArrowRight': {
-        if (!hasChildren(this._nodes.get(value))) return true;
-        e.preventDefault();
-        if (!this._expanded.has(value)) {
-          this.toggleExpand(value);
-        } else {
-          const first = this._groups.get(value)?.querySelector<HTMLElement>('.ink-tree__row');
-          if (first) this.focusRow(first);
-        }
-        return true;
-      }
-      case 'ArrowLeft': {
-        e.preventDefault();
-        if (hasChildren(this._nodes.get(value)) && this._expanded.has(value)) {
-          this.toggleExpand(value);
-        } else {
-          const parentLi = row.parentElement?.parentElement?.closest<HTMLElement>('li');
-          const parentRow = parentLi?.querySelector<HTMLElement>(':scope > .ink-tree__row');
-          if (parentRow) this.focusRow(parentRow);
-        }
-        return true;
-      }
+      case 'ArrowRight':
+        return this._arrowRight(e, value);
+      case 'ArrowLeft':
+        return this._arrowLeft(e, value, row);
       case 'Enter':
       case ' ':
         e.preventDefault();
@@ -439,5 +430,31 @@ export class TreeView {
       default:
         return false;
     }
+  }
+
+  /** Right opens a closed branch, or steps into an open one. */
+  private _arrowRight(e: KeyboardEvent, value: string): boolean {
+    if (!hasChildren(this._nodes.get(value))) return true;
+    e.preventDefault();
+    if (this._expanded.has(value)) {
+      const first = this._groups.get(value)?.querySelector<HTMLElement>('.ink-tree__row');
+      if (first) this.focusRow(first);
+    } else {
+      this.toggleExpand(value);
+    }
+    return true;
+  }
+
+  /** Left closes an open branch, or steps out to the parent row. */
+  private _arrowLeft(e: KeyboardEvent, value: string, row: HTMLElement): boolean {
+    e.preventDefault();
+    if (hasChildren(this._nodes.get(value)) && this._expanded.has(value)) {
+      this.toggleExpand(value);
+      return true;
+    }
+    const parentLi = row.parentElement?.parentElement?.closest<HTMLElement>('li');
+    const parentRow = parentLi?.querySelector<HTMLElement>(':scope > .ink-tree__row');
+    if (parentRow) this.focusRow(parentRow);
+    return true;
   }
 }

@@ -1,4 +1,5 @@
 import { define, intAttr } from '../../core/dom';
+import { t } from '../../core/i18n';
 
 /* ============================================================================
  * Self-contained linear barcode encoder.
@@ -184,6 +185,13 @@ const CODE128_STOP = 106;
 
 export type BarcodeFormat = 'ean13' | 'ean8' | 'upca' | 'code128';
 
+/** Total digits each fixed-length symbology carries, check digit included. */
+const FIXED_LENGTH: Record<Exclude<BarcodeFormat, 'code128'>, number> = {
+  ean13: 13,
+  ean8: 8,
+  upca: 12,
+};
+
 const isDigits = (value: string): boolean => /^\d+$/.test(value);
 
 /**
@@ -255,6 +263,18 @@ function encodeCode128(value: string): string {
   return values.map((symbol) => widthsToBits(CODE128_WIDTHS[symbol])).join('');
 }
 
+/** True for a symbology this component knows how to encode. */
+const isFormat = (value: string): value is BarcodeFormat =>
+  value === 'ean13' || value === 'ean8' || value === 'upca' || value === 'code128';
+
+/**
+ * The symbology to encode with: what the author asked for, or one derived
+ * from the value's shape when they asked for `auto` (or for nothing).
+ */
+export function resolveFormat(requested: string, value: string): BarcodeFormat {
+  return isFormat(requested) ? requested : detectFormat(value);
+}
+
 /** Pick a symbology for `value` when the author did not name one. */
 export function detectFormat(value: string): BarcodeFormat {
   if (!isDigits(value)) return 'code128';
@@ -274,7 +294,7 @@ export function normalizeValue(value: string, format: BarcodeFormat): string {
     return value;
   }
   if (!isDigits(value)) throw new Error(`${format.toUpperCase()} accepts digits only.`);
-  const full = format === 'ean13' ? 13 : format === 'ean8' ? 8 : 12;
+  const full = FIXED_LENGTH[format];
   if (value.length === full - 1) return value + String(checkDigit(value));
   if (value.length !== full) {
     throw new Error(`${format.toUpperCase()} needs ${full - 1} or ${full} digits.`);
@@ -387,19 +407,13 @@ export class EBarcode extends HTMLElement {
   private _render(): void {
     if (!this._wrap || !this._text) return;
     const raw = this.getAttribute('value') || '';
-    const requested = this.getAttribute('format') || 'auto';
-    const format: BarcodeFormat =
-      requested === 'ean13' || requested === 'ean8' || requested === 'upca'
-        ? requested
-        : requested === 'code128'
-          ? 'code128'
-          : detectFormat(raw);
+    const format = resolveFormat(this.getAttribute('format') || 'auto', raw);
     const height = Math.max(8, Math.min(600, intAttr(this, 'height', 80)));
     const moduleWidth = Math.max(1, Math.min(16, intAttr(this, 'module-width', 2)));
     const quietZone = Math.max(0, Math.min(64, intAttr(this, 'quiet-zone', 10)));
 
     if (!raw) {
-      this._paintMessage('empty', '—', 'Empty barcode');
+      this._paintMessage('empty', '—', t(this, 'barcodeEmpty'));
       return;
     }
 
@@ -410,7 +424,7 @@ export class EBarcode extends HTMLElement {
       this._paintSymbol(svg, format, value);
       this._paintCaption(this.hasAttribute('show-text') ? humanReadable(value, format) : '');
     } catch (err) {
-      this._paintMessage('error', (err as Error).message, 'Barcode error');
+      this._paintMessage('error', (err as Error).message, t(this, 'barcodeError'));
     }
   }
 

@@ -33,7 +33,7 @@ export const SHOTS_URL_BASE = '/shots';
  * both derive from the story's `title`. Keep the two in step.
  */
 export function shotKey(entry: ComponentEntry): string {
-  return `${entry.category}-${entry.name}`.toLowerCase().replace(/[^a-z0-9-]+/g, '-');
+  return `${entry.category}-${entry.name}`.toLowerCase().replaceAll(/[^a-z0-9-]+/g, '-');
 }
 
 /** Site-absolute URL of a preview image. */

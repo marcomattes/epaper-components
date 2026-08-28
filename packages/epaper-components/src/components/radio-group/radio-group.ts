@@ -1,4 +1,4 @@
-import { boolAttr, define, esc, randId } from '../../core/dom';
+import { boolAttr, define, esc, patchAttr, randId } from '../../core/dom';
 import { BaseFormControl } from '../../core/base-form-control';
 
 /**
@@ -11,6 +11,9 @@ import { BaseFormControl } from '../../core/base-form-control';
  * @attr {string} [value] - Currently selected option value.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
  * @attr {'horizontal'|'vertical'} [layout='horizontal'] - Stacking direction.
+ * @attr {boolean} [disabled] - Disables every option: none can be focused or checked. Presence
+ *   alone disables, per the HTML spec for form-associated elements — `disabled="false"` still
+ *   disables. Also applied by a surrounding `<fieldset disabled>`.
  * @attr {boolean} [required] - Requires one selected option.
  * @attr {string} [required-message] - Message reported when no required option is selected.
  *
@@ -23,12 +26,21 @@ import { BaseFormControl } from '../../core/base-form-control';
  * </e-radio-group>
  */
 export class ERadioGroup extends BaseFormControl {
-  static readonly observedAttributes = ['value', 'layout', 'required', 'required-message'];
+  static readonly observedAttributes = [
+    'value',
+    'layout',
+    'disabled',
+    'required',
+    'required-message',
+  ];
 
   private _wired = false;
 
   connectedCallback() {
-    if (this._wired) return;
+    if (this._wired) {
+      this._applyDisabled();
+      return;
+    }
     this._wired = true;
     const name = randId('e-rg');
     const value = this.getAttribute('value') ?? '';
@@ -36,6 +48,9 @@ export class ERadioGroup extends BaseFormControl {
     const radios = [...this.querySelectorAll('e-radio')].map((r) => ({
       value: r.getAttribute('value') ?? '',
       label: r.getAttribute('label') || r.textContent || '',
+      // `<e-radio>` is a plain data carrier, not a form-associated element, so
+      // its `disabled` follows the library's boolean-attribute convention.
+      disabled: boolAttr(r, 'disabled'),
     }));
     // `name` is randId('e-rg') — an internally generated id, never a
     // free-form string — so it can't carry the characters esc() escapes,
@@ -46,8 +61,8 @@ export class ERadioGroup extends BaseFormControl {
       ${radios
         .map(
           (r) => `
-        <label class="ink-radio">
-          <input type="radio" name="${name}" value="${esc(r.value)}" ${r.value === value ? 'checked' : ''}/>
+        <label class="ink-radio"${r.disabled ? ' aria-disabled="true"' : ''}>
+          <input type="radio" name="${name}" value="${esc(r.value)}" ${r.value === value ? 'checked' : ''} ${r.disabled ? 'disabled' : ''}/>
           <span class="ink-radio__dot"></span>
           ${esc(r.label)}
         </label>`,
@@ -58,8 +73,10 @@ export class ERadioGroup extends BaseFormControl {
     this._value = value;
     this.internals.setFormValue(value);
     this._syncValidity();
+    this._applyDisabled();
     this.addEventListener('change', (e) => {
       const target = e.target as HTMLInputElement;
+      if (this._disabled) return;
       if (target.matches('input[type="radio"]')) {
         this.setAttribute('value', target.value);
         this.dispatchEvent(
@@ -72,7 +89,39 @@ export class ERadioGroup extends BaseFormControl {
     });
   }
 
+  /**
+   * Effective disabled state. Presence alone disables — the HTML spec, not the
+   * library's `x="false"` convention, governs `disabled` on a form-associated
+   * element, and that is what the browser reports through `formDisabledCallback`.
+   */
+  private get _disabled(): boolean {
+    return this.hasAttribute('disabled') || this._formDisabled;
+  }
+
+  /**
+   * Forward the effective disabled state to every radio. An option disabled in
+   * its own right (`<e-radio disabled>`, marked with `aria-disabled` on its
+   * label) stays disabled when the group as a whole is enabled again.
+   */
+  private _applyDisabled(): void {
+    const disabled = this._disabled;
+    const group = this.querySelector<HTMLElement>('[role="radiogroup"]');
+    if (group) patchAttr(group, 'aria-disabled', disabled ? 'true' : null);
+    for (const label of this.querySelectorAll<HTMLElement>('label.ink-radio')) {
+      const input = label.querySelector<HTMLInputElement>('input[type="radio"]');
+      if (input) input.disabled = disabled || label.getAttribute('aria-disabled') === 'true';
+    }
+  }
+
+  protected override formDisabledChanged(): void {
+    this._applyDisabled();
+  }
+
   attributeChangedCallback(name: string, _old: string | null, v: string | null) {
+    if (name === 'disabled') {
+      this._applyDisabled();
+      return;
+    }
     if (name === 'layout') {
       const group = this.querySelector<HTMLElement>('.ink-radio-group');
       if (group) group.classList.toggle('ink-radio-group--vertical', v === 'vertical');
@@ -120,6 +169,9 @@ define('e-radio-group', ERadioGroup);
  *
  * @attr {string} value - Value contributed when this option is selected.
  * @attr {string} [label] - Visible label. Falls back to text content.
+ * @attr {boolean} [disabled] - Makes this single option unselectable and unfocusable while the
+ *   rest of the group stays usable. Follows the library's boolean-attribute convention, so
+ *   `disabled="false"` leaves it selectable. Read once, when the parent renders the group.
  */
 export class ERadio extends HTMLElement {}
 define('e-radio', ERadio);
