@@ -180,7 +180,7 @@ function wireChat(): void {
       if (pending) {
         const body = pending.querySelector('.site-chat__body');
         if (body) body.innerHTML = reply ? reply.html : chatFallbackHtml();
-        pending.removeAttribute('data-chat-pending');
+        delete pending.dataset['chatPending'];
       }
       log.scrollTop = log.scrollHeight;
       busy = false;

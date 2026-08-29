@@ -7,7 +7,7 @@ import type { CalendarEvent, CalendarEventStatus } from '../../core/types';
 
 const DAY_MINUTES = 24 * 60;
 const WEEK_DAYS = 7;
-const STATUSES: readonly string[] = ['confirmed', 'tentative', 'cancelled'];
+const STATUSES: ReadonlySet<string> = new Set(['confirmed', 'tentative', 'cancelled']);
 
 /** A block as it is positioned on the track: percentages of the visible window. */
 interface AgendaBlock {
@@ -32,7 +32,7 @@ const RANGE_END: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', 
 const pct = (value: number): number => Math.round(value * 100) / 100;
 
 const readStatus = (raw: string | undefined): CalendarEventStatus | null =>
-  raw && STATUSES.includes(raw) ? (raw as CalendarEventStatus) : null;
+  raw && STATUSES.has(raw) ? (raw as CalendarEventStatus) : null;
 
 /** Minutes since midnight for `now`, given as an ISO timestamp or `HH:MM`. */
 function readNow(raw: string | null): { date: string | null; minutes: number } | null {
@@ -385,7 +385,8 @@ export class EAgenda extends EpaperElement {
         const label = document.createElement('span');
         label.className = 'ink-agenda__block-label';
         element.append(time, label);
-        track.insertBefore(element, marker);
+        if (marker) marker.before(element);
+        else track.append(element);
       }
       // Every `now` tick re-runs this for every block; an unconditional write
       // would queue an attribute mutation on each one even when unchanged.

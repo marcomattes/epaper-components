@@ -419,7 +419,8 @@ export class TreeView {
         this.focusRow(visible.at(-1));
         return true;
       case 'ArrowRight':
-        return this._arrowRight(e, value);
+        this._arrowRight(e, value);
+        return true;
       case 'ArrowLeft':
         return this._arrowLeft(e, value, row);
       case 'Enter':
@@ -432,9 +433,9 @@ export class TreeView {
     }
   }
 
-  /** Right opens a closed branch, or steps into an open one. */
-  private _arrowRight(e: KeyboardEvent, value: string): boolean {
-    if (!hasChildren(this._nodes.get(value))) return true;
+  /** Right opens a closed branch, or steps into an open one. A leaf is a no-op. */
+  private _arrowRight(e: KeyboardEvent, value: string): void {
+    if (!hasChildren(this._nodes.get(value))) return;
     e.preventDefault();
     if (this._expanded.has(value)) {
       const first = this._groups.get(value)?.querySelector<HTMLElement>('.ink-tree__row');
@@ -442,7 +443,6 @@ export class TreeView {
     } else {
       this.toggleExpand(value);
     }
-    return true;
   }
 
   /** Left closes an open branch, or steps out to the parent row. */

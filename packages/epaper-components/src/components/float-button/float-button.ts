@@ -2,6 +2,23 @@ import { define, EpaperElement, patchAttr } from '../../core/dom';
 import { iconSvg } from '../../core/icons';
 
 /**
+ * Both elements here build their subtree once on first connect and never
+ * rebuild it — a re-connect must not throw the rendered buttons away. Only
+ * `_build` differs between them.
+ */
+abstract class BuildOnce extends EpaperElement {
+  protected _wired = false;
+
+  connectedCallback() {
+    if (this._wired) return;
+    this._wired = true;
+    this._build();
+  }
+
+  protected abstract _build(): void;
+}
+
+/**
  * @summary Standalone floating action button.
  * @since v1.0.1
  *
@@ -12,18 +29,11 @@ import { iconSvg } from '../../core/icons';
  * @example
  * <e-float-button icon="plus" label="Add"></e-float-button>
  */
-export class EFloatButton extends EpaperElement {
+export class EFloatButton extends BuildOnce {
   static readonly observedAttributes = ['icon', 'label', 'primary'];
 
-  private _wired = false;
   private _btn: HTMLButtonElement | null = null;
   private _icon = '';
-
-  connectedCallback() {
-    if (this._wired) return;
-    this._wired = true;
-    this._build();
-  }
 
   attributeChangedCallback(name: string) {
     if (!this._wired) return;
@@ -50,7 +60,7 @@ export class EFloatButton extends EpaperElement {
     return !this.hasAttribute('primary') || this.getAttribute('primary') !== 'false';
   }
 
-  private _build(): void {
+  protected _build(): void {
     const icon = this.getAttribute('icon') || 'plus';
     const label = this.getAttribute('label');
     const primary = this._isPrimary();
@@ -79,17 +89,10 @@ define('e-float-button', EFloatButton);
  *   <e-fab-item icon="trash" label="Delete"></e-fab-item>
  * </e-float-button-group>
  */
-export class EFloatButtonGroup extends EpaperElement {
+export class EFloatButtonGroup extends BuildOnce {
   static readonly observedAttributes = ['orientation'];
 
-  private _wired = false;
   private _group: HTMLElement | null = null;
-
-  connectedCallback() {
-    if (this._wired) return;
-    this._wired = true;
-    this._build();
-  }
 
   attributeChangedCallback() {
     if (!this._wired) return;
@@ -97,7 +100,7 @@ export class EFloatButtonGroup extends EpaperElement {
     this._group!.classList.toggle('ink-fab-group--horizontal', horiz);
   }
 
-  private _build(): void {
+  protected _build(): void {
     const horiz = this.getAttribute('orientation') === 'horizontal';
     const items = [...this.querySelectorAll('e-fab-item')].map((it) => ({
       icon: it.getAttribute('icon') || 'plus',

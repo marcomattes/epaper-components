@@ -192,6 +192,15 @@ fallback matters more, one `<noscript>` rule undoes it — see the README.
 - `<e-qrcode>` paints with `currentColor` on a `--ink-bg` quiet zone instead of
   hard-coded `#000`/`#fff`, so it follows both theme packs; `<e-watermark>`
   resolves its ink from the theme the same way.
+- A quality pass over the findings SonarCloud had open. Two are observable:
+  `randId()` draws from `crypto.getRandomValues()` rather than `Math.random()`
+  — the id shape (`prefix-<base36>`) is unchanged — and
+  `.ink-desc-list__detail` uses `overflow-wrap: break-word` instead of the
+  deprecated `word-break: break-word` keyword. The rest are internal: the
+  server-side `EpaperElement` stand-in, the barcode digit decoding, the two
+  float-button elements' shared first-connect, and `patchClassModifier`, which
+  now removes every stale class in one call and so records one attribute
+  mutation instead of one per class.
 
 - The nine components above render every locale-dependent value through
   `core/format.ts` and take every word they invent from `core/i18n.ts`, the

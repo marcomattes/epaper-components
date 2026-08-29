@@ -3,7 +3,7 @@ import { formatMoneyParts, formatUnitPrice, MONEY_PLACEHOLDER } from '../../core
 import type { MoneyOptions, MoneyParts } from '../../core/format';
 import { label, t } from '../../core/i18n';
 
-const SIZES: readonly string[] = ['xs', 'sm', 'md', 'lg', 'xl'];
+const SIZES: ReadonlySet<string> = new Set(['xs', 'sm', 'md', 'lg', 'xl']);
 
 /** `null` for an absent or non-numeric attribute, so "no price" stays distinct from 0. */
 const optionalNumber = (el: Element, name: string): number | null => {
@@ -127,7 +127,7 @@ export class EPrice extends EpaperElement {
     const money = formatMoneyParts(this, numAttr(this, 'value', Number.NaN), options);
     const size = this.getAttribute('size');
 
-    patchAttr(this._root, 'data-size', size && SIZES.includes(size) ? size : 'md');
+    patchAttr(this._root, 'data-size', size && SIZES.has(size) ? size : 'md');
     patchAttr(this._root, 'data-negative', money.negative ? 'true' : null);
     this._renderAmount(money);
     this._renderOriginal(options);

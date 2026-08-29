@@ -49,7 +49,7 @@ export default defineConfig(({ command }) => ({
               entryFileNames: '[name].js',
               chunkFileNames: 'chunks/[name]-[hash].js',
               manualChunks(id: string) {
-                const m = id.match(/[\\/]src[\\/]core[\\/]([^\\/]+)\.ts$/);
+                const m = /[\\/]src[\\/]core[\\/]([^\\/]+)\.ts$/.exec(id);
                 if (m) return `core/${m[1]}`;
                 return null;
               },

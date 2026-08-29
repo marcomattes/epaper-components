@@ -418,10 +418,10 @@ entries, 22 CSS/source-map entries and the Custom Elements Manifest.
 | Type imports only  | `import type { EButton } from '@marcomattes/epaper-components';` |
 | Whole library      | `import '@marcomattes/epaper-components';`                       |
 
-Bundling the full library through esbuild currently produces 60.76 KB brotli;
+Bundling the full library through esbuild currently produces 60.82 KB brotli;
 `npm run size` enforces a 62 KB brotli budget on the barrel and separate budgets
 on `<e-button>` (6 KB, currently 1.63 KB) and `<e-input>` (8 KB, currently
-2.06 KB). The CSS files are declared as having side effects, since they apply
+2.1 KB). The CSS files are declared as having side effects, since they apply
 globally, and are never tree-shaken.
 
 ## Forms

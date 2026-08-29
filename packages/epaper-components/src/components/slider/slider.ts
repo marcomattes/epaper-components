@@ -149,9 +149,8 @@ export class ESlider extends BaseFormControl<number> {
     this._syncReadout();
   }
 
-  protected serialize(v: number): string {
-    return String(v);
-  }
+  /** The value is always a clamped finite number, which is all `String` needs. */
+  protected serialize = String;
   protected parse(s: string): number {
     const parsed = Number(s);
     return this._clamp(Number.isFinite(parsed) ? parsed : this._bounds().min);

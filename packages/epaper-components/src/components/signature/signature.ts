@@ -11,8 +11,7 @@ function dataUrlToFile(dataUrl: string, name: string): File | null {
   if (!dataUrl.startsWith('data:') || comma === -1) return null;
   try {
     const binary = atob(dataUrl.slice(comma + 1));
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const bytes = Uint8Array.from(binary, (char) => char.codePointAt(0) ?? 0);
     return new File([bytes], name, { type: 'image/png' });
   } catch {
     return null;

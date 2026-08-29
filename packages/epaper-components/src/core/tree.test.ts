@@ -157,20 +157,14 @@ describe('parseTreeAttr', () => {
     expect(res.data).toEqual([]);
   });
 
-  it('accepts an empty array', () => {
-    const res = parseTreeAttr(attrEl({ data: '[]' }), ['data']);
-    expect(res).toEqual({ data: [], source: 'data', error: null });
-  });
-
-  it('treats an empty attribute value as no data, not as a parse error', () => {
-    // Binding an empty string from a framework is the "no data yet" state, so
-    // it must degrade exactly like an absent attribute.
-    const res = parseTreeAttr(attrEl({ data: '' }), ['data']);
-    expect(res).toEqual({ data: [], source: 'data', error: null });
-  });
-
-  it('treats a whitespace-only attribute value as no data', () => {
-    const res = parseTreeAttr(attrEl({ data: '   \n ' }), ['data']);
+  // Binding an empty string from a framework is the "no data yet" state, so it
+  // must degrade exactly like an absent attribute — as must whitespace around it.
+  it.each([
+    ['an empty array', '[]'],
+    ['an empty attribute value', ''],
+    ['a whitespace-only attribute value', '   \n '],
+  ])('reads %s as no data, not as a parse error', (_case, data) => {
+    const res = parseTreeAttr(attrEl({ data }), ['data']);
     expect(res).toEqual({ data: [], source: 'data', error: null });
   });
 
@@ -233,7 +227,7 @@ describe('collectSubtree', () => {
 describe('TreeView.render markup', () => {
   it('mounts a single role="tree" list as the host child', () => {
     const { host } = mount();
-    expect(host.children.length).toBe(1);
+    expect(host.children).toHaveLength(1);
     const ul = host.firstElementChild!;
     expect(ul.tagName).toBe('UL');
     expect(ul.className).toBe('ink-tree');
@@ -314,7 +308,7 @@ describe('TreeView.render markup', () => {
     const group = groupOf(host, 'fruit');
     expect(group.getAttribute('role')).toBe('group');
     expect(group.hidden).toBe(true);
-    expect(group.children.length).toBe(0);
+    expect(group.children).toHaveLength(0);
     expect(view.row('apple')).toBeUndefined();
   });
 
@@ -322,12 +316,12 @@ describe('TreeView.render markup', () => {
     const { host } = mount({ expanded: ['fruit'] });
     const group = groupOf(host, 'fruit');
     expect(group.hidden).toBe(false);
-    expect(group.children.length).toBe(2);
+    expect(group.children).toHaveLength(2);
   });
 
   it('renders nothing but the empty list for empty data', () => {
     const { host, view } = mount({ data: [] });
-    expect(host.querySelectorAll('.ink-tree__row').length).toBe(0);
+    expect(host.querySelectorAll('.ink-tree__row')).toHaveLength(0);
     expect(view.visibleRows()).toEqual([]);
   });
 
@@ -335,8 +329,8 @@ describe('TreeView.render markup', () => {
     const { host, view } = mount({ expanded: ['fruit'] });
     view.setData([{ value: 'solo', label: 'Solo' }]);
     view.render();
-    expect(host.children.length).toBe(1);
-    expect(host.querySelectorAll('.ink-tree__row').length).toBe(1);
+    expect(host.children).toHaveLength(1);
+    expect(host.querySelectorAll('.ink-tree__row')).toHaveLength(1);
     expect(view.row('apple')).toBeUndefined();
     expect(view.node('solo')).toEqual({ value: 'solo', label: 'Solo' });
   });
@@ -401,20 +395,20 @@ describe('TreeView.toggleExpand', () => {
   it('materialises children on first open only', () => {
     const { host, view } = mount();
     const group = groupOf(host, 'fruit');
-    expect(group.children.length).toBe(0);
+    expect(group.children).toHaveLength(0);
 
     view.toggleExpand('fruit');
     expect(group.hidden).toBe(false);
-    expect(group.children.length).toBe(2);
+    expect(group.children).toHaveLength(2);
     const appleRow = view.row('apple')!;
 
     view.toggleExpand('fruit');
     expect(group.hidden).toBe(true);
-    expect(group.children.length).toBe(2);
+    expect(group.children).toHaveLength(2);
 
     view.toggleExpand('fruit');
     expect(group.hidden).toBe(false);
-    expect(group.children.length).toBe(2);
+    expect(group.children).toHaveLength(2);
     expect(view.row('apple')).toBe(appleRow);
   });
 
@@ -560,7 +554,7 @@ describe('TreeView.patchSelection', () => {
     const { host, view } = mount({ expanded: ['fruit'], selected: 'apple' });
     view.patchSelection('apple', '');
     expect(view.selected).toBe('');
-    expect(host.querySelectorAll('[aria-selected="true"]').length).toBe(0);
+    expect(host.querySelectorAll('[aria-selected="true"]')).toHaveLength(0);
   });
 
   it('skips only the marker write when selectionAttr is null', () => {
@@ -569,7 +563,7 @@ describe('TreeView.patchSelection', () => {
     view.patchSelection('fruit', 'apple');
     expect(view.selected).toBe('apple');
     // No marker attribute is written...
-    expect(host.querySelectorAll('[aria-selected]').length).toBe(0);
+    expect(host.querySelectorAll('[aria-selected]')).toHaveLength(0);
     // ...but the roving tab stop still follows the selection.
     expect(tabStops(host)).toEqual(['apple']);
   });
@@ -600,7 +594,7 @@ describe('TreeView.visibleRows', () => {
     // Collapsing the outer branch hides the grandchild too.
     view.toggleExpand('fruit');
     expect(view.visibleRows().map((r) => r.dataset['value'])).toEqual(['fruit', 'veg']);
-    expect(host.querySelectorAll('.ink-tree__row').length).toBe(5);
+    expect(host.querySelectorAll('.ink-tree__row')).toHaveLength(5);
   });
 
   it('returns an empty list before render', () => {

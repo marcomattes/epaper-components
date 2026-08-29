@@ -4071,7 +4071,7 @@ e-redline {
   margin: 0;
   flex: 1 1 auto;
   min-width: 0;
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 .ink-desc-list--bordered {
   border: var(--ink-border);

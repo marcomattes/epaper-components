@@ -71,11 +71,12 @@ export function clampedNumAttr(
  * in the library touches a DOM global at module scope, so an SSR pass now
  * imports cleanly and the components upgrade on the client as usual.
  *
- * The stand-in is deliberately empty. It is never instantiated server-side, so
- * it needs no behaviour — only enough of a type to keep `extends` valid.
+ * The stand-in carries no behaviour. It is never instantiated server-side, so
+ * it only has to be a constructor that keeps `extends` and the subclass type
+ * valid, which `Object` already is.
  */
 export const EpaperElement: typeof HTMLElement =
-  typeof HTMLElement === 'undefined' ? (class {} as unknown as typeof HTMLElement) : HTMLElement;
+  typeof HTMLElement === 'undefined' ? (Object as unknown as typeof HTMLElement) : HTMLElement;
 
 /**
  * Register a custom element, once. Silently does nothing where there is no
@@ -86,8 +87,12 @@ export const define = (name: string, ctor: CustomElementConstructor): void => {
   if (!customElements.get(name)) customElements.define(name, ctor);
 };
 
-export const randId = (prefix: string): string =>
-  `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
+/** Unique-enough DOM id for an aria relationship, drawn from the platform CSPRNG. */
+export const randId = (prefix: string): string => {
+  const bytes = new Uint32Array(1);
+  crypto.getRandomValues(bytes);
+  return `${prefix}-${bytes[0].toString(36)}`;
+};
 
 /**
  * Tiny per-element cleanup registry used by components that attach global
@@ -295,11 +300,11 @@ export function patchBoolAttr(el: Element, name: string, on: boolean): void {
  * `modifier` is non-null. Other classes are preserved.
  */
 export function patchClassModifier(el: Element, prefix: string, modifier: string | null): void {
-  for (const c of [...el.classList]) {
-    if (c.startsWith(prefix) && c !== prefix + modifier) {
-      el.classList.remove(c);
-    }
-  }
+  // Snapshot first: classList is live, so removing during iteration would skip
+  // whichever class shifts into the freed index. One `remove` call also records
+  // one attribute mutation instead of one per stale class.
+  const stale = [...el.classList].filter((c) => c.startsWith(prefix) && c !== prefix + modifier);
+  if (stale.length > 0) el.classList.remove(...stale);
   if (modifier && !el.classList.contains(prefix + modifier)) {
     el.classList.add(prefix + modifier);
   }

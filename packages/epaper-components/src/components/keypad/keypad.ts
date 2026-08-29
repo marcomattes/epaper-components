@@ -238,13 +238,15 @@ export class EKeypad extends BaseFormControl {
         ariaLabel: t(this, 'clear'),
       });
     }
-    keys.push({ kind: 'digit', key: '0', label: '0', ariaLabel: '0' });
-    keys.push({
-      kind: 'backspace',
-      key: 'backspace',
-      label: this.getAttribute('backspace-label') || '⌫',
-      ariaLabel: t(this, 'backspace'),
-    });
+    keys.push(
+      { kind: 'digit', key: '0', label: '0', ariaLabel: '0' },
+      {
+        kind: 'backspace',
+        key: 'backspace',
+        label: this.getAttribute('backspace-label') || '⌫',
+        ariaLabel: t(this, 'backspace'),
+      },
+    );
     if (boolAttr(this, 'decimal')) {
       keys.push({
         kind: 'clear',
