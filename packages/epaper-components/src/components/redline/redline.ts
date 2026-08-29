@@ -145,7 +145,7 @@ function renderWordDiff(target: HTMLElement, before: string, after: string): voi
 
 /**
  * @summary Word-level diff between two text versions, with `<ins>`/`<del>` markup.
- * @since v1.3.0
+ * @since v2.0.0
  *
  * Paragraphs (blank-line separated) are compared by position; an edited
  * paragraph is shown as a single row with a word-level diff inside it, an
@@ -234,7 +234,9 @@ export class ERedline extends EpaperElement {
       this._rowSignatures.pop();
     }
     rows.forEach((row, i) => {
-      const signature = `${row.changed ? '1' : '0'} ${row.before} ${row.after}`;
+      // `\u0000` as an escape, not a literal NUL: a raw one makes grep treat
+      // this whole file as binary and skip it.
+      const signature = `${row.changed ? '1' : '0'}\u0000${row.before}\u0000${row.after}`;
       let p = this._rows[i];
       if (!p) {
         p = document.createElement('p');
