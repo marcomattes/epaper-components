@@ -38,3 +38,11 @@ Review.md
 # artifacts, not baselines — the committed baselines sit flat in
 # __screenshots__/ — and a pair of them was swept into the repo once already.
 **/__screenshots__/*.test.ts/
+
+# A visual run on a machine that is not the pinned Playwright container writes
+# a brand-new baseline for its own platform instead of failing outright — 80 of
+# them after one local run on macOS. Only the container's `-chromium-linux`
+# baselines are valid (see .agents/new-component.md), and `bump-version` stages
+# with `git add --all`, so an unignored one lands in the release commit.
+**/__screenshots__/*-chromium-darwin.png
+**/__screenshots__/*-chromium-win32.png
