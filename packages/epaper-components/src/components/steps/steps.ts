@@ -1,4 +1,12 @@
-import { define, numAttr, observeItems, patchAttr, patchText, runCleanups } from '../../core/dom';
+import {
+  define,
+  EpaperElement,
+  numAttr,
+  observeItems,
+  patchAttr,
+  patchText,
+  runCleanups,
+} from '../../core/dom';
 import { iconSvg } from '../../core/icons';
 import { t } from '../../core/i18n';
 
@@ -78,7 +86,7 @@ interface StepRow {
  *   <e-step title="Ship"></e-step>
  * </e-steps>
  */
-export class ESteps extends HTMLElement {
+export class ESteps extends EpaperElement {
   static readonly observedAttributes = ['current', 'orientation'];
 
   private _wired = false;
@@ -250,5 +258,5 @@ define('e-steps', ESteps);
  * @example
  * <e-step title="Prüfung" status="error" description="Prüfsumme fehlgeschlagen"></e-step>
  */
-export class EStep extends HTMLElement {}
+export class EStep extends EpaperElement {}
 define('e-step', EStep);

@@ -1,6 +1,7 @@
 import {
   addCleanup,
   define,
+  EpaperElement,
   esc,
   numAttr,
   onGlobal,
@@ -28,7 +29,7 @@ import { iconSvg } from '../../core/icons';
  * @example
  * <e-back-top visibility-height="200"></e-back-top>
  */
-export class EBackTop extends HTMLElement {
+export class EBackTop extends EpaperElement {
   static readonly observedAttributes = ['visibility-height', 'label', 'target'];
 
   private _wired = false;

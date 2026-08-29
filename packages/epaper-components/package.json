@@ -466,6 +466,7 @@
     "size": "size-limit",
     "size:why": "size-limit --why",
     "bump-version": "node scripts/bump-version.mjs",
+    "test:ssr": "node scripts/ssr-import-test.mjs",
     "prepack": "node scripts/copy-root-docs.mjs",
     "prepublishOnly": "npm run build",
     "build-browserstack": "vite build && browserstack-node-sdk node scripts/build-css.mjs && tsc -p tsconfig.build.json && node scripts/flatten-dts.mjs && cem analyze && node scripts/gen-tag-map.mjs",

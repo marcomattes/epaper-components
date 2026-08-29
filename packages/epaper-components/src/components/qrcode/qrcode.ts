@@ -1,4 +1,4 @@
-import { define, esc, intAttr, patchAttr } from '../../core/dom';
+import { define, EpaperElement, esc, intAttr, patchAttr } from '../../core/dom';
 import { t } from '../../core/i18n';
 
 /* ============================================================================
@@ -529,7 +529,7 @@ function qrToSvg(qr: QrCode, scale: number, border: number): string {
 // Cache key type for the encoder result.
 type QrData = ReturnType<typeof encodeText>;
 
-export class EQrcode extends HTMLElement {
+export class EQrcode extends EpaperElement {
   static readonly observedAttributes = ['value', 'level', 'scale', 'border', 'width', 'label'];
 
   private _wired = false;

@@ -1,4 +1,4 @@
-import { define, numAttr, patchAttr, patchText } from '../../core/dom';
+import { define, EpaperElement, numAttr, patchAttr, patchText } from '../../core/dom';
 import { formatRelativeTime, resolveLocale } from '../../core/format';
 import { t } from '../../core/i18n';
 
@@ -92,7 +92,7 @@ const FRESHNESS_KEY = { fresh: 'fresh', stale: 'stale', expired: 'expired' } as 
  * @example
  * <e-last-updated locale="de" datetime="2026-08-17T14:00:00Z"></e-last-updated>
  */
-export class ELastUpdated extends HTMLElement {
+export class ELastUpdated extends EpaperElement {
   static readonly observedAttributes = [
     'datetime',
     'now',

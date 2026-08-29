@@ -1,4 +1,4 @@
-import { boolAttr, define } from '../../core/dom';
+import { boolAttr, define, EpaperElement } from '../../core/dom';
 
 /**
  * @summary Flexbox container with attribute-driven layout.
@@ -14,7 +14,7 @@ import { boolAttr, define } from '../../core/dom';
  * @example
  * <e-flex direction="row" gap="8" align="center"><span>A</span><span>B</span></e-flex>
  */
-export class EFlex extends HTMLElement {
+export class EFlex extends EpaperElement {
   static readonly observedAttributes = ['direction', 'wrap', 'justify', 'align', 'gap', 'inline'];
 
   connectedCallback() {

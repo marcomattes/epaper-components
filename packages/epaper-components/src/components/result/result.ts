@@ -1,4 +1,4 @@
-import { define, esc, patchText } from '../../core/dom';
+import { define, EpaperElement, esc, patchText } from '../../core/dom';
 import { iconSvg } from '../../core/icons';
 
 type Status = 'success' | 'error' | 'warning' | 'info' | '404';
@@ -32,7 +32,7 @@ const isStatus = (s: string | null): s is Status =>
  *   <e-button slot="action" variant="primary">Continue</e-button>
  * </e-result>
  */
-export class EResult extends HTMLElement {
+export class EResult extends EpaperElement {
   static readonly observedAttributes = ['status', 'title', 'description'];
 
   private _wired = false;

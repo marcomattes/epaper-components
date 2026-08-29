@@ -1,4 +1,4 @@
-import { define, intAttr } from '../../core/dom';
+import { define, EpaperElement, intAttr } from '../../core/dom';
 import { t, type LocaleStrings } from '../../core/i18n';
 
 /**
@@ -405,7 +405,7 @@ function barsToSvg(bits: string, moduleWidth: number, height: number, quietZone:
  * @example
  * <e-barcode value="4006381333931" format="ean13" show-text></e-barcode>
  */
-export class EBarcode extends HTMLElement {
+export class EBarcode extends EpaperElement {
   static readonly observedAttributes = [
     'value',
     'format',

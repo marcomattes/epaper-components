@@ -2,6 +2,7 @@ import {
   addCleanup,
   boolAttr,
   define,
+  EpaperElement,
   esc,
   patchAttr,
   patchText,
@@ -63,7 +64,7 @@ const roleFor = (variant: Variant): string => (variant === 'error' ? 'alert' : '
  *   Connect the charger to keep syncing.
  * </e-alert>
  */
-export class EAlert extends HTMLElement {
+export class EAlert extends EpaperElement {
   static readonly observedAttributes = ['variant', 'heading', 'closable', 'no-icon'];
 
   private _wired = false;

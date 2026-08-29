@@ -2,6 +2,7 @@ import {
   boolAttr,
   cloneItemBody,
   define,
+  EpaperElement,
   intAttr,
   observeItems,
   patchText,
@@ -48,7 +49,7 @@ interface DescPair {
  *   <e-desc-item term="Tracking">EP-2048-AX</e-desc-item>
  * </e-description-list>
  */
-export class EDescriptionList extends HTMLElement {
+export class EDescriptionList extends EpaperElement {
   static readonly observedAttributes = ['columns', 'layout', 'bordered'];
 
   private _wired = false;
@@ -159,5 +160,5 @@ define('e-description-list', EDescriptionList);
  * @example
  * <e-desc-item term="Status">Shipped</e-desc-item>
  */
-export class EDescItem extends HTMLElement {}
+export class EDescItem extends EpaperElement {}
 define('e-desc-item', EDescItem);

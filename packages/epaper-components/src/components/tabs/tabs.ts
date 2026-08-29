@@ -1,6 +1,7 @@
 import {
   addCleanup,
   define,
+  EpaperElement,
   observeItems,
   patchAttr,
   patchBoolAttr,
@@ -65,7 +66,7 @@ interface TabRow {
  * // Wizard host driving the strip programmatically.
  * document.querySelector('e-tabs').value = 'step-2';
  */
-export class ETabs extends HTMLElement {
+export class ETabs extends EpaperElement {
   static readonly observedAttributes = ['value'];
 
   private _wired = false;
@@ -308,5 +309,5 @@ define('e-tabs', ETabs);
  * @example
  * <e-tab key="a" label="Apples">Apple panel content</e-tab>
  */
-export class ETab extends HTMLElement {}
+export class ETab extends EpaperElement {}
 define('e-tab', ETab);

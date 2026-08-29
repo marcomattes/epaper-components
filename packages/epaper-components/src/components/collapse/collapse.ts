@@ -1,4 +1,4 @@
-import { addCleanup, boolAttr, define, runCleanups } from '../../core/dom';
+import { addCleanup, boolAttr, define, EpaperElement, runCleanups } from '../../core/dom';
 
 interface PanelDef {
   key: string;
@@ -33,7 +33,7 @@ interface PanelDef {
  *   <e-collapse-panel key="returns" heading="Returns">30 days, no questions.</e-collapse-panel>
  * </e-collapse>
  */
-export class ECollapse extends HTMLElement {
+export class ECollapse extends EpaperElement {
   static readonly observedAttributes = ['accordion'];
 
   private _wired = false;
@@ -222,6 +222,6 @@ define('e-collapse', ECollapse);
  * @example
  * <e-collapse-panel key="returns" heading="Returns">30 days.</e-collapse-panel>
  */
-export class ECollapsePanel extends HTMLElement {}
+export class ECollapsePanel extends EpaperElement {}
 
 define('e-collapse-panel', ECollapsePanel);

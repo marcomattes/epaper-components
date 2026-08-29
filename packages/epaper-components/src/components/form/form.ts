@@ -1,4 +1,4 @@
-import { boolAttr, define, patchText, randId } from '../../core/dom';
+import { boolAttr, define, EpaperElement, patchText, randId } from '../../core/dom';
 
 /**
  * @summary Form wrapper that intercepts `submit` and re-fires it as `e-submit`.
@@ -22,7 +22,7 @@ import { boolAttr, define, patchText, randId } from '../../core/dom';
  *   <e-button variant="primary">Save</e-button>
  * </e-form>
  */
-export class EForm extends HTMLElement {
+export class EForm extends EpaperElement {
   static readonly observedAttributes = ['layout', 'novalidate'];
 
   private _form: HTMLFormElement | null = null;
@@ -126,7 +126,7 @@ define('e-form', EForm);
  * screen-reader user hears them; previously they were rendered next to the
  * control but connected to nothing.
  */
-export class EFormItem extends HTMLElement {
+export class EFormItem extends EpaperElement {
   static readonly observedAttributes = ['label', 'hint', 'error', 'required', 'required-label'];
 
   private _root: HTMLElement | null = null;

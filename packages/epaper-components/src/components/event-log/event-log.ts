@@ -1,4 +1,4 @@
-import { boolAttr, define, intAttr, patchAttr, patchText } from '../../core/dom';
+import { boolAttr, define, EpaperElement, intAttr, patchAttr, patchText } from '../../core/dom';
 import { isEventLogEntries } from '../../core/data';
 import type { EventLogEntry, EventLogSeverity } from '../../core/types';
 import { formatDate } from '../../core/format';
@@ -52,7 +52,7 @@ const timestampOf = (ts: string): number => {
  *   data='[{"id":"a1","ts":"2026-08-28T09:12:00Z","severity":"warning","source":"LINE-2","message":"Torque out of range"}]'
  * ></e-event-log>
  */
-export class EEventLog extends HTMLElement {
+export class EEventLog extends EpaperElement {
   static readonly observedAttributes = [
     'data',
     'max-items',

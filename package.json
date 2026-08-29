@@ -45,6 +45,7 @@
     "test:coverage:ci": "vitest run --coverage",
     "size": "npm run size -w packages/epaper-components",
     "size:why": "npm run size:why -w packages/epaper-components",
+    "test:ssr": "npm run test:ssr -w packages/epaper-components",
     "validate:sample-app": "npm run validate -w apps/sample-app",
     "validate:sample-app:types": "npm run types-check -w apps/sample-app",
     "pages:index": "npm run pages:index -w apps/site",

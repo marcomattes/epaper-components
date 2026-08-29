@@ -1,4 +1,4 @@
-import { addCleanup, define, onGlobal, randId, runCleanups } from '../../core/dom';
+import { addCleanup, define, EpaperElement, onGlobal, randId, runCleanups } from '../../core/dom';
 import { iconSvg } from '../../core/icons';
 import '../button/button';
 
@@ -26,7 +26,7 @@ type DropdownItemDef =
  *   <e-dropdown-item icon="trash" label="Delete" disabled></e-dropdown-item>
  * </e-dropdown>
  */
-export class EDropdown extends HTMLElement {
+export class EDropdown extends EpaperElement {
   static readonly observedAttributes = ['align'];
 
   private _wired = false;
@@ -227,5 +227,5 @@ define('e-dropdown', EDropdown);
  * @attr {string} [shortcut] - Optional shortcut hint shown trailing.
  * @attr {boolean} [disabled] - Disables interaction for this entry.
  */
-export class EDropdownItem extends HTMLElement {}
+export class EDropdownItem extends EpaperElement {}
 define('e-dropdown-item', EDropdownItem);

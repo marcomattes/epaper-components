@@ -1,4 +1,4 @@
-import { boolAttr, define, patchAttr, patchText } from '../../core/dom';
+import { boolAttr, define, EpaperElement, patchAttr, patchText } from '../../core/dom';
 import { t, type LocaleStrings } from '../../core/i18n';
 
 /** Symbol and text rendered for one status value. */
@@ -93,7 +93,7 @@ function metaFrom(
  *   status="busy"
  *   size="lg"></e-status-pill>
  */
-export class EStatusPill extends HTMLElement {
+export class EStatusPill extends EpaperElement {
   static readonly observedAttributes = ['status', 'statuses', 'label', 'size', 'announce'];
 
   private _wired = false;

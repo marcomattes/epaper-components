@@ -1,4 +1,4 @@
-import { define } from '../../core/dom';
+import { define, EpaperElement } from '../../core/dom';
 
 /**
  * @summary CSS grid container with attribute-driven columns and gap.
@@ -13,7 +13,7 @@ import { define } from '../../core/dom';
  *   <e-grid-item col="span 6">Right</e-grid-item>
  * </e-grid>
  */
-export class EGrid extends HTMLElement {
+export class EGrid extends EpaperElement {
   static readonly observedAttributes = ['cols', 'gap'];
 
   connectedCallback() {
@@ -43,7 +43,7 @@ define('e-grid', EGrid);
  * @attr {string} [col] - `grid-column` value (e.g. `span 6`).
  * @attr {string} [row] - `grid-row` value.
  */
-export class EGridItem extends HTMLElement {
+export class EGridItem extends EpaperElement {
   static readonly observedAttributes = ['col', 'row'];
 
   connectedCallback() {

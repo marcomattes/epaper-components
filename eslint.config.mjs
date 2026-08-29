@@ -96,6 +96,29 @@ export default defineConfig([
     },
   },
   {
+    // Mechanical enforcement of the SSR-safe base class. `class X extends
+    // HTMLElement` is evaluated when the module loads, so a single one of them
+    // makes the whole library throw `ReferenceError` on a server render — the
+    // barrel and every subpath alike, including from a file the framework only
+    // runs on the client. `EpaperElement` from core/dom is `HTMLElement` in a
+    // browser and an inert stand-in everywhere else.
+    //
+    // Only the `extends` clause is restricted; `HTMLElement` as a type
+    // annotation or a generic constraint is erased at compile time and stays
+    // fine.
+    files: ['packages/epaper-components/src/**/*.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: ':matches(ClassDeclaration, ClassExpression)[superClass.name="HTMLElement"]',
+          message:
+            'Extend EpaperElement from core/dom instead of HTMLElement — a bare `extends HTMLElement` throws on a server render. See core/dom.ts.',
+        },
+      ],
+    },
+  },
+  {
     // Mechanical enforcement of the esc() contract (CLAUDE.md hard rule #1).
     // Scoped to components rather than all of src/ — core/dom.ts is where
     // `esc`/`html` themselves live, and stories/demo don't render untrusted

@@ -1,4 +1,4 @@
-import { define, intAttr, patchAttr } from '../../core/dom';
+import { define, EpaperElement, intAttr, patchAttr } from '../../core/dom';
 
 /**
  * @summary Static loading placeholder block.
@@ -16,7 +16,7 @@ import { define, intAttr, patchAttr } from '../../core/dom';
  * @example
  * <e-skeleton shape="text" lines="3"></e-skeleton>
  */
-export class ESkeleton extends HTMLElement {
+export class ESkeleton extends EpaperElement {
   static readonly observedAttributes = ['shape', 'lines', 'width', 'height'];
 
   private _wired = false;

@@ -82,8 +82,8 @@ jobs:
 
       # Coverage instead of a bare run: this is the only place the browser
       # suite executes, so it is also the only place coverage can be measured.
-      # Both Vitest projects (`unit` and `storybook`) report into it, and V8
-      # merges them into a single reports/coverage/lcov.info.
+      # All three Vitest projects (`unit`, `storybook` and `ssr`) report into
+      # it, and V8 merges them into a single reports/coverage/lcov.info.
       - name: Tests
         run: npm run test:coverage:ci
 
@@ -130,6 +130,12 @@ jobs:
 
       - name: Size limit
         run: npm run size
+
+      # Runs outside the browser on purpose: it asserts that every built entry
+      # point imports in a bare Node process, which is what a framework's
+      # server render gives the library.
+      - name: SSR import check
+        run: npm run test:ssr
 
       - name: Validate sample app (README claims, compiled)
         run: npm run validate:sample-app:types

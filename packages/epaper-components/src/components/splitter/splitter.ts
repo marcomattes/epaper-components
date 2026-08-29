@@ -2,6 +2,7 @@ import {
   addCleanup,
   clampedNumAttr,
   define,
+  EpaperElement,
   onGlobal,
   patchAttr,
   runCleanups,
@@ -25,7 +26,7 @@ import {
  *   <div slot="b">Right</div>
  * </e-splitter>
  */
-export class ESplitter extends HTMLElement {
+export class ESplitter extends EpaperElement {
   static readonly observedAttributes = ['orientation', 'initial', 'min', 'max'];
 
   private _wired = false;

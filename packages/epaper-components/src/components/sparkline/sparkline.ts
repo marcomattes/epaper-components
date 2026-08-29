@@ -1,4 +1,4 @@
-import { define, numAttr, patchAttr, patchText } from '../../core/dom';
+import { define, EpaperElement, numAttr, patchAttr, patchText } from '../../core/dom';
 import { SVG_NS } from '../../core/icons';
 import { t } from '../../core/i18n';
 
@@ -83,7 +83,7 @@ const valuesFrom = (raw: string | null): number[] => {
  * @example
  * <e-sparkline label="Kesseldruck" values="[4.1,4.4,5.2,6.0]" max="8" threshold="5.5"></e-sparkline>
  */
-export class ESparkline extends HTMLElement {
+export class ESparkline extends EpaperElement {
   static readonly observedAttributes = [
     'values',
     'label',

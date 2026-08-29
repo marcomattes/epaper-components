@@ -1,4 +1,4 @@
-import { define } from '../../core/dom';
+import { define, EpaperElement } from '../../core/dom';
 
 /**
  * @summary Typographic container for rich document content.
@@ -27,7 +27,7 @@ import { define } from '../../core/dom';
  *   <blockquote>A quoted remark.</blockquote>
  * </e-prose>
  */
-export class EProse extends HTMLElement {
+export class EProse extends EpaperElement {
   connectedCallback() {
     this.classList.add('ink-prose');
   }

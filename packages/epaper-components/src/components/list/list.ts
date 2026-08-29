@@ -1,4 +1,4 @@
-import { boolAttr, define, patchBoolAttr, patchText } from '../../core/dom';
+import { boolAttr, define, EpaperElement, patchBoolAttr, patchText } from '../../core/dom';
 
 /**
  * @summary Structured list with header / footer slots and `<e-list-item>` rows.
@@ -32,7 +32,7 @@ import { boolAttr, define, patchBoolAttr, patchText } from '../../core/dom';
  *   <e-list-item title="Haushaltssatzung 2026"></e-list-item>
  * </e-list>
  */
-export class EList extends HTMLElement {
+export class EList extends EpaperElement {
   static readonly observedAttributes = ['bordered', 'split', 'ordered', 'header-title'];
 
   private _wired = false;
@@ -163,7 +163,7 @@ define('e-list', EList);
  * @slot leading - Element rendered before the text (icon, avatar).
  * @slot trailing - Element rendered after the text (action, badge).
  */
-export class EListItem extends HTMLElement {
+export class EListItem extends EpaperElement {
   static readonly observedAttributes = ['title', 'description'];
 
   private _wired = false;

@@ -1,4 +1,4 @@
-import { define, intAttr, numAttr } from '../../core/dom';
+import { define, EpaperElement, intAttr, numAttr } from '../../core/dom';
 
 /**
  * @summary CSS-columns based masonry layout for cards of varying height.
@@ -16,7 +16,7 @@ import { define, intAttr, numAttr } from '../../core/dom';
  *   <e-card>…</e-card>
  * </e-masonry>
  */
-export class EMasonry extends HTMLElement {
+export class EMasonry extends EpaperElement {
   static readonly observedAttributes = ['columns', 'gap'];
 
   connectedCallback() {

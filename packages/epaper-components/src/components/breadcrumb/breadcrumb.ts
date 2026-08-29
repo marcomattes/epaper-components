@@ -1,4 +1,11 @@
-import { define, observeItems, patchAttr, patchText, runCleanups } from '../../core/dom';
+import {
+  define,
+  EpaperElement,
+  observeItems,
+  patchAttr,
+  patchText,
+  runCleanups,
+} from '../../core/dom';
 
 /** What a slot in the rendered trail is: a link, a plain span, the current page, or a separator. */
 type CrumbKind = 'link' | 'span' | 'current' | 'sep';
@@ -42,7 +49,7 @@ function kindOf(el: Element): CrumbKind {
  *   <e-breadcrumb-item title="Current"></e-breadcrumb-item>
  * </e-breadcrumb>
  */
-export class EBreadcrumb extends HTMLElement {
+export class EBreadcrumb extends EpaperElement {
   static readonly observedAttributes = ['separator'];
 
   private _wired = false;
@@ -151,5 +158,5 @@ define('e-breadcrumb', EBreadcrumb);
  * @example
  * <e-breadcrumb-item href="#" title="Library"></e-breadcrumb-item>
  */
-export class EBreadcrumbItem extends HTMLElement {}
+export class EBreadcrumbItem extends EpaperElement {}
 define('e-breadcrumb-item', EBreadcrumbItem);

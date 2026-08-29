@@ -1,4 +1,12 @@
-import { addCleanup, define, intAttr, patchAttr, removeCleanup, runCleanups } from '../../core/dom';
+import {
+  addCleanup,
+  define,
+  EpaperElement,
+  intAttr,
+  patchAttr,
+  removeCleanup,
+  runCleanups,
+} from '../../core/dom';
 import { slugifyTitle, uniqueSlugId } from '../../core/slug';
 // `<e-toc>` renders itself as an `<e-anchor>` (see the class doc). A
 // consumer importing only `@marcomattes/epaper-components/toc` still needs
@@ -40,7 +48,7 @@ import '../anchor/anchor';
  *   <h3>Method</h3>
  * </article>
  */
-export class EToc extends HTMLElement {
+export class EToc extends EpaperElement {
   static readonly observedAttributes = ['for', 'min-level', 'max-level'];
 
   private _wired = false;

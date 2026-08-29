@@ -16,6 +16,9 @@ export default defineConfig({
         test: {
           name: 'unit',
           include: ['packages/epaper-components/src/**/*.{test,spec}.ts'],
+          // `__ssr__` belongs to the project below: those tests assert what
+          // happens with no DOM, which a browser cannot demonstrate.
+          exclude: ['**/node_modules/**', '**/dist/**', '**/__ssr__/**'],
           browser: {
             enabled: true,
             headless: true,
@@ -46,6 +49,24 @@ export default defineConfig({
         },
       },
       {
+        // The one project that does not run in a browser. The library has to
+        // import on a server — a framework's SSR pass evaluates every module
+        // it pulls in, including from a `'use client'` file — and the code
+        // paths that make that work (`EpaperElement`'s stand-in, `define()`
+        // skipping registration) are unreachable where a DOM exists. Node is
+        // the only environment that can execute them, so it is the only one
+        // that can cover them.
+        //
+        // `scripts/ssr-import-test.mjs` makes the same assertion against the
+        // built `dist/`, which this cannot: it runs on the sources, before a
+        // build, and reports into the same coverage run as the browser suites.
+        test: {
+          name: 'ssr',
+          environment: 'node',
+          include: ['packages/epaper-components/src/**/__ssr__/**/*.test.ts'],
+        },
+      },
+      {
         plugins: [storybookTest({ configDir: 'apps/storybook/.storybook' })],
         test: {
           name: 'storybook',
@@ -58,9 +79,9 @@ export default defineConfig({
         },
       },
     ],
-    // Both projects above report into this one run, so every reporter below
-    // sees the union of the `unit` and `storybook` results — there is no
-    // per-project report to merge afterwards.
+    // All three projects above report into this one run, so every reporter
+    // below sees the union of the `unit`, `storybook` and `ssr` results —
+    // there is no per-project report to merge afterwards.
     reporters: [
       'default',
       'junit',
@@ -92,7 +113,8 @@ export default defineConfig({
         'packages/epaper-components/src/core/types.ts',
       ],
       // V8 collects per-project and merges before writing, so reports/coverage
-      // /lcov.info already carries the combined `unit` + `storybook` result.
+      // /lcov.info already carries the combined `unit` + `storybook` + `ssr`
+      // result.
       // Keep this in sync with `sonar.coverage.exclusions`: any source file
       // outside this include set has no coverage data at all, and Sonar counts
       // such a file as 0% rather than as "not measured".

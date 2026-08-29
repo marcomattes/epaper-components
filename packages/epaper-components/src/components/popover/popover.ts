@@ -2,6 +2,7 @@ import {
   addCleanup,
   boolAttr,
   define,
+  EpaperElement,
   esc,
   onGlobal,
   patchAttr,
@@ -160,7 +161,7 @@ class Popup {
  *   <e-text>Last sync 3 minutes ago.</e-text>
  * </e-popover>
  */
-export class EPopover extends HTMLElement {
+export class EPopover extends EpaperElement {
   static readonly observedAttributes = ['align', 'placement', 'heading', 'open'];
 
   private _wired = false;
@@ -282,7 +283,7 @@ define('e-popover', EPopover);
  *   <e-button slot="trigger">Delete</e-button>
  * </e-popconfirm>
  */
-export class EPopconfirm extends HTMLElement {
+export class EPopconfirm extends EpaperElement {
   static readonly observedAttributes = [
     'message',
     'confirm-label',

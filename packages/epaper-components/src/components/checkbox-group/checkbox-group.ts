@@ -2,6 +2,7 @@ import {
   addCleanup,
   boolAttr,
   define,
+  EpaperElement,
   observeItems,
   patchAttr,
   patchText,
@@ -288,5 +289,5 @@ define('e-checkbox-group', ECheckboxGroup);
  *   rest of the group stays usable. Follows the library's boolean-attribute convention, so
  *   `disabled="false"` leaves it toggleable.
  */
-export class ECboxOption extends HTMLElement {}
+export class ECboxOption extends EpaperElement {}
 define('e-cbox-option', ECboxOption);

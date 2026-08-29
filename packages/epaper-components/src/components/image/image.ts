@@ -1,4 +1,4 @@
-import { boolAttr, define, patchAttr, patchText } from '../../core/dom';
+import { boolAttr, define, EpaperElement, patchAttr, patchText } from '../../core/dom';
 
 /**
  * @summary Image with fallback, native lazy-loading and optional caption.
@@ -26,7 +26,7 @@ import { boolAttr, define, patchAttr, patchText } from '../../core/dom';
  * @example
  * <e-image src="/cover.jpg" alt="Cover" fallback="/cover.svg" caption="Issue #42"></e-image>
  */
-export class EImage extends HTMLElement {
+export class EImage extends EpaperElement {
   static readonly observedAttributes = [
     'src',
     'alt',

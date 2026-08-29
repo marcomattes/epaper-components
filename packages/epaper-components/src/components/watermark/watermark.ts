@@ -1,4 +1,4 @@
-import { clampedNumAttr, define, esc } from '../../core/dom';
+import { clampedNumAttr, define, EpaperElement, esc } from '../../core/dom';
 
 /** Line spacing as a multiple of the font size. */
 const LINE_HEIGHT = 1.25;
@@ -52,7 +52,7 @@ export function watermarkLines(content: string): string[] {
  *   <article>...</article>
  * </e-watermark>
  */
-export class EWatermark extends HTMLElement {
+export class EWatermark extends EpaperElement {
   static readonly observedAttributes = [
     'content',
     'color',

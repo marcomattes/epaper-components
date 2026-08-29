@@ -1,6 +1,7 @@
 import {
   cloneItemBody,
   define,
+  EpaperElement,
   observeItems,
   patchAttr,
   patchText,
@@ -47,7 +48,7 @@ interface TimelineRow {
  *   <e-timeline-item time="11:00" title="Review">Design review with Marco.</e-timeline-item>
  * </e-timeline>
  */
-export class ETimeline extends HTMLElement {
+export class ETimeline extends EpaperElement {
   static readonly observedAttributes = ['time-position'];
 
   private _wired = false;
@@ -188,5 +189,5 @@ define('e-timeline', ETimeline);
  * @example
  * <e-timeline-item time="11:00" title="Review" variant="done">Approved.</e-timeline-item>
  */
-export class ETimelineItem extends HTMLElement {}
+export class ETimelineItem extends EpaperElement {}
 define('e-timeline-item', ETimelineItem);

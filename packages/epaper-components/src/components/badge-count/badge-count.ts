@@ -1,4 +1,12 @@
-import { boolAttr, captureWrap, define, intAttr, patchAttr, patchText } from '../../core/dom';
+import {
+  boolAttr,
+  captureWrap,
+  define,
+  EpaperElement,
+  intAttr,
+  patchAttr,
+  patchText,
+} from '../../core/dom';
 
 /**
  * @summary Numeric or dot indicator overlaid on a child element.
@@ -13,7 +21,7 @@ import { boolAttr, captureWrap, define, intAttr, patchAttr, patchText } from '..
  * @example
  * <e-badge-count count="12"><e-button>Inbox</e-button></e-badge-count>
  */
-export class EBadgeCount extends HTMLElement {
+export class EBadgeCount extends EpaperElement {
   static readonly observedAttributes = ['count', 'max', 'dot'];
 
   private _wrap: HTMLElement | null = null;

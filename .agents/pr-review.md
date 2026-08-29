@@ -97,6 +97,17 @@ Walk every changed `.ts` file in `packages/epaper-components/src/components/` ag
     ended up reporting `aria-invalid` that nothing rendered. Check that the
     anchor the component actually marks is the one the CSS targets.
 
+14. **Nothing touches a DOM global at module scope** — a component class must
+    read `extends EpaperElement` (from `core/dom.ts`), never
+    `extends HTMLElement`, and no top-level statement may reference
+    `document`, `window`, `customElements` or `navigator`. All of those are
+    evaluated the moment the module loads, and a server render (Next.js,
+    Nuxt, Astro) has none of them — one slip throws `ReferenceError` for the
+    barrel and every subpath alike, including from a `'use client'` file,
+    because those still run through the framework's SSR pass. ESLint catches
+    the `extends` case; the rest is a read of the diff's top level.
+    `HTMLElement` as a type annotation or generic constraint is fine.
+
 ## Wiring checklist for a new/renamed component
 
 If the diff adds a component (`packages/epaper-components/src/components/<name>/<name>.ts`), confirm all of

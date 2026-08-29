@@ -1,6 +1,7 @@
 import {
   addCleanup,
   define,
+  EpaperElement,
   intAttr,
   patchAttr,
   patchBoolAttr,
@@ -39,7 +40,7 @@ const CELL_COUNT = 42;
  * @example
  * <e-calendar locale="de" week-start="1" eyebrow="KALENDER · {year}"></e-calendar>
  */
-export class ECalendar extends HTMLElement {
+export class ECalendar extends EpaperElement {
   static readonly observedAttributes = ['value', 'events', 'week-start', 'eyebrow', 'locale'];
 
   private _wired = false;

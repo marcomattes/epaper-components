@@ -1,4 +1,4 @@
-import { boolAttr, define, intAttr, patchAttr, patchText } from '../../core/dom';
+import { boolAttr, define, EpaperElement, intAttr, patchAttr, patchText } from '../../core/dom';
 import { hm, parseHM, parseYMD, ymd } from '../../core/date';
 import { isCalendarEvents } from '../../core/data';
 import { formatDate } from '../../core/format';
@@ -79,7 +79,7 @@ function readNow(raw: string | null): { date: string | null; minutes: number } |
  *   events='[{"date":"2026-08-28","start":"09:00","end":"10:30","title":"Standup"}]'
  * ></e-agenda>
  */
-export class EAgenda extends HTMLElement {
+export class EAgenda extends EpaperElement {
   static readonly observedAttributes = [
     'date',
     'view',

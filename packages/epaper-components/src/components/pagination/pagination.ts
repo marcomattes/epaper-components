@@ -1,6 +1,7 @@
 import {
   addCleanup,
   define,
+  EpaperElement,
   intAttr,
   patchAttr,
   patchBoolAttr,
@@ -38,7 +39,7 @@ interface PageCell {
  * @example
  * <e-pagination locale="de" current="3" total="42" show-summary></e-pagination>
  */
-export class EPagination extends HTMLElement {
+export class EPagination extends EpaperElement {
   static readonly observedAttributes = [
     'current',
     'total',

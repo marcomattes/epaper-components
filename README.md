@@ -347,6 +347,44 @@ each one ships with a sibling `*.min.css.map`. Importing the unminified sources
 keeps them readable and allows them to pass through a consumer's own CSS
 pipeline.
 
+### The pre-upgrade state
+
+`base.css` hides custom elements that have no registration yet:
+
+```css
+.ink-page :not(:defined) {
+  visibility: hidden;
+}
+```
+
+Until its module has run, a custom element is an unstyled inline box holding
+whatever the author wrote between the tags — raw label text, options as run-on
+prose, no borders. Without this rule the page paints that first and then snaps
+to the real layout once the script registers the element. On an EPDC that second
+paint is a full refresh, which is exactly what the surgical-update rules
+elsewhere in this library exist to avoid.
+
+`:not(:defined)` matches only unregistered custom elements; built-in elements
+always count as defined, so nothing authored in plain HTML is affected. It does
+not distinguish this library's elements from anyone else's, though — a
+third-party custom element nested inside `.ink-page` is held back on the same
+terms, and stays hidden if its own script never registers it. CSS cannot match a
+tag prefix, so the alternative would be a generated list of all 108 tags.
+
+The other side of the trade is that a page whose script never arrives shows
+nothing at all. Where either case matters, hand the unregistered elements their
+content back:
+
+```html
+<noscript>
+  <style>
+    .ink-page :not(:defined) {
+      visibility: visible;
+    }
+  </style>
+</noscript>
+```
+
 Sizes as of the current 1.0.1 build:
 
 | File                         |     raw |   gzip |
@@ -575,6 +613,38 @@ hyphenated names are not covered by the event systems of React or Vue's JSX
 transform, so in those environments listeners are attached imperatively. Vue
 templates, Angular templates and Svelte have syntax for it.
 
+### Server-side rendering
+
+The library imports cleanly on a server. Every entry point — the barrel and each
+subpath — can be imported from a Next.js, Nuxt, Astro or SvelteKit render
+without a DOM: the element classes are constructed, registration is skipped
+because there is no `customElements` registry, and the components upgrade when
+the module is evaluated again in the browser. Nothing in the library reads
+`document` or `window` while a module is loading. So the plain top-level import
+in the examples below is safe, and needs no `typeof window` guard or dynamic
+import.
+
+What server rendering does _not_ do here is produce markup. The components are
+light-DOM only and build their subtree in `connectedCallback`, which runs in a
+browser and nowhere else, so the server emits the custom element tag with the
+authored children inside it and nothing more. Two consequences worth designing
+around:
+
+- **The first paint is the pre-upgrade one.** `base.css` hides not-yet-registered
+  elements (`.ink-page :not(:defined)`) so a page repaints once instead of
+  flashing unstyled content and then snapping into place — on an e-paper panel
+  that second repaint is a full refresh, not a free one. The trade is that a
+  page whose script never arrives shows nothing; the rule is one line to undo,
+  see [Stylesheets](#stylesheets).
+- **Do not pre-render the components' own output.** A snapshot of the rendered
+  subtree, fed back in as server HTML, is not adopted on upgrade — the component
+  renders again around it and you get the markup twice over. Ship the authored
+  form (`<e-button>Save</e-button>`), not the upgraded one.
+
+Hydration in the framework sense — server markup that the client adopts in place
+— would need Declarative Shadow DOM, which this library deliberately does not
+use. It is not on the roadmap.
+
 ### React
 
 React 19 supports custom elements in the sense that it sets primitive props as
@@ -789,11 +859,13 @@ numbers CI actually measured:
 | `reports/test/sonar.xml`     | `vitest-sonar-reporter` | `sonar.testExecutionReportPaths`    |
 
 There is only one test runner. Playwright is not a second suite — it is the
-browser provider Vitest drives in browser mode, and both Vitest projects, `unit`
-(`src/**/*.test.ts`) and `storybook` (the a11y and interaction stories), run in
-that same Chromium instance within a single `vitest run`. V8 collects coverage
-per project and merges it before writing, so `lcov.info` is already the union of
-the two; nothing has to be combined afterwards. Should a genuinely separate
+browser provider Vitest drives in browser mode, and two of the three Vitest
+projects, `unit` (`src/**/*.test.ts`) and `storybook` (the a11y and interaction
+stories), run in that same Chromium instance within a single `vitest run`. The
+third, `ssr` (`src/**/__ssr__/`), runs in a Node environment instead: it covers
+the paths that only exist where there is no DOM, which a browser cannot reach.
+V8 collects coverage per project and merges it before writing, so `lcov.info` is
+already the union of all three; nothing has to be combined afterwards. Should a genuinely separate
 runner ever be added, `sonar.javascript.lcov.reportPaths` takes a
 comma-separated list and Sonar unions the files itself.
 

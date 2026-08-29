@@ -13,9 +13,9 @@ repo root (a one-line `@AGENTS.md` import) — edit this file, not that one.
 
 This is **EPaper**, a vanilla web component library (83 source files, 108 registered Custom Elements)
 optimized for e-paper displays. It is **not Lit-based** — Lit is only a
-Storybook devDependency. Components extend `HTMLElement` directly or
-`BaseFormControl<T>` for form controls. Light DOM only, no Shadow DOM.
-No animations, no `:hover`.
+Storybook devDependency. Components extend `EpaperElement` (`HTMLElement` in a
+browser, an SSR-safe stand-in elsewhere) or `BaseFormControl<T>` for form
+controls. Light DOM only, no Shadow DOM. No animations, no `:hover`.
 
 ## Repository layout
 
@@ -106,7 +106,17 @@ the right workspace, so day-to-day commands are unchanged.
     full repaint rule 7 exists to prevent. Pass `isOutput` so the observer
     ignores the component's own rendered subtree, and keep the sync
     surgical.
-12. **Locale-dependent output goes through `core/format.ts` and
+12. **Extend `EpaperElement`, never `HTMLElement` directly.** The `extends`
+    clause is evaluated when the module loads, and a server render has no
+    `HTMLElement` binding — one bare `extends HTMLElement` makes the barrel
+    _and every subpath_ throw `ReferenceError` in Next.js, Nuxt or Astro, even
+    from a file the framework only ever runs on the client. `EpaperElement`
+    from `core/dom.ts` is `HTMLElement` itself in a browser and an inert
+    stand-in elsewhere. `HTMLElement` as a _type_ is fine; only the `extends`
+    clause is restricted, and ESLint enforces it. Nothing else in the library
+    may touch a DOM global at module scope either — keep it inside
+    `connectedCallback` and methods, where a document is guaranteed.
+13. **Locale-dependent output goes through `core/format.ts` and
     `core/i18n.ts`.** No `toFixed()` for a displayed number, and no English
     string literal in a rendered label. Numbers, dates and relative times use
     the `Intl` wrappers; the words the library invents itself (freshness,
@@ -117,7 +127,7 @@ the right workspace, so day-to-day commands are unchanged.
 ## Adding a component (skeleton)
 
 ```ts
-import { define, esc } from '../core/dom';
+import { define, EpaperElement, esc } from '../core/dom';
 
 /**
  * @summary Short description.
@@ -127,7 +137,7 @@ import { define, esc } from '../core/dom';
  * @slot - Default slot description.
  * @example <e-foo></e-foo>
  */
-export class EFoo extends HTMLElement {
+export class EFoo extends EpaperElement {
   static observedAttributes = ['foo'];
   private _wired = false;
 
@@ -269,9 +279,13 @@ and strand the tag — then tag the merged commit on `main` and push the tag.
   path outside the Vitest include set must be excluded on the Sonar side
   too. Change one, change the other.
 - **There is one test runner, not two.** Playwright is Vitest's browser
-  provider, not a separate suite. Both Vitest projects (`unit`, `storybook`)
-  run in a single `vitest run` and V8 merges their coverage into one
-  `lcov.info` — there is nothing to combine afterwards.
+  provider, not a separate suite. All three Vitest projects (`unit`,
+  `storybook`, `ssr`) run in a single `vitest run` and V8 merges their
+  coverage into one `lcov.info` — there is nothing to combine afterwards.
+  `ssr` is the odd one: it runs in a Node environment rather than the browser,
+  because the code paths that let the library import on a server only exist
+  where there is no DOM. Its tests live in `src/**/__ssr__/`, which the `unit`
+  project excludes.
 - **CSS imports use sub-paths**: `@marcomattes/epaper-components/styles/tokens.css`
   resolves to `packages/epaper-components/src/styles/tokens.css` via the exports map. The
   `sideEffects` array intentionally lists `./src/styles/*.css` for this

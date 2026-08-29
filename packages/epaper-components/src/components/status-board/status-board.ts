@@ -1,4 +1,4 @@
-import { define, intAttr, patchAttr, patchText } from '../../core/dom';
+import { define, EpaperElement, intAttr, patchAttr, patchText } from '../../core/dom';
 
 /** The built-in status vocabulary. `statuses` can add to it at runtime. */
 export type StatusBoardStatus = 'ok' | 'warning' | 'critical' | 'offline' | 'neutral';
@@ -123,7 +123,7 @@ function metaFrom(raw: string | null): Record<string, StatusMeta> {
  *   statuses='{"free":{"symbol":"○","label":"Frei"},"busy":{"symbol":"●","label":"Belegt"}}'
  *   data='[{"key":"r1","label":"Raum 1","value":"09:00","status":"busy"}]'></e-status-board>
  */
-export class EStatusBoard extends HTMLElement {
+export class EStatusBoard extends EpaperElement {
   static readonly observedAttributes = [
     'data',
     'statuses',

@@ -1,4 +1,4 @@
-import { captureWrap, define, patchAttr, patchClassModifier } from '../../core/dom';
+import { captureWrap, define, EpaperElement, patchAttr, patchClassModifier } from '../../core/dom';
 
 /** True when `document.createElement` accepts `tag` as an element name. */
 const isElementName = (tag: string): boolean => {
@@ -38,7 +38,7 @@ const ALIGNMENTS = ['start', 'center', 'end', 'justify'] as const;
  * <e-text kind="strike">UVP 249,00 €</e-text>
  * <e-text kind="caption" align="center" as="p">Abb. 3 — Messpunkt Nord</e-text>
  */
-export class EText extends HTMLElement {
+export class EText extends EpaperElement {
   static readonly observedAttributes = ['kind', 'as', 'align'];
 
   private _wrap: HTMLElement | null = null;

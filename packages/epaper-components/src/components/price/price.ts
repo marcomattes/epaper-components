@@ -1,4 +1,4 @@
-import { define, numAttr, patchAttr, patchText } from '../../core/dom';
+import { define, EpaperElement, numAttr, patchAttr, patchText } from '../../core/dom';
 import { formatMoneyParts, formatUnitPrice, MONEY_PLACEHOLDER } from '../../core/format';
 import type { MoneyOptions, MoneyParts } from '../../core/format';
 import { label, t } from '../../core/i18n';
@@ -37,7 +37,7 @@ const optionalNumber = (el: Element, name: string): number | null => {
  * @example
  * <e-price value="3.99" original="4.99" unit-price="7.98" unit="kg" size="lg"></e-price>
  */
-export class EPrice extends HTMLElement {
+export class EPrice extends EpaperElement {
   static readonly observedAttributes = [
     'value',
     'currency',

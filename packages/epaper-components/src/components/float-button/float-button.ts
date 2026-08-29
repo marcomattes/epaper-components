@@ -1,4 +1,4 @@
-import { define, patchAttr } from '../../core/dom';
+import { define, EpaperElement, patchAttr } from '../../core/dom';
 import { iconSvg } from '../../core/icons';
 
 /**
@@ -12,7 +12,7 @@ import { iconSvg } from '../../core/icons';
  * @example
  * <e-float-button icon="plus" label="Add"></e-float-button>
  */
-export class EFloatButton extends HTMLElement {
+export class EFloatButton extends EpaperElement {
   static readonly observedAttributes = ['icon', 'label', 'primary'];
 
   private _wired = false;
@@ -79,7 +79,7 @@ define('e-float-button', EFloatButton);
  *   <e-fab-item icon="trash" label="Delete"></e-fab-item>
  * </e-float-button-group>
  */
-export class EFloatButtonGroup extends HTMLElement {
+export class EFloatButtonGroup extends EpaperElement {
   static readonly observedAttributes = ['orientation'];
 
   private _wired = false;
@@ -145,5 +145,5 @@ define('e-float-button-group', EFloatButtonGroup);
  * @example
  * <e-fab-item icon="plus" label="Add"></e-fab-item>
  */
-export class EFabItem extends HTMLElement {}
+export class EFabItem extends EpaperElement {}
 define('e-fab-item', EFabItem);

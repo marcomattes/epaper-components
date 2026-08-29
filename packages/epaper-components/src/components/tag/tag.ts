@@ -3,6 +3,7 @@ import {
   boolAttr,
   captureWrap,
   define,
+  EpaperElement,
   patchBoolAttr,
   runCleanups,
 } from '../../core/dom';
@@ -24,7 +25,7 @@ import {
  * @example
  * <e-tag closable>Draft</e-tag>
  */
-export class ETag extends HTMLElement {
+export class ETag extends EpaperElement {
   static readonly observedAttributes = ['closable', 'disabled'];
 
   private _wrap: HTMLElement | null = null;

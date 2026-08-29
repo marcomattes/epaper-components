@@ -49,7 +49,7 @@ in.
 Every component file follows this shape:
 
 ```ts
-import { define, esc } from '../core/dom';
+import { define, EpaperElement, esc } from '../core/dom';
 import { BaseFormControl } from '../core/base-form-control'; // for form inputs
 
 /**
@@ -62,7 +62,7 @@ import { BaseFormControl } from '../core/base-form-control'; // for form inputs
  * @example
  * <e-foo></e-foo>
  */
-export class EFoo extends HTMLElement {
+export class EFoo extends EpaperElement {
   static observedAttributes = ['foo'];
 
   private _wired = false;
@@ -139,9 +139,11 @@ reports/test/sonar.xml       test results, read by sonar.testExecutionReportPath
 reports/coverage/index.html  the report to actually look at while writing tests
 ```
 
-Both Vitest projects — `unit` and `storybook` — run in one invocation and V8
-merges their coverage before writing, so a line exercised only by a story counts
-as covered.
+All three Vitest projects — `unit`, `storybook` and `ssr` — run in one
+invocation and V8 merges their coverage before writing, so a line exercised only
+by a story counts as covered. `ssr` runs in a Node environment rather than the
+browser; put a test there (`src/**/__ssr__/`) only when it asserts what happens
+with no DOM, which is the one thing the browser projects cannot show.
 
 The thresholds in `vitest.config.ts` are a **regression floor, not a target**.
 They sit at or just below the measured numbers (currently 87.7% lines, 87.7%
