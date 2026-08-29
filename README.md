@@ -385,16 +385,16 @@ content back:
 </noscript>
 ```
 
-Sizes as of the current 1.0.1 build:
+Sizes as of the current 2.0.0 build:
 
-| File                         |     raw |   gzip |
-| ---------------------------- | ------: | -----: |
-| `tokens.min.css`             |  1.8 KB | 0.7 KB |
-| `base.min.css`               |  1.5 KB | 0.6 KB |
-| `components.min.css`         | 46.7 KB | 7.2 KB |
-| `epaper.min.css`             | 49.8 KB | 7.9 KB |
-| `mono-high-contrast.min.css` |  0.7 KB | 0.3 KB |
-| `kaleido.min.css`            |  0.4 KB | 0.3 KB |
+| File                         |     raw |    gzip |
+| ---------------------------- | ------: | ------: |
+| `tokens.min.css`             |  1.8 KB |  0.7 KB |
+| `base.min.css`               |  1.5 KB |  0.6 KB |
+| `components.min.css`         | 79.0 KB | 11.4 KB |
+| `epaper.min.css`             | 82.2 KB | 12.2 KB |
+| `mono-high-contrast.min.css` |  0.8 KB |  0.3 KB |
+| `kaleido.min.css`            |  0.4 KB |  0.3 KB |
 
 ## Subpath imports and bundle size
 
@@ -418,10 +418,10 @@ entries, 22 CSS/source-map entries and the Custom Elements Manifest.
 | Type imports only  | `import type { EButton } from '@marcomattes/epaper-components';` |
 | Whole library      | `import '@marcomattes/epaper-components';`                       |
 
-Bundling the full library through esbuild currently produces 58.03 KB brotli;
-`npm run size` enforces a 60 KB brotli budget on the barrel and separate budgets
-on `<e-button>` (6 KB, currently 1.6 KB) and `<e-input>` (8 KB, currently
-2.05 KB). The CSS files are declared as having side effects, since they apply
+Bundling the full library through esbuild currently produces 60.76 KB brotli;
+`npm run size` enforces a 62 KB brotli budget on the barrel and separate budgets
+on `<e-button>` (6 KB, currently 1.63 KB) and `<e-input>` (8 KB, currently
+2.06 KB). The CSS files are declared as having side effects, since they apply
 globally, and are never tree-shaken.
 
 ## Forms
