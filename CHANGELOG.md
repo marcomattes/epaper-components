@@ -7,6 +7,42 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.0.0] — 2026-08-29
+
+The first major release since 1.0. Everything below is additive except the
+four items in this section: the rendered output of every component is
+unchanged, but code that queries a component's children, relies on
+`percent="false"` being truthy, or renders date-only strings west of UTC
+needs a look. Each one is described in full further down.
+
+### Breaking changes
+
+- **Data carriers stay in the DOM.** `<e-select>`, `<e-checkbox-group>`,
+  `<e-radio-group>`, `<e-tabs>`, `<e-steps>`, `<e-timeline>`,
+  `<e-description-list>`, `<e-breadcrumb>`, `<e-avatar-group>`,
+  `<e-segmented>` and `<e-anchor>` no longer destroy their `<e-option>`,
+  `<e-tab>`, `<e-step>` … children at connect. The carriers remain in the
+  light DOM, hidden with `display: none`, as the component's source of truth
+  — that is what makes an entry appended or edited after mount render at all.
+  Code that counted `host.children`, read `host.firstElementChild` as the
+  rendered node, or asserted the carriers were gone should query by tag or by
+  `.ink-*` class instead.
+- **`<e-checkbox-group>` re-derives its selection from `value` on reconnect.**
+  A box toggled natively while the group was disconnected — and therefore
+  unobserved — is discarded instead of surviving into the next reported value.
+- **`<e-statistic>` follows the `boolAttr` convention.** `percent="false"`
+  and `grouping="false"` now turn the mode off; previously any value,
+  `"false"` included, switched it on.
+- **Date-only strings render on their own calendar day.** `formatDate()` — and
+  with it `<e-table>`'s `format: 'date'` columns — parses `YYYY-MM-DD` as a
+  local date rather than UTC midnight. A page west of UTC will show such dates
+  one day later than before, which is the correct day.
+
+One further change is visible without breaking an API: unregistered custom
+elements are hidden until they upgrade, so a page paints once instead of
+snapping to its real layout when the script registers. Where a no-script
+fallback matters more, one `<noscript>` rule undoes it — see the README.
+
 ### Added
 
 - `<e-status-pill>`: the single-value counterpart to `<e-status-board>`, for
@@ -785,7 +821,8 @@ These are intentional V1.0 trade-offs and slated for V1.1:
   the public API for demo purposes; it is not a general-purpose layout
   primitive.
 
-[unreleased]: https://github.com/marcomattes/epaper-components/compare/v1.2.0...HEAD
+[unreleased]: https://github.com/marcomattes/epaper-components/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/marcomattes/epaper-components/compare/v1.2.0...v2.0.0
 [1.2.0]: https://github.com/marcomattes/epaper-components/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/marcomattes/epaper-components/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/marcomattes/epaper-components/compare/v1.0.0...v1.0.1
