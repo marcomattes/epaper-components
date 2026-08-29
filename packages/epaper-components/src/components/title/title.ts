@@ -22,9 +22,9 @@ import { slugifyTitle, uniqueSlugId } from '../../core/slug';
  *
  * @attr {1|2|3|4|5|6} [level=1] - Heading level. Out-of-range values are clamped to `1`…`6`;
  *   fractional and non-numeric values fall back to `1`.
- * @attr {boolean} [auto-id=true] - Derives the heading `id` from its text. Set `auto-id="false"` to opt out. @since v1.3.0
- * @attr {boolean} [anchor] - Appends a self-link to the heading's own id. @since v1.3.0
- * @attr {string} [anchor-label='Link to this section'] - Accessible name of the anchor link. @since v1.3.0
+ * @attr {boolean} [auto-id=true] - Derives the heading `id` from its text. Set `auto-id="false"` to opt out. @since v2.0.0
+ * @attr {boolean} [anchor] - Appends a self-link to the heading's own id. @since v2.0.0
+ * @attr {string} [anchor-label='Link to this section'] - Accessible name of the anchor link. @since v2.0.0
  *
  * @example
  * <e-title level="2">Section heading</e-title>

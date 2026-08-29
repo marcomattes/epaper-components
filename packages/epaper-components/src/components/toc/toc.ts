@@ -16,7 +16,7 @@ import '../anchor/anchor';
 
 /**
  * @summary Auto-generated table of contents, mirrored into an `<e-anchor>`.
- * @since v1.3.0
+ * @since v2.0.0
  *
  * Scans `for`'s heading elements between `min-level` and `max-level` — plain
  * `<h2>`/`<h3>` inside an `<e-prose>` document as much as an `<e-title>`'s

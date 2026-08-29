@@ -32,8 +32,8 @@ export function watermarkLines(content: string): string[] {
  * the computed text color) so the watermark follows a theme pack instead of
  * staying black on an inverted panel.
  *
- * @attr {string} content - Text to render on the watermark layer. Empty or absent leaves the layer blank. A newline — real or written as `\n` — starts a further line; lines are centred as a block. @since v1.3.0 (multi-line)
- * @attr {string} [color] - Explicit ink color. Defaults to the resolved `--ink-fg`. @since v1.3.0
+ * @attr {string} content - Text to render on the watermark layer. Empty or absent leaves the layer blank. A newline — real or written as `\n` — starts a further line; lines are centred as a block. @since v2.0.0 (multi-line)
+ * @attr {string} [color] - Explicit ink color. Defaults to the resolved `--ink-fg`. @since v2.0.0
  * @attr {number} [font-size=16] - SVG font size in pixels.
  * @attr {number} [gap-x=120] - Horizontal tile size.
  * @attr {number} [gap-y=80] - Vertical tile size.

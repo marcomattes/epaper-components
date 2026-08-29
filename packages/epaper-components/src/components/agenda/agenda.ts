@@ -46,7 +46,7 @@ function readNow(raw: string | null): { date: string | null; minutes: number } |
 
 /**
  * @summary Day or week agenda on a proportional time axis, with the gaps between entries shown.
- * @since v1.3.0
+ * @since v2.0.0
  *
  * Entries are `{date, title, start?, end?, status?}` objects — the same
  * {@link CalendarEvent} shape `<e-calendar>` reads, so one dataset feeds both.

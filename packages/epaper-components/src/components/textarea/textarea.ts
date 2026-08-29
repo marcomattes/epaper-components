@@ -1,7 +1,7 @@
 import { boolAttr, define, esc, intAttr, patchText, randId } from '../../core/dom';
 import { BaseFormControl } from '../../core/base-form-control';
 
-/** Inline fallback height used when no `rows` is authored (pre-v1.3.0 default). */
+/** Inline fallback height used when no `rows` is authored (pre-v2.0.0 default). */
 const DEFAULT_MIN_HEIGHT = '96px';
 
 /**
@@ -16,9 +16,9 @@ const DEFAULT_MIN_HEIGHT = '96px';
  * `min-height: 96px`.
  *
  * @attr {string} [value] - Current value.
- * @attr {string} [label] - Label rendered above the textarea. @since v1.3.0
- * @attr {string} [hint] - Helper text rendered below the textarea. @since v1.3.0
- * @attr {number} [rows] - Visible text rows. Replaces the default `min-height: 96px` sizing. Values below 1 and non-integers are ignored. @since v1.3.0
+ * @attr {string} [label] - Label rendered above the textarea. @since v2.0.0
+ * @attr {string} [hint] - Helper text rendered below the textarea. @since v2.0.0
+ * @attr {number} [rows] - Visible text rows. Replaces the default `min-height: 96px` sizing. Values below 1 and non-integers are ignored. @since v2.0.0
  * @attr {string} [placeholder] - Native placeholder text.
  * @attr {string} [name] - Form field name. Required to participate in `FormData`.
  * @attr {boolean} [error] - Marks the textarea as invalid. Sets `aria-invalid="true"` and a custom `ElementInternals` validity error so `form.checkValidity()` returns `false`.
@@ -28,7 +28,7 @@ const DEFAULT_MIN_HEIGHT = '96px';
  * @attr {boolean} [required] - Requires a non-empty value for form validation.
  * @attr {string} [required-message] - Overrides the native message reported when `required` is not satisfied.
  * @attr {number} [minlength] - Minimum text length.
- * @attr {number} [maxlength] - Maximum text length. Setting it also renders a `current / max` character counter below the control. @since v1.3.0
+ * @attr {number} [maxlength] - Maximum text length. Setting it also renders a `current / max` character counter below the control. @since v2.0.0
  * @attr {string} [autocomplete] - Forwarded to the native `autocomplete` attribute.
  * @attr {string} [inputmode] - Forwarded to the native `inputmode` attribute (virtual keyboard layout).
  * @attr {string} [enterkeyhint] - Forwarded to the native `enterkeyhint` attribute.
@@ -238,7 +238,7 @@ export class ETextarea extends BaseFormControl {
   }
 
   /**
-   * `rows` owns the height when authored; otherwise the pre-v1.3.0
+   * `rows` owns the height when authored; otherwise the pre-v2.0.0
    * `min-height` keeps the control the size existing layouts expect.
    */
   private _syncRows(): void {

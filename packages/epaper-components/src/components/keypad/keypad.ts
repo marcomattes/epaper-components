@@ -19,7 +19,7 @@ const DIGIT_ROWS = [
 
 /**
  * @summary On-screen numeric keypad that can drive another control through `for`.
- * @since v1.3.0
+ * @since v2.0.0
  *
  * Form-associated: participates in `<form>` submission and FormData on its
  * own, and mirrors every keystroke into the control named by `for` when one

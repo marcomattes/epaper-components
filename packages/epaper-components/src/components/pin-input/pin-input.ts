@@ -6,7 +6,7 @@ const MAX_LENGTH = 12;
 
 /**
  * @summary Fixed-length code entry as separate digit boxes, with auto-advance.
- * @since v1.3.0
+ * @since v2.0.0
  *
  * Form-associated: participates in `<form>` submission and FormData.
  *

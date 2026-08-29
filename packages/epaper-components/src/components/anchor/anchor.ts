@@ -35,7 +35,7 @@ interface AnchorEntry {
  *
  * @attr {number} [offset-top=80] - Pixels from the viewport top where a section is considered active. Reactive.
  *
- * @fires {CustomEvent<{value: string}>} e-change - Fired when scrolling, an item change or a new `offset-top` moves the highlight to a different entry. Not fired for the first highlight after mount. @since v1.3.0
+ * @fires {CustomEvent<{value: string}>} e-change - Fired when scrolling, an item change or a new `offset-top` moves the highlight to a different entry. Not fired for the first highlight after mount. @since v2.0.0
  *
  * @slot - Default slot for `<e-anchor-item>` children.
  *

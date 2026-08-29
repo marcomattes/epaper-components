@@ -18,7 +18,7 @@ const SMILEY = {
 
 /**
  * @summary Star or smiley rating with touch-sized targets and full keyboard control.
- * @since v1.3.0
+ * @since v2.0.0
  *
  * Form-associated: participates in `<form>` submission and FormData. An
  * unrated control submits an empty value, so `required` behaves the way it

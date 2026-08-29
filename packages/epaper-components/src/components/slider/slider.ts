@@ -16,7 +16,7 @@ const MAX_TICKS = 21;
 
 /**
  * @summary Range slider with a wide grip, printed scale and optional tick marks.
- * @since v1.3.0
+ * @since v2.0.0
  *
  * Form-associated: participates in `<form>` submission and FormData.
  *

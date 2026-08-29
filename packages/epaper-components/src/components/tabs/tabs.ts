@@ -50,7 +50,7 @@ interface TabRow {
  * inline style is what guarantees it without one.
  *
  * @attr {string} [default-value] - Key of the tab active on first render. Defaults to the first tab when absent, empty or matching no tab.
- * @attr {string} [value] - Key of the active tab. Reactive: setting it after mount switches tabs without emitting `e-change`, which is what a wizard or a multi-section form host needs. Wins over `default-value` at mount. A key matching no tab is ignored. Not reflected — read the `value` property for the live key. @since v1.3.0
+ * @attr {string} [value] - Key of the active tab. Reactive: setting it after mount switches tabs without emitting `e-change`, which is what a wizard or a multi-section form host needs. Wins over `default-value` at mount. A key matching no tab is ignored. Not reflected — read the `value` property for the live key. @since v2.0.0
  *
  * @fires {CustomEvent<{value: string}>} e-change - Fired when the user activates a different tab. `value` is the activated tab's `key`. Programmatic switches via the `value` attribute or property stay silent.
  *
@@ -77,7 +77,7 @@ export class ETabs extends EpaperElement {
   private _keys: HTMLElement[] = [];
   private _byKey = new Map<string, TabRow>();
 
-  /** Key of the active tab. Assigning switches tabs without emitting `e-change`. @since v1.3.0 */
+  /** Key of the active tab. Assigning switches tabs without emitting `e-change`. @since v2.0.0 */
   get value(): string {
     return this._active;
   }

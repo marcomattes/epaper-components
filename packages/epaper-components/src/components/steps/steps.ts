@@ -253,7 +253,7 @@ define('e-steps', ESteps);
  *
  * @attr {string} title - Step title.
  * @attr {string} [description] - Optional secondary line below the title.
- * @attr {'error'|'warning'} [status] - Marks the step's outcome. Renders the matching glyph in the bubble instead of the ordinal or check mark, sets `data-status` on the item, and replaces the vertical status label. Unknown values are ignored. @since v1.3.0
+ * @attr {'error'|'warning'} [status] - Marks the step's outcome. Renders the matching glyph in the bubble instead of the ordinal or check mark, sets `data-status` on the item, and replaces the vertical status label. Unknown values are ignored. @since v2.0.0
  *
  * @example
  * <e-step title="Prüfung" status="error" description="Prüfsumme fehlgeschlagen"></e-step>

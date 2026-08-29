@@ -28,12 +28,12 @@ const CELL_COUNT = 42;
  *
  * @attr {string} [value] - Currently selected day in `YYYY-MM-DD` format.
  * @attr {string} [events='[]'] - JSON-encoded array of `{date, title}` event objects.
- * @attr {number} [week-start=0] - First column's weekday: 0 = Sunday, 1 = Monday. (since v1.3.0)
- * @attr {string} [eyebrow='CALENDAR · {year}'] - Template above the month name. `{month}` inserts the short localized month, `{year}` the year. (since v1.3.0)
- * @attr {string} [locale] - BCP-47 tag for the weekday, month and day-cell names. Falls back to the nearest `lang`, then the document language. (since v1.3.0)
+ * @attr {number} [week-start=0] - First column's weekday: 0 = Sunday, 1 = Monday. (since v2.0.0)
+ * @attr {string} [eyebrow='CALENDAR · {year}'] - Template above the month name. `{month}` inserts the short localized month, `{year}` the year. (since v2.0.0)
+ * @attr {string} [locale] - BCP-47 tag for the weekday, month and day-cell names. Falls back to the nearest `lang`, then the document language. (since v2.0.0)
  *
  * @fires {CustomEvent<{value: string}>} e-change - Fired when the user picks a day. `value` is `YYYY-MM-DD`.
- * @fires {CustomEvent<{year: number, month: number}>} e-month-change - Fired after the visible month moved, by the header buttons or by arrow keys crossing a boundary. `month` is zero-based, like `Date#getMonth`. (since v1.3.0)
+ * @fires {CustomEvent<{year: number, month: number}>} e-month-change - Fired after the visible month moved, by the header buttons or by arrow keys crossing a boundary. `month` is zero-based, like `Date#getMonth`. (since v2.0.0)
  *
  * @example
  * <e-calendar value="2025-04-26" events='[{"date":"2025-04-30","title":"Release"}]'></e-calendar>

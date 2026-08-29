@@ -33,7 +33,7 @@ beforeAll(async () => {
   await import('../timeline/timeline');
   await import('../diff/diff');
   await import('../button/button');
-  // v1.3.0 maturity work — see the "v1.3.0" sections at the end of this file.
+  // v2.0.0 maturity work — see the "v2.0.0" sections at the end of this file.
   await import('../textarea/textarea');
   await import('../tabs/tabs');
   await import('../steps/steps');
@@ -217,7 +217,7 @@ describe('e-breadcrumb', () => {
 
   it('builds a nav with anchors, separators and a current span', () => {
     const el = mount(trail);
-    // Since v1.3.0 the authored items stay in the light DOM as the component's
+    // Since v2.0.0 the authored items stay in the light DOM as the component's
     // data source, so the rendered nav is a sibling of them, not the only child.
     const nav = el.querySelector('nav')!;
     expect(el.children).toHaveLength(4);
@@ -2018,7 +2018,7 @@ describe('e-description-list', () => {
 
   it('renders a dl of dt/dd pairs and clones the detail nodes across', () => {
     const el = mount(sample);
-    // v1.3.0: the authored items remain as the data source and the detail
+    // v2.0.0: the authored items remain as the data source and the detail
     // nodes are cloned rather than moved, so the component can re-sync them.
     const dl = el.querySelector('dl')!;
     expect(el.children).toHaveLength(3);
@@ -2501,9 +2501,9 @@ describe('e-form integration', () => {
 });
 
 /* ===================================================================== *
- * v1.3.0 — maturity gaps closed on already-shipped components
+ * v2.0.0 — maturity gaps closed on already-shipped components
  *
- * Every block below covers behaviour added in v1.3.0. The pre-v1.3.0
+ * Every block below covers behaviour added in v2.0.0. The pre-v2.0.0
  * contract of each component is asserted in its own historical suite
  * (display-deep, data-media-deep, overlays-nav-deep, data-display); these
  * tests deliberately re-assert the *old* path wherever the new feature had
@@ -2514,7 +2514,7 @@ describe('e-form integration', () => {
  * e-card-image — image covers
  * --------------------------------------------------------------------- */
 
-describe('e-card-image image cover (v1.3.0)', () => {
+describe('e-card-image image cover (v2.0.0)', () => {
   // 1×1 transparent GIF: loads for real, in-process, with no network.
   const PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
   const cover = (el: HTMLElement): HTMLElement =>
@@ -2657,7 +2657,7 @@ describe('e-card-image image cover (v1.3.0)', () => {
  * e-textarea — label / hint / rows / counter
  * --------------------------------------------------------------------- */
 
-describe('e-textarea label, hint, rows and counter (v1.3.0)', () => {
+describe('e-textarea label, hint, rows and counter (v2.0.0)', () => {
   const ta = (el: HTMLElement): HTMLTextAreaElement => el.querySelector('textarea')!;
 
   it('renders no label, no hint and no counter by default', () => {
@@ -2665,7 +2665,7 @@ describe('e-textarea label, hint, rows and counter (v1.3.0)', () => {
     expect(el.querySelector('label.ink-label')).toBeNull();
     expect(el.querySelector('.ink-hint')).toBeNull();
     expect(el.querySelector('.ink-textarea__counter')).toBeNull();
-    // The pre-v1.3.0 sizing is what an unattributed textarea still gets.
+    // The pre-v2.0.0 sizing is what an unattributed textarea still gets.
     expect(ta(el).style.minHeight).toBe('96px');
     expect(ta(el).hasAttribute('rows')).toBe(false);
   });
@@ -2793,7 +2793,7 @@ describe('e-textarea label, hint, rows and counter (v1.3.0)', () => {
  * e-tabs — programmatic value
  * --------------------------------------------------------------------- */
 
-describe('e-tabs programmatic value (v1.3.0)', () => {
+describe('e-tabs programmatic value (v2.0.0)', () => {
   const markup = (attrs = ''): string => `<e-tabs ${attrs}>
       <e-tab key="a" label="A">Alpha</e-tab>
       <e-tab key="b" label="B">Beta</e-tab>
@@ -2901,7 +2901,7 @@ describe('e-tabs programmatic value (v1.3.0)', () => {
  * e-steps — aria-current and per-step status
  * --------------------------------------------------------------------- */
 
-describe('e-steps aria-current and status (v1.3.0)', () => {
+describe('e-steps aria-current and status (v2.0.0)', () => {
   const items = (el: HTMLElement): HTMLElement[] => [
     ...el.querySelectorAll<HTMLElement>('.ink-steps__item'),
   ];
@@ -2998,7 +2998,7 @@ describe('e-steps aria-current and status (v1.3.0)', () => {
  * e-title — deterministic ids and anchors
  * --------------------------------------------------------------------- */
 
-describe('e-title auto id and anchor (v1.3.0)', () => {
+describe('e-title auto id and anchor (v2.0.0)', () => {
   const h = (el: HTMLElement): HTMLElement => el.firstElementChild as HTMLElement;
 
   it('slugs the heading text into an id by default', () => {
@@ -3128,7 +3128,7 @@ describe('e-title auto id and anchor (v1.3.0)', () => {
  * e-text — caption / strike kinds and alignment
  * --------------------------------------------------------------------- */
 
-describe('e-text caption, strike and align (v1.3.0)', () => {
+describe('e-text caption, strike and align (v2.0.0)', () => {
   const wrap = (el: HTMLElement): HTMLElement => el.firstElementChild as HTMLElement;
 
   it.each([['caption'], ['strike']])('applies the %s kind modifier', (kind) => {
@@ -3191,7 +3191,7 @@ describe('e-text caption, strike and align (v1.3.0)', () => {
  * e-link — target, rel and external
  * --------------------------------------------------------------------- */
 
-describe('e-link target, rel and external (v1.3.0)', () => {
+describe('e-link target, rel and external (v2.0.0)', () => {
   const a = (el: HTMLElement): HTMLAnchorElement => el.querySelector('a')!;
 
   it('adds no target, rel or marker by default', () => {
@@ -3264,7 +3264,7 @@ describe('e-link target, rel and external (v1.3.0)', () => {
  * e-list — ordered mode
  * --------------------------------------------------------------------- */
 
-describe('e-list ordered mode (v1.3.0)', () => {
+describe('e-list ordered mode (v2.0.0)', () => {
   const body = (el: HTMLElement): HTMLElement => el.querySelector<HTMLElement>('.ink-list__body')!;
   const root = (el: HTMLElement): HTMLElement => el.querySelector<HTMLElement>('.ink-list')!;
 
@@ -3346,7 +3346,7 @@ describe('e-list ordered mode (v1.3.0)', () => {
  * e-sparkline — configurable threshold guide
  * --------------------------------------------------------------------- */
 
-describe('e-sparkline threshold (v1.3.0)', () => {
+describe('e-sparkline threshold (v2.0.0)', () => {
   const guide = (el: HTMLElement): SVGLineElement =>
     el.querySelector<SVGLineElement>('.ink-sparkline__guide')!;
   const figure = (el: HTMLElement): HTMLElement => el.querySelector<HTMLElement>('.ink-sparkline')!;
@@ -3426,7 +3426,7 @@ describe('e-sparkline threshold (v1.3.0)', () => {
  * e-qrcode — theme colors, label and width
  * --------------------------------------------------------------------- */
 
-describe('e-qrcode theming, label and width (v1.3.0)', () => {
+describe('e-qrcode theming, label and width (v2.0.0)', () => {
   const svg = (el: HTMLElement): SVGSVGElement =>
     el.querySelector<SVGSVGElement>('.ink-qrcode > svg')!;
 
@@ -3504,7 +3504,7 @@ describe('e-qrcode theming, label and width (v1.3.0)', () => {
  * e-watermark — theme ink and multi-line content
  * --------------------------------------------------------------------- */
 
-describe('e-watermark ink color and multi-line content (v1.3.0)', () => {
+describe('e-watermark ink color and multi-line content (v2.0.0)', () => {
   const layer = (el: HTMLElement): HTMLElement => el.querySelector('.ink-watermark__layer')!;
   const svgOf = (el: HTMLElement): string => {
     const raw = layer(el).style.backgroundImage;
@@ -3591,7 +3591,7 @@ describe('e-watermark ink color and multi-line content (v1.3.0)', () => {
  * e-alert — severity glyphs
  * --------------------------------------------------------------------- */
 
-describe('e-alert severity glyphs (v1.3.0)', () => {
+describe('e-alert severity glyphs (v2.0.0)', () => {
   const iconPath = (el: HTMLElement): string | null =>
     el.querySelector('.ink-alert__icon path')?.getAttribute('d') ?? null;
 

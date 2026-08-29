@@ -13,7 +13,7 @@ import { boolAttr, define, EpaperElement, patchBoolAttr, patchText } from '../..
  *   list whose sequence carries meaning (numbered Bekanntmachungspunkte, procedure steps). Rows keep
  *   their `<e-list-item>` identity, so the numbering comes from a CSS counter rather than from
  *   native `<li>` markers. Toggling it after mount swaps the container and moves the existing rows
- *   across untouched. @since v1.3.0
+ *   across untouched. @since v2.0.0
  * @attr {string} [header-title] - Optional header text rendered above the rows.
  *
  * @slot - Default slot for `<e-list-item>` children.

@@ -26,7 +26,7 @@ type ChangeDirection = 'up' | 'down' | 'changed' | 'unchanged';
  * @attr {number} [tolerance=0] - Absolute numeric change treated as unchanged.
  * @attr {boolean} [show-previous] - Adds the previous value to the change cue.
  * @attr {boolean} [announce] - Exposes updates as a polite live status.
- * @attr {string} [locale] - BCP-47 tag for the cue words and the number format. Falls back to the nearest `lang`, then the document language. (since v1.3.0)
+ * @attr {string} [locale] - BCP-47 tag for the cue words and the number format. Falls back to the nearest `lang`, then the document language. (since v2.0.0)
  *
  * @example
  * <e-change-marker label="Temperature" previous="21.8" value="22.4" suffix=" °C" precision="1"></e-change-marker>

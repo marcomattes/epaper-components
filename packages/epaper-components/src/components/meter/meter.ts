@@ -39,9 +39,9 @@ const BAND_KEY: Record<MeterBand, keyof LocaleStrings> = {
  * @attr {string} [label] - Visible and accessible measurement label.
  * @attr {string} [unit] - Unit appended to the visible and accessible value.
  * @attr {boolean} [hide-value] - Hides the visible value while retaining meter semantics.
- * @attr {string} [locale] - BCP-47 tag for the band words and the reading. Falls back to the nearest `lang`, then the document language. (since v1.3.0)
+ * @attr {string} [locale] - BCP-47 tag for the band words and the reading. Falls back to the nearest `lang`, then the document language. (since v2.0.0)
  *
- * @fires {CustomEvent<{value: number, band: 'low'|'normal'|'high'}>} e-change - Fired when the clamped value moves into a different threshold band. Never fired for the initial render. (since v1.3.0)
+ * @fires {CustomEvent<{value: number, band: 'low'|'normal'|'high'}>} e-change - Fired when the clamped value moves into a different threshold band. Never fired for the initial render. (since v2.0.0)
  *
  * @example
  * <e-meter label="Battery" value="72" low="20" high="90" unit="%"></e-meter>

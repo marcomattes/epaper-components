@@ -2,7 +2,7 @@ import { define, EpaperElement } from '../../core/dom';
 
 /**
  * @summary Typographic container for rich document content.
- * @since v1.3.0
+ * @since v2.0.0
  *
  * Purely a class carrier: the authored markup — `<h2>`, `<p>`, `<ul>`/`<ol>`,
  * `<blockquote>`, `<figure>` and `<table>` — is styled through

@@ -29,7 +29,7 @@ const timestampOf = (ts: string): number => {
 
 /**
  * @summary Append-only event and alarm list that inserts new rows instead of re-rendering the log.
- * @since v1.3.0
+ * @since v2.0.0
  *
  * Rows are keyed by `id`. A row that is already on screen keeps its DOM node
  * when the data changes — only the fields that actually differ are patched,

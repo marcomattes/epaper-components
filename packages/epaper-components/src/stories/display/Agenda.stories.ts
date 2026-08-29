@@ -30,7 +30,7 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
-      subtitle: 'Since v1.3.0',
+      subtitle: 'Since v2.0.0',
       description: {
         component:
           'Day or week agenda on a proportional time axis. Entries are the same `{date, title, start?, end?, status?}` objects `<e-calendar>` reads, so one dataset feeds both. Free stretches are labelled rather than left blank, and the "now" marker is drawn only from the `now` attribute — the component owns no timer.',

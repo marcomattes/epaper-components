@@ -15,7 +15,7 @@ const optionalNumber = (el: Element, name: string): number | null => {
 
 /**
  * @summary Retail price with split euro/cent typography, strike-through original and base price.
- * @since v1.3.0
+ * @since v2.0.0
  *
  * The amount is formatted through `Intl` for the given locale and currency and
  * then set in two sizes — the major unit large, the minor unit small — which

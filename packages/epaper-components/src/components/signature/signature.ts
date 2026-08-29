@@ -21,7 +21,7 @@ function dataUrlToFile(dataUrl: string, name: string): File | null {
 
 /**
  * @summary Handwritten signature captured on a canvas and submitted as a PNG file.
- * @since v1.3.0
+ * @since v2.0.0
  *
  * Form-associated: the drawn signature is submitted as a `File`, so a
  * `<form>` posts it as `multipart/form-data` exactly like an `<input

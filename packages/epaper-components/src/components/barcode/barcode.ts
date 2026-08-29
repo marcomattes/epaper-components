@@ -387,7 +387,7 @@ function barsToSvg(bits: string, moduleWidth: number, height: number, quietZone:
 
 /**
  * @summary Linear barcode (EAN-13, EAN-8, UPC-A, Code 128) rendered as inline SVG.
- * @since v1.3.0
+ * @since v2.0.0
  *
  * Built the same way as `<e-qrcode>`: a self-contained encoder, zero runtime
  * dependencies, and output of exactly two shapes — a white background and one

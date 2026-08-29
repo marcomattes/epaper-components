@@ -74,7 +74,7 @@ const valuesFrom = (raw: string | null): number[] => {
  * @attr {number} [threshold] - Value the dashed guide line marks — a warning limit, a target, a
  *   setpoint. The latest reading's position relative to it is exposed as `data-threshold` on the
  *   figure (`above` / `below` / `at`) and appended to the accessible label. Values outside
- *   `min`…`max` are clamped onto the plot area. @since v1.3.0
+ *   `min`…`max` are clamped onto the plot area. @since v2.0.0
  * @attr {boolean} [hide-caption] - Hides the label, latest value and trend caption.
  *
  * @example

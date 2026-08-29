@@ -2031,7 +2031,7 @@ describe('e-change-marker · localization', () => {
     expect(cue(el)).toBe('▲ Increased by 0.6');
 
     // No precision means no number formatting at all, localized or not — the
-    // raw float reaches the cue exactly as it did before v1.3.0.
+    // raw float reaches the cue exactly as it did before v2.0.0.
     el.removeAttribute('precision');
     expect(cue(el)).toBe(`▲ Increased by ${22.4 - 21.8}`);
     expect(cue(el)).toContain('0.59999999999');

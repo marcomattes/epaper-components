@@ -14,7 +14,7 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
-      subtitle: 'Since v1.3.0',
+      subtitle: 'Since v2.0.0',
       description: {
         component:
           'Single-value status marker — the one-value counterpart to `StatusBoard`. Its vocabulary is open, so a door sign can say "Belegt" instead of bending occupancy onto `warning`. Every state renders a symbol *and* a word, so it stays readable on a greyscale panel.',
