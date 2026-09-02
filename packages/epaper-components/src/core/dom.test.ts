@@ -937,3 +937,43 @@ describe('observeItems stops for good on cleanup (v2.0.0)', () => {
     expect(syncs).toBe(0);
   });
 });
+
+describe('observeItems drops a sync cleaned up between schedule and run (v2.0.0)', () => {
+  it('does not render into a subtree the page has already let go', async () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    let syncs = 0;
+    observeItems(host, () => {
+      syncs++;
+    });
+
+    host.appendChild(document.createElement('span'));
+    // The observer's own notification is already queued, so this lands after
+    // the callback has scheduled its sync but before that sync runs — the one
+    // ordering the `stopped` flag exists for.
+    queueMicrotask(() => {
+      runCleanups(host);
+      host.remove();
+    });
+    await flush();
+
+    expect(syncs).toBe(0);
+  });
+});
+
+describe('cloneItemBody with an empty id (v2.0.0)', () => {
+  it('leaves an id="" alone instead of minting a replacement for it', () => {
+    const item = document.createElement('div');
+    item.innerHTML = '<label id="" for="x">L</label><span id="x">y</span>';
+    const copy = document.createElement('div');
+    cloneItemBody(item, copy);
+
+    const label = copy.querySelector('label')!;
+    const input = copy.querySelector('span')!;
+    // `[id]` matches an empty id, which names nothing and so has nothing to
+    // rewrite; the real id beside it is still renamed and repointed.
+    expect(label.getAttribute('id')).toBe('');
+    expect(input.id).not.toBe('x');
+    expect(label.getAttribute('for')).toBe(input.id);
+  });
+});

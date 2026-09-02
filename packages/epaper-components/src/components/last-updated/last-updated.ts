@@ -34,14 +34,14 @@ const relativeAge = (el: Element, ageSeconds: number): string => {
   const future = ageSeconds < 0;
   const absolute = Math.abs(ageSeconds);
   if (absolute < 60) return t(el, future ? 'ageUnderMinute' : 'ageJustNow');
-  for (const { seconds, one, many } of AGE_UNITS) {
-    if (absolute >= seconds) {
-      const count = Math.floor(absolute / seconds);
-      const age = t(el, count === 1 ? one : many, { count });
-      return t(el, future ? 'ageFuture' : 'agePast', { age });
-    }
-  }
-  return t(el, 'ageJustNow');
+  // The smallest unit is 60 s and everything below it returned above, so the
+  // search always finds a bucket. Written as a lookup rather than a loop with
+  // an unreachable tail: that tail could not be tested, and a fallback no test
+  // can reach is a place for a bug to sit.
+  const unit = AGE_UNITS.find(({ seconds }) => absolute >= seconds)!;
+  const count = Math.floor(absolute / unit.seconds);
+  const age = t(el, count === 1 ? unit.one : unit.many, { count });
+  return t(el, future ? 'ageFuture' : 'agePast', { age });
 };
 
 const computeFreshness = (

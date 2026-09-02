@@ -2604,3 +2604,35 @@ describe('e-keypad · mirroring into a library control (v2.0.0)', () => {
     expect(changes).toEqual(['4', '42']);
   });
 });
+
+describe('checked reflection · v2.0.0', () => {
+  // The rendered input carries no `checked` content attribute, so anything
+  // that moves it natively — a form reset, an autofill pass — leaves the
+  // component's own state untouched and the two out of sync. Reflecting a
+  // state the host attribute already names writes no attribute and so fires
+  // no `attributeChangedCallback`: without re-asserting the input here, that
+  // is the case where the desync survives.
+  it('e-checkbox re-asserts the rendered box when nothing about the attribute moved', () => {
+    const el = mount<HTMLElement & { checked: boolean }>('<e-checkbox></e-checkbox>');
+    const box = el.querySelector('input')!;
+
+    box.checked = true;
+    el.checked = false;
+
+    expect(box.checked).toBe(false);
+    expect(el.hasAttribute('checked')).toBe(false);
+    expect(el.checked).toBe(false);
+  });
+
+  it('e-toggle re-asserts the rendered switch when nothing about the attribute moved', () => {
+    const el = mount<HTMLElement & { checked: boolean }>('<e-toggle></e-toggle>');
+    const box = el.querySelector('input')!;
+
+    box.checked = true;
+    el.checked = false;
+
+    expect(box.checked).toBe(false);
+    expect(el.hasAttribute('checked')).toBe(false);
+    expect(el.checked).toBe(false);
+  });
+});

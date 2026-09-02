@@ -2501,3 +2501,63 @@ describe('e-tabs · badge count (v2.0.0)', () => {
     expect(badge.querySelector('.ink-badge')!.textContent).toBe('4');
   });
 });
+
+/* ------------------------------------------------------------------ *
+ * Release-review regressions · v2.0.0
+ * ------------------------------------------------------------------ */
+
+describe('carrier reactivity · v2.0.0', () => {
+  it('e-float-button-group drops the button of a removed action', async () => {
+    const el = mount(`
+      <e-float-button-group>
+        <e-fab-item icon="plus" label="Add"></e-fab-item>
+        <e-fab-item icon="edit" label="Edit"></e-fab-item>
+      </e-float-button-group>
+    `);
+    expect(el.querySelectorAll('button')).toHaveLength(2);
+
+    el.querySelector('e-fab-item')!.remove();
+    await settle();
+
+    expect(el.querySelectorAll('button')).toHaveLength(1);
+    expect(el.querySelector('button')!.getAttribute('aria-label')).toBe('Edit');
+  });
+
+  it('e-dropdown replaces the row when an item changes kind', async () => {
+    const el = mount(`
+      <e-dropdown label="Menu">
+        <e-dropdown-item label="New"></e-dropdown-item>
+      </e-dropdown>
+    `);
+    const menu = el.querySelector<HTMLElement>('[role="menu"]')!;
+    expect(menu.children[0]!.getAttribute('data-kind')).toBe('item');
+
+    // A kind change cannot be patched — a button is not a separator — so the
+    // node is replaced rather than relabelled.
+    el.querySelector('e-dropdown-item')!.setAttribute('divider', '');
+    await settle();
+
+    expect(menu.children).toHaveLength(1);
+    expect(menu.children[0]!.getAttribute('data-kind')).toBe('divider');
+  });
+
+  it('e-collapse ignores a second panel claiming a key already taken', async () => {
+    const el = mount(`
+      <e-collapse>
+        <e-collapse-panel key="a" heading="First"></e-collapse-panel>
+      </e-collapse>
+    `);
+    expect(el.querySelectorAll('details')).toHaveLength(1);
+
+    const clash = document.createElement('e-collapse-panel');
+    clash.setAttribute('key', 'a');
+    clash.setAttribute('heading', 'Also first');
+    el.appendChild(clash);
+    await settle();
+
+    // Panels are keyed, so a duplicate would otherwise overwrite the open
+    // state of the panel that already owns the key.
+    expect(el.querySelectorAll('details')).toHaveLength(1);
+    expect(el.querySelector('summary')!.textContent).toContain('First');
+  });
+});

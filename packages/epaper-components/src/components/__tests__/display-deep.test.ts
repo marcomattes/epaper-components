@@ -2525,3 +2525,35 @@ describe('e-status-board · keys and locale (v2.0.0)', () => {
     expect(el.querySelector('.ink-status-board__empty')!.textContent).toBe('Keine Kennzahlen');
   });
 });
+
+describe('release-review regressions · v2.0.0', () => {
+  it('e-last-updated reads a timestamp seconds old as just now', () => {
+    const el = mount(`<e-last-updated now="2026-05-01T12:00:00Z"
+      datetime="2026-05-01T11:59:50Z"></e-last-updated>`);
+    expect(el.textContent).toContain('just now');
+  });
+
+  it('e-last-updated words a non-English locale through Intl', () => {
+    const el = mount(`<e-last-updated locale="de" now="2026-05-01T12:00:00Z"
+      datetime="2026-05-01T11:59:50Z"></e-last-updated>`);
+    // English keeps the hand-built wording the shipped screens already show;
+    // every other locale is worded by `Intl.RelativeTimeFormat`, which says
+    // "vor 10 Sekunden" where English says "just now".
+    expect(el.textContent).toContain('vor 10 Sekunden');
+    expect(el.textContent).toContain('Aktualisiert');
+  });
+
+  it('e-status-board ignores a statuses value that is not an object', () => {
+    const el = mount(`<e-status-board statuses='"free"'
+      data='[{"label":"Door","value":"1","status":"ok"}]'></e-status-board>`);
+    // A JSON string parses fine but carries no entries, so the built-ins have
+    // to survive it rather than being replaced by nothing.
+    expect(el.textContent).toContain('OK');
+  });
+
+  it('e-status-board ignores malformed statuses JSON', () => {
+    const el = mount(`<e-status-board statuses='{not json'
+      data='[{"label":"Door","value":"1","status":"ok"}]'></e-status-board>`);
+    expect(el.textContent).toContain('OK');
+  });
+});

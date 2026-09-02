@@ -2665,3 +2665,13 @@ describe('e-segmented · keyboard reachability (v2.0.0)', () => {
     expect(document.activeElement).toBe(buttons[0]);
   });
 });
+
+describe('e-agenda · now attribute forms · v2.0.0', () => {
+  it('accepts a date-only now and places the marker at midnight', () => {
+    const el = mount(`<e-agenda now="2026-05-01" date="2026-05-01" start-hour="0"
+      events='[{"date":"2026-05-01","title":"Standup","start":"09:00","end":"09:15"}]'></e-agenda>`);
+    // `now` doubles as the day selector, so a date without a time is a valid
+    // way to say "today, from the top".
+    expect(el.querySelector('.ink-agenda__now')).not.toBeNull();
+  });
+});
