@@ -1,6 +1,6 @@
-import { define, EpaperElement, numAttr, patchAttr, patchText } from '../../core/dom';
+import { boolAttr, define, EpaperElement, numAttr, patchAttr, patchText } from '../../core/dom';
 import { formatRelativeTime, resolveLocale } from '../../core/format';
-import { t } from '../../core/i18n';
+import { label as labelOf, t, type LocaleStrings } from '../../core/i18n';
 
 export type UpdateFreshness = 'fresh' | 'stale' | 'expired' | 'invalid';
 
@@ -10,32 +10,38 @@ const parseTime = (raw: string | null, fallback: number): number => {
   return Number.isFinite(parsed) ? parsed : Number.NaN;
 };
 
+/** Coarse-to-fine age buckets, each with its singular and plural table key. */
+const AGE_UNITS: Array<{ seconds: number; one: keyof LocaleStrings; many: keyof LocaleStrings }> = [
+  { seconds: 86400, one: 'ageDay', many: 'ageDays' },
+  { seconds: 3600, one: 'ageHour', many: 'ageHours' },
+  { seconds: 60, one: 'ageMinute', many: 'ageMinutes' },
+];
+
 /**
- * The English wording this component has rendered since v1.1.0.
+ * The wording this component has rendered since v1.1.0, now assembled from the
+ * string table instead of from literals.
  *
  * `Intl.RelativeTimeFormat` words the same instants differently — "now"
  * instead of "just now", "yesterday" instead of "1 day ago", and it rounds
  * (119 s becomes "2 minutes ago") where this floors. Those exact strings are
  * on screens today and asserted by the shipped test suites, so English keeps
- * this table and every other locale goes through `Intl`.
+ * this shape and every other locale goes through `Intl`. Sourcing the words
+ * from the table is what makes the English wording overridable at all:
+ * `setLocaleStrings('en', { ageJustNow: 'moments ago' })` could not reach a
+ * literal.
  */
-const relativeAge = (ageSeconds: number): string => {
+const relativeAge = (el: Element, ageSeconds: number): string => {
   const future = ageSeconds < 0;
   const absolute = Math.abs(ageSeconds);
-  if (absolute < 60) return future ? 'in less than a minute' : 'just now';
-  const units: Array<[number, string]> = [
-    [86400, 'day'],
-    [3600, 'hour'],
-    [60, 'minute'],
-  ];
-  for (const [seconds, unit] of units) {
+  if (absolute < 60) return t(el, future ? 'ageUnderMinute' : 'ageJustNow');
+  for (const { seconds, one, many } of AGE_UNITS) {
     if (absolute >= seconds) {
-      const amount = Math.floor(absolute / seconds);
-      const text = `${amount} ${unit}${amount === 1 ? '' : 's'}`;
-      return future ? `in ${text}` : `${text} ago`;
+      const count = Math.floor(absolute / seconds);
+      const age = t(el, count === 1 ? one : many, { count });
+      return t(el, future ? 'ageFuture' : 'agePast', { age });
     }
   }
-  return 'just now';
+  return t(el, 'ageJustNow');
 };
 
 const computeFreshness = (
@@ -150,13 +156,13 @@ export class ELastUpdated extends EpaperElement {
   /** Relative age, localized unless the page is English. */
   private _relative(timestamp: number, now: number, age: number): string {
     return this._english()
-      ? relativeAge(age)
+      ? relativeAge(this, age)
       : formatRelativeTime(this, new Date(timestamp), new Date(now));
   }
 
   /** Visible word for a freshness state. */
   private _freshnessLabel(freshness: UpdateFreshness): string {
-    if (freshness === 'invalid') return this._english() ? 'Unknown' : t(this, 'invalidDate');
+    if (freshness === 'invalid') return t(this, this._english() ? 'unknown' : 'invalidDate');
     return t(this, FRESHNESS_KEY[freshness]);
   }
 
@@ -174,7 +180,7 @@ export class ELastUpdated extends EpaperElement {
     const raw = this.getAttribute('datetime');
     const timestamp = parseTime(raw, Number.NaN);
     const now = parseTime(this.getAttribute('now'), Date.now());
-    const label = this.getAttribute('label') || 'Updated';
+    const label = labelOf(this, 'label', 'updatedLabel');
     const staleAfter = Math.max(0, numAttr(this, 'stale-after', 300));
     const expiredAfter = Math.max(staleAfter, numAttr(this, 'expired-after', 3600));
     const valid = Number.isFinite(timestamp) && Number.isFinite(now);
@@ -185,11 +191,11 @@ export class ELastUpdated extends EpaperElement {
     const stateLabel = this._freshnessLabel(freshness);
     // Without a parseable timestamp there is no age to word; English keeps its
     // "Unknown time", other locales repeat the state word.
-    const unknown = this._english() ? 'Unknown time' : stateLabel;
+    const unknown = this._english() ? t(this, 'unknownTime') : stateLabel;
     const relative = valid ? this._relative(timestamp, now, age) : unknown;
     const absolute =
-      valid && this.hasAttribute('show-absolute')
-        ? formatAbsolute(timestamp, this.getAttribute('locale') || 'en')
+      valid && boolAttr(this, 'show-absolute')
+        ? formatAbsolute(timestamp, resolveLocale(this) ?? 'en')
         : '';
 
     patchAttr(this, 'role', 'group');

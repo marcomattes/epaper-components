@@ -8,6 +8,7 @@ import {
   patchText,
   runCleanups,
 } from '../../core/dom';
+import { t } from '../../core/i18n';
 import { BaseFormControl } from '../../core/base-form-control';
 
 /** Rendered `<label>`/`<input>` pair for a single `<e-cbox-option>`. */
@@ -30,9 +31,10 @@ interface CboxRow {
  * unrelated option changing never moves the current selection.
  *
  * Because the items stay put they would otherwise render twice, so each one is
- * hidden with an inline `display:none` when it is first wired. The stable form
- * of that is a `e-cbox-option { display: none; }` rule in `components.css`;
- * the inline style is what guarantees it without one.
+ * hidden with an inline `display:none` when it is first wired.
+ * `components.css` carries the `e-cbox-option { display: none; }` rule that
+ * states it; the inline style is what holds even where that stylesheet is not
+ * loaded.
  *
  * Form-associated: each selected option is appended to FormData under `name`.
  *
@@ -257,6 +259,21 @@ export class ECheckboxGroup extends BaseFormControl {
     return s;
   }
 
+  /**
+   * The base implementation assigns `value`, which is a no-op when the reset
+   * target is the value the attribute already carries — and by then the browser
+   * has cleared every rendered box, because none of them holds a `checked`
+   * content attribute. Re-deriving the rows from `_value` here restores the
+   * selection whether or not the attribute moved.
+   */
+  protected override resetValue(): void {
+    const dflt = (this.getAttribute('default-value') ?? '').split(',').filter(Boolean).join(',');
+    this._value = dflt;
+    this.setAttribute('value', dflt);
+    this._sync();
+    this._syncValidity(dflt.split(',').filter(Boolean));
+  }
+
   protected override parseFormData(fd: FormData): string {
     const name = this.getAttribute('name');
     if (!name) return '';
@@ -271,7 +288,7 @@ export class ECheckboxGroup extends BaseFormControl {
     this.applyRequiredValidity(
       values.length > 0,
       this._container ?? undefined,
-      'Please select at least one option.',
+      t(this, 'requiredOneOption'),
     );
   }
 }
@@ -279,6 +296,7 @@ define('e-checkbox-group', ECheckboxGroup);
 
 /**
  * @summary Single option entry inside an `<e-checkbox-group>`.
+ * @since v1.0.1
  *
  * Acts as a data carrier; the parent renders the actual checkbox and hides
  * this element. Changing its attributes after mount updates the rendered row.
@@ -288,6 +306,9 @@ define('e-checkbox-group', ECheckboxGroup);
  * @attr {boolean} [disabled] - Makes this single option untoggleable and unfocusable while the
  *   rest of the group stays usable. Follows the library's boolean-attribute convention, so
  *   `disabled="false"` leaves it toggleable.
+ *
+ * @example
+ * <e-cbox-option value="a" label="Option A"></e-cbox-option>
  */
 export class ECboxOption extends EpaperElement {}
 define('e-cbox-option', ECboxOption);

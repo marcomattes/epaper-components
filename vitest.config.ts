@@ -70,6 +70,21 @@ export default defineConfig({
         plugins: [storybookTest({ configDir: 'apps/storybook/.storybook' })],
         test: {
           name: 'storybook',
+          // Load-bearing, and the reason this project used to run nothing.
+          //
+          // The Storybook plugin sets the Vite root to its config directory's
+          // parent — `apps/storybook/` — but the stories live in another
+          // workspace, so the globs it derives (correctly, relative to the
+          // config directory) pointed outside the repository once resolved
+          // against that root. Vitest reported "No test files found" for the
+          // project and the run carried on green: the accessibility gate over
+          // all 84 story files was covering nothing at all.
+          //
+          // `dir` is what Vitest scans for test files, and the plugin reads it
+          // first when deciding what to make the globs relative to, so setting
+          // it here lines both up on the repository root. A project-level
+          // `root` cannot do this — the plugin's own `config()` hook wins.
+          dir: import.meta.dirname,
           browser: {
             enabled: true,
             headless: true,

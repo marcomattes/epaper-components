@@ -1,6 +1,7 @@
 import { addCleanup, define, patchAttr, patchText, runCleanups } from '../../core/dom';
 import { iconSvg } from '../../core/icons';
 import { pad2 } from '../../core/date';
+import { t } from '../../core/i18n';
 import { BaseFormControl } from '../../core/base-form-control';
 
 /**
@@ -244,7 +245,7 @@ export class ETimePicker extends BaseFormControl {
   private _syncValidity(): void {
     const anchor = this._hCell ?? undefined;
     anchor?.setAttribute('aria-required', String(this.hasAttribute('required')));
-    this.applyRequiredValidity(!!this._value, anchor, 'Please select a time.');
+    this.applyRequiredValidity(!!this._value, anchor, t(this, 'requiredTime'));
   }
 }
 

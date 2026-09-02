@@ -6,6 +6,7 @@ import {
   patchText,
   runCleanups,
 } from '../../core/dom';
+import { t } from '../../core/i18n';
 
 /** What a slot in the rendered trail is: a link, a plain span, the current page, or a separator. */
 type CrumbKind = 'link' | 'span' | 'current' | 'sep';
@@ -35,9 +36,10 @@ function kindOf(el: Element): CrumbKind {
  * `href` are patched.
  *
  * Because the items stay put they would otherwise render twice, so each one is
- * hidden with an inline `display:none` when it is first wired. The stable form
- * of that is a `e-breadcrumb-item { display: none; }` rule in
- * `components.css`; the inline style is what guarantees it without one.
+ * hidden with an inline `display:none` when it is first wired.
+ * `components.css` carries the `e-breadcrumb-item { display: none; }` rule
+ * that states it; the inline style is what holds even where that stylesheet is
+ * not loaded.
  *
  * @attr {string} [separator='/'] - Glyph rendered between entries.
  *
@@ -60,7 +62,7 @@ export class EBreadcrumb extends EpaperElement {
       this._wired = true;
       const nav = document.createElement('nav');
       nav.className = 'ink-breadcrumb';
-      nav.setAttribute('aria-label', 'Breadcrumb');
+      nav.setAttribute('aria-label', t(this, 'breadcrumbLabel'));
       this._nav = nav;
       this.appendChild(nav);
     }
@@ -147,6 +149,7 @@ define('e-breadcrumb', EBreadcrumb);
 
 /**
  * @summary Single trail entry inside an `<e-breadcrumb>`.
+ * @since v1.0.1
  *
  * Acts as a data carrier; the parent renders the actual link or current page
  * marker and hides this element. Changing its attributes or text after mount

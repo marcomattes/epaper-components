@@ -1,5 +1,6 @@
 import { boolAttr, define, esc, intAttr, patchText, randId } from '../../core/dom';
 import { BaseFormControl } from '../../core/base-form-control';
+import { t } from '../../core/i18n';
 
 /** Inline fallback height used when no `rows` is authored (pre-v2.0.0 default). */
 const DEFAULT_MIN_HEIGHT = '96px';
@@ -72,7 +73,10 @@ export class ETextarea extends BaseFormControl {
     if (this._wired) return;
     this._wired = true;
     const id = this.id ? `${this.id}-control` : randId('e-ta');
-    const value = this.getAttribute('value') || '';
+    // `default-value` seeds the first render as well as the reset, the way
+    // `<e-input>` reads it: it used to be honoured only by `form.reset()`, so
+    // an authored default rendered empty and then appeared on reset.
+    const value = this.getAttribute('value') ?? this.getAttribute('default-value') ?? '';
     const label = this.getAttribute('label');
     const hint = this.getAttribute('hint');
     const placeholder = this.getAttribute('placeholder') || '';
@@ -216,7 +220,7 @@ export class ETextarea extends BaseFormControl {
     if (!this._ta) return;
     this._ta.required = boolAttr(this, 'required');
     const customMessage = boolAttr(this, 'error')
-      ? (this.getAttribute('error-message') ?? 'Invalid value.')
+      ? (this.getAttribute('error-message') ?? t(this, 'invalidValue'))
       : undefined;
     if (!customMessage && this._ta.validity.valueMissing) {
       const message = this.getAttribute('required-message');

@@ -392,7 +392,7 @@ describe('global listener cleanup', () => {
     wrap.remove();
   });
 
-  it('e-splitter removes its window mouse listeners on disconnect', () => {
+  it('e-splitter removes its window pointer listeners on disconnect', () => {
     let mmAdded = 0;
     let mmRemoved = 0;
     let muAdded = 0;
@@ -400,13 +400,13 @@ describe('global listener cleanup', () => {
     const origAdd = window.addEventListener;
     const origRemove = window.removeEventListener;
     window.addEventListener = function (...args: Parameters<typeof origAdd>) {
-      if (args[0] === 'mousemove') mmAdded++;
-      if (args[0] === 'mouseup') muAdded++;
+      if (args[0] === 'pointermove') mmAdded++;
+      if (args[0] === 'pointerup') muAdded++;
       return origAdd.apply(this, args);
     };
     window.removeEventListener = function (...args: Parameters<typeof origRemove>) {
-      if (args[0] === 'mousemove') mmRemoved++;
-      if (args[0] === 'mouseup') muRemoved++;
+      if (args[0] === 'pointermove') mmRemoved++;
+      if (args[0] === 'pointerup') muRemoved++;
       return origRemove.apply(this, args);
     };
 

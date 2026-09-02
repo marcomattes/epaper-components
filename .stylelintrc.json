@@ -7,6 +7,32 @@
     ],
     "no-duplicate-at-import-rules": true,
     "block-no-empty": true,
-    "no-invalid-position-at-import-rule": true
+    "no-invalid-position-at-import-rule": true,
+
+    "at-rule-disallowed-list": [
+      ["keyframes"],
+      {
+        "message": "No animation: intermediate pixel states leave ghosting the waveform cannot clear (AGENTS.md hard rule 3)."
+      }
+    ],
+    "declaration-property-value-disallowed-list": [
+      {
+        "/^transition/": ["/^(?!none\\b).+/"],
+        "/^animation/": ["/^(?!none\\b).+/"],
+        "/^scroll-behavior$/": ["/^(?!auto\\b).+/"],
+        "will-change": ["/.+/"],
+        "filter": ["/^(?!none\\b).+/"],
+        "backdrop-filter": ["/^(?!none\\b).+/"]
+      },
+      {
+        "message": "Motion and compositing effects are forbidden on e-paper (AGENTS.md hard rule 3). `none`/`auto` — the resets in base.css — are the only accepted values."
+      }
+    ],
+    "selector-disallowed-list": [
+      ["/:hover/"],
+      {
+        "message": "No :hover: a capacitive panel reports contact, not proximity — use :focus-visible, [aria-selected], [aria-checked] or [data-active] (AGENTS.md hard rule 4)."
+      }
+    ]
   }
 }

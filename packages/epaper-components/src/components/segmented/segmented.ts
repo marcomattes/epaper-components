@@ -18,10 +18,9 @@ import {
  * across a sync — only changed labels and attributes are patched.
  *
  * Because the segments stay put they would otherwise render twice, so each one
- * is hidden with an inline `display:none` when it is wired. The stable form of
- * that is a `e-segment { display: none; }` rule in `components.css` (it is
- * currently listed among the `display: inline-flex` primitives); the inline
- * style is what guarantees it without one.
+ * is hidden with an inline `display:none` when it is wired. `components.css`
+ * carries the `e-segment { display: none; }` rule that states it; the inline
+ * style is what holds even where that stylesheet is not loaded.
  *
  * @attr {string} [value] - Currently selected segment value. Reactive.
  *
@@ -136,9 +135,17 @@ export class ESegmented extends EpaperElement {
 
   private _syncSelection(): void {
     const value = this.getAttribute('value');
+    // The radio-group pattern gives the group exactly one tab stop, and it
+    // belongs to the checked option. With no `value` — which the attribute is
+    // documented to allow — nothing matched, every button kept `tabIndex = -1`
+    // and the whole control dropped out of the tab order: unreachable by
+    // keyboard, and the arrow handler below could never run because it needs a
+    // focused button. The first segment holds the tab stop until one is chosen.
+    const checked = this._buttons.find((btn) => btn.dataset['value'] === value);
+    const tabStop = checked ?? this._buttons[0];
     for (const btn of this._buttons) {
-      patchAttr(btn, 'aria-checked', btn.dataset['value'] === value ? 'true' : 'false');
-      btn.tabIndex = btn.dataset['value'] === value ? 0 : -1;
+      patchAttr(btn, 'aria-checked', btn === checked ? 'true' : 'false');
+      btn.tabIndex = btn === tabStop ? 0 : -1;
     }
   }
 }
@@ -146,12 +153,16 @@ define('e-segmented', ESegmented);
 
 /**
  * @summary Single segment entry inside an `<e-segmented>`.
+ * @since v1.0.1
  *
  * Acts as a data carrier; the parent renders the actual button and hides this
  * element. Changing its attributes or text after mount updates the row.
  *
  * @attr {string} value - Value contributed when this segment is active.
  * @attr {string} [label] - Visible label. Falls back to text content.
+ *
+ * @example
+ * <e-segment value="day" label="Day"></e-segment>
  */
 export class ESegment extends EpaperElement {}
 define('e-segment', ESegment);

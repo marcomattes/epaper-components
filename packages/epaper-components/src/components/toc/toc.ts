@@ -148,8 +148,12 @@ export class EToc extends EpaperElement {
       queued = true;
       queueMicrotask(() => {
         queued = false;
-        observer.takeRecords();
         this._sync();
+        // Drained *after* the sync, not before: `_sync()` writes ids onto the
+        // scanned headings and rebuilds the `<e-anchor>` inside this same
+        // subtree, and those self-caused records would otherwise come back as
+        // a fresh mutation and schedule another scan of the whole document.
+        observer.takeRecords();
       });
     });
     observer.observe(root, { childList: true, subtree: true, characterData: true });

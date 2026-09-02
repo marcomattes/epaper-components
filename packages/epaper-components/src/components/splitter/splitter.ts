@@ -9,7 +9,7 @@ import {
 } from '../../core/dom';
 
 /**
- * @summary Two-pane resizable splitter with mouse and keyboard support.
+ * @summary Two-pane resizable splitter with pointer and keyboard support.
  * @since v1.0.1
  *
  * @attr {'horizontal'|'vertical'} [orientation='horizontal'] - Layout direction. Horizontal places panes side by side; vertical stacks them.
@@ -45,12 +45,18 @@ export class ESplitter extends EpaperElement {
       this._wired = true;
       this._build();
     }
-    this._handle?.addEventListener('mousedown', this._onDown);
+    // Pointer events, not mouse events. A capacitive panel — the hardware this
+    // library exists for — synthesises `mousedown` only after the finger lifts
+    // and never emits `mousemove` during a drag, so the handle could not be
+    // moved by touch at all; only the keyboard path worked. Pointer events
+    // cover mouse, touch and stylus in one set.
+    this._handle?.addEventListener('pointerdown', this._onDown);
     this._handle?.addEventListener('keydown', this._onKeydown);
-    addCleanup(this, () => this._handle?.removeEventListener('mousedown', this._onDown));
+    addCleanup(this, () => this._handle?.removeEventListener('pointerdown', this._onDown));
     addCleanup(this, () => this._handle?.removeEventListener('keydown', this._onKeydown));
-    onGlobal(this, window, 'mousemove', this._onMove);
-    onGlobal(this, window, 'mouseup', this._onUp);
+    onGlobal(this, window, 'pointermove', this._onMove);
+    onGlobal(this, window, 'pointerup', this._onUp);
+    onGlobal(this, window, 'pointercancel', this._onUp);
     addCleanup(this, () => {
       if (this._moveFrame != null) cancelAnimationFrame(this._moveFrame);
       this._moveFrame = null;
@@ -134,13 +140,22 @@ export class ESplitter extends EpaperElement {
     this._setPct(this._pct);
   }
 
-  private readonly _onDown = (e: MouseEvent): void => {
+  private readonly _onDown = (e: PointerEvent): void => {
     if (e.button !== 0) return;
     this._dragging = true;
+    // Capture keeps the drag alive when the finger leaves the 6px handle. It
+    // throws for a pointer id that is not actually down — a synthesised event,
+    // or one already released — and the window listeners below carry the drag
+    // either way, so a failure here is not worth taking the gesture down for.
+    try {
+      this._handle?.setPointerCapture(e.pointerId);
+    } catch {
+      /* no live pointer to capture */
+    }
     e.preventDefault();
   };
 
-  private readonly _onMove = (e: MouseEvent): void => {
+  private readonly _onMove = (e: PointerEvent): void => {
     if (!this._dragging || !this._wrap) return;
     const rect = this._wrap.getBoundingClientRect();
     if ((this._isH && rect.width === 0) || (!this._isH && rect.height === 0)) return;

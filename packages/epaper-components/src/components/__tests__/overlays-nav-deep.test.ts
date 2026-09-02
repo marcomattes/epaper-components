@@ -72,6 +72,20 @@ const mouse = (target: EventTarget, type: string, init: MouseEventInit = {}): Mo
   return event;
 };
 
+/** `<e-splitter>` drives its drag from pointer events, so touch works too. */
+const pointer = (target: EventTarget, type: string, init: PointerEventInit = {}): PointerEvent => {
+  const event = new PointerEvent(type, {
+    bubbles: true,
+    cancelable: true,
+    pointerId: 1,
+    isPrimary: true,
+    pointerType: 'mouse',
+    ...init,
+  });
+  target.dispatchEvent(event);
+  return event;
+};
+
 interface BoolDetail {
   value: boolean;
 }
@@ -1947,23 +1961,32 @@ describe('e-splitter', () => {
     expect(a.style.width).toBe('85%');
   });
 
-  it('resizes on a mouse drag and stops on mouseup', async () => {
+  it('resizes on a pointer drag and stops on pointerup', async () => {
     const el = mount(markup('initial="50" min="10" max="90"'));
     const { wrap, a, b, handle } = parts(el);
     wrap.style.width = '400px';
     const rect = wrap.getBoundingClientRect();
 
-    mouse(handle, 'mousedown', { button: 0 });
-    mouse(window, 'mousemove', { clientX: rect.left + rect.width * 0.25, clientY: rect.top + 5 });
+    pointer(handle, 'pointerdown', { button: 0 });
+    pointer(window, 'pointermove', {
+      clientX: rect.left + rect.width * 0.25,
+      clientY: rect.top + 5,
+    });
     // Two moves inside one frame collapse into a single write.
-    mouse(window, 'mousemove', { clientX: rect.left + rect.width * 0.3, clientY: rect.top + 5 });
+    pointer(window, 'pointermove', {
+      clientX: rect.left + rect.width * 0.3,
+      clientY: rect.top + 5,
+    });
     await nextFrame();
     expect(a.style.width).toBe('30%');
     expect(b.style.width).toBe('70%');
     expect(handle.getAttribute('aria-valuenow')).toBe('30');
 
-    mouse(window, 'mouseup');
-    mouse(window, 'mousemove', { clientX: rect.left + rect.width * 0.8, clientY: rect.top + 5 });
+    pointer(window, 'pointerup');
+    pointer(window, 'pointermove', {
+      clientX: rect.left + rect.width * 0.8,
+      clientY: rect.top + 5,
+    });
     await nextFrame();
     expect(a.style.width).toBe('30%');
   });
@@ -1974,28 +1997,28 @@ describe('e-splitter', () => {
     wrap.style.width = '400px';
     const rect = wrap.getBoundingClientRect();
 
-    mouse(handle, 'mousedown', { button: 0 });
-    mouse(window, 'mousemove', { clientX: rect.right + 200, clientY: rect.top + 5 });
+    pointer(handle, 'pointerdown', { button: 0 });
+    pointer(window, 'pointermove', { clientX: rect.right + 200, clientY: rect.top + 5 });
     await nextFrame();
     expect(a.style.width).toBe('75%');
 
-    mouse(window, 'mousemove', { clientX: rect.left - 200, clientY: rect.top + 5 });
+    pointer(window, 'pointermove', { clientX: rect.left - 200, clientY: rect.top + 5 });
     await nextFrame();
     expect(a.style.width).toBe('25%');
   });
 
-  it('ignores a non-primary mouse button and moves without a drag', async () => {
+  it('ignores a non-primary pointer button and moves without a drag', async () => {
     const el = mount(markup('initial="50"'));
     const { wrap, a, handle } = parts(el);
     wrap.style.width = '400px';
     const rect = wrap.getBoundingClientRect();
 
-    mouse(window, 'mousemove', { clientX: rect.left + 40, clientY: rect.top + 5 });
+    pointer(window, 'pointermove', { clientX: rect.left + 40, clientY: rect.top + 5 });
     await nextFrame();
     expect(a.style.width).toBe('50%');
 
-    mouse(handle, 'mousedown', { button: 1 });
-    mouse(window, 'mousemove', { clientX: rect.left + 40, clientY: rect.top + 5 });
+    pointer(handle, 'pointerdown', { button: 1 });
+    pointer(window, 'pointermove', { clientX: rect.left + 40, clientY: rect.top + 5 });
     await nextFrame();
     expect(a.style.width).toBe('50%');
   });
@@ -2006,14 +2029,14 @@ describe('e-splitter', () => {
     // A collapsed splitter cannot map a pointer position onto a percentage.
     wrap.style.height = '0px';
     expect(wrap.getBoundingClientRect().height).toBe(0);
-    mouse(handle, 'mousedown', { button: 0 });
-    mouse(window, 'mousemove', { clientY: 100, clientX: 10 });
+    pointer(handle, 'pointerdown', { button: 0 });
+    pointer(window, 'pointermove', { clientY: 100, clientX: 10 });
     await nextFrame();
     expect(a.style.height).toBe('50%');
 
     wrap.style.height = '200px';
     const rect = wrap.getBoundingClientRect();
-    mouse(window, 'mousemove', { clientY: rect.top + rect.height * 0.75, clientX: 10 });
+    pointer(window, 'pointermove', { clientY: rect.top + rect.height * 0.75, clientX: 10 });
     await nextFrame();
     expect(a.style.height).toBe('75%');
   });
@@ -2025,15 +2048,18 @@ describe('e-splitter', () => {
     wrap.style.width = '400px';
     const rect = wrap.getBoundingClientRect();
 
-    mouse(handle, 'mousedown', { button: 0 });
-    mouse(window, 'mousemove', { clientX: rect.left + rect.width * 0.25, clientY: rect.top + 5 });
+    pointer(handle, 'pointerdown', { button: 0 });
+    pointer(window, 'pointermove', {
+      clientX: rect.left + rect.width * 0.25,
+      clientY: rect.top + 5,
+    });
     el.remove();
     await nextFrame();
     expect(a.style.width).toBe('50%');
 
     parent.appendChild(el);
     const rect2 = wrap.getBoundingClientRect();
-    mouse(window, 'mousemove', {
+    pointer(window, 'pointermove', {
       clientX: rect2.left + rect2.width * 0.25,
       clientY: rect2.top + 5,
     });
@@ -2041,8 +2067,8 @@ describe('e-splitter', () => {
     // The drag flag was cleared on disconnect, so this move is inert.
     expect(a.style.width).toBe('50%');
 
-    mouse(handle, 'mousedown', { button: 0 });
-    mouse(window, 'mousemove', {
+    pointer(handle, 'pointerdown', { button: 0 });
+    pointer(window, 'pointermove', {
       clientX: rect2.left + rect2.width * 0.25,
       clientY: rect2.top + 5,
     });
@@ -2246,5 +2272,232 @@ describe('e-anchor', () => {
     window.dispatchEvent(new Event('scroll'));
     await nextFrame();
     expect(list[1]!.getAttribute('aria-current')).toBe('true');
+  });
+});
+
+/* ===================================================================== *
+ * v2.0.0 — the four child-driven components that still read once
+ *
+ * `<e-dropdown>`, `<e-menu>`, `<e-collapse>` and `<e-float-button-group>`
+ * consumed their data carriers at connect, so an entry added or edited
+ * afterwards was ignored until the host re-mounted the element — the full
+ * repaint the patch helpers exist to avoid. They now keep the carriers in the
+ * light DOM and re-sync from them, like every other child-driven component.
+ * ===================================================================== */
+
+describe('e-dropdown · reactive items (v2.0.0)', () => {
+  const rows = (el: HTMLElement): HTMLElement[] => [
+    ...el.querySelectorAll<HTMLElement>('.ink-dropdown__menu > *'),
+  ];
+
+  it('renders an item appended after mount', async () => {
+    const el = mount(`<e-dropdown>
+      <e-dropdown-item label="New"></e-dropdown-item>
+    </e-dropdown>`);
+    expect(rows(el)).toHaveLength(1);
+
+    const added = document.createElement('e-dropdown-item');
+    added.setAttribute('label', 'Open');
+    el.appendChild(added);
+    await settle();
+
+    const labels = rows(el).map((row) => row.textContent);
+    expect(labels).toEqual(['New', 'Open']);
+    // The carrier stays as the source of truth, hidden.
+    expect(el.querySelectorAll('e-dropdown-item')).toHaveLength(2);
+    expect(added.style.display).toBe('none');
+  });
+
+  it('patches a label in place rather than rebuilding the row', async () => {
+    const el = mount(`<e-dropdown>
+      <e-dropdown-item label="New" shortcut="⌘N"></e-dropdown-item>
+    </e-dropdown>`);
+    const before = rows(el)[0]!;
+
+    el.querySelector('e-dropdown-item')!.setAttribute('label', 'Neu');
+    await settle();
+
+    expect(rows(el)[0]).toBe(before);
+    expect(before.querySelector('[data-slot="label"]')!.textContent).toBe('Neu');
+  });
+
+  it('adds and removes the shortcut node with the attribute', async () => {
+    const el = mount(`<e-dropdown>
+      <e-dropdown-item label="New"></e-dropdown-item>
+    </e-dropdown>`);
+    const item = el.querySelector('e-dropdown-item')!;
+    expect(rows(el)[0]!.querySelector('.ink-dropdown__shortcut')).toBeNull();
+
+    item.setAttribute('shortcut', '⌘N');
+    await settle();
+    expect(rows(el)[0]!.querySelector('.ink-dropdown__shortcut')!.textContent).toBe('⌘N');
+
+    item.removeAttribute('shortcut');
+    await settle();
+    expect(rows(el)[0]!.querySelector('.ink-dropdown__shortcut')).toBeNull();
+  });
+
+  it('drops a row whose carrier was removed', async () => {
+    const el = mount(`<e-dropdown>
+      <e-dropdown-item label="New"></e-dropdown-item>
+      <e-dropdown-item label="Open"></e-dropdown-item>
+    </e-dropdown>`);
+    el.querySelector('e-dropdown-item')!.remove();
+    await settle();
+    expect(rows(el).map((row) => row.textContent)).toEqual(['Open']);
+  });
+});
+
+describe('e-menu · reactive items (v2.0.0)', () => {
+  const buttons = (el: HTMLElement): HTMLElement[] => [
+    ...el.querySelectorAll<HTMLElement>('.ink-menu__btn'),
+  ];
+
+  it('renders an item appended after mount', async () => {
+    const el = mount(`<e-menu>
+      <e-menu-item value="a" label="Alpha"></e-menu-item>
+    </e-menu>`);
+    expect(buttons(el)).toHaveLength(1);
+
+    const added = document.createElement('e-menu-item');
+    added.setAttribute('value', 'b');
+    added.setAttribute('label', 'Beta');
+    el.appendChild(added);
+    await settle();
+
+    expect(buttons(el).map((b) => b.dataset['value'])).toEqual(['a', 'b']);
+    expect(added.style.display).toBe('none');
+    // One rendered nav, not one per sync.
+    expect(el.querySelectorAll('nav')).toHaveLength(1);
+  });
+
+  it('keeps an open branch open across a re-sync', async () => {
+    const el = mount(`<e-menu>
+      <e-menu-item value="docs" label="Docs">
+        <e-menu-item value="intro" label="Intro"></e-menu-item>
+      </e-menu-item>
+    </e-menu>`);
+    const branch = buttons(el).find((b) => b.dataset['value'] === 'docs')!;
+    branch.click();
+    const sub = el.querySelector<HTMLElement>('.ink-menu__btn[data-value="intro"]')!;
+    expect(sub.closest('ul')!.hidden).toBe(false);
+
+    const added = document.createElement('e-menu-item');
+    added.setAttribute('value', 'api');
+    added.setAttribute('label', 'API');
+    el.appendChild(added);
+    await settle();
+
+    expect(buttons(el).map((b) => b.dataset['value'])).toEqual(['docs', 'intro', 'api']);
+    const reSynced = el.querySelector<HTMLElement>('.ink-menu__btn[data-value="intro"]')!;
+    expect(reSynced.closest('ul')!.hidden).toBe(false);
+  });
+});
+
+describe('e-collapse · reactive panels (v2.0.0)', () => {
+  const panels = (el: HTMLElement): HTMLDetailsElement[] => [
+    ...el.querySelectorAll<HTMLDetailsElement>('.ink-collapse__panel'),
+  ];
+  const headings = (el: HTMLElement): (string | null)[] =>
+    [...el.querySelectorAll('.ink-collapse__heading')].map((h) => h.textContent);
+
+  it('renders a panel appended after mount and keeps the open one open', async () => {
+    const el = mount(`<e-collapse>
+      <e-collapse-panel key="a" heading="Shipping" open>Ships in 2 days.</e-collapse-panel>
+    </e-collapse>`);
+    expect(panels(el)).toHaveLength(1);
+    expect(panels(el)[0]!.open).toBe(true);
+    const first = panels(el)[0]!;
+
+    const added = document.createElement('e-collapse-panel');
+    added.setAttribute('key', 'b');
+    added.setAttribute('heading', 'Returns');
+    added.textContent = '30 days.';
+    el.appendChild(added);
+    await settle();
+
+    expect(headings(el)).toEqual(['Shipping', 'Returns']);
+    // The panel already on screen keeps its node and its disclosure state.
+    expect(panels(el)[0]).toBe(first);
+    expect(first.open).toBe(true);
+    expect(panels(el)[1]!.querySelector('.ink-collapse__body')!.textContent).toBe('30 days.');
+  });
+
+  it('patches a heading and a body without emitting e-change', async () => {
+    const el = mount(`<e-collapse>
+      <e-collapse-panel key="a" heading="Shipping">Ships in 2 days.</e-collapse-panel>
+    </e-collapse>`);
+    const changes: unknown[] = [];
+    el.addEventListener('e-change', (e) => changes.push((e as CustomEvent).detail));
+    const carrier = el.querySelector('e-collapse-panel')!;
+
+    carrier.setAttribute('heading', 'Versand');
+    carrier.textContent = 'Zwei Tage.';
+    await settle();
+
+    expect(headings(el)).toEqual(['Versand']);
+    expect(panels(el)[0]!.querySelector('.ink-collapse__body')!.textContent).toBe('Zwei Tage.');
+    expect(changes).toEqual([]);
+  });
+
+  it('removes a panel whose carrier is gone', async () => {
+    const el = mount(`<e-collapse>
+      <e-collapse-panel key="a" heading="A"></e-collapse-panel>
+      <e-collapse-panel key="b" heading="B"></e-collapse-panel>
+    </e-collapse>`);
+    el.querySelector('e-collapse-panel')!.remove();
+    await settle();
+    expect(headings(el)).toEqual(['B']);
+  });
+});
+
+describe('e-float-button-group · reactive items (v2.0.0)', () => {
+  const actions = (el: HTMLElement): HTMLElement[] => [
+    ...el.querySelectorAll<HTMLElement>('.ink-fab-group button'),
+  ];
+
+  it('renders an action appended after mount', async () => {
+    const el = mount(`<e-float-button-group>
+      <e-fab-item icon="plus" label="Add"></e-fab-item>
+    </e-float-button-group>`);
+    expect(actions(el)).toHaveLength(1);
+
+    const added = document.createElement('e-fab-item');
+    added.setAttribute('icon', 'trash');
+    added.setAttribute('label', 'Delete');
+    el.appendChild(added);
+    await settle();
+
+    expect(actions(el).map((b) => b.getAttribute('aria-label'))).toEqual(['Add', 'Delete']);
+    expect(actions(el).map((b) => b.dataset['index'])).toEqual(['0', '1']);
+  });
+
+  it('patches a label without replacing the button', async () => {
+    const el = mount(`<e-float-button-group>
+      <e-fab-item icon="plus" label="Add"></e-fab-item>
+    </e-float-button-group>`);
+    const before = actions(el)[0]!;
+    el.querySelector('e-fab-item')!.setAttribute('label', 'Hinzufügen');
+    await settle();
+    expect(actions(el)[0]).toBe(before);
+    expect(before.getAttribute('aria-label')).toBe('Hinzufügen');
+  });
+});
+
+describe('e-tabs · badge count (v2.0.0)', () => {
+  it('keeps the badge wrapper when the count changes', async () => {
+    const el = mount(`<e-tabs>
+      <e-tab key="a" label="Alpha" count="3">A</e-tab>
+    </e-tabs>`);
+    const badge = el.querySelector('e-badge')!;
+    expect(badge.querySelector('.ink-badge')!.textContent).toBe('3');
+
+    el.querySelector('e-tab')!.setAttribute('count', '4');
+    await settle();
+
+    // Writing to the host would have replaced `.ink-badge` with a text node
+    // and stripped the badge's styling for good.
+    expect(el.querySelector('e-badge')).toBe(badge);
+    expect(badge.querySelector('.ink-badge')!.textContent).toBe('4');
   });
 });

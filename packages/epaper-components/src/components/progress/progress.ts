@@ -1,4 +1,5 @@
 import {
+  boolAttr,
   define,
   EpaperElement,
   intAttr,
@@ -7,6 +8,15 @@ import {
   patchBoolAttr,
   patchText,
 } from '../../core/dom';
+import { formatNumber } from '../../core/format';
+
+/**
+ * The caption's percentage, formatted for the element's locale — German writes
+ * "42 %" with a space, which a hard-coded `${pct}%` cannot produce. The bar's
+ * own width stays a raw CSS percentage.
+ */
+const percentText = (el: Element, pct: number): string =>
+  formatNumber(el, pct / 100, { percent: true });
 
 /**
  * @summary Static progress indicator (linear bar or discrete steps).
@@ -67,7 +77,7 @@ export class EProgress extends EpaperElement {
     const max = Math.max(1, numAttr(this, 'max', 100));
     const pct = Math.min(100, Math.round((value / max) * 100));
     const label = this.getAttribute('label') || '';
-    const hideLabel = this.hasAttribute('hide-label');
+    const hideLabel = boolAttr(this, 'hide-label');
 
     this._patchAria(value, max, label);
 
@@ -107,7 +117,7 @@ export class EProgress extends EpaperElement {
     if (label && !hideLabel) {
       const cap = document.createElement('div');
       cap.className = 'ink-progress__label';
-      cap.textContent = `${label} · ${pct}%`;
+      cap.textContent = `${label} · ${percentText(this, pct)}`;
       wrap.appendChild(cap);
       this._cap = cap;
     }
@@ -151,7 +161,7 @@ export class EProgress extends EpaperElement {
       this._wrap!.appendChild(cap);
       this._cap = cap;
     }
-    patchText(this._cap, `${label} · ${pct}%`);
+    patchText(this._cap, `${label} · ${percentText(this, pct)}`);
   }
 
   private _patch(): void {
@@ -159,7 +169,7 @@ export class EProgress extends EpaperElement {
     const max = Math.max(1, numAttr(this, 'max', 100));
     const pct = Math.min(100, Math.round((value / max) * 100));
     const label = this.getAttribute('label') || '';
-    const hideLabel = this.hasAttribute('hide-label');
+    const hideLabel = boolAttr(this, 'hide-label');
 
     this._patchAria(value, max, label);
 

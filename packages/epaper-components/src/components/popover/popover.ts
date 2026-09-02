@@ -11,6 +11,7 @@ import {
   runCleanups,
 } from '../../core/dom';
 import '../button/button';
+import { label as labelOf, t } from '../../core/i18n';
 
 /**
  * Shared trigger/panel plumbing for the two click-driven overlays in this file.
@@ -33,7 +34,8 @@ class Popup {
     private readonly host: HTMLElement,
     opts: { rootClass: string; panelClass: string; role: 'dialog' | 'alertdialog' },
   ) {
-    const trigger = host.querySelector<HTMLElement>('[slot="trigger"]') ?? Popup._defaultTrigger();
+    const trigger =
+      host.querySelector<HTMLElement>('[slot="trigger"]') ?? Popup._defaultTrigger(host);
     trigger.remove();
 
     this.root = document.createElement('div');
@@ -52,9 +54,9 @@ class Popup {
     this.root.append(this._triggerWrap, this.panel);
   }
 
-  private static _defaultTrigger(): HTMLElement {
+  private static _defaultTrigger(host: HTMLElement): HTMLElement {
     const btn = document.createElement('e-button');
-    btn.textContent = 'Open';
+    btn.textContent = t(host, 'openTrigger');
     return btn;
   }
 
@@ -124,10 +126,21 @@ class Popup {
       if (this.open && !this.host.contains(e.target as Node)) onRequestClose('outside');
     });
     onGlobal(this.host, document, 'keydown', (e) => {
-      if (e.key === 'Escape' && this.open) {
-        onRequestClose('escape');
-        this.focusTrigger();
-      }
+      if (e.key !== 'Escape' || !this.open) return;
+      // Claim the key. An overlay open inside an `<e-dialog>` shares this
+      // handler with the dialog's native `cancel`, so one Escape dismissed
+      // both the popover and the dialog around it.
+      e.preventDefault();
+      e.stopPropagation();
+      onRequestClose('escape');
+      // Escape hands focus back to the trigger, which is the ARIA pattern —
+      // unless focus is already on some other control on the page, where
+      // pulling it away would move the user somewhere they never asked to go.
+      // Focus resting on `<body>` counts as nowhere, not as elsewhere.
+      const active = this.host.ownerDocument.activeElement;
+      const elsewhere =
+        active !== null && active !== this.host.ownerDocument.body && !this.host.contains(active);
+      if (!elsewhere) this.focusTrigger();
     });
   }
 }
@@ -259,6 +272,7 @@ define('e-popover', EPopover);
 
 /**
  * @summary Inline confirmation bubble anchored to the control that triggers it.
+ * @since v1.1.0
  *
  * A lighter alternative to `<e-dialog>` for a single destructive action: no
  * backdrop, no full-panel refresh, just a small dirty rectangle next to the
@@ -330,9 +344,9 @@ export class EPopconfirm extends EpaperElement {
       if (this._messageEl) patchText(this._messageEl, message);
       this._popup.describe(message);
     } else if (name === 'confirm-label') {
-      if (this._confirmBtn) patchText(this._confirmBtn, val || 'OK');
+      if (this._confirmBtn) patchText(this._confirmBtn, val || t(this, 'confirm'));
     } else if (name === 'cancel-label') {
-      if (this._cancelBtn) patchText(this._cancelBtn, val || 'Cancel');
+      if (this._cancelBtn) patchText(this._cancelBtn, val || t(this, 'cancel'));
     } else {
       this._syncPlacement();
     }
@@ -350,8 +364,8 @@ export class EPopconfirm extends EpaperElement {
 
   private _build(): void {
     const message = this.getAttribute('message') ?? '';
-    const confirmLabel = this.getAttribute('confirm-label') || 'OK';
-    const cancelLabel = this.getAttribute('cancel-label') || 'Cancel';
+    const confirmLabel = labelOf(this, 'confirm-label', 'confirm');
+    const cancelLabel = labelOf(this, 'cancel-label', 'cancel');
 
     const popup = new Popup(this, {
       rootClass: 'ink-popconfirm',
@@ -417,8 +431,13 @@ export class EPopconfirm extends EpaperElement {
   private _syncOpen(open: boolean): void {
     const popup = this._popup;
     if (!popup || popup.open === open) return;
+    const hadFocus = this.contains(this.ownerDocument.activeElement);
     popup.setOpen(open);
     if (open) popup.focusPanel();
+    // Closing programmatically — `close()`, or the attribute being removed —
+    // used to leave focus on the panel that had just been hidden, which lands
+    // it on `<body>`. Only the two answer buttons restored it before.
+    else if (hadFocus) popup.focusTrigger();
   }
 }
 

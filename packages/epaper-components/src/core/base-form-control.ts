@@ -167,16 +167,24 @@ export abstract class BaseFormControl<T = string> extends EpaperElement {
    * Apply the shared `required` contract for non-native composite controls.
    * `required` follows the library's boolean-attribute convention, so
    * `required="false"` leaves the control unconstrained.
+   *
+   * `message` is what the browser reads out on submit, so every caller passes
+   * `t(this, key)` rather than a literal: English text here was how
+   * `<e-select required>` came to report "Please select an option." on a page
+   * whose every other word was German. It is resolved by the caller and not
+   * here on purpose — this module is in the dependency graph of every
+   * component, and reaching the string table from it pulled all of it into
+   * `<e-button>`. `required-message` still overrides it per instance.
    */
   protected applyRequiredValidity(
     hasValue: boolean,
     anchor?: HTMLElement,
-    defaultMessage = 'Please fill out this field.',
+    message = 'Please fill out this field.',
   ): boolean {
     const missing = boolAttr(this, 'required') && !hasValue;
     if (missing) {
-      const message = this.getAttribute('required-message') || defaultMessage;
-      this.internals.setValidity({ valueMissing: true }, message, anchor);
+      const reported = this.getAttribute('required-message') || message;
+      this.internals.setValidity({ valueMissing: true }, reported, anchor);
       this._markInvalid(anchor);
       return false;
     }

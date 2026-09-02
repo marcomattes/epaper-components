@@ -2,14 +2,22 @@
 
 export const pad2 = (n: number): string => String(n).padStart(2, '0');
 
+/** Four-digit year, so `ymd` stays the exact inverse of {@link parseYMD}. */
+const pad4 = (n: number): string => String(n).padStart(4, '0');
+
 export const ymd = (d: Date): string =>
-  `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+  `${pad4(d.getFullYear())}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 
 export function parseYMD(s: string | null | undefined): Date | null {
   if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
   const [y, m, d] = s.split('-').map(Number) as [number, number, number];
   if (y < 1 || m < 1 || m > 12 || d < 1 || d > 31) return null;
+  // `new Date(50, 0, 1)` is 1950, not year 50 — the two-digit-year legacy of
+  // the constructor. That made the round-trip check below reject every year
+  // before 100, so `0050-03-01` parsed as `null`. `setFullYear` has no such
+  // remapping.
   const parsed = new Date(y, m - 1, d);
+  parsed.setFullYear(y, m - 1, d);
   if (parsed.getFullYear() !== y || parsed.getMonth() !== m - 1 || parsed.getDate() !== d) {
     return null;
   }

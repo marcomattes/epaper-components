@@ -1,13 +1,15 @@
-import { define, EpaperElement, numAttr, patchAttr, patchText } from '../../core/dom';
+import { boolAttr, define, EpaperElement, numAttr, patchAttr, patchText } from '../../core/dom';
 import { SVG_NS } from '../../core/icons';
-import { t } from '../../core/i18n';
+import { formatNumber } from '../../core/format';
+import { t, type LocaleStrings } from '../../core/i18n';
 
 type SparklineTrend = 'up' | 'down' | 'flat';
 
-const TREND_META: Record<SparklineTrend, { text: string; glyph: string }> = {
-  up: { text: 'Rising', glyph: '▲' },
-  down: { text: 'Falling', glyph: '▼' },
-  flat: { text: 'Flat', glyph: '—' },
+/** Glyph plus the string-table key naming the trend, never the English word. */
+const TREND_META: Record<SparklineTrend, { key: keyof LocaleStrings; glyph: string }> = {
+  up: { key: 'trendRising', glyph: '▲' },
+  down: { key: 'trendFalling', glyph: '▼' },
+  flat: { key: 'trendFlat', glyph: '—' },
 };
 
 /** Where the latest reading sits relative to the configured threshold. */
@@ -35,12 +37,13 @@ function sparklineAriaLabel(
   state: ThresholdState | null,
 ): string {
   const prefix = label ? `${label}: ` : '';
-  if (!hasData) return `${prefix}No data`;
+  if (!hasData) return `${prefix}${t(el, 'noData')}`;
   const limit =
     threshold != null && state
       ? t(el, 'sparklineThreshold', { state: t(el, THRESHOLD_KEY[state]), threshold })
       : '';
-  return `${prefix}${lastValue}; ${trendText.toLowerCase()}${limit}`;
+  const reading = lastValue == null ? '' : formatNumber(el, lastValue);
+  return `${prefix}${reading}; ${trendText.toLowerCase()}${limit}`;
 }
 
 const valuesFrom = (raw: string | null): number[] => {
@@ -131,7 +134,7 @@ export class ESparkline extends EpaperElement {
 
     const empty = document.createElement('div');
     empty.className = 'ink-sparkline__empty';
-    empty.textContent = 'No data';
+    empty.textContent = t(this, 'noData');
 
     const caption = document.createElement('figcaption');
     caption.className = 'ink-sparkline__caption';
@@ -218,7 +221,8 @@ export class ESparkline extends EpaperElement {
       this._pointFor(value, index, values.length, min, max),
     );
     const lastPoint = points.at(-1)?.split(',') ?? [];
-    const { text: trendText, glyph } = TREND_META[trend];
+    const { key: trendKey, glyph } = TREND_META[trend];
+    const trendText = t(this, trendKey);
     const hasData = values.length > 0;
     const threshold = this._threshold();
     const state =
@@ -245,9 +249,9 @@ export class ESparkline extends EpaperElement {
     patchAttr(this._empty, 'hidden', hasData ? '' : null);
     patchText(this._labelEl, label);
     patchAttr(this._labelEl, 'hidden', label ? null : '');
-    patchText(this._valueEl, hasData ? String(lastValue) : '');
+    patchText(this._valueEl, hasData && lastValue != null ? formatNumber(this, lastValue) : '');
     patchText(this._trendEl, `${glyph} ${trendText}`);
-    patchAttr(this._caption, 'hidden', this.hasAttribute('hide-caption') ? '' : null);
+    patchAttr(this._caption, 'hidden', boolAttr(this, 'hide-caption') ? '' : null);
   }
 }
 

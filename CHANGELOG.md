@@ -90,8 +90,8 @@ fallback matters more, one `<noscript>` rule undoes it — see the README.
   addition is backwards compatible — `date` and `title` stay required, and
   `<e-calendar>` ignores the new fields — so one dataset now feeds both the
   month grid and the agenda.
-- `<e-calendar>` fires `e-month-change` (`{value: 'YYYY-MM', year, month}`)
-  when the displayed month moves, by the header steppers or by keyboard
+- `<e-calendar>` fires `e-month-change` (`{year, month}`, `month` zero-based
+  like `Date#getMonth`) when the displayed month moves, by the header steppers or by keyboard
   navigation crossing a month boundary. Hosts that hold one month of data at a
   time can load the next one and write it back to `events`.
 - `<e-event-log>`: data-driven, keyed event and alarm list. Rows are identified
@@ -339,6 +339,94 @@ fallback matters more, one `<noscript>` rule undoes it — see the README.
 - `<e-qrcode>` built its error state by concatenating markup. Both
   interpolations were escaped, so it was not injectable, but the sink is gone:
   it is built with DOM APIs and `textContent`, like `<e-barcode>`.
+
+Release review — the following were found and fixed in the last pass over
+2.0.0 before tagging.
+
+- **The accessibility gate ran on nothing.** The `storybook` Vitest project
+  resolved its story globs against `apps/storybook/` while the stories live in
+  `packages/epaper-components/`, so Vitest reported "No test files found" and
+  carried on green. 84 story files and their axe-core checks were silently
+  excluded from every CI run. `test.dir` now pins the project to the repository
+  root, and the 361 story tests run.
+- **`weekdayLabels()` was rotated by one day west of UTC.** It derived Mon–Sun
+  from a fixed UTC instant and formatted it in the local zone, so a browser at
+  UTC-5 printed a calendar header starting on Sunday under a Monday-first grid.
+  The labels are now formatted in UTC, which is the only zone in which the
+  chosen instants mean what the function assumes.
+- **Four form controls desynced on `form.reset()`.** `<e-checkbox>`,
+  `<e-toggle>`, `<e-radio-group>` and `<e-checkbox-group>` render native inputs
+  that carry no `checked` content attribute, so the browser's own reset cleared
+  them while the component's value stayed put. Each now re-asserts its rendered
+  state from its value during reset instead of assuming the assignment moved
+  anything.
+- **`<e-radio-group>` submitted a phantom field.** Its rendered `<input
+type="radio">` elements carried the group's `name` and were owned by the
+  surrounding form, so `FormData` contained the value twice — once from
+  `ElementInternals`, once from the inputs. They are now associated with an
+  unused form id: native grouping and arrow-key behaviour are kept, form
+  submission is not.
+- **Scoped theme overrides could not reach `components.css`.** 171 rules used
+  the `var(--ink-border)` shorthand, which resolves where it is declared — at
+  `:root` — so a `--ink-fg` or `--ink-border-width` set on a wrapper or a single
+  element never reached them. Every border is written out as
+  `var(--ink-border-width) solid var(--ink-fg)`, so both halves resolve at the
+  element. THEMING.md documents the rule.
+- **Four components were frozen after mount.** `<e-dropdown>`, `<e-menu>`,
+  `<e-collapse>` and `<e-float-button>` consumed their item carriers at connect,
+  so an item added, removed or relabelled afterwards was never rendered. They
+  now keep the carriers in the light DOM and re-sync through `observeItems`,
+  matching the contract the other carrier-based components already had.
+- **`<e-splitter>` could not be dragged by touch.** It listened for `mousedown`
+  and `mousemove`; a capacitive panel synthesises `mousedown` only after the
+  finger lifts and never emits `mousemove` mid-gesture, which left the keyboard
+  the only way to move the handle on the hardware this library targets. It now
+  uses pointer events with pointer capture.
+- **About 60 strings were hard-coded English**, reachable by neither the
+  `locale` attribute nor `setLocaleStrings()` — among them `<e-status-board>`'s
+  status names, `<e-steps>`' DONE/IN PROGRESS/PENDING, `<e-toggle>`'s ON/OFF,
+  `<e-upload>`'s prompts and rejection messages, `<e-dialog>`'s close label,
+  `<e-pagination>`'s and `<e-breadcrumb>`'s landmark labels, `<e-table>`'s
+  selection labels and `<e-last-updated>`'s hand-built relative time. All of
+  them go through the string table now.
+- `formatNumber()` and `formatMoneyParts()` threw for a `precision` outside
+  0–100 — both `Intl` and `toFixed` reject it, and the fallback path re-threw.
+  It is clamped, and the fallback keeps the shape of the formatted output
+  rather than degrading to a bare number.
+- `formatRelativeTime()` rounded asymmetrically around zero, so a delta and its
+  negation could report different magnitudes.
+- `parseYMD()` mapped years below 100 to the 1900s via the `Date` two-digit
+  legacy rule, and `ymd()` emitted an unpadded year for them.
+- `cloneItemBody()` duplicated element ids into the rendered copy, so
+  `label[for]`, `aria-labelledby` and `aria-describedby` inside a cloned item
+  pointed at whichever copy came first in the document. Ids are rewritten and
+  the IDREF attributes inside the copy are repointed.
+- `observeItems()` could run one more sync after `runCleanups()`, on a
+  `MutationObserver` callback already scheduled when the element disconnected.
+- `<e-event-log>`'s sort comparator returned 0 for unparsable timestamps, which
+  is not a total order and left row order engine-dependent; duplicate ids in
+  `data` are now rejected rather than rendering twice.
+- `<e-redline>` split paragraphs on `\n{2,}`, so a CRLF document was treated as
+  a single paragraph.
+- `<e-badge-count>` read `max` and `value` as raw strings and `<e-progress>`,
+  `<e-meter>`, `<e-sparkline>`, `<e-status-board>` and `<e-change-marker>` read
+  `hide-label` and friends with `hasAttribute`, so `hide-label="false"` hid the
+  label. All of them follow the `boolAttr` convention now.
+- `<e-popover>` let `Escape` bubble, closing a surrounding `<e-dialog>` with it,
+  and left focus on `<body>` after closing.
+- `<e-select>`, `<e-cascader>` and `<e-date-picker>` never closed on
+  `focusout`, so tabbing out left the menu open with `Escape` no longer wired
+  to it.
+- `<e-keypad>` dispatched its mirrored input on the host rather than the inner
+  native control, so a framework binding on the mirrored field saw nothing.
+- Documentation: the event table, the `BaseFormControl` subclass count, the
+  icon count, the browser-support floor, the BrowserStack matrix, the bundle
+  sizes, the repository tree and the coverage thresholds were all stale in at
+  least one of README, OVERVIEW, AGENTS or CONTRIBUTING; `e-month-change` was
+  documented with a `value` key the component never sent. `.stylelintrc.json`
+  now bans `:hover`, transitions, animations, `@keyframes`, smooth scrolling,
+  `will-change` and the filter properties mechanically, rather than by
+  convention.
 
 ## [1.2.0] — 2026-08-25
 

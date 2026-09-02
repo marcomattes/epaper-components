@@ -798,10 +798,17 @@ describe('e-progress', () => {
     expect(el.hasAttribute('aria-label')).toBe(false);
   });
 
-  it('hide-label is presence-based, so hide-label="false" still hides', () => {
-    const el = mount(`<e-progress value="5" label="L" hide-label="false"></e-progress>`);
-    expect(el.querySelector('.ink-progress__label')).toBeNull();
-    expect(el.getAttribute('aria-label')).toBe('L');
+  it('hide-label follows the boolean-attribute convention (v2.0.0)', () => {
+    // `hide-label="false"` used to hide the label anyway, because presence
+    // alone was the test — every other boolean attribute in the library reads
+    // `="false"` as the opt-out it looks like.
+    const shown = mount(`<e-progress value="5" label="L" hide-label="false"></e-progress>`);
+    expect(shown.querySelector('.ink-progress__label')).not.toBeNull();
+    expect(shown.getAttribute('aria-label')).toBe('L');
+
+    const hidden = mount(`<e-progress value="5" label="L" hide-label></e-progress>`);
+    expect(hidden.querySelector('.ink-progress__label')).toBeNull();
+    expect(hidden.getAttribute('aria-label')).toBe('L');
   });
 
   it('renders discrete segments for variant="steps"', () => {
@@ -2024,17 +2031,25 @@ describe('e-change-marker · localization', () => {
     expect(el.getAttribute('aria-label')).toBe('8; unverändert');
   });
 
-  it('keeps the English wording and the raw delta without a locale', () => {
+  it('keeps the English wording and rounds the delta without a precision', () => {
     const el = mount(
       `<e-change-marker previous="21.8" value="22.4" precision="1"></e-change-marker>`,
     );
     expect(cue(el)).toBe('▲ Increased by 0.6');
 
-    // No precision means no number formatting at all, localized or not — the
-    // raw float reaches the cue exactly as it did before v2.0.0.
+    // Without `precision` the delta still goes through `Intl`, which is what
+    // keeps the subtraction of two decimals off the panel: the raw double
+    // `22.4 - 21.8` is 0.5999999999999979.
     el.removeAttribute('precision');
-    expect(cue(el)).toBe(`▲ Increased by ${22.4 - 21.8}`);
-    expect(cue(el)).toContain('0.59999999999');
+    expect(cue(el)).toBe('▲ Increased by 0.6');
+    expect(cue(el)).not.toContain('0.59999999999');
+  });
+
+  it('localizes the decimal separator of an unprecised delta', () => {
+    const el = mount(
+      `<e-change-marker locale="de" previous="21.8" value="22.4"></e-change-marker>`,
+    );
+    expect(cue(el)).toBe('▲ Gestiegen um 0,6');
   });
 
   it('re-renders when the locale attribute is added, changed and removed', () => {
@@ -2459,5 +2474,54 @@ describe('e-calendar · localization and month events', () => {
     expect(dow(el)).toEqual(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
     expect(el.querySelector('.ink-calendar__title')!.textContent).toBe('April');
     expect(cells(el)[3]!.dataset['day']).toBe('1');
+  });
+});
+
+/* ===================================================================== *
+ * v2.0.0 — status-board keys and vocabulary
+ * ===================================================================== */
+
+describe('e-status-board · keys and locale (v2.0.0)', () => {
+  const cells = (el: HTMLElement): HTMLElement[] => [
+    ...el.querySelectorAll<HTMLElement>('.ink-status-board__cell'),
+  ];
+
+  it('keeps items apart when the data already contains a suffixed key', () => {
+    const el = mount(
+      `<e-status-board data='[{"key":"x-2","label":"First","value":1},` +
+        `{"key":"x","label":"Second","value":2},{"key":"x","label":"Third","value":3}]'>` +
+        `</e-status-board>`,
+    );
+    // Three items in, three cells out: the disambiguated key used to collide
+    // with an authored one and quietly drop a metric.
+    expect(cells(el)).toHaveLength(3);
+    expect(cells(el).map((c) => c.querySelector('.ink-status-board__label')!.textContent)).toEqual([
+      'First',
+      'Second',
+      'Third',
+    ]);
+  });
+
+  it('reads its built-in status words from the locale table', () => {
+    const el = mount(
+      `<e-status-board locale="de" data='[{"key":"a","label":"Ofen","value":"120","status":"warning"}]'>` +
+        `</e-status-board>`,
+    );
+    expect(cells(el)[0]!.querySelector('.ink-status-board__cue')!.textContent).toBe('! Warnung');
+    expect(el.getAttribute('aria-label')).toBe('Statustafel');
+  });
+
+  it('keeps the English defaults every existing board renders', () => {
+    const el = mount(
+      `<e-status-board data='[{"key":"a","label":"Oven","value":"120","status":"warning"}]'>` +
+        `</e-status-board>`,
+    );
+    expect(cells(el)[0]!.querySelector('.ink-status-board__cue')!.textContent).toBe('! Warning');
+    expect(el.getAttribute('aria-label')).toBe('Status board');
+  });
+
+  it('shows the localized empty state', () => {
+    const el = mount(`<e-status-board locale="de" data='[]'></e-status-board>`);
+    expect(el.querySelector('.ink-status-board__empty')!.textContent).toBe('Keine Kennzahlen');
   });
 });

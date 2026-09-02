@@ -708,11 +708,34 @@ describe('cloneItemBody', () => {
     expect(item.innerHTML).toBe('<b>Shipped</b>');
   });
 
-  it('drops ids so the same one never appears twice in the document', () => {
+  it('rewrites ids so the same one never appears twice in the document', () => {
+    const item = carrier('<b id="code">EP-1</b><i id="x">y</i>');
     const target = document.createElement('div');
-    cloneItemBody(carrier('<b id="code">EP-1</b><i id="x">y</i>'), target);
-    expect(target.querySelectorAll('[id]')).toHaveLength(0);
+    cloneItemBody(item, target);
+    const ids = [...target.querySelectorAll('[id]')].map((el) => el.id);
+    expect(ids).toHaveLength(2);
+    expect(ids).not.toContain('code');
+    expect(ids).not.toContain('x');
+    expect(new Set(ids).size).toBe(2);
     expect(target.textContent).toBe('EP-1y');
+    // The authored carrier keeps its own ids; it is what a page script holds.
+    expect([...item.querySelectorAll('[id]')].map((el) => el.id)).toEqual(['code', 'x']);
+  });
+
+  it('repoints references inside the copy at the copy, not at the hidden original', () => {
+    const target = document.createElement('div');
+    cloneItemBody(
+      carrier('<label for="f">Ref</label><input id="f"><p aria-describedby="f note">n</p>'),
+      target,
+    );
+    const input = target.querySelector('input')!;
+    const label = target.querySelector('label')!;
+    const p = target.querySelector('p')!;
+    expect(input.id).not.toBe('f');
+    expect(label.getAttribute('for')).toBe(input.id);
+    // A token naming something outside the item is left alone, so a
+    // page-level hint still resolves.
+    expect(p.getAttribute('aria-describedby')).toBe(`${input.id} note`);
   });
 
   it('replaces whatever the target held before', () => {
@@ -892,5 +915,25 @@ describe('observeItems', () => {
     await flush();
     expect(calls.count).toBe(1);
     host.remove();
+  });
+});
+
+describe('observeItems stops for good on cleanup (v2.0.0)', () => {
+  it('does not run a sync that was already scheduled when the host went away', async () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    let syncs = 0;
+    observeItems(host, () => {
+      syncs++;
+    });
+
+    host.appendChild(document.createElement('span'));
+    // Same task: the observer callback has not run yet, so the sync is only
+    // about to be scheduled.
+    runCleanups(host);
+    host.remove();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(syncs).toBe(0);
   });
 });

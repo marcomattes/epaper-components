@@ -32,7 +32,10 @@ export class ELayout extends EpaperElement {
 }
 define('e-layout', ELayout);
 
-/** @summary Header region inside an `<e-layout>`. */
+/** @summary Header region inside an `<e-layout>`. *
+ * @example
+ * <e-layout-header>Masthead</e-layout-header>
+ */
 export class ELayoutHeader extends EpaperElement {
   private _wired = false;
   connectedCallback() {
@@ -45,8 +48,12 @@ define('e-layout-header', ELayoutHeader);
 
 /**
  * @summary Side rail rendered next to the content area.
+ * @since v1.0.1
  *
  * @attr {string} [width='220'] - Pixel width of the sider.
+ *
+ * @example
+ * <e-layout-sider width="220">Navigation</e-layout-sider>
  */
 export class ELayoutSider extends EpaperElement {
   static readonly observedAttributes = ['width'];
@@ -76,7 +83,10 @@ export class ELayoutSider extends EpaperElement {
 }
 define('e-layout-sider', ELayoutSider);
 
-/** @summary Main content region inside an `<e-layout>`. */
+/** @summary Main content region inside an `<e-layout>`. *
+ * @example
+ * <e-layout-content>Page body</e-layout-content>
+ */
 export class ELayoutContent extends EpaperElement {
   private _wired = false;
   connectedCallback() {
@@ -87,7 +97,10 @@ export class ELayoutContent extends EpaperElement {
 }
 define('e-layout-content', ELayoutContent);
 
-/** @summary Footer region inside an `<e-layout>`. */
+/** @summary Footer region inside an `<e-layout>`. *
+ * @example
+ * <e-layout-footer>Imprint</e-layout-footer>
+ */
 export class ELayoutFooter extends EpaperElement {
   private _wired = false;
   connectedCallback() {

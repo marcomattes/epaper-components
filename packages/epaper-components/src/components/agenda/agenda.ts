@@ -34,11 +34,20 @@ const pct = (value: number): number => Math.round(value * 100) / 100;
 const readStatus = (raw: string | undefined): CalendarEventStatus | null =>
   raw && STATUSES.has(raw) ? (raw as CalendarEventStatus) : null;
 
-/** Minutes since midnight for `now`, given as an ISO timestamp or `HH:MM`. */
+/**
+ * Minutes since midnight for `now`, given as an ISO timestamp, a bare
+ * `YYYY-MM-DD` or `HH:MM`.
+ *
+ * The date-only form goes through {@link parseYMD}, not the `Date`
+ * constructor: `new Date('2026-08-28')` is UTC midnight, so west of UTC the
+ * marker landed on the previous day at 20:00.
+ */
 function readNow(raw: string | null): { date: string | null; minutes: number } | null {
   if (!raw) return null;
   const plain = parseHM(raw);
   if (plain !== null) return { date: null, minutes: plain };
+  const dateOnly = parseYMD(raw);
+  if (dateOnly) return { date: ymd(dateOnly), minutes: 0 };
   const parsed = new Date(raw);
   if (Number.isNaN(parsed.getTime())) return null;
   return { date: ymd(parsed), minutes: parsed.getHours() * 60 + parsed.getMinutes() };
@@ -71,6 +80,8 @@ function readNow(raw: string | null): { date: string | null; minutes: number } |
  * @attr {string} [all-day-label] - Heading of the all-day row. Defaults to the string table's `allDay`.
  * @attr {string} [now-label] - Label of the "now" marker. Defaults to the string table's `now`.
  * @attr {string} [locale] - Formatting locale for the headings. Defaults to the nearest `lang`, then the document language.
+ *
+ * @fires {CustomEvent<{error: Error, source: 'events'}>} e-error - Fired when the `events` attribute fails to parse. The entry list falls back to `[]`. @since v2.0.0
  *
  * @example
  * <e-agenda
@@ -128,9 +139,22 @@ export class EAgenda extends EpaperElement {
     let events: CalendarEvent[] = [];
     try {
       const parsed: unknown = JSON.parse(this.getAttribute('events') || '[]');
-      if (isCalendarEvents(parsed)) events = parsed;
-    } catch {
-      events = [];
+      if (!isCalendarEvents(parsed)) {
+        throw new TypeError('Expected an array of {date, title} calendar events.');
+      }
+      events = parsed;
+    } catch (err) {
+      // Reported, not swallowed — see `<e-calendar>`, which reads the same
+      // attribute and now says so too.
+      this.dispatchEvent(
+        new CustomEvent('e-error', {
+          detail: {
+            error: err instanceof Error ? err : new Error(String(err)),
+            source: 'events',
+          },
+          bubbles: true,
+        }),
+      );
     }
     this._eventMap.clear();
     for (const event of events) {

@@ -19,8 +19,9 @@ EPaper is a component library of plain custom elements for user interfaces that
 run on electrophoretic (e-paper, e-ink) displays. It ships 108 registered elements, a three-layer
 CSS token system, strict TypeScript types and a Custom Elements Manifest. There
 is no framework dependency and no runtime dependency at all; components extend
-`HTMLElement` or a shared `BaseFormControl` base class and render into the light
-DOM.
+`EpaperElement` — a thin `HTMLElement` subclass that stands in for it where
+there is no DOM, so the package imports cleanly in Node — or the shared
+`BaseFormControl`, and render into the light DOM.
 
 ## Design constraints
 
@@ -172,7 +173,7 @@ refresh. The token layer sets minimum weights accordingly:
 --ink-focus-width: 3px; /* focus ring */
 ```
 
-The 41 icons in [src/core/icons.ts](packages/epaper-components/src/core/icons.ts) are rendered as stroked
+The 65 icons in [src/core/icons.ts](packages/epaper-components/src/core/icons.ts) are rendered as stroked
 paths with `stroke-width="2" fill="none" stroke-linecap="square" stroke-linejoin="miter"`.
 Filled shapes are avoided below 32px because they dither visibly on Kaleido
 panels, and square caps avoid the rounded endpoint artifacts that remain
@@ -418,10 +419,12 @@ entries, 22 CSS/source-map entries and the Custom Elements Manifest.
 | Type imports only  | `import type { EButton } from '@marcomattes/epaper-components';` |
 | Whole library      | `import '@marcomattes/epaper-components';`                       |
 
-Bundling the full library through esbuild currently produces 60.82 KB brotli;
-`npm run size` enforces a 62 KB brotli budget on the barrel and separate budgets
-on `<e-button>` (6 KB, currently 1.63 KB) and `<e-input>` (8 KB, currently
-2.1 KB). The CSS files are declared as having side effects, since they apply
+Bundling the full library through esbuild currently produces 63.7 KB brotli;
+`npm run size` enforces a 66 KB brotli budget on the barrel and separate budgets
+on `<e-button>` (6 KB, currently 1.7 KB) and `<e-input>` (8 KB, currently
+4.92 KB). The per-component budgets are the ones that matter day to day: they
+are what catches a shared core module quietly acquiring a dependency that then
+ships with every component importing it. The CSS files are declared as having side effects, since they apply
 globally, and are never tree-shaken.
 
 ## Forms
@@ -429,7 +432,7 @@ globally, and are never tree-shaken.
 Every interactive control is a [form-associated custom
 element](https://web.dev/articles/more-capable-form-controls). Giving a control
 a `name` attribute is enough for it to participate in submission, `FormData`
-and `form.reset()`. Built-in constraint validation is shared by all thirteen
+and `form.reset()`. Built-in constraint validation is shared by all 18
 `BaseFormControl` subclasses: `required` reports `valueMissing` for empty text,
 selection and file controls (and for unchecked checkbox/toggle controls), while
 the text and number controls also mirror their native input constraints through
@@ -483,24 +486,39 @@ Form controls also expose the standard `value`, `validity`, `validationMessage`,
 Components communicate through `CustomEvent`s with an `e-` prefix, all of them
 bubbling, and a typed `detail` payload. The default is an `e-change` event
 carrying `{ value: T }`; the following contracts differ from that default and
-are stable API. There are ten distinct event names in total:
+are stable API. There are 16 distinct event names in total:
 
-| Event            | Detail                                                  | Fired by                                                                      |
-| ---------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `e-change`       | `{ value: string }`                                     | `e-input`, `e-textarea`, `e-select`, `e-date-picker`, `e-tree-select`, …      |
-| `e-change`       | `{ value: string[] }`                                   | `e-cascader`, `e-checkbox-group`                                              |
-| `e-change`       | `{ value: number }`                                     | `e-pagination`, `e-input-number`                                              |
-| `e-change`       | `{ checked: boolean }`                                  | `e-checkbox`, `e-toggle`                                                      |
-| `e-change`       | `{ files: File[] }`                                     | `e-upload`                                                                    |
-| `e-input`        | `{ value: string }`                                     | `e-input`, `e-textarea`, on every keystroke (before the committed `e-change`) |
-| `e-click`        | `{ originalEvent: MouseEvent }`                         | `e-button`                                                                    |
-| `e-select`       | `{ index: number }`                                     | `e-dropdown`                                                                  |
-| `e-close`        | `{ value: string }`                                     | `e-tag`, when its close control is activated                                  |
-| `e-load`         | `{ value: 'src' \| 'fallback' \| 'placeholder' }`       | `e-image`, when a source finishes rendering                                   |
-| `e-sort`         | `{ key: string, direction: 'asc' \| 'desc' \| 'none' }` | `e-table`, on a header sort click (the component never reorders rows itself)  |
-| `e-submit`       | `{ form: HTMLFormElement }`                             | `e-form` (the native submit is `preventDefault`-ed)                           |
-| `e-error`        | `{ error: Error, source: string }`                      | `e-cascader`, `e-tree-select` on malformed JSON attributes                    |
-| `e-month-change` | `{ value: string, year: number, month: number }`        | `e-calendar`, when the displayed month moves. `value` is `YYYY-MM`            |
+| Event            | Detail                                                  | Fired by                                                                                                                                 |
+| ---------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `e-change`       | `{ value: string }`                                     | `e-input`, `e-textarea`, `e-select`, `e-date-picker`, `e-time-picker`, `e-tree-select`, `e-tabs`, `e-segmented`, `e-menu`, `e-anchor`, … |
+| `e-change`       | `{ value: string[] }`                                   | `e-cascader`, `e-checkbox-group`, `e-collapse`                                                                                           |
+| `e-change`       | `{ value: number }`                                     | `e-pagination`, `e-input-number`, `e-slider`, `e-rating`                                                                                 |
+| `e-change`       | `{ value: boolean }`                                    | `e-chip`, `e-redline`                                                                                                                    |
+| `e-change`       | `{ value: number, band: 'low' \| 'normal' \| 'high' }`  | `e-meter`, when the clamped value crosses into another threshold band                                                                    |
+| `e-change`       | `{ checked: boolean }`                                  | `e-checkbox`, `e-toggle`                                                                                                                 |
+| `e-change`       | `{ files: File[] }`                                     | `e-upload`                                                                                                                               |
+| `e-input`        | `{ value: string }`                                     | `e-input`, `e-textarea`, `e-pin-input`, `e-slider`, before the committed `e-change`                                                      |
+| `e-click`        | `{ originalEvent: MouseEvent }`                         | `e-button`                                                                                                                               |
+| `e-click`        | `{ value: number }`                                     | `e-back-top`; `value` is the scroll position when the button was pressed                                                                 |
+| `e-select`       | `{ index: number }`                                     | `e-dropdown`                                                                                                                             |
+| `e-select`       | `{ index: number, value: string }`                      | `e-float-button`, when a group action is activated                                                                                       |
+| `e-select`       | `{ value: string }`                                     | `e-tree`, `e-select`, on row or option activation                                                                                        |
+| `e-select`       | `{ value: number[] }`                                   | `e-table`, when the row selection changes                                                                                                |
+| `e-open`         | `{ value: true }`                                       | `e-dialog`, `e-popover`                                                                                                                  |
+| `e-close`        | `{ value: string }`                                     | `e-tag`, `e-alert`, when the dismiss control is activated                                                                                |
+| `e-close`        | `{ value: false }`                                      | `e-popover`                                                                                                                              |
+| `e-close`        | `{ value: false, reason: DialogCloseReason }`           | `e-dialog`; `reason` says what dismissed it                                                                                              |
+| `e-confirm`      | `{ value: true }`                                       | `e-popconfirm`                                                                                                                           |
+| `e-cancel`       | `{ value: false }`                                      | `e-popconfirm`, on cancel, `Escape` or an outside click                                                                                  |
+| `e-expand`       | `{ value: string, expanded: boolean }`                  | `e-tree`, when a node expands or collapses                                                                                               |
+| `e-check`        | `{ value: string[] }`                                   | `e-tree`; every fully checked node, parents included, in document order                                                                  |
+| `e-load`         | `{ value: 'src' \| 'fallback' \| 'placeholder' }`       | `e-image`, when a source finishes rendering                                                                                              |
+| `e-sort`         | `{ key: string, direction: 'asc' \| 'desc' \| 'none' }` | `e-table`, on a header sort click (the component never reorders rows itself)                                                             |
+| `e-submit`       | `{ form: HTMLFormElement }`                             | `e-form` (the native submit is `preventDefault`-ed)                                                                                      |
+| `e-invalid`      | `{ controls: HTMLElement[], form: HTMLFormElement }`    | `e-form`, once per blocked submission, listing the controls that failed constraint validation                                            |
+| `e-error`        | `{ error: Error, source: string }`                      | `e-cascader`, `e-tree`, `e-tree-select`, `e-calendar`, `e-agenda`, `e-form` on malformed JSON attributes                                 |
+| `e-error`        | `{ value: string }`                                     | `e-image`, `e-card-image`, when a source fails to load; `value` is the URL                                                               |
+| `e-month-change` | `{ year: number, month: number }`                       | `e-calendar`, when the displayed month moves. `month` is zero-based, like `Date#getMonth`                                                |
 
 The complete per-component list, including slots and attributes, is generated
 into `dist/custom-elements.json`. For typed listeners the package exports an
@@ -781,32 +799,42 @@ the current release.
 
 ## Repository
 
+An npm-workspaces monorepo: one published package, four unpublished apps.
+
 ```
-src/
-  core/        # Cross-cutting helpers: dom, icons, base-form-control, types.
-  components/  # One web component per file. Each calls define(...) at module scope.
-  styles/      # Base CSS layers and optional panel themes. Public CSS surface.
-  stories/     # Storybook documentation; not shipped.
-  site/        # Source of epaper-components.dev; not shipped.
-  demo/        # Demo HTML wiring; not shipped.
-sample-app/    # Runtime + compiled checks that this README stays accurate; not shipped.
+packages/
+  epaper-components/       # The published package.
+    src/
+      core/                # Cross-cutting helpers: dom, icons, base-form-control,
+                           # types, date, format, i18n.
+      components/          # One directory per component; each calls define(...)
+                           # at module scope.
+      styles/              # Base CSS layers and optional panel themes.
+                           # Public CSS surface.
+      stories/             # Storybook documentation; not shipped.
+      demo/                # Demo HTML wiring; not shipped.
+apps/
+  storybook/               # Storybook configuration; the stories live in the package.
+  site/                    # Source of epaper-components.dev.
+  sample-app/              # Runtime + compiled checks that this README stays accurate.
+  bookstore/               # Larger end-to-end example app.
 ```
 
 ### Companion docs
 
-| File                                   | Audience             | Purpose                                                                                                                   |
-| -------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| [`OVERVIEW.md`](./OVERVIEW.md)         | Users + contributors | Architecture deep-dive, API conventions, event-detail contract, framework-integration cheatsheet, V1.0 known limitations. |
-| [`THEMING.md`](./THEMING.md)           | Users                | CSS custom-property registry and override patterns.                                                                       |
-| [`CONTRIBUTING.md`](./CONTRIBUTING.md) | Contributors         | Component-author conventions, release process and PR checklist.                                                           |
-| [`CHANGELOG.md`](./CHANGELOG.md)       | Everyone             | Version history, migrations, and known limitations.                                                                       |
-| [`AGENTS.md`](./AGENTS.md)             | AI agents            | Working guide for Claude Code and similar tools.                                                                          |
+| File                                   | Audience             | Purpose                                                                                                              |
+| -------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| [`OVERVIEW.md`](./OVERVIEW.md)         | Users + contributors | Architecture deep-dive, API conventions, event-detail contract, framework-integration cheatsheet, known limitations. |
+| [`THEMING.md`](./THEMING.md)           | Users                | CSS custom-property registry and override patterns.                                                                  |
+| [`CONTRIBUTING.md`](./CONTRIBUTING.md) | Contributors         | Component-author conventions, release process and PR checklist.                                                      |
+| [`CHANGELOG.md`](./CHANGELOG.md)       | Everyone             | Version history, migrations, and known limitations.                                                                  |
+| [`AGENTS.md`](./AGENTS.md)             | AI agents            | Working guide for Claude Code and similar tools.                                                                     |
 
 ## Development
 
 ```sh
 npm install
-npm run dev               # Vite playground (src/demo) on http://localhost:8085
+npm run dev               # Vite playground (packages/epaper-components/src/demo) on http://localhost:8085
 npm run storybook         # Storybook on :6006
 npm run test              # Vitest in watch mode (browser/Chromium via Playwright)
 npm run test:ci           # Vitest single run, CI-friendly
@@ -926,8 +954,10 @@ pushed; [CONTRIBUTING.md](./CONTRIBUTING.md) documents the exact sequence.
 
 ## Cross-browser testing
 
-Every component story is tested on Chrome, Edge, Firefox, desktop WebKit, and a
-mobile WebKit context through BrowserStack. The suite rejects runtime and
+Every component story is tested on Chrome, Edge and desktop WebKit through
+BrowserStack. Firefox and mobile WebKit are configured in `browserstack.yml`
+but held out of the CI matrix; `.github/workflows/browserstack.yml` records why
+next to the `platform:` list. The suite rejects runtime and
 rendering failures and also enforces that every registered custom element is
 covered by Storybook. See [BROWSERSTACK.md](./BROWSERSTACK.md) for the complete
 matrix, CI setup, reports, and local commands.

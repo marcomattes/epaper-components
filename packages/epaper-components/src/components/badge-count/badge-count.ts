@@ -3,7 +3,7 @@ import {
   captureWrap,
   define,
   EpaperElement,
-  intAttr,
+  numAttr,
   patchAttr,
   patchText,
 } from '../../core/dom';
@@ -41,8 +41,12 @@ export class EBadgeCount extends EpaperElement {
 
   private _render(): void {
     if (!this._wrap) return;
-    const count = Math.max(0, intAttr(this, 'count', 0));
-    const max = Math.max(0, intAttr(this, 'max', 99));
+    // Rounded, not rejected: `intAttr` falls back to the default for a
+    // fraction, so `count="12.5"` used to read as 0 and hide the badge
+    // entirely rather than showing the 13 the author meant. `max` needs at
+    // least 1, or every count renders as the nonsense "0+".
+    const count = Math.max(0, Math.round(numAttr(this, 'count', 0)));
+    const max = Math.max(1, Math.round(numAttr(this, 'max', 99)));
     const dot = boolAttr(this, 'dot');
     const display = count > max ? `${max}+` : String(count);
     const wantClass = dot ? 'ink-badge-count__dot' : 'ink-badge-count__num';

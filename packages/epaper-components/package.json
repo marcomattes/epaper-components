@@ -55,9 +55,17 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./affix": {
+      "types": "./dist/components/affix.d.ts",
+      "import": "./dist/components/affix.js"
+    },
     "./agenda": {
       "types": "./dist/components/agenda.d.ts",
       "import": "./dist/components/agenda.js"
+    },
+    "./alert": {
+      "types": "./dist/components/alert.d.ts",
+      "import": "./dist/components/alert.js"
     },
     "./anchor": {
       "types": "./dist/components/anchor.d.ts",
@@ -66,14 +74,6 @@
     "./avatar": {
       "types": "./dist/components/avatar.d.ts",
       "import": "./dist/components/avatar.js"
-    },
-    "./affix": {
-      "types": "./dist/components/affix.d.ts",
-      "import": "./dist/components/affix.js"
-    },
-    "./alert": {
-      "types": "./dist/components/alert.d.ts",
-      "import": "./dist/components/alert.js"
     },
     "./back-top": {
       "types": "./dist/components/back-top.d.ts",
@@ -115,6 +115,10 @@
       "types": "./dist/components/cascader.d.ts",
       "import": "./dist/components/cascader.js"
     },
+    "./change-marker": {
+      "types": "./dist/components/change-marker.d.ts",
+      "import": "./dist/components/change-marker.js"
+    },
     "./checkbox": {
       "types": "./dist/components/checkbox.d.ts",
       "import": "./dist/components/checkbox.js"
@@ -127,10 +131,6 @@
       "types": "./dist/components/chip.d.ts",
       "import": "./dist/components/chip.js"
     },
-    "./change-marker": {
-      "types": "./dist/components/change-marker.d.ts",
-      "import": "./dist/components/change-marker.js"
-    },
     "./collapse": {
       "types": "./dist/components/collapse.d.ts",
       "import": "./dist/components/collapse.js"
@@ -138,6 +138,10 @@
     "./date-picker": {
       "types": "./dist/components/date-picker.d.ts",
       "import": "./dist/components/date-picker.js"
+    },
+    "./description-list": {
+      "types": "./dist/components/description-list.d.ts",
+      "import": "./dist/components/description-list.js"
     },
     "./dialog": {
       "types": "./dist/components/dialog.d.ts",
@@ -154,10 +158,6 @@
     "./dropdown": {
       "types": "./dist/components/dropdown.d.ts",
       "import": "./dist/components/dropdown.js"
-    },
-    "./description-list": {
-      "types": "./dist/components/description-list.d.ts",
-      "import": "./dist/components/description-list.js"
     },
     "./empty": {
       "types": "./dist/components/empty.d.ts",
@@ -207,13 +207,13 @@
       "types": "./dist/components/keypad.d.ts",
       "import": "./dist/components/keypad.js"
     },
-    "./layout": {
-      "types": "./dist/components/layout.d.ts",
-      "import": "./dist/components/layout.js"
-    },
     "./last-updated": {
       "types": "./dist/components/last-updated.d.ts",
       "import": "./dist/components/last-updated.js"
+    },
+    "./layout": {
+      "types": "./dist/components/layout.d.ts",
+      "import": "./dist/components/layout.js"
     },
     "./link": {
       "types": "./dist/components/link.d.ts",
@@ -255,10 +255,6 @@
       "types": "./dist/components/price.d.ts",
       "import": "./dist/components/price.js"
     },
-    "./qrcode": {
-      "types": "./dist/components/qrcode.d.ts",
-      "import": "./dist/components/qrcode.js"
-    },
     "./progress": {
       "types": "./dist/components/progress.d.ts",
       "import": "./dist/components/progress.js"
@@ -266,6 +262,10 @@
     "./prose": {
       "types": "./dist/components/prose.d.ts",
       "import": "./dist/components/prose.js"
+    },
+    "./qrcode": {
+      "types": "./dist/components/qrcode.d.ts",
+      "import": "./dist/components/qrcode.js"
     },
     "./radio-group": {
       "types": "./dist/components/radio-group.d.ts",
@@ -279,13 +279,13 @@
       "types": "./dist/components/redline.d.ts",
       "import": "./dist/components/redline.js"
     },
-    "./ribbon": {
-      "types": "./dist/components/ribbon.d.ts",
-      "import": "./dist/components/ribbon.js"
-    },
     "./result": {
       "types": "./dist/components/result.d.ts",
       "import": "./dist/components/result.js"
+    },
+    "./ribbon": {
+      "types": "./dist/components/ribbon.d.ts",
+      "import": "./dist/components/ribbon.js"
     },
     "./segmented": {
       "types": "./dist/components/segmented.d.ts",
@@ -478,7 +478,7 @@
     {
       "name": "barrel (all components)",
       "path": "dist/index.js",
-      "limit": "62 KB"
+      "limit": "66 KB"
     },
     {
       "name": "e-button (single component)",

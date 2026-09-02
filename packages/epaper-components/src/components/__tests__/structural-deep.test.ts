@@ -43,6 +43,15 @@ beforeAll(async () => {
   await import('../sparkline/sparkline');
   await import('../qrcode/qrcode');
   await import('../alert/alert');
+  // v2.0.0: `<e-form-item>` resolves its control through the custom-element
+  // registry, so the controls it wraps have to be registered here.
+  await import('../input/input');
+  await import('../select/select');
+  await import('../rating/rating');
+  await import('../slider/slider');
+  await import('../pin-input/pin-input');
+  await import('../signature/signature');
+  await import('../keypad/keypad');
 });
 
 const mounted: HTMLElement[] = [];
@@ -130,9 +139,11 @@ describe('e-badge-count', () => {
     expect(chip(el)!.textContent).toBe('99+');
   });
 
-  it('supports max="0" producing "0+"', () => {
+  it('treats max="0" as 1 rather than rendering the nonsense "0+"', () => {
     const el = mount('<e-badge-count count="1" max="0">x</e-badge-count>');
-    expect(chip(el)!.textContent).toBe('0+');
+    expect(chip(el)!.textContent).toBe('1');
+    el.setAttribute('count', '5');
+    expect(chip(el)!.textContent).toBe('1+');
   });
 
   it('falls back to max=99 for a non-numeric max', () => {
@@ -140,13 +151,15 @@ describe('e-badge-count', () => {
     expect(chip(el)!.textContent).toBe('99+');
   });
 
-  it('QUIRK: intAttr rejects a fractional count back to the default 0 (not rounded)', () => {
+  it('rounds a fractional count instead of dropping the badge (v2.0.0)', () => {
+    // `intAttr` fell back to the default 0 for any fraction, so `count="1.5"`
+    // hid the badge outright rather than showing the 2 the author meant.
     const el = mount('<e-badge-count count="1.5">x</e-badge-count>');
-    expect(chip(el)).toBeNull();
+    expect(chip(el)!.textContent).toBe('2');
     el.setAttribute('count', '2');
     expect(chip(el)!.textContent).toBe('2');
     el.setAttribute('count', '2.9');
-    expect(chip(el)).toBeNull();
+    expect(chip(el)!.textContent).toBe('3');
   });
 
   it('floors a negative count to 0', () => {
@@ -3629,5 +3642,78 @@ describe('e-alert severity glyphs (v2.0.0)', () => {
   it('keeps the dismiss button on the close glyph, which does mean close', () => {
     const el = mount('<e-alert variant="error" closable>x</e-alert>');
     expect(el.querySelector('.ink-alert__close path')!.getAttribute('d')).toBe(ICONS.close);
+  });
+});
+
+/* ===================================================================== *
+ * v2.0.0 — rows and controls that arrive after the first render
+ * ===================================================================== */
+
+/**
+ * `observeItems` schedules its sync from inside a MutationObserver callback,
+ * which is itself a microtask — so a single `await Promise.resolve()` can land
+ * before the observer has even run. A task boundary clears both.
+ */
+const microtask = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
+
+describe('e-list · rows appended after mount (v2.0.0)', () => {
+  const body = (el: HTMLElement): HTMLElement => el.querySelector('.ink-list__body')!;
+
+  it('adopts a row appended to the host into the list body', async () => {
+    const el = mount(`<e-list>
+        <e-list-item title="One"></e-list-item>
+      </e-list>`);
+    expect(body(el).children).toHaveLength(1);
+
+    const added = document.createElement('e-list-item');
+    added.setAttribute('title', 'Two');
+    el.appendChild(added);
+    await microtask();
+
+    // Appended to the host, rendered inside the body — where the dividers,
+    // the ordered counter and the border are.
+    expect(added.parentElement).toBe(body(el));
+    expect(body(el).children).toHaveLength(2);
+  });
+
+  it('keeps the ordered counter running over an adopted row', async () => {
+    const el = mount(`<e-list ordered>
+        <e-list-item title="One"></e-list-item>
+      </e-list>`);
+    const added = document.createElement('e-list-item');
+    added.setAttribute('title', 'Two');
+    el.appendChild(added);
+    await microtask();
+
+    expect(body(el).tagName).toBe('OL');
+    expect([...body(el).children]).toContain(added);
+  });
+});
+
+describe('e-form-item · controls it did not used to know (v2.0.0)', () => {
+  it.each([['e-rating'], ['e-slider'], ['e-pin-input'], ['e-signature'], ['e-keypad']])(
+    'propagates label and required onto %s',
+    (tag) => {
+      const el = mount(`<e-form-item label="Score" required><${tag}></${tag}></e-form-item>`);
+      const control = el.querySelector(tag)!;
+      expect(control.getAttribute('aria-label')).toBe('Score');
+      expect(control.hasAttribute('required')).toBe(true);
+    },
+  );
+
+  it('adopts a control appended to the item after connect', async () => {
+    const el = mount('<e-form-item label="Score"></e-form-item>');
+    const control = document.createElement('e-rating');
+    el.appendChild(control);
+    await microtask();
+
+    expect(control.parentElement).toBe(el.querySelector('[data-control]'));
+    expect(control.getAttribute('aria-label')).toBe('Score');
+  });
+
+  it('leaves a plain HTML control alone, as it always has', () => {
+    const el = mount('<e-form-item label="Name"><input></e-form-item>');
+    expect(el.querySelector('label')!.htmlFor).toBe('');
+    expect(el.querySelector('input')!.id).toBe('');
   });
 });
