@@ -300,10 +300,16 @@ These are intentional trade-offs, tracked in `CHANGELOG.md` under
    the Storybook a11y addon (axe-core), the visual baselines and the
    refresh-budget suite for regression coverage.
 4. **The visual baselines are browser-build specific.** `__screenshots__/`
-   holds `-chromium-linux` PNGs recorded by CI's pinned Playwright Chromium.
-   Text antialiasing differs between Chromium builds, so a local run on a
-   different revision reports diffs that CI does not see. Regenerate baselines
-   only from the pinned revision.
+   holds the `<category>-<name>-<story>-chromium-linux.png` baselines recorded
+   by CI's pinned Playwright Chromium. Text antialiasing differs between
+   Chromium builds, so a local run on a different revision reports diffs CI
+   does not see. Regenerate baselines only from the pinned revision.
+5. **`__screenshots__/` has a second population with a different consumer.**
+   The `<category>-<name>--<story>.png` files — double dash, no browser suffix
+   — are not baselines and are never compared. They are the images embedded in
+   the generated component READMEs: `scripts/gen-readmes.mjs` matches them by
+   that exact shape, so the `-chromium-linux` files cannot stand in for them.
+   Deleting one because "nothing compares it" breaks a README.
 
 ---
 

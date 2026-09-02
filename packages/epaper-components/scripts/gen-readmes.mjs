@@ -37,6 +37,12 @@ const screenshotFiles = existsSync(screenshotsDir)
  * Pick the screenshot whose middle segment (between category and `--story`)
  * matches the component's file basename with hyphens removed.
  *
+ * These are the `--story.png` files, not the `-story-chromium-linux.png`
+ * baselines beside them: only the former carry the double dash this pattern
+ * needs. The two populations share a directory and nothing else — one is
+ * documentation, the other is what `toMatchScreenshot` compares against — so
+ * neither set can be removed on the strength of what the other is for.
+ *
  * Component file `input-number.ts` → key `inputnumber`
  * Screenshot   `inputs-inputnumber--default.png` → middle `inputnumber`
  */
