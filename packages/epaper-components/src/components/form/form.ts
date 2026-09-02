@@ -1,4 +1,13 @@
-import { boolAttr, define, EpaperElement, patchText, randId } from '../../core/dom';
+import {
+  boolAttr,
+  define,
+  EpaperElement,
+  observeItems,
+  patchText,
+  randId,
+  runCleanups,
+} from '../../core/dom';
+import { label as labelOf, t } from '../../core/i18n';
 
 /**
  * @summary Form wrapper that intercepts `submit` and re-fires it as `e-submit`.
@@ -93,8 +102,7 @@ export class EForm extends EpaperElement {
       // platform cannot focus. Fighting the browser for focus it already
       // placed would move the user somewhere they did not ask to go.
       if (!boolAttr(this, 'no-autofocus') && !this._form.contains(document.activeElement)) {
-        const first = controls[0];
-        if (first && typeof first.focus === 'function') first.focus();
+        EForm._focusControl(controls[0]);
       }
       this.dispatchEvent(
         new CustomEvent('e-invalid', {
@@ -103,6 +111,27 @@ export class EForm extends EpaperElement {
         }),
       );
     });
+  }
+
+  /**
+   * Move focus onto a blocked control.
+   *
+   * `HTMLElement.focus()` on the host is a no-op for a composite control:
+   * `<e-rating>`, `<e-pin-input>`, `<e-keypad>`, `<e-signature>` and the two
+   * groups take no tabindex of their own, so the promised "focus moves to the
+   * first failing control" left the user on the submit button with no
+   * indication of where the problem was. Falling back to the first focusable
+   * element the control rendered puts the caret where the answer goes.
+   */
+  private static _focusControl(control: HTMLElement | undefined): void {
+    if (!control) return;
+    const before = control.ownerDocument.activeElement;
+    control.focus();
+    if (control.ownerDocument.activeElement !== before) return;
+    const focusable = control.querySelector<HTMLElement>(
+      'input:not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    );
+    focusable?.focus();
   }
 
   private _render(): void {
@@ -115,6 +144,7 @@ define('e-form', EForm);
 
 /**
  * @summary Labeled wrapper for a single form control with hint and error states.
+ * @since v1.0.1
  *
  * @attr {string} [label] - Field label rendered above the control.
  * @attr {string} [hint] - Helper text rendered below the control. Hidden when `error` is set.
@@ -125,6 +155,9 @@ define('e-form', EForm);
  * Hint and error text are linked to the control with `aria-describedby`, so a
  * screen-reader user hears them; previously they were rendered next to the
  * control but connected to nothing.
+ *
+ * @example
+ * <e-form-item label="Email" required><e-input name="email"></e-input></e-form-item>
  */
 export class EFormItem extends EpaperElement {
   static readonly observedAttributes = ['label', 'hint', 'error', 'required', 'required-label'];
@@ -166,8 +199,32 @@ export class EFormItem extends EpaperElement {
         }
       });
     }
+    // Children can arrive after the wrap: a parser-inserted control when the
+    // element upgrades early, or a host that builds the item first and appends
+    // the control afterwards. Reading them once at connect left those outside
+    // `[data-control]`, where nothing finds them — no label, no `required`, no
+    // error. Adopting them keeps the item honest about what it wraps.
+    observeItems(this, this._adopt, { isOutput: (n) => this._root?.contains(n) ?? false });
     this._render();
   }
+
+  disconnectedCallback() {
+    runCleanups(this);
+  }
+
+  /** Move any host child that is not the rendered root into the control slot. */
+  private readonly _adopt = (): void => {
+    const root = this._root;
+    const control = this._control;
+    if (!root || !control) return;
+    let moved = false;
+    for (const node of [...this.childNodes]) {
+      if (node === root) continue;
+      control.appendChild(node);
+      moved = true;
+    }
+    if (moved) this._render();
+  };
 
   attributeChangedCallback() {
     if (this._root) this._render();
@@ -235,14 +292,14 @@ export class EFormItem extends EpaperElement {
       this._requiredPill = null;
       return;
     }
-    const requiredLabel = this.getAttribute('required-label') || 'REQ';
+    const requiredLabel = labelOf(this, 'required-label', 'requiredShort');
     if (this._requiredPill) {
       patchText(this._requiredPill, requiredLabel);
       return;
     }
     const pill = document.createElement('span');
     pill.className = 'ink-form-item__required';
-    pill.setAttribute('aria-label', 'required');
+    pill.setAttribute('aria-label', t(this, 'requiredMarker'));
     pill.textContent = requiredLabel;
     this._labelEl!.appendChild(pill);
     this._requiredPill = pill;
@@ -279,11 +336,37 @@ export class EFormItem extends EpaperElement {
     this._errorEl.textContent = `! ${error}`;
   }
 
+  /**
+   * The form control this item wraps.
+   *
+   * Resolved by asking the registry which custom element is form-associated,
+   * rather than by matching a list of tag names. The hand-kept list went stale
+   * the moment `e-rating`, `e-slider`, `e-pin-input`, `e-signature` and
+   * `e-keypad` shipped: an item wrapping one of them propagated no label, no
+   * `required` and no `aria-describedby`, and rendered no message when a
+   * submit was blocked.
+   *
+   * A custom element the registry does not know yet is taken as a fallback,
+   * since that is what a control whose module has not loaded looks like. Plain
+   * HTML controls are deliberately left alone — a native `<input>` carries its
+   * own labelling, and this item has never managed one.
+   */
+  private _findControl(): HTMLElement | null {
+    const scope = this._control;
+    if (!scope) return null;
+    let pending: HTMLElement | null = null;
+    for (const el of scope.querySelectorAll<HTMLElement>('*')) {
+      if (!el.localName.includes('-')) continue;
+      const ctor = customElements.get(el.localName) as
+        (CustomElementConstructor & { formAssociated?: boolean }) | undefined;
+      if (ctor?.formAssociated) return el;
+      if (!ctor) pending ??= el;
+    }
+    return pending;
+  }
+
   private _syncControlSemantics(label: string | null, required: boolean): void {
-    const control =
-      this._control?.querySelector<HTMLElement>(
-        'e-input, e-textarea, e-select, e-checkbox, e-toggle, e-radio-group, e-checkbox-group, e-date-picker, e-time-picker, e-cascader, e-tree-select, e-input-number, e-upload',
-      ) ?? null;
+    const control = this._findControl();
     // Ownership is tracked per control. A different control starts out unowned
     // so its author-set attributes are never claimed from the previous one.
     if (control !== this._resolvedControl) {

@@ -1,6 +1,16 @@
-import { addCleanup, define, EpaperElement, onGlobal, randId, runCleanups } from '../../core/dom';
+import {
+  addCleanup,
+  define,
+  EpaperElement,
+  observeItems,
+  onGlobal,
+  patchText,
+  randId,
+  runCleanups,
+} from '../../core/dom';
 import { iconSvg } from '../../core/icons';
 import '../button/button';
+import { t } from '../../core/i18n';
 
 type DropdownItemDef =
   | { divider: true }
@@ -32,23 +42,22 @@ export class EDropdown extends EpaperElement {
   private _wired = false;
   private _menu: HTMLElement | null = null;
   private _trigger: HTMLElement | null = null;
+  private _root: HTMLElement | null = null;
 
   connectedCallback() {
     if (!this._wired) {
       this._wired = true;
       const trigger = this.querySelector<HTMLElement>('[slot="trigger"]') ?? this._defaultTrigger();
-      const items: DropdownItemDef[] = [...this.querySelectorAll('e-dropdown-item')].map((item) => {
-        if (item.hasAttribute('divider')) return { divider: true as const };
-        if (item.hasAttribute('header')) return { header: item.getAttribute('header') ?? '' };
-        return {
-          icon: item.getAttribute('icon'),
-          label: item.getAttribute('label') ?? '',
-          shortcut: item.getAttribute('shortcut'),
-          disabled: item.hasAttribute('disabled'),
-        };
-      });
-      this._build(trigger, items);
+      this._build(trigger);
     }
+    // The items are authored as `<e-dropdown-item>` children and stay there,
+    // hidden, as the source of truth. Reading them once at connect froze the
+    // menu: an entry added, relabelled or disabled afterwards was ignored
+    // until the host re-mounted the element.
+    observeItems(this, this._sync, {
+      attributeFilter: ['icon', 'label', 'shortcut', 'disabled', 'divider', 'header'],
+      isOutput: (n) => this._root?.contains(n) ?? false,
+    });
 
     this._trigger!.addEventListener('click', this._onTriggerClick);
     this._trigger!.addEventListener('keydown', this._onTriggerKeydown);
@@ -73,11 +82,11 @@ export class EDropdown extends EpaperElement {
 
   private _defaultTrigger(): HTMLElement {
     const trigger = document.createElement('e-button');
-    trigger.textContent = 'Open';
+    trigger.textContent = t(this, 'openTrigger');
     return trigger;
   }
 
-  private _build(trigger: HTMLElement, items: DropdownItemDef[]): void {
+  private _build(trigger: HTMLElement): void {
     const root = document.createElement('div');
     root.className = 'ink-dropdown';
     const triggerWrap = document.createElement('span');
@@ -94,51 +103,139 @@ export class EDropdown extends EpaperElement {
     menu.setAttribute('role', 'menu');
     menu.hidden = true;
 
-    for (const definition of items) {
-      if ('divider' in definition) {
-        const divider = document.createElement('div');
-        divider.className = 'ink-dropdown__divider';
-        divider.setAttribute('role', 'separator');
-        menu.appendChild(divider);
-      } else if ('header' in definition) {
-        const header = document.createElement('div');
-        header.className = 'ink-dropdown__header';
-        header.setAttribute('role', 'presentation');
-        header.textContent = definition.header;
-        menu.appendChild(header);
-      } else {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'ink-dropdown__item';
-        button.setAttribute('role', 'menuitem');
-        button.disabled = definition.disabled;
-        if (definition.icon) {
-          const icon = document.createElement('span');
-          icon.innerHTML = iconSvg(definition.icon, 18);
-          button.appendChild(icon);
-        }
-        const label = document.createElement('span');
-        label.style.flex = '1';
-        label.textContent = definition.label;
-        button.appendChild(label);
-        if (definition.shortcut) {
-          const shortcut = document.createElement('span');
-          shortcut.className = 'ink-dropdown__shortcut';
-          shortcut.textContent = definition.shortcut;
-          button.appendChild(shortcut);
-        }
-        menu.appendChild(button);
-      }
-    }
-
     root.append(triggerWrap, menu);
-    this.replaceChildren(root);
+    this.appendChild(root);
+    this._root = root;
     this._trigger = triggerWrap;
     this._menu = menu;
+    this._sync();
     const control = this._triggerControl();
     control?.setAttribute('aria-haspopup', 'menu');
     control?.setAttribute('aria-expanded', 'false');
     control?.setAttribute('aria-controls', menu.id);
+  }
+
+  /** Authored items, excluding anything inside the rendered output. */
+  private _items(): HTMLElement[] {
+    return [...this.querySelectorAll<HTMLElement>('e-dropdown-item')].filter(
+      (item) => !this._root?.contains(item),
+    );
+  }
+
+  private _read(item: HTMLElement): DropdownItemDef {
+    if (item.hasAttribute('divider')) return { divider: true as const };
+    if (item.hasAttribute('header')) return { header: item.getAttribute('header') ?? '' };
+    return {
+      icon: item.getAttribute('icon'),
+      label: item.getAttribute('label') ?? '',
+      shortcut: item.getAttribute('shortcut'),
+      disabled: item.hasAttribute('disabled'),
+    };
+  }
+
+  /**
+   * Rebuild only the rows whose *kind* changed, and patch the rest.
+   *
+   * A divider, a header and an item are three different elements, so a kind
+   * change has to replace the node; a label or shortcut edit only writes text.
+   */
+  private readonly _sync = (): void => {
+    const menu = this._menu;
+    if (!menu) return;
+    const items = this._items();
+    const rows = [...menu.children] as HTMLElement[];
+
+    while (rows.length > items.length) rows.pop()!.remove();
+
+    items.forEach((item, index) => {
+      if (item.style.display !== 'none') item.style.display = 'none';
+      const definition = this._read(item);
+      const kind = EDropdown._kindOf(definition);
+      let row = rows[index];
+      if (!row || row.dataset['kind'] !== kind) {
+        const next = EDropdown._makeRow(kind);
+        if (row) row.replaceWith(next);
+        else menu.appendChild(next);
+        row = next;
+      }
+      if ('header' in definition) {
+        patchText(row, definition.header);
+      } else if (!('divider' in definition)) {
+        EDropdown._patchItem(row as HTMLButtonElement, definition);
+      }
+    });
+  };
+
+  /** Which of the three row shapes a definition renders as. */
+  private static _kindOf(definition: DropdownItemDef): 'divider' | 'header' | 'item' {
+    if ('divider' in definition) return 'divider';
+    return 'header' in definition ? 'header' : 'item';
+  }
+
+  private static _makeRow(kind: string): HTMLElement {
+    if (kind === 'divider') {
+      const divider = document.createElement('div');
+      divider.className = 'ink-dropdown__divider';
+      divider.setAttribute('role', 'separator');
+      divider.dataset['kind'] = kind;
+      return divider;
+    }
+    if (kind === 'header') {
+      const header = document.createElement('div');
+      header.className = 'ink-dropdown__header';
+      header.setAttribute('role', 'presentation');
+      header.dataset['kind'] = kind;
+      return header;
+    }
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'ink-dropdown__item';
+    button.setAttribute('role', 'menuitem');
+    button.dataset['kind'] = kind;
+    const label = document.createElement('span');
+    label.dataset['slot'] = 'label';
+    label.style.flex = '1';
+    button.append(label);
+    return button;
+  }
+
+  private static _patchItem(
+    button: HTMLButtonElement,
+    definition: { icon: string | null; label: string; shortcut: string | null; disabled: boolean },
+  ): void {
+    button.disabled = definition.disabled;
+    const label = button.querySelector<HTMLElement>('[data-slot="label"]')!;
+    patchText(label, definition.label);
+
+    // Icon and shortcut are created and removed rather than hidden: an empty
+    // decoration node is still a node an author's CSS can hit, and the rendered
+    // markup stays what a reader of the docs expects.
+    let icon = button.querySelector<HTMLElement>('[data-slot="icon"]');
+    if (definition.icon) {
+      if (!icon) {
+        icon = document.createElement('span');
+        icon.dataset['slot'] = 'icon';
+        button.insertBefore(icon, label);
+      }
+      if (icon.dataset['icon'] !== definition.icon) {
+        icon.dataset['icon'] = definition.icon;
+        icon.innerHTML = iconSvg(definition.icon, 18);
+      }
+    } else {
+      icon?.remove();
+    }
+
+    let shortcut = button.querySelector<HTMLElement>('.ink-dropdown__shortcut');
+    if (definition.shortcut) {
+      if (!shortcut) {
+        shortcut = document.createElement('span');
+        shortcut.className = 'ink-dropdown__shortcut';
+        button.appendChild(shortcut);
+      }
+      patchText(shortcut, definition.shortcut);
+    } else {
+      shortcut?.remove();
+    }
   }
 
   private _triggerControl(): HTMLElement | null {
@@ -217,6 +314,7 @@ define('e-dropdown', EDropdown);
 
 /**
  * @summary Single entry inside an `<e-dropdown>` menu.
+ * @since v1.0.1
  *
  * Acts as a data carrier; the parent renders the actual menu row.
  *
@@ -226,6 +324,9 @@ define('e-dropdown', EDropdown);
  * @attr {string} [label] - Visible label text.
  * @attr {string} [shortcut] - Optional shortcut hint shown trailing.
  * @attr {boolean} [disabled] - Disables interaction for this entry.
+ *
+ * @example
+ * <e-dropdown-item icon="doc" label="New" shortcut="⌘N"></e-dropdown-item>
  */
 export class EDropdownItem extends EpaperElement {}
 define('e-dropdown-item', EDropdownItem);

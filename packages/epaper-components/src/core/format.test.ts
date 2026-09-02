@@ -302,3 +302,69 @@ describe('formatUnitPrice', () => {
     );
   });
 });
+
+describe('precision is clamped before it reaches Intl or toFixed (v2.0.0)', () => {
+  const el = (): HTMLElement => document.createElement('span');
+
+  it.each([[-1], [200], [Number.NaN], [1.7]])(
+    'formats rather than throwing for precision %s',
+    (precision) => {
+      expect(() => formatNumber(el(), 3.99, { precision })).not.toThrow();
+      expect(() => formatMoneyParts(el(), 3.99, { precision })).not.toThrow();
+    },
+  );
+
+  it('clamps a negative precision to none rather than throwing', () => {
+    expect(formatNumber(el(), 3.99, { precision: -1 })).toBe('4');
+    expect(formatMoneyParts(el(), 3.99, { precision: -1, currency: 'EUR' }).minor).toBe('');
+  });
+
+  it('reaches the fallback with an unusable currency and still shapes the output', () => {
+    // `Intl` rejects the code, so this is the hand-rolled path — which used to
+    // call `toFixed` with the same unchecked precision and throw a second time.
+    const parts = formatMoneyParts(el(), 3.99, { currency: 'not-a-code', precision: 300 });
+    expect(parts.text).toContain('not-a-code');
+  });
+});
+
+describe('the fallback keeps the shape the caller asked for (v2.0.0)', () => {
+  const bad = (): HTMLElement => {
+    const host = document.createElement('span');
+    // `de_DE` with an underscore is what a CMS writes; `Intl` throws on it.
+    host.setAttribute('locale', 'de_DE');
+    return host;
+  };
+
+  it('keeps the percent sign when the locale is malformed', () => {
+    expect(formatNumber(bad(), 0.3, { percent: true })).toBe('30%');
+  });
+
+  it('keeps the currency code when the locale is malformed', () => {
+    expect(formatNumber(bad(), 12, { currency: 'EUR' })).toBe('12 EUR');
+  });
+});
+
+describe('weekdayLabels is timezone-independent (v2.0.0)', () => {
+  it('starts the week on the requested day', () => {
+    const host = document.createElement('span');
+    // The reference dates are built with `Date.UTC`, so the formatter has to
+    // read them in UTC too — otherwise every viewer west of UTC saw the row
+    // rotated by one day.
+    expect(weekdayLabels(host, 0, 'short')[0]).toBe('Sun');
+    expect(weekdayLabels(host, 1, 'short')[0]).toBe('Mon');
+    expect(weekdayLabels(host, 6, 'short')[0]).toBe('Sat');
+  });
+});
+
+describe('relative time rounds symmetrically (v2.0.0)', () => {
+  const el = (): HTMLElement => document.createElement('span');
+  const HOUR = 60 * 60 * 1000;
+
+  it('describes the same distance the same way in both directions', () => {
+    const now = new Date('2026-04-26T12:00:00Z');
+    const past = formatRelativeTime(el(), new Date(now.getTime() - 36 * HOUR), now);
+    const future = formatRelativeTime(el(), new Date(now.getTime() + 36 * HOUR), now);
+    expect(past).toBe('2 days ago');
+    expect(future).toBe('in 2 days');
+  });
+});

@@ -118,3 +118,72 @@ describe('label', () => {
     expect(label(el('<span prev-label=""></span>'), 'prev-label', 'previous')).toBe('Previous');
   });
 });
+
+describe('overrides resolve on read, not at registration (v2.0.0)', () => {
+  it('lets a later language override reach a region tag registered before it', () => {
+    setLocaleStrings('de-LI', { stale: 'Nicht mehr frisch' });
+    // Registered *after* the region tag: storing merged tables made this
+    // invisible to `de-LI` forever.
+    setLocaleStrings('de', { expired: 'Verfallen' });
+
+    const table = strings(el('<span locale="de-LI"></span>'));
+    expect(table.stale).toBe('Nicht mehr frisch');
+    expect(table.expired).toBe('Verfallen');
+    expect(table.fresh).toBe('Aktuell');
+  });
+
+  it('keeps the region override winning over the language one', () => {
+    setLocaleStrings('de-BE', { fresh: 'Region' });
+    setLocaleStrings('de', { fresh: 'Sprache' });
+    expect(strings(el('<span locale="de-BE"></span>')).fresh).toBe('Region');
+    expect(strings(el('<span locale="de-AT"></span>')).fresh).toBe('Sprache');
+  });
+});
+
+describe('vocabulary added in v2.0.0', () => {
+  it('keeps every English default the components used to hard-code', () => {
+    const table = strings(el());
+    expect(table.close).toBe('Close');
+    expect(table.paginationLabel).toBe('Pagination');
+    expect(table.breadcrumbLabel).toBe('Breadcrumb');
+    expect(table.stepDone).toBe('Done');
+    expect(table.openTrigger).toBe('Open');
+    expect(table.confirm).toBe('OK');
+    expect(table.cancel).toBe('Cancel');
+    expect(table.backToTop).toBe('Back to top');
+    expect(table.stateOn).toBe('ON');
+    expect(table.stateOff).toBe('OFF');
+    expect(table.increment).toBe('Increment');
+    expect(table.requiredShort).toBe('REQ');
+    expect(table.invalidValue).toBe('Invalid value.');
+    expect(table.uploadPrompt).toBe('Drop files here or click to upload');
+    expect(table.statusBoardLabel).toBe('Status board');
+    expect(table.diffBefore).toBe('Previous');
+    expect(table.trendRising).toBe('Rising');
+    expect(table.noData).toBe('No data');
+    expect(table.outsideMonth).toBe('Outside current month');
+    expect(table.selectAllRows).toBe('Select all rows');
+    expect(table.updatedLabel).toBe('Updated');
+    expect(table.ageJustNow).toBe('just now');
+    expect(table.requiredSelect).toBe('Please select an option.');
+  });
+
+  it('interpolates the messages that carry values', () => {
+    expect(t(el(), 'selectRow', { index: 3 })).toBe('Select row 3');
+    expect(t(el(), 'expandItem', { label: 'Fruit' })).toBe('Expand Fruit');
+    expect(t(el(), 'uploadTooMany', { max: 2 })).toBe('At most 2 file(s) allowed.');
+    expect(t(el(), 'ageDays', { count: 3 })).toBe('3 days');
+  });
+
+  it('ships German for the words a component invents', () => {
+    const table = strings(el('<span locale="de"></span>'));
+    expect(table.close).toBe('Schließen');
+    expect(table.stateOn).toBe('AN');
+    expect(table.noData).toBe('Keine Daten');
+    expect(table.requiredCheck).toBe('Bitte aktivieren Sie dieses Kontrollkästchen.');
+  });
+
+  it('does not interpolate a placeholder that names an inherited property', () => {
+    expect(t(el(), 'expandItem', {})).toBe('Expand {label}');
+  });
+});

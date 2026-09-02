@@ -1,4 +1,5 @@
 import {
+  boolAttr,
   define,
   EpaperElement,
   intAttr,
@@ -148,7 +149,7 @@ export class EMeter extends EpaperElement {
     patchText(this._labelEl, label);
     patchAttr(this._labelEl, 'hidden', label ? null : '');
     patchText(this._valueEl, reading);
-    patchAttr(this._valueEl, 'hidden', this.hasAttribute('hide-value') ? '' : null);
+    patchAttr(this._valueEl, 'hidden', boolAttr(this, 'hide-value') ? '' : null);
     patchText(this._bandEl, t(this, BAND_KEY[band]));
 
     this._syncSegments(count);

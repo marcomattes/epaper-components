@@ -205,14 +205,39 @@ export class EKeypad extends BaseFormControl {
     this.dispatchEvent(new CustomEvent('e-change', { detail: { value: next }, bubbles: true }));
   }
 
-  /** Write into the `for` target and let its own listeners see the change. */
+  /**
+   * Write into the `for` target and let its own listeners see the change.
+   *
+   * The events go to the *native* control, not to the host. A library form
+   * control listens on the `<input>` it renders, so dispatching on
+   * `<e-input>` itself reached nobody: the value appeared in the field while
+   * `e-input` and `e-change` never fired and the host's own form value stayed
+   * on the last thing the user had typed. Dispatching on the inner control
+   * bubbles through the host exactly as a keystroke does.
+   */
   private _mirror(next: string): void {
     const target = this.control;
     if (!target) return;
+    const native = EKeypad._nativeControl(target);
+    if (native) {
+      if (native.value === next) return;
+      native.value = next;
+      native.dispatchEvent(new Event('input', { bubbles: true }));
+      native.dispatchEvent(new Event('change', { bubbles: true }));
+      return;
+    }
     if (target.value === next) return;
     target.value = next;
     target.dispatchEvent(new Event('input', { bubbles: true }));
     target.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  /** The editable control inside `target`, or `target` itself when it is one. */
+  private static _nativeControl(
+    target: HTMLElement,
+  ): HTMLInputElement | HTMLTextAreaElement | null {
+    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return target;
+    return target.querySelector<HTMLInputElement | HTMLTextAreaElement>('input, textarea');
   }
 
   private _keyDefs(): KeyDef[] {

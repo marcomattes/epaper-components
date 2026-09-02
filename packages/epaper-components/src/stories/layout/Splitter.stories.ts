@@ -81,6 +81,49 @@ export const Skewed: Story = {
   },
 };
 
+/**
+ * Drags are driven with `PointerEvent`, which is what the handle listens for.
+ * A capacitive e-paper panel never emits `mousemove` mid-gesture, so a
+ * mouse-only implementation was keyboard-only in practice on the hardware this
+ * library targets.
+ */
+const down = (el: HTMLElement, pointerType: 'mouse' | 'touch'): void => {
+  el.dispatchEvent(
+    new PointerEvent('pointerdown', {
+      bubbles: true,
+      cancelable: true,
+      button: 0,
+      pointerId: pointerType === 'touch' ? 2 : 1,
+      pointerType,
+      isPrimary: true,
+    }),
+  );
+};
+
+const moveTo = (x: number, y: number, pointerType: 'mouse' | 'touch' = 'mouse'): void => {
+  window.dispatchEvent(
+    new PointerEvent('pointermove', {
+      bubbles: true,
+      clientX: x,
+      clientY: y,
+      pointerId: pointerType === 'touch' ? 2 : 1,
+      pointerType,
+      isPrimary: true,
+    }),
+  );
+};
+
+const up = (pointerType: 'mouse' | 'touch' = 'mouse'): void => {
+  window.dispatchEvent(
+    new PointerEvent('pointerup', {
+      bubbles: true,
+      pointerId: pointerType === 'touch' ? 2 : 1,
+      pointerType,
+      isPrimary: true,
+    }),
+  );
+};
+
 export const MouseDrag: Story = {
   args: { orientation: 'horizontal', initial: 50, min: 15, max: 85 },
   play: async ({ canvasElement }) => {
@@ -88,32 +131,30 @@ export const MouseDrag: Story = {
     const wrap = canvasElement.querySelector('.ink-splitter') as HTMLElement;
     const paneA = canvasElement.querySelector('[data-pane="a"]') as HTMLElement;
     const r = wrap.getBoundingClientRect();
-    handle.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
-    window.dispatchEvent(
-      new MouseEvent('mousemove', {
-        bubbles: true,
-        clientX: r.left + r.width * 0.7,
-        clientY: r.top + r.height * 0.5,
-      }),
-    );
+    down(handle, 'mouse');
+    moveTo(r.left + r.width * 0.7, r.top + r.height * 0.5);
     await waitFor(() => expect(paneA.style.width).toBe('70%'));
-    window.dispatchEvent(
-      new MouseEvent('mousemove', {
-        bubbles: true,
-        clientX: r.left + r.width * 2,
-        clientY: r.top + r.height * 0.5,
-      }),
-    );
+    moveTo(r.left + r.width * 2, r.top + r.height * 0.5);
     await waitFor(() => expect(paneA.style.width).toBe('85%'));
-    window.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
-    window.dispatchEvent(
-      new MouseEvent('mousemove', {
-        bubbles: true,
-        clientX: r.left + r.width * 0.2,
-        clientY: r.top + r.height * 0.5,
-      }),
-    );
+    up();
+    moveTo(r.left + r.width * 0.2, r.top + r.height * 0.5);
     expect(paneA.style.width).toBe('85%');
+  },
+};
+
+export const TouchDrag: Story = {
+  args: { orientation: 'horizontal', initial: 50, min: 15, max: 85 },
+  play: async ({ canvasElement }) => {
+    const handle = canvasElement.querySelector('.ink-splitter__handle') as HTMLElement;
+    const wrap = canvasElement.querySelector('.ink-splitter') as HTMLElement;
+    const paneA = canvasElement.querySelector('[data-pane="a"]') as HTMLElement;
+    const r = wrap.getBoundingClientRect();
+    down(handle, 'touch');
+    moveTo(r.left + r.width * 0.35, r.top + r.height * 0.5, 'touch');
+    await waitFor(() => expect(paneA.style.width).toBe('35%'));
+    up('touch');
+    moveTo(r.left + r.width * 0.8, r.top + r.height * 0.5, 'touch');
+    expect(paneA.style.width).toBe('35%');
   },
 };
 
@@ -129,15 +170,9 @@ export const VerticalDrag: Story = {
     await userEvent.keyboard('{ArrowUp}');
     expect(paneA.style.height).toBe('52%');
     const r = wrap.getBoundingClientRect();
-    handle.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
-    window.dispatchEvent(
-      new MouseEvent('mousemove', {
-        bubbles: true,
-        clientX: r.left + r.width * 0.5,
-        clientY: r.top + r.height * 0.3,
-      }),
-    );
+    down(handle, 'mouse');
+    moveTo(r.left + r.width * 0.5, r.top + r.height * 0.3);
     await waitFor(() => expect(paneA.style.height).toBe('30%'));
-    window.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+    up();
   },
 };

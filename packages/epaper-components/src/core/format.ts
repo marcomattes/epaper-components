@@ -38,6 +38,19 @@ function safely(fn: () => string, fallback: () => string): string {
   }
 }
 
+/**
+ * Both `Intl`'s fraction-digit options and `toFixed` accept 0…100 and throw a
+ * `RangeError` outside it. An attribute is author input, so a typo
+ * (`fraction-digits="-1"`, `="200"`) must not reach either — the `Intl` throw
+ * lands in a fallback that calls `toFixed` with the same bad number and throws
+ * again, this time outside any `try`. Clamping once, here, is what keeps that
+ * unreachable for every caller.
+ */
+function safePrecision(precision: number): number {
+  if (!Number.isFinite(precision)) return 0;
+  return Math.min(100, Math.max(0, Math.trunc(precision)));
+}
+
 export interface NumberFormatOptions {
   /** Currency code (ISO 4217). Switches the output to currency style. */
   currency?: string;
@@ -56,7 +69,8 @@ export function formatNumber(
   options: NumberFormatOptions = {},
 ): string {
   if (!Number.isFinite(value)) return '';
-  const { currency, precision, percent, grouping = true } = options;
+  const { currency, percent, grouping = true } = options;
+  const precision = options.precision == null ? null : safePrecision(options.precision);
   return safely(
     () => {
       const opts: Intl.NumberFormatOptions = { useGrouping: grouping };
@@ -72,7 +86,17 @@ export function formatNumber(
       }
       return new Intl.NumberFormat(resolveLocale(el), opts).format(value);
     },
-    () => (precision != null ? value.toFixed(precision) : String(value)),
+    // The fallback runs for a malformed locale as well as an unknown currency,
+    // so it has to reproduce the *shape* the caller asked for. Dropping the
+    // currency symbol or the percent sign here turned a price into a bare
+    // number and "30 %" into "0.3" — silently, page-wide, from one typo in a
+    // `lang` attribute.
+    () => {
+      const scaled = percent && !currency ? value * 100 : value;
+      const base = precision != null ? scaled.toFixed(precision) : String(scaled);
+      if (currency) return `${base} ${currency}`;
+      return percent ? `${base}%` : base;
+    },
   );
 }
 
@@ -134,7 +158,11 @@ export function formatRelativeTime(el: Element, from: Date, to: Date = new Date(
   const deltaMs = from.getTime() - to.getTime();
   const abs = Math.abs(deltaMs);
   const bucket = RELATIVE_UNITS.find((u) => abs >= u.ms) ?? RELATIVE_UNITS.at(-1)!;
-  const amount = Math.round(deltaMs / bucket.ms);
+  // Round away from zero on both sides. `Math.round` breaks .5 upwards, which
+  // is not symmetric for a signed delta: 36 hours ago rounded to -1 ("yesterday")
+  // while 36 hours ahead rounded to 2 ("in 2 days") — the same distance
+  // described with two different coarsenesses depending on direction.
+  const amount = Math.sign(deltaMs) * Math.round(abs / bucket.ms);
   return safely(
     () =>
       new Intl.RelativeTimeFormat(resolveLocale(el), { numeric: 'auto' }).format(
@@ -157,7 +185,16 @@ export function weekdayLabels(
 ): string[] {
   return safely(
     () => {
-      const fmt = new Intl.DateTimeFormat(resolveLocale(el), { weekday: format });
+      // `timeZone: 'UTC'` is load-bearing, not tidiness: the reference dates
+      // below are built with `Date.UTC`, and a formatter left on the viewer's
+      // zone renders them in local time. West of UTC that lands on the
+      // previous day, so the whole row shifted by one — `<e-calendar>` printed
+      // "Sat" over its Sunday column for every viewer in the Americas, while
+      // CI (UTC) stayed green.
+      const fmt = new Intl.DateTimeFormat(resolveLocale(el), {
+        weekday: format,
+        timeZone: 'UTC',
+      });
       // 2024-01-07 is a Sunday, so adding the index walks a full week.
       return Array.from({ length: 7 }, (_, i) =>
         fmt.format(new Date(Date.UTC(2024, 0, 7 + ((i + weekStart) % 7)))),
@@ -233,7 +270,8 @@ export function formatMoneyParts(
   options: MoneyOptions = {},
 ): MoneyParts {
   if (!Number.isFinite(value)) return { ...PLACEHOLDER_PARTS };
-  const { currency = 'EUR', precision } = options;
+  const { currency = 'EUR' } = options;
+  const precision = options.precision == null ? null : safePrecision(options.precision);
 
   let parts: Intl.NumberFormatPart[];
   try {

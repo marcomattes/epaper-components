@@ -10,6 +10,7 @@ import {
   runCleanups,
 } from '../../core/dom';
 import { iconSvg } from '../../core/icons';
+import { label as labelOf } from '../../core/i18n';
 
 /**
  * @summary Floating button that scrolls the window (or a target) to the top.
@@ -40,7 +41,7 @@ export class EBackTop extends EpaperElement {
   connectedCallback() {
     if (!this._wired) {
       this._wired = true;
-      const label = this.getAttribute('label') || 'Back to top';
+      const label = labelOf(this, 'label', 'backToTop');
       this.innerHTML = `<button type="button" class="ink-back-top" hidden aria-label="${esc(label)}">
       ${iconSvg('arrowU', 22)}
     </button>`;
@@ -56,7 +57,7 @@ export class EBackTop extends EpaperElement {
   attributeChangedCallback(name: string) {
     if (!this._btn) return;
     if (name === 'label') {
-      patchAttr(this._btn, 'aria-label', this.getAttribute('label') || 'Back to top');
+      patchAttr(this._btn, 'aria-label', labelOf(this, 'label', 'backToTop'));
     } else if (name === 'target') {
       this._resolveTarget();
       if (this.isConnected) this._bindScrollTarget();

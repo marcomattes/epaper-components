@@ -9,6 +9,7 @@ import {
   randId,
   runCleanups,
 } from '../../core/dom';
+import { t } from '../../core/i18n';
 import { BaseFormControl } from '../../core/base-form-control';
 
 /** Rendered `<label>`/`<input>` pair for a single `<e-radio>`. */
@@ -31,9 +32,9 @@ interface RadioRow {
  * unrelated option changing never moves the current selection.
  *
  * Because the items stay put they would otherwise render twice, so each one is
- * hidden with an inline `display:none` when it is first wired. The stable form
- * of that is a `e-radio { display: none; }` rule in `components.css`; the
- * inline style is what guarantees it without one.
+ * hidden with an inline `display:none` when it is first wired. `components.css` carries the
+ * `e-radio { display: none; }` rule that states it; the inline style is what
+ * holds even where that stylesheet is not loaded.
  *
  * Form-associated: participates in `<form>` submission and FormData.
  *
@@ -68,12 +69,26 @@ export class ERadioGroup extends BaseFormControl {
   private _wired = false;
   private _group: HTMLElement | null = null;
   private _name = '';
+  /**
+   * Id of a form that does not exist, put on every rendered radio's `form`
+   * attribute.
+   *
+   * The radios live in the light DOM, so a `<form>` ancestor owned them and
+   * submitted them under the internal group name — every submit carried a
+   * second, randomly-named copy of the answer beside the host's own entry.
+   * Pointing `form` at an unused id gives them a null form owner, which takes
+   * them out of submission while leaving the native radio group intact: same
+   * name, same tree, same null owner still means arrow keys move between them
+   * and checking one clears the rest.
+   */
+  private _unowned = '';
   private readonly _rows: RadioRow[] = [];
 
   connectedCallback() {
     if (!this._wired) {
       this._wired = true;
       this._name = randId('e-rg');
+      this._unowned = randId('ink-unowned');
       const layout = this.getAttribute('layout') === 'vertical' ? 'vertical' : 'horizontal';
       const group = document.createElement('div');
       group.className =
@@ -186,7 +201,7 @@ export class ERadioGroup extends BaseFormControl {
 
       let row = this._rows[i];
       if (!row) {
-        row = ERadioGroup._makeRow(this._name);
+        row = ERadioGroup._makeRow(this._name, this._unowned);
         group.appendChild(row.label);
         this._rows.push(row);
       }
@@ -199,12 +214,13 @@ export class ERadioGroup extends BaseFormControl {
     });
   };
 
-  private static _makeRow(name: string): RadioRow {
+  private static _makeRow(name: string, unowned: string): RadioRow {
     const label = document.createElement('label');
     label.className = 'ink-radio';
     const input = document.createElement('input');
     input.type = 'radio';
     input.name = name;
+    input.setAttribute('form', unowned);
     const dot = document.createElement('span');
     dot.className = 'ink-radio__dot';
     const text = document.createTextNode('');
@@ -226,15 +242,32 @@ export class ERadioGroup extends BaseFormControl {
     return s;
   }
 
+  /**
+   * The base implementation assigns `value`, which is a no-op when the reset
+   * target is the value the attribute already carries — and by then the browser
+   * has cleared every rendered radio, because none of them holds a `checked`
+   * content attribute. Re-deriving the rows from `_value` here restores the
+   * selection whether or not the attribute moved.
+   */
+  protected override resetValue(): void {
+    const dflt = this.getAttribute('default-value') ?? '';
+    this._value = dflt;
+    this.setAttribute('value', dflt);
+    this.internals.setFormValue(dflt);
+    this._sync();
+    this._syncValidity();
+  }
+
   private _syncValidity(): void {
     this._group?.setAttribute('aria-required', String(boolAttr(this, 'required')));
-    this.applyRequiredValidity(!!this.value, this._group ?? undefined, 'Please select an option.');
+    this.applyRequiredValidity(!!this.value, this._group ?? undefined, t(this, 'requiredSelect'));
   }
 }
 define('e-radio-group', ERadioGroup);
 
 /**
  * @summary Single option entry inside an `<e-radio-group>`.
+ * @since v1.0.1
  *
  * Acts as a data carrier; the parent renders the actual radio input and hides
  * this element. Changing its attributes after mount updates the rendered row.

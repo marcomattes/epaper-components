@@ -28,6 +28,22 @@ const timestampOf = (ts: string): number => {
 };
 
 /**
+ * Newest-or-oldest-first comparator.
+ *
+ * An unparseable timestamp sorts last rather than "equal to everything":
+ * returning 0 for it made the comparator intransitive, so a single bad row
+ * could leave the rest of the log out of order.
+ */
+function byTimestamp(a: EventLogEntry, b: EventLogEntry, direction: number): number {
+  const left = timestampOf(a.ts);
+  const right = timestampOf(b.ts);
+  if (Number.isNaN(left) && Number.isNaN(right)) return 0;
+  if (Number.isNaN(left)) return 1;
+  if (Number.isNaN(right)) return -1;
+  return (left - right) * direction;
+}
+
+/**
  * @summary Append-only event and alarm list that inserts new rows instead of re-rendering the log.
  * @since v2.0.0
  *
@@ -156,19 +172,29 @@ export class EEventLog extends EpaperElement {
     this._paint();
   }
 
+  /**
+   * Deduplicate by `id`, sort, then trim.
+   *
+   * Rows are keyed by `id`, so two entries sharing one would map to the same
+   * `<li>`: the log reported more entries than it rendered and the second
+   * silently overwrote the first.
+   */
+  private static _order(
+    entries: EventLogEntry[],
+    direction: number,
+    maxItems: number,
+  ): EventLogEntry[] {
+    const unique = new Map<string, EventLogEntry>();
+    for (const entry of entries) if (!unique.has(entry.id)) unique.set(entry.id, entry);
+    return [...unique.values()].sort((a, b) => byTimestamp(a, b, direction)).slice(0, maxItems);
+  }
+
   /** Sort, trim, then reconcile the rendered rows against the result. */
   private _paint(): void {
     if (!this._list || !this._empty) return;
     const direction = this.getAttribute('order') === 'oldest' ? 1 : -1;
     const maxItems = Math.max(1, intAttr(this, 'max-items', 50));
-    const ordered = [...this._all]
-      .sort((a, b) => {
-        const left = timestampOf(a.ts);
-        const right = timestampOf(b.ts);
-        if (Number.isNaN(left) || Number.isNaN(right)) return 0;
-        return (left - right) * direction;
-      })
-      .slice(0, maxItems);
+    const ordered = EEventLog._order(this._all, direction, maxItems);
     this._entries = ordered;
 
     const keep = new Set(ordered.map((entry) => entry.id));

@@ -43,6 +43,15 @@ beforeAll(async () => {
   await import('../sparkline/sparkline');
   await import('../qrcode/qrcode');
   await import('../alert/alert');
+  // v2.0.0: `<e-form-item>` resolves its control through the custom-element
+  // registry, so the controls it wraps have to be registered here.
+  await import('../input/input');
+  await import('../select/select');
+  await import('../rating/rating');
+  await import('../slider/slider');
+  await import('../pin-input/pin-input');
+  await import('../signature/signature');
+  await import('../keypad/keypad');
 });
 
 const mounted: HTMLElement[] = [];
@@ -130,9 +139,11 @@ describe('e-badge-count', () => {
     expect(chip(el)!.textContent).toBe('99+');
   });
 
-  it('supports max="0" producing "0+"', () => {
+  it('treats max="0" as 1 rather than rendering the nonsense "0+"', () => {
     const el = mount('<e-badge-count count="1" max="0">x</e-badge-count>');
-    expect(chip(el)!.textContent).toBe('0+');
+    expect(chip(el)!.textContent).toBe('1');
+    el.setAttribute('count', '5');
+    expect(chip(el)!.textContent).toBe('1+');
   });
 
   it('falls back to max=99 for a non-numeric max', () => {
@@ -140,13 +151,15 @@ describe('e-badge-count', () => {
     expect(chip(el)!.textContent).toBe('99+');
   });
 
-  it('QUIRK: intAttr rejects a fractional count back to the default 0 (not rounded)', () => {
+  it('rounds a fractional count instead of dropping the badge (v2.0.0)', () => {
+    // `intAttr` fell back to the default 0 for any fraction, so `count="1.5"`
+    // hid the badge outright rather than showing the 2 the author meant.
     const el = mount('<e-badge-count count="1.5">x</e-badge-count>');
-    expect(chip(el)).toBeNull();
+    expect(chip(el)!.textContent).toBe('2');
     el.setAttribute('count', '2');
     expect(chip(el)!.textContent).toBe('2');
     el.setAttribute('count', '2.9');
-    expect(chip(el)).toBeNull();
+    expect(chip(el)!.textContent).toBe('3');
   });
 
   it('floors a negative count to 0', () => {
@@ -3629,5 +3642,234 @@ describe('e-alert severity glyphs (v2.0.0)', () => {
   it('keeps the dismiss button on the close glyph, which does mean close', () => {
     const el = mount('<e-alert variant="error" closable>x</e-alert>');
     expect(el.querySelector('.ink-alert__close path')!.getAttribute('d')).toBe(ICONS.close);
+  });
+});
+
+/* ===================================================================== *
+ * v2.0.0 — rows and controls that arrive after the first render
+ * ===================================================================== */
+
+/**
+ * `observeItems` schedules its sync from inside a MutationObserver callback,
+ * which is itself a microtask — so a single `await Promise.resolve()` can land
+ * before the observer has even run. A task boundary clears both.
+ */
+const microtask = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
+
+describe('e-list · rows appended after mount (v2.0.0)', () => {
+  const body = (el: HTMLElement): HTMLElement => el.querySelector('.ink-list__body')!;
+
+  it('adopts a row appended to the host into the list body', async () => {
+    const el = mount(`<e-list>
+        <e-list-item title="One"></e-list-item>
+      </e-list>`);
+    expect(body(el).children).toHaveLength(1);
+
+    const added = document.createElement('e-list-item');
+    added.setAttribute('title', 'Two');
+    el.appendChild(added);
+    await microtask();
+
+    // Appended to the host, rendered inside the body — where the dividers,
+    // the ordered counter and the border are.
+    expect(added.parentElement).toBe(body(el));
+    expect(body(el).children).toHaveLength(2);
+  });
+
+  it('keeps the ordered counter running over an adopted row', async () => {
+    const el = mount(`<e-list ordered>
+        <e-list-item title="One"></e-list-item>
+      </e-list>`);
+    const added = document.createElement('e-list-item');
+    added.setAttribute('title', 'Two');
+    el.appendChild(added);
+    await microtask();
+
+    expect(body(el).tagName).toBe('OL');
+    expect([...body(el).children]).toContain(added);
+  });
+});
+
+describe('e-form-item · controls it did not used to know (v2.0.0)', () => {
+  it.each([['e-rating'], ['e-slider'], ['e-pin-input'], ['e-signature'], ['e-keypad']])(
+    'propagates label and required onto %s',
+    (tag) => {
+      const el = mount(`<e-form-item label="Score" required><${tag}></${tag}></e-form-item>`);
+      const control = el.querySelector(tag)!;
+      expect(control.getAttribute('aria-label')).toBe('Score');
+      expect(control.hasAttribute('required')).toBe(true);
+    },
+  );
+
+  it('adopts a control appended to the item after connect', async () => {
+    const el = mount('<e-form-item label="Score"></e-form-item>');
+    const control = document.createElement('e-rating');
+    el.appendChild(control);
+    await microtask();
+
+    expect(control.parentElement).toBe(el.querySelector('[data-control]'));
+    expect(control.getAttribute('aria-label')).toBe('Score');
+  });
+
+  it('leaves a plain HTML control alone, as it always has', () => {
+    const el = mount('<e-form-item label="Name"><input></e-form-item>');
+    expect(el.querySelector('label')!.htmlFor).toBe('');
+    expect(el.querySelector('input')!.id).toBe('');
+  });
+});
+
+describe('release-review regressions · v2.0.0', () => {
+  it('e-badge re-wraps after a host that writes textContent', async () => {
+    const el = mount('<e-badge>NEW</e-badge>');
+    expect(el.querySelector('.ink-badge')!.textContent).toBe('NEW');
+
+    // The assignment a counting host reaches for. It replaces the wrapper
+    // span with a bare text node, which used to strip the styling for good.
+    el.textContent = '12';
+    await microtask();
+
+    const wrap = el.querySelector('.ink-badge');
+    expect(wrap).not.toBeNull();
+    expect(wrap!.textContent).toBe('12');
+    expect(el.childNodes).toHaveLength(1);
+  });
+
+  it('e-badge keeps its variant and size across a re-wrap', async () => {
+    const el = mount('<e-badge variant="solid" size="sm">1</e-badge>');
+    el.textContent = '2';
+    await microtask();
+
+    const wrap = el.querySelector('.ink-badge')!;
+    expect(wrap.getAttribute('data-variant')).toBe('solid');
+    expect(wrap.getAttribute('data-size')).toBe('sm');
+  });
+
+  it('e-form focuses the first focusable element a blocked composite rendered', async () => {
+    const el = mount(
+      '<e-form><e-pin-input name="code" length="4" required></e-pin-input>' +
+        '<e-button type="submit">Go</e-button></e-form>',
+    );
+    const submit = el.querySelector('e-button')!.querySelector('button')!;
+    submit.click();
+    // `invalid` fires per control and is batched onto a microtask, so the
+    // focus decision has not been made yet when `click()` returns.
+    await microtask();
+
+    // `.focus()` on the host is a no-op — it takes no tabindex of its own —
+    // so without the fallback the user stayed on the submit button.
+    const first = el.querySelector('e-pin-input')!.querySelector('input')!;
+    expect(document.activeElement).toBe(first);
+  });
+
+  it('e-form leaves focus where the platform already put it', async () => {
+    const el = mount(
+      '<e-form><e-input name="a" required></e-input>' +
+        '<e-button type="submit">Go</e-button></e-form>',
+    );
+    el.querySelector('e-button')!.querySelector('button')!.click();
+    await microtask();
+
+    // A native inner control is focusable, so the browser's own reportValidity
+    // placed focus and the fallback must not fight it.
+    expect(el.contains(document.activeElement)).toBe(true);
+  });
+
+  it('e-form-item adopts an unregistered custom element as its control', async () => {
+    const el = mount('<e-form-item label="Later"></e-form-item>');
+    const late = document.createElement('e-not-yet-defined');
+    el.appendChild(late);
+    await microtask();
+
+    // A tag whose module has not loaded looks exactly like a control that has
+    // not upgraded, so it is labelled rather than skipped.
+    expect(late.getAttribute('aria-label')).toBe('Later');
+  });
+
+  it('e-list drops a late slotted node instead of adopting it as a row', async () => {
+    const el = mount('<e-list><e-list-item title="one"></e-list-item></e-list>');
+    const body = el.querySelector('.ink-list__body')!;
+    expect(body.children).toHaveLength(1);
+
+    const late = document.createElement('e-list-item');
+    late.setAttribute('title', 'two');
+    const footer = document.createElement('div');
+    footer.setAttribute('slot', 'footer');
+    el.append(late, footer);
+    await microtask();
+
+    // Header and footer belong to their own regions; everything else appended
+    // after mount is a row and is adopted into the body.
+    expect(el.contains(footer)).toBe(false);
+    expect(body.children).toHaveLength(2);
+  });
+
+  it('e-tabs removes a badge dropped from a tab after mount', async () => {
+    const el = mount(
+      '<e-tabs value="a"><e-tab key="a" label="A" count="3"></e-tab>' +
+        '<e-tab key="b" label="B"></e-tab></e-tabs>',
+    );
+    expect(el.querySelector('e-badge')).not.toBeNull();
+
+    el.querySelector('e-tab')!.removeAttribute('count');
+    await flushObserver();
+
+    expect(el.querySelector('e-badge')).toBeNull();
+  });
+
+  it('e-select stays open when focus moves within it', async () => {
+    const el = mount('<e-select><e-option value="a">A</e-option></e-select>');
+    const trigger = el.querySelector<HTMLElement>('.ink-select__trigger')!;
+    trigger.focus();
+    trigger.click();
+    const menu = el.querySelector<HTMLElement>('[role="listbox"]')!;
+    expect(menu.hidden).toBe(false);
+
+    // `relatedTarget` is null while the browser is still moving focus, so the
+    // decision is deferred and re-reads `activeElement` instead of trusting it.
+    trigger.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
+    await microtask();
+
+    expect(menu.hidden).toBe(false);
+  });
+
+  it('e-pin-input keeps a filled box when a letter is typed over it', () => {
+    const el = mount('<e-pin-input length="4" value="12"></e-pin-input>');
+    const boxes = el.querySelectorAll('input');
+    boxes[0]!.value = 'x';
+    boxes[0]!.dispatchEvent(new Event('input', { bubbles: true }));
+
+    // A rejected keystroke is not a deletion: the code keeps its digits and
+    // the box is repainted from the value.
+    expect((el as HTMLElement & { value: string }).value).toBe('12');
+    expect(boxes[0]!.value).toBe('1');
+  });
+
+  it('e-keypad types into a native input named by for', () => {
+    const el = mount('<div><input id="target"><e-keypad for="target"></e-keypad></div>');
+    const target = el.querySelector('input')!;
+    const seen: string[] = [];
+    target.addEventListener('input', () => seen.push(target.value));
+
+    const keys = el.querySelectorAll<HTMLButtonElement>('.ink-keypad button');
+    const seven = [...keys].find((k) => k.textContent?.trim() === '7')!;
+    seven.click();
+
+    // `for` may name the control itself, not only a wrapper around one.
+    expect(target.value).toBe('7');
+    expect(seen).toEqual(['7']);
+  });
+
+  it('e-signature ignores a size attribute rewritten to the same value', () => {
+    const el = mount('<e-signature width="300" height="120"></e-signature>');
+    const canvas = el.querySelector('canvas')!;
+    const ctx = canvas.getContext('2d')!;
+    ctx.fillRect(0, 0, 10, 10);
+    const painted = canvas.toDataURL();
+
+    el.setAttribute('width', '300');
+
+    // Writing `canvas.width` resets the backing store even for an unchanged
+    // number, which would wipe a signature the user had already drawn.
+    expect(canvas.toDataURL()).toBe(painted);
   });
 });

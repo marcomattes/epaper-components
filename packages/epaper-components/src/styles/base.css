@@ -5,9 +5,20 @@
 .ink-page,
 .ink-page *,
 .ink-page *::before,
-.ink-page *::after {
+.ink-page *::after,
+.ink-page *::backdrop {
   transition: none !important;
   animation: none !important;
+  /* A smooth scroll is a motion the reset would otherwise miss: it is not a
+   * transition or an animation, but `scrollIntoView` and `<e-back-top>` turn
+   * it into dozens of partial refreshes with ghosting between them. Consumer
+   * stylesheets set `html { scroll-behavior: smooth }` routinely, so the rule
+   * has to name the scroll container as well as the page. */
+  scroll-behavior: auto !important;
+}
+
+:where(html:has(.ink-page)) {
+  scroll-behavior: auto;
 }
 
 .ink-page {
@@ -76,14 +87,14 @@
 .ink-rule {
   height: 0;
   border: none;
-  border-top: var(--ink-border);
+  border-top: var(--ink-border-width) solid var(--ink-fg);
   margin: 0;
 }
 .ink-rule--thick {
   border-top-width: var(--ink-border-width-strong);
 }
 .ink-rule--double {
-  border-top: var(--ink-border);
+  border-top: var(--ink-border-width) solid var(--ink-fg);
   box-shadow: 0 4px 0 -2px var(--ink-fg);
   margin-bottom: 6px;
 }
@@ -98,7 +109,7 @@
 
 /* Hatched specimen / disabled fill */
 .ink-hatch {
-  background-image: repeating-linear-gradient(45deg, #000 0 1px, transparent 1px 5px);
+  background-image: repeating-linear-gradient(45deg, var(--ink-fg) 0 1px, transparent 1px 5px);
 }
 
 /* Anti-ghosting note style */
@@ -106,7 +117,7 @@
   font-family: var(--ink-mono);
   font-size: var(--ink-text-caption);
   line-height: 1.5;
-  border: var(--ink-border);
+  border: var(--ink-border-width) solid var(--ink-fg);
   padding: 10px 12px;
   background: var(--ink-bg);
 }
@@ -118,7 +129,7 @@
   font-weight: 700;
   letter-spacing: var(--ink-tracking-wide);
   text-transform: uppercase;
-  border-bottom: var(--ink-border);
+  border-bottom: var(--ink-border-width) solid var(--ink-fg);
   padding-bottom: var(--ink-space-1);
   margin-bottom: var(--ink-space-4);
 }

@@ -60,6 +60,10 @@ export class ESlider extends BaseFormControl<number> {
     'disabled',
   ];
 
+  // `BaseFormControl` seeds `_value` with `''` because it cannot know `T`; for a
+  // numeric control that leaks a string out of a `number`-typed getter until the
+  // first connect. Seeding it here keeps `.value` honest from construction.
+  protected override _value = 0;
   private _wired = false;
   private _input: HTMLInputElement | null = null;
   private _labelEl: HTMLLabelElement | null = null;

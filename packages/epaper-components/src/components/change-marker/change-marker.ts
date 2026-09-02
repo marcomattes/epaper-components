@@ -1,4 +1,11 @@
-import { clampedNumAttr, define, EpaperElement, patchAttr, patchText } from '../../core/dom';
+import {
+  boolAttr,
+  clampedNumAttr,
+  define,
+  EpaperElement,
+  patchAttr,
+  patchText,
+} from '../../core/dom';
 import { formatNumber, resolveLocale } from '../../core/format';
 import { t } from '../../core/i18n';
 
@@ -94,6 +101,11 @@ export class EChangeMarker extends EpaperElement {
     return formatNumber(this, value, { precision, grouping: false });
   }
 
+  /** The delta with no `precision` set: locale-aware, no fixed decimals. */
+  private _formatDelta(value: number): string {
+    return formatNumber(this, value, { grouping: false });
+  }
+
   private _direction(value: string, previous: string | null): ChangeDirection {
     if (previous == null) return 'unchanged';
     const currentNumber = Number(value);
@@ -117,7 +129,7 @@ export class EChangeMarker extends EpaperElement {
 
   private _cue(direction: ChangeDirection, value: string, previous: string | null): string {
     if (direction === 'unchanged') return '';
-    const showPrevious = this.hasAttribute('show-previous') && previous != null;
+    const showPrevious = boolAttr(this, 'show-previous') && previous != null;
     const prefix = this.getAttribute('prefix') || '';
     const suffix = this.getAttribute('suffix') || '';
     // Hoisted out of both return templates: nesting a conditional template inside
@@ -128,10 +140,15 @@ export class EChangeMarker extends EpaperElement {
     if (direction === 'changed') {
       return `≠ ${t(this, 'changed')}${fromPrevious}`;
     }
-    const delta = Number(value) - Number(previous);
+    const delta = Math.abs(Number(value) - Number(previous));
     const precision = this._precision();
+    // Never `String(delta)`: the delta is a subtraction of two decimals, so
+    // without a precision the raw double reached the panel — "Increased by
+    // 0.5999999999999979 °C" on a shelf label. `Intl` without explicit
+    // fraction digits keeps its own sensible maximum and localizes the
+    // separator, which is what rule 13 asks for anyway.
     const formattedDelta =
-      precision == null ? String(Math.abs(delta)) : this._formatNumber(Math.abs(delta), precision);
+      precision == null ? this._formatDelta(delta) : this._formatNumber(delta, precision);
     const word = t(this, direction === 'up' ? 'increased' : 'decreased');
     const symbol = direction === 'up' ? '▲' : '▼';
     return `${symbol} ${word} ${formattedDelta}${suffix}${fromPrevious}`;
@@ -154,8 +171,8 @@ export class EChangeMarker extends EpaperElement {
     patchText(this._valueEl, value);
     patchText(this._cueEl, cue);
     patchAttr(this._cueEl, 'hidden', cue ? null : '');
-    patchAttr(this, 'role', this.hasAttribute('announce') ? 'status' : 'group');
-    patchAttr(this, 'aria-live', this.hasAttribute('announce') ? 'polite' : null);
+    patchAttr(this, 'role', boolAttr(this, 'announce') ? 'status' : 'group');
+    patchAttr(this, 'aria-live', boolAttr(this, 'announce') ? 'polite' : null);
     const labelPrefix = label ? `${label}: ` : '';
     // The cue reads as the tail of a sentence ("42; unchanged"), so the
     // capitalized table entry is lowercased for the resolved locale.

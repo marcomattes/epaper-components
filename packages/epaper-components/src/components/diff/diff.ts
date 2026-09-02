@@ -1,4 +1,5 @@
 import { define, EpaperElement, patchAttr, patchText } from '../../core/dom';
+import { label as labelOf, t } from '../../core/i18n';
 
 /**
  * @summary Side-by-side previous and current values with a non-color change cue.
@@ -78,19 +79,23 @@ export class EDiff extends EpaperElement {
     const before = this.getAttribute('before') || '';
     const after = this.getAttribute('after') || '';
     const empty = this.getAttribute('empty-text') || '—';
-    const label = this.getAttribute('label') || 'Value comparison';
+    const label = labelOf(this, 'label', 'diffLabel');
     const changed = before !== after;
     const layout = this.getAttribute('layout') === 'stacked' ? 'stacked' : 'inline';
 
     patchAttr(this, 'role', 'group');
-    patchAttr(this, 'aria-label', `${label}: ${changed ? 'changed' : 'unchanged'}`);
+    patchAttr(
+      this,
+      'aria-label',
+      `${label}: ${t(this, changed ? 'changed' : 'unchanged').toLowerCase()}`,
+    );
     patchAttr(this._root, 'data-changed', changed ? 'true' : 'false');
     patchAttr(this._root, 'data-layout', layout);
-    patchText(this._beforeLabel, this.getAttribute('before-label') || 'Previous');
+    patchText(this._beforeLabel, labelOf(this, 'before-label', 'diffBefore'));
     patchText(this._beforeValue, before || empty);
-    patchText(this._afterLabel, this.getAttribute('after-label') || 'Current');
+    patchText(this._afterLabel, labelOf(this, 'after-label', 'diffAfter'));
     patchText(this._afterValue, after || empty);
-    patchText(this._cue, changed ? '→ Changed' : '= Unchanged');
+    patchText(this._cue, `${changed ? '→' : '='} ${t(this, changed ? 'changed' : 'unchanged')}`);
   }
 }
 

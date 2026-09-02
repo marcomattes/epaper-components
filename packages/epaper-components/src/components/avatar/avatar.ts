@@ -89,6 +89,7 @@ define('e-avatar', EAvatar);
 
 /**
  * @summary Stack of avatars with overflow indicator.
+ * @since v1.0.1
  *
  * Reads avatar data from child `<e-avatar-item>` elements and keeps them live:
  * the authored items stay in the light DOM as the source of truth, and a
@@ -220,6 +221,7 @@ define('e-avatar-group', EAvatarGroup);
 
 /**
  * @summary Single avatar entry inside an `<e-avatar-group>`.
+ * @since v1.0.1
  *
  * Acts as a data carrier; the parent renders the actual avatar.
  *

@@ -64,10 +64,14 @@ Walk every changed `.ts` file in `packages/epaper-components/src/components/` ag
 9. **Event detail shape** — new custom events should use `{ value: T }`
    and be named `e-change`, unless the component is one of the documented
    exceptions in `AGENTS.md` (`e-checkbox`/`e-toggle` → `{ checked }`,
-   `e-upload` → `{ files }`, `e-dropdown` → `e-select`/`{ index }`,
-   `e-button` → `e-click`/`{ originalEvent }`, `e-form` → `e-submit`/
-   `{ form }`). A new component inventing a different shape without one of
-   these being the actual component is worth a comment.
+   `e-upload` → `{ files }`, `e-meter` → `{ value, band }`, `e-dropdown` →
+   `e-select`/`{ index }`, `e-float-button` → `e-select`/`{ index, value }`,
+   `e-table` → `e-select`/`{ value: number[] }`, `e-button` → `e-click`/
+   `{ originalEvent }`, `e-back-top` → `e-click`/`{ value: number }`,
+   `e-form` → `e-submit`/`{ form }` and `e-invalid`/`{ controls, form }`,
+   `e-calendar` → `e-month-change`/`{ year, month }`). A new component
+   inventing a different shape without one of these being the actual
+   component is worth a comment.
 10. **`useDefineForClassFields` trap** — flag any class field assigned
     before `super()` runs, or any class-field initializer on a property
     that must exist pre-`super()` for a Custom Element.

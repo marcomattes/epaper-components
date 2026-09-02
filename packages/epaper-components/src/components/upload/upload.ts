@@ -51,6 +51,13 @@ export class EUpload extends BaseFormControl<File[]> {
   private _drop: HTMLElement | null = null;
   protected override _value: File[] = [];
 
+  /** "ACCEPTS · PNG, JPG" or the any-type fallback, in the element's locale. */
+  private _hintText(accept: string): string {
+    return accept
+      ? t(this, 'uploadAccepts', { types: accept.toUpperCase() })
+      : t(this, 'anyFileType');
+  }
+
   connectedCallback() {
     if (!this._wired) {
       this._wired = true;
@@ -61,10 +68,10 @@ export class EUpload extends BaseFormControl<File[]> {
       const capture = this.getAttribute('capture');
       this.innerHTML = `
       <div>
-        <div class="ink-upload" role="button" tabindex="0" aria-label="Choose files">
+        <div class="ink-upload" role="button" tabindex="0" aria-label="${esc(t(this, 'chooseFiles'))}">
           ${iconSvg('upload', 28)}
-          <div class="ink-upload__title">Drop files here or click to upload</div>
-          <div class="ink-upload__hint">${accept ? `ACCEPTS · ${esc(accept.toUpperCase())}` : 'ANY FILE TYPE'}</div>
+          <div class="ink-upload__title">${esc(t(this, 'uploadPrompt'))}</div>
+          <div class="ink-upload__hint">${esc(this._hintText(accept))}</div>
           <input type="file" ${accept ? `accept="${esc(accept)}"` : ''} ${multiple ? 'multiple' : ''} ${capture == null ? '' : `capture="${esc(capture)}"`} style="display:none"/>
         </div>
         <ul class="ink-upload__list" hidden></ul>
@@ -142,7 +149,7 @@ export class EUpload extends BaseFormControl<File[]> {
   private _applyAccept(accept: string): void {
     if (accept) this._input!.setAttribute('accept', accept);
     else this._input!.removeAttribute('accept');
-    this._hint!.textContent = accept ? `ACCEPTS · ${accept.toUpperCase()}` : t(this, 'anyFileType');
+    this._hint!.textContent = this._hintText(accept);
   }
 
   private _applyMultiple(): void {
@@ -240,31 +247,33 @@ export class EUpload extends BaseFormControl<File[]> {
   private _validate(files: File[]): boolean {
     const maxSize = Number(this.getAttribute('max-size'));
     const maxFiles = Number(this.getAttribute('max-files'));
+    const anchor = this._drop ?? this._input ?? undefined;
     if (Number.isFinite(maxSize) && maxSize > 0) {
       const tooBig = files.find((f) => f.size > maxSize);
       if (tooBig) {
-        this.internals.setValidity(
-          { customError: true },
-          `File "${tooBig.name}" exceeds maximum size of ${maxSize} bytes.`,
-          this._drop ?? this._input ?? undefined,
-        );
+        this._reject(t(this, 'uploadTooLarge', { name: tooBig.name, max: maxSize }), anchor);
         return false;
       }
     }
     if (Number.isFinite(maxFiles) && maxFiles > 0 && files.length > maxFiles) {
-      this.internals.setValidity(
-        { customError: true },
-        `At most ${maxFiles} file(s) allowed.`,
-        this._drop ?? this._input ?? undefined,
-      );
+      this._reject(t(this, 'uploadTooMany', { max: maxFiles }), anchor);
       return false;
     }
-    this.applyRequiredValidity(
-      files.length > 0,
-      this._drop ?? this._input ?? undefined,
-      'Please select a file.',
-    );
+    this.applyRequiredValidity(files.length > 0, anchor, t(this, 'requiredFile'));
     return true;
+  }
+
+  /**
+   * Report a constraint violation *and* record it for painting.
+   *
+   * `setValidity` alone blocks the form without showing anything: the drop zone
+   * is what `components.css` styles for `aria-invalid`, and nothing was setting
+   * it. A rejected file left the user with an unchanged list, no message and a
+   * submit button that quietly did nothing.
+   */
+  private _reject(message: string, anchor: HTMLElement | undefined): void {
+    this.internals.setValidity({ customError: true }, message, anchor);
+    this._markInvalid(anchor);
   }
 
   /** Full list rebuild — only called on reset or programmatic value assignment. */

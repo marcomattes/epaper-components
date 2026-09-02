@@ -769,7 +769,10 @@ describe('e-segmented', () => {
 
     el.setAttribute('value', 'nope');
     expect(btns(el).map((b) => b.getAttribute('aria-checked'))).toEqual(['false', 'false']);
-    expect(btns(el).map((b) => b.tabIndex)).toEqual([-1, -1]);
+    // A value matching no segment still leaves the control reachable: the tab
+    // stop falls back to the first button rather than dropping out of the tab
+    // order entirely, which is also what makes the arrow keys usable.
+    expect(btns(el).map((b) => b.tabIndex)).toEqual([0, -1]);
 
     el.removeAttribute('value');
     expect(btns(el).map((b) => b.getAttribute('aria-checked'))).toEqual(['false', 'false']);
@@ -1868,7 +1871,8 @@ describe('e-change-marker', () => {
     expect(root(el).getAttribute('data-change')).toBe('unchanged');
     el.setAttribute('tolerance', '0.1');
     expect(root(el).getAttribute('data-change')).toBe('up');
-    expect(cue(el).textContent).toBe('▲ Increased by 0.40000000000000036');
+    // Rounded by `Intl`, not the raw `10.4 - 10` double (0.40000000000000036).
+    expect(cue(el).textContent).toBe('▲ Increased by 0.4');
     el.setAttribute('precision', '1');
     expect(cue(el).textContent).toBe('▲ Increased by 0.4');
     el.setAttribute('tolerance', 'abc'); // falls back to 0
@@ -2645,5 +2649,29 @@ describe('e-barcode', () => {
     const empty = el.querySelector('.ink-barcode__empty')!;
     expect(empty.children).toHaveLength(0);
     expect(empty.textContent).toBe('—');
+  });
+});
+describe('e-segmented · keyboard reachability (v2.0.0)', () => {
+  it('keeps a tab stop when no segment is selected', () => {
+    const el = mount(`<e-segmented>
+        <e-segment value="a" label="Alpha"></e-segment>
+        <e-segment value="b" label="Beta"></e-segment>
+      </e-segmented>`);
+    const buttons = [...el.querySelectorAll<HTMLButtonElement>('.ink-segmented__btn')];
+    expect(buttons.map((b) => b.tabIndex)).toEqual([0, -1]);
+    expect(buttons.map((b) => b.getAttribute('aria-checked'))).toEqual(['false', 'false']);
+
+    buttons[0]!.focus();
+    expect(document.activeElement).toBe(buttons[0]);
+  });
+});
+
+describe('e-agenda · now attribute forms · v2.0.0', () => {
+  it('accepts a date-only now and places the marker at midnight', () => {
+    const el = mount(`<e-agenda now="2026-05-01" date="2026-05-01" start-hour="0"
+      events='[{"date":"2026-05-01","title":"Standup","start":"09:00","end":"09:15"}]'></e-agenda>`);
+    // `now` doubles as the day selector, so a date without a time is a valid
+    // way to say "today, from the top".
+    expect(el.querySelector('.ink-agenda__now')).not.toBeNull();
   });
 });

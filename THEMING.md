@@ -50,6 +50,11 @@ For per-instance tweaks, set custom properties on the element:
 > hardcoded in `components.css`, not token-driven. The tokens you can reliably
 > override are listed in the reference table below. Per-component CSS variables
 > are planned but not yet available.
+>
+> A scoped override — on a wrapper element or a single component — reaches
+> every rule in `components.css`, because those rules resolve each token at the
+> element rather than through a `:root` shorthand. See the note under
+> [Borders](#borders) for what that means when you write your own CSS.
 
 ## Panel theme packs
 
@@ -149,15 +154,24 @@ fills or two-color hatch patterns, never blended gradients.
 
 ### Borders
 
-| Token                       | Default                   | Description               |
-| --------------------------- | ------------------------- | ------------------------- |
-| `--ink-border-width`        | `2px`                     | Standard border width     |
-| `--ink-border-width-strong` | `4px`                     | Heavy border width        |
-| `--ink-border-width-hair`   | `1px`                     | Hairline border width     |
-| `--ink-border-width-error`  | `3px`                     | Error state border width  |
-| `--ink-border`              | `2px solid var(--ink-fg)` | Standard border shorthand |
-| `--ink-border-strong`       | `4px solid var(--ink-fg)` | Heavy border shorthand    |
-| `--ink-border-hair`         | `1px solid var(--ink-fg)` | Hairline border shorthand |
+| Token                       | Default                                              | Description               |
+| --------------------------- | ---------------------------------------------------- | ------------------------- |
+| `--ink-border-width`        | `2px`                                                | Standard border width     |
+| `--ink-border-width-strong` | `4px`                                                | Heavy border width        |
+| `--ink-border-width-hair`   | `1px`                                                | Hairline border width     |
+| `--ink-border-width-error`  | `3px`                                                | Error state border width  |
+| `--ink-border`              | `var(--ink-border-width) solid var(--ink-fg)`        | Standard border shorthand |
+| `--ink-border-strong`       | `var(--ink-border-width-strong) solid var(--ink-fg)` | Heavy border shorthand    |
+| `--ink-border-hair`         | `var(--ink-border-width-hair) solid var(--ink-fg)`   | Hairline border shorthand |
+
+The three shorthands exist for consumer CSS. `components.css` deliberately does
+**not** use them: a shorthand is resolved once, where it is declared, so a
+scoped override — `.dark { --ink-fg: #fff }`, or a `--ink-border-width` set on
+a single element — never reaches a rule that consumed `var(--ink-border)` from
+`:root`. Every border in `components.css` is written out as
+`var(--ink-border-width) solid var(--ink-fg)` so both halves resolve at the
+element. Follow that in your own component CSS; use the shorthands in page-level
+CSS, where there is nothing below to override them.
 
 ### Focus
 

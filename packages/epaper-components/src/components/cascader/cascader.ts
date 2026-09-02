@@ -3,6 +3,7 @@ import { iconSvg } from '../../core/icons';
 import type { CascaderOption } from '../../core/types';
 import { BaseFormControl } from '../../core/base-form-control';
 import { isTreeData } from '../../core/data';
+import { t } from '../../core/i18n';
 
 /**
  * @summary Multi-column cascading selector for hierarchical options.
@@ -150,10 +151,34 @@ export class ECascader extends BaseFormControl {
     return cols;
   }
 
-  private _labelChain(): string[] {
+  /**
+   * The committed selection, which is what the trigger shows.
+   *
+   * Deliberately not `_path`: that one tracks where the user has *browsed* to,
+   * and drilling into a branch is not a choice. Rendering the trigger from it
+   * meant opening the menu, stepping into "Asia" and pressing Escape left the
+   * trigger reading "Asia" while the form still submitted the old country —
+   * two different answers on screen and in `FormData` at the same time.
+   */
+  private _committedPath(): string[] {
+    return this._value.split(',').filter(Boolean);
+  }
+
+  /** Discard an uncommitted drill-down, so reopening starts from the value. */
+  private _closeMenu(): void {
+    this._menu.hidden = true;
+    this._trigger.setAttribute('aria-expanded', 'false');
+    const committed = this._committedPath();
+    if (committed.join(',') !== this._path.join(',')) {
+      this._path = committed;
+      this._syncMenu();
+    }
+  }
+
+  private _labelChain(path: string[] = this._path): string[] {
     let cur: CascaderOption[] | undefined = this._options;
     const out: string[] = [];
-    for (const v of this._path) {
+    for (const v of path) {
       const node: CascaderOption | undefined = (cur || []).find((o) => o.value === v);
       if (!node) break;
       out.push(node.label);
@@ -208,19 +233,33 @@ export class ECascader extends BaseFormControl {
     addCleanup(this, () => this._menu.removeEventListener('keydown', this._onMenuKeydown));
 
     onGlobal(this, document, 'mousedown', (e) => {
-      if (!this.contains(e.target as Node)) {
-        this._menu.hidden = true;
-        this._trigger.setAttribute('aria-expanded', 'false');
-      }
+      if (!this._menu.hidden && !this.contains(e.target as Node)) this._closeMenu();
     });
     onGlobal(this, document, 'keydown', (e) => {
       if (e.key === 'Escape' && !this._menu.hidden && this.contains(document.activeElement)) {
-        this._menu.hidden = true;
-        this._trigger.setAttribute('aria-expanded', 'false');
+        this._closeMenu();
         this._trigger.focus();
       }
     });
+    // Tabbing out of the component left the menu open with no way back to it:
+    // the Escape handler above requires focus to still be inside.
+    this.addEventListener('focusout', this._onFocusOut);
+    addCleanup(this, () => this.removeEventListener('focusout', this._onFocusOut));
   }
+
+  private readonly _onFocusOut = (e: FocusEvent): void => {
+    const next = e.relatedTarget as Node | null;
+    if (this._menu.hidden || (next && this.contains(next))) return;
+    // Decided a microtask later, because not every `focusout` is the user
+    // leaving: removing a focused item fires one too, and at that moment the
+    // element still reports `isConnected`. By the next microtask a removal has
+    // settled and a real tab-out has landed on its next target.
+    queueMicrotask(() => {
+      if (!this.isConnected || this._menu.hidden) return;
+      if (this.contains(this.ownerDocument.activeElement)) return;
+      this._closeMenu();
+    });
+  };
 
   private readonly _onTriggerClick = (): void => {
     if (this._disabled) return;
@@ -307,6 +346,13 @@ export class ECascader extends BaseFormControl {
       this._value = this._path.join(',');
       this.internals.setFormValue(this._value);
       this.setAttribute('value', this._value);
+      // Re-sync here rather than leaving it to `attributeChangedCallback`:
+      // picking the leaf the attribute already names is not an attribute
+      // change, so the callback never ran and the trigger kept whatever the
+      // drill-down had put there.
+      this._syncMenu();
+      this._syncTrigger();
+      this._syncValidity();
       this.dispatchEvent(
         new CustomEvent('e-change', {
           detail: { value: [...this._path] },
@@ -326,7 +372,10 @@ export class ECascader extends BaseFormControl {
     const ul = document.createElement('ul');
     ul.className = 'ink-cascader__col';
     ul.setAttribute('role', 'listbox');
-    ul.setAttribute('aria-label', `${placeholder} level ${level + 1}`);
+    ul.setAttribute(
+      'aria-label',
+      t(this, 'cascaderLevel', { label: placeholder, level: level + 1 }),
+    );
 
     for (const node of col) {
       const li = document.createElement('li');
@@ -384,7 +433,7 @@ export class ECascader extends BaseFormControl {
   }
 
   private _syncTrigger(): void {
-    const chain = this._labelChain();
+    const chain = this._labelChain(this._committedPath());
     const placeholder = this.getAttribute('placeholder') || 'Select…';
 
     this._triggerSpan.replaceChildren();
@@ -425,7 +474,7 @@ export class ECascader extends BaseFormControl {
 
   private _syncValidity(): void {
     this._trigger?.setAttribute('aria-required', String(this.hasAttribute('required')));
-    this.applyRequiredValidity(!!this._value, this._trigger, 'Please select an option.');
+    this.applyRequiredValidity(!!this._value, this._trigger, t(this, 'requiredSelect'));
   }
 }
 

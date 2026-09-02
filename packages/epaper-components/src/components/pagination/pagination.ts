@@ -135,7 +135,7 @@ export class EPagination extends EpaperElement {
 
     const nav = document.createElement('nav');
     nav.className = 'ink-pagination';
-    nav.setAttribute('aria-label', 'Pagination');
+    nav.setAttribute('aria-label', t(this, 'paginationLabel'));
     this._nav = nav;
 
     // Prev button

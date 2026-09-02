@@ -1,4 +1,12 @@
-import { boolAttr, define, EpaperElement, patchBoolAttr, patchText } from '../../core/dom';
+import {
+  boolAttr,
+  define,
+  EpaperElement,
+  observeItems,
+  patchBoolAttr,
+  patchText,
+  runCleanups,
+} from '../../core/dom';
 
 /**
  * @summary Structured list with header / footer slots and `<e-list-item>` rows.
@@ -44,7 +52,10 @@ export class EList extends EpaperElement {
   private _ordered = false;
 
   connectedCallback() {
-    if (this._wired) return;
+    if (this._wired) {
+      this._observe();
+      return;
+    }
     this._wired = true;
 
     const headerSlot = this.querySelector<HTMLElement>('[slot="header"]');
@@ -93,7 +104,44 @@ export class EList extends EpaperElement {
     this.replaceChildren(root);
     this._root = root;
     this._sync();
+    this._observe();
   }
+
+  disconnectedCallback() {
+    runCleanups(this);
+  }
+
+  /**
+   * Adopt rows appended after the first render.
+   *
+   * The body is a real element, not a slot, so a row appended to the host
+   * afterwards became a sibling of `.ink-list` instead of a child of it: no
+   * divider, no ordered counter, outside the border. Hosts worked around it by
+   * re-mounting the whole list, which is the full repaint this library exists
+   * to avoid.
+   */
+  private _observe(): void {
+    observeItems(this, this._adopt, { isOutput: (n) => this._root?.contains(n) ?? false });
+  }
+
+  private readonly _adopt = (): void => {
+    const root = this._root;
+    const body = this._body;
+    if (!root || !body) return;
+    let moved = false;
+    for (const node of [...this.childNodes]) {
+      if (node === root) continue;
+      // Late header/footer slots still belong to their own regions; anything
+      // else is a row.
+      if (node instanceof HTMLElement && node.getAttribute('slot')) {
+        node.remove();
+        continue;
+      }
+      body.appendChild(node);
+      moved = true;
+    }
+    if (moved) this._sync();
+  };
 
   attributeChangedCallback(name: string) {
     if (!this._wired || !this._root) return;
@@ -155,6 +203,7 @@ define('e-list', EList);
 
 /**
  * @summary Single row inside an `<e-list>`.
+ * @since v1.0.1
  *
  * @attr {string} [title] - Primary text.
  * @attr {string} [description] - Secondary text shown below the title.
@@ -162,6 +211,9 @@ define('e-list', EList);
  * @slot - Default slot for custom row content (replaces `title`/`description`).
  * @slot leading - Element rendered before the text (icon, avatar).
  * @slot trailing - Element rendered after the text (action, badge).
+ *
+ * @example
+ * <e-list-item title="Eröffnung"></e-list-item>
  */
 export class EListItem extends EpaperElement {
   static readonly observedAttributes = ['title', 'description'];

@@ -216,14 +216,20 @@ export function observeItems(
 ): MutationObserver {
   const { attributeFilter, isOutput } = opts;
   let queued = false;
+  let stopped = false;
 
   const observer = new MutationObserver((records) => {
-    if (queued) return;
+    if (queued || stopped) return;
     const relevant = isOutput ? records.some((r) => !isOutput(r.target)) : records.length > 0;
     if (!relevant) return;
     queued = true;
     queueMicrotask(() => {
       queued = false;
+      // A sync scheduled in the same task the host was removed in would
+      // otherwise still run, one microtask after `runCleanups` disconnected
+      // the observer — rendering into a detached subtree that nothing will
+      // ever paint, on a component the page has already let go.
+      if (stopped) return;
       sync();
       // Drain records `sync()` itself just produced before the browser's own
       // microtask can deliver them back to this callback — see doc comment.
@@ -239,9 +245,28 @@ export function observeItems(
       ? { attributes: true, ...(attributeFilter === true ? {} : { attributeFilter }) }
       : {}),
   });
-  addCleanup(host, () => observer.disconnect());
+  addCleanup(host, () => {
+    stopped = true;
+    observer.disconnect();
+  });
   return observer;
 }
+
+/** Attributes whose value is one id, or a space-separated list of them. */
+const IDREF_ATTRS = [
+  'for',
+  'headers',
+  'list',
+  'aria-labelledby',
+  'aria-describedby',
+  'aria-controls',
+  'aria-owns',
+  'aria-details',
+  'aria-errormessage',
+  'aria-flowto',
+] as const;
+
+const IDREF_SELECTOR = IDREF_ATTRS.map((attr) => `[${attr}]`).join(',');
 
 /**
  * Copy a data carrier's child nodes into `target`, replacing whatever was
@@ -249,17 +274,60 @@ export function observeItems(
  *
  * The nodes are cloned rather than moved, because the carrier stays in the
  * light DOM as the component's source of truth (see {@link observeItems}) and
- * must keep its own content to re-sync from. Cloning an `id` would put the
- * same one in the document twice, which is invalid HTML and quietly breaks
- * `getElementById` and every `label[for]` pointing at it — so ids are dropped
- * from the copy. The authored element keeps its id and remains the one a page
- * script addresses; edits to it flow back through the observer.
+ * must keep its own content to re-sync from. Cloning an `id` verbatim would
+ * put the same one in the document twice, which is invalid HTML and quietly
+ * breaks `getElementById`; dropping it instead broke the other half, because
+ * a `label[for]` or `aria-describedby` inside the copy then pointed at the
+ * *hidden* authored element rather than at the visible one beside it. So each
+ * id is rewritten to a fresh one and every reference within the copy is
+ * repointed at it. The authored element keeps its own id and remains the one a
+ * page script addresses; edits to it flow back through the observer.
+ *
+ * Form controls are the one thing not to put in an item body: the authored
+ * carrier is only hidden, not removed, so a named field inside it stays a
+ * submitting member of its form and the copy submits alongside it.
  */
 export function cloneItemBody(item: Element, target: Element): void {
   const fragment = document.createDocumentFragment();
   for (const node of item.childNodes) fragment.appendChild(node.cloneNode(true));
-  for (const el of fragment.querySelectorAll('[id]')) el.removeAttribute('id');
+  const renamed = renameIds(fragment);
+  if (renamed.size > 0) repointIdRefs(fragment, renamed);
   target.replaceChildren(fragment);
+}
+
+/** Give every id in the copy a fresh one; returns old → new. */
+function renameIds(fragment: DocumentFragment): Map<string, string> {
+  const renamed = new Map<string, string>();
+  for (const el of fragment.querySelectorAll('[id]')) {
+    const previous = el.getAttribute('id');
+    if (!previous) continue;
+    const next = randId('ink-clone');
+    renamed.set(previous, next);
+    el.setAttribute('id', next);
+  }
+  return renamed;
+}
+
+/**
+ * Point every reference inside the copy at the copy's own ids.
+ *
+ * Both single-id (`for`, `list`) and id-list (`aria-labelledby`, `headers`)
+ * attributes split the same way; a token naming an element outside the item is
+ * left alone so a page-level hint still resolves.
+ */
+function repointIdRefs(fragment: DocumentFragment, renamed: Map<string, string>): void {
+  for (const el of fragment.querySelectorAll(IDREF_SELECTOR)) {
+    for (const attr of IDREF_ATTRS) {
+      const value = el.getAttribute(attr);
+      if (value == null) continue;
+      const remapped = value
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((token) => renamed.get(token) ?? token)
+        .join(' ');
+      if (remapped !== value) el.setAttribute(attr, remapped);
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------- *

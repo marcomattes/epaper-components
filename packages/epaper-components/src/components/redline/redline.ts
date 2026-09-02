@@ -29,10 +29,16 @@ interface ParagraphRow {
  */
 const MAX_WORDS_FOR_LCS = 400;
 
-/** Splits on one-or-more blank lines; a single line break stays inside a paragraph. */
+/**
+ * Splits on one-or-more blank lines; a single line break stays inside a
+ * paragraph. `\r` is part of the separator, not of the text: a document
+ * authored on Windows arrives as CRLF, and matching `\n{2,}` alone left the
+ * whole thing as one paragraph — "1 of 1 paragraphs changed", with the
+ * changes-only view hiding nothing.
+ */
 function splitParagraphs(text: string): string[] {
   return text
-    .split(/\n{2,}/)
+    .split(/(?:\r?\n){2,}/)
     .map((p) => p.replaceAll(/\s+/g, ' ').trim())
     .filter((p) => p !== '');
 }

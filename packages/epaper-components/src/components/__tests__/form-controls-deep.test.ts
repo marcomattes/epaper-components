@@ -2480,3 +2480,159 @@ describe('e-keypad', () => {
     expect(el.querySelector('.ink-keypad__display')!.textContent).toBe('73');
   });
 });
+
+/* ===================================================================== *
+ * v2.0.0 — form reset, and the phantom radio field
+ *
+ * `form.reset()` resets the native controls a component renders *before* the
+ * component's own `formResetCallback` runs. Where the reset target was the
+ * value the host attribute already carried, nothing re-asserted the rendered
+ * state and the two drifted apart: a box drawn checked that submitted nothing,
+ * a radio group with no visible selection that submitted one anyway.
+ * ===================================================================== */
+
+describe('form reset re-asserts the rendered state (v2.0.0)', () => {
+  const inForm = (html: string): { form: HTMLFormElement; el: HTMLElement } => {
+    const form = mount<HTMLFormElement>(`<form>${html}</form>`);
+    return { form, el: form.firstElementChild as HTMLElement };
+  };
+
+  it('e-checkbox: unchecking a declared-checked box and resetting restores both halves', () => {
+    const { form, el } = inForm('<e-checkbox name="d" checked default-checked></e-checkbox>');
+    const box = el.querySelector('input')!;
+    box.click();
+    expect(new FormData(form).get('d')).toBeNull();
+
+    form.reset();
+    expect(box.checked).toBe(true);
+    expect((el as HTMLElement & { checked: boolean }).checked).toBe(true);
+    expect(new FormData(form).get('d')).toBe('on');
+  });
+
+  it('e-checkbox: resetting to an unchecked default clears the rendered box', () => {
+    const { form, el } = inForm('<e-checkbox name="d"></e-checkbox>');
+    const box = el.querySelector('input')!;
+    box.click();
+    expect(new FormData(form).get('d')).toBe('on');
+
+    form.reset();
+    expect(box.checked).toBe(false);
+    expect(new FormData(form).get('d')).toBeNull();
+  });
+
+  it('e-toggle: the ON/OFF pip follows a reset that does not move the attribute', () => {
+    const { form, el } = inForm('<e-toggle name="t" checked default-checked></e-toggle>');
+    const box = el.querySelector('input')!;
+    box.click();
+    form.reset();
+    expect(box.checked).toBe(true);
+    expect(el.querySelector('.ink-toggle__state')!.textContent).toBe('ON');
+    expect(new FormData(form).get('t')).toBe('on');
+  });
+
+  it('checked="false" and the property setter agree', () => {
+    const el = mount<HTMLElement & { checked: boolean }>(
+      '<e-checkbox checked="false"></e-checkbox>',
+    );
+    expect(el.checked).toBe(false);
+    el.checked = true;
+    expect(el.checked).toBe(true);
+    expect(el.querySelector('input')!.checked).toBe(true);
+    expect(el.getAttribute('checked')).toBe('');
+  });
+
+  it('e-radio-group: resetting to the value it already carries re-checks the row', () => {
+    const { form, el } = inForm(`<e-radio-group name="g" value="a" default-value="a">
+        <e-radio value="a" label="A"></e-radio>
+        <e-radio value="b" label="B"></e-radio>
+      </e-radio-group>`);
+    const radios = [...el.querySelectorAll('input')];
+    radios[1]!.click();
+    expect(new FormData(form).get('g')).toBe('b');
+
+    form.reset();
+    expect(radios.map((r) => r.checked)).toEqual([true, false]);
+    expect(new FormData(form).get('g')).toBe('a');
+  });
+
+  it('e-radio-group: submits one field, not a second under an internal name', () => {
+    const { form, el } = inForm(`<e-radio-group name="g" value="a">
+        <e-radio value="a" label="A"></e-radio>
+        <e-radio value="b" label="B"></e-radio>
+      </e-radio-group>`);
+    expect([...new FormData(form).keys()]).toEqual(['g']);
+    // The rendered radios keep a shared name so the browser still groups them.
+    const names = new Set([...el.querySelectorAll('input')].map((r) => r.name));
+    expect(names.size).toBe(1);
+    expect([...names][0]).not.toBe('g');
+  });
+
+  it('e-checkbox-group: resetting to the value it already carries re-checks the rows', () => {
+    const { form, el } = inForm(`<e-checkbox-group name="t" value="a" default-value="a">
+        <e-cbox-option value="a" label="A"></e-cbox-option>
+        <e-cbox-option value="b" label="B"></e-cbox-option>
+      </e-checkbox-group>`);
+    const boxes = [...el.querySelectorAll('input')];
+    boxes[1]!.click();
+    expect(new FormData(form).getAll('t')).toEqual(['a', 'b']);
+
+    form.reset();
+    expect(boxes.map((b) => b.checked)).toEqual([true, false]);
+    expect(new FormData(form).getAll('t')).toEqual(['a']);
+  });
+});
+
+describe('e-keypad · mirroring into a library control (v2.0.0)', () => {
+  it('fires the target control own events, not just its value', () => {
+    const wrap = mount(`<div>
+        <e-input id="kp-target" name="qty"></e-input>
+        <e-keypad for="kp-target"></e-keypad>
+      </div>`);
+    const target = wrap.querySelector<HTMLElement & { value: string }>('e-input')!;
+    const keypad = wrap.querySelector<HTMLElement & { press(key: string): void }>('e-keypad')!;
+    const changes: string[] = [];
+    const inputs: string[] = [];
+    target.addEventListener('e-change', (e) => changes.push((e as CustomEvent).detail.value));
+    target.addEventListener('e-input', (e) => inputs.push((e as CustomEvent).detail.value));
+
+    keypad.press('4');
+    keypad.press('2');
+
+    expect(target.querySelector('input')!.value).toBe('42');
+    expect(target.value).toBe('42');
+    expect(inputs).toEqual(['4', '42']);
+    expect(changes).toEqual(['4', '42']);
+  });
+});
+
+describe('checked reflection · v2.0.0', () => {
+  // The rendered input carries no `checked` content attribute, so anything
+  // that moves it natively — a form reset, an autofill pass — leaves the
+  // component's own state untouched and the two out of sync. Reflecting a
+  // state the host attribute already names writes no attribute and so fires
+  // no `attributeChangedCallback`: without re-asserting the input here, that
+  // is the case where the desync survives.
+  it('e-checkbox re-asserts the rendered box when nothing about the attribute moved', () => {
+    const el = mount<HTMLElement & { checked: boolean }>('<e-checkbox></e-checkbox>');
+    const box = el.querySelector('input')!;
+
+    box.checked = true;
+    el.checked = false;
+
+    expect(box.checked).toBe(false);
+    expect(el.hasAttribute('checked')).toBe(false);
+    expect(el.checked).toBe(false);
+  });
+
+  it('e-toggle re-asserts the rendered switch when nothing about the attribute moved', () => {
+    const el = mount<HTMLElement & { checked: boolean }>('<e-toggle></e-toggle>');
+    const box = el.querySelector('input')!;
+
+    box.checked = true;
+    el.checked = false;
+
+    expect(box.checked).toBe(false);
+    expect(el.hasAttribute('checked')).toBe(false);
+    expect(el.checked).toBe(false);
+  });
+});

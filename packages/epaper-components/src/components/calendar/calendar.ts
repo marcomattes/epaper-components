@@ -10,6 +10,7 @@ import {
 } from '../../core/dom';
 import { iconSvg } from '../../core/icons';
 import { formatDate, monthLabel, weekdayLabels } from '../../core/format';
+import { t } from '../../core/i18n';
 import { parseYMD, ymd } from '../../core/date';
 import type { CalendarEvent } from '../../core/types';
 import { isCalendarEvents } from '../../core/data';
@@ -33,6 +34,7 @@ const CELL_COUNT = 42;
  * @attr {string} [locale] - BCP-47 tag for the weekday, month and day-cell names. Falls back to the nearest `lang`, then the document language. (since v2.0.0)
  *
  * @fires {CustomEvent<{value: string}>} e-change - Fired when the user picks a day. `value` is `YYYY-MM-DD`.
+ * @fires {CustomEvent<{error: Error, source: 'events'}>} e-error - Fired when the `events` attribute fails to parse. The event list falls back to `[]`. @since v2.0.0
  * @fires {CustomEvent<{year: number, month: number}>} e-month-change - Fired after the visible month moved, by the header buttons or by arrow keys crossing a boundary. `month` is zero-based, like `Date#getMonth`. (since v2.0.0)
  *
  * @example
@@ -101,9 +103,24 @@ export class ECalendar extends EpaperElement {
   private _parseEvents(): void {
     try {
       const parsed: unknown = JSON.parse(this.getAttribute('events') || '[]');
-      this._events = isCalendarEvents(parsed) ? parsed : [];
-    } catch {
+      if (!isCalendarEvents(parsed)) {
+        throw new TypeError('Expected an array of {date, title} calendar events.');
+      }
+      this._events = parsed;
+    } catch (err) {
       this._events = [];
+      // Reported, not swallowed: `<e-cascader>` and `<e-tree-select>` already
+      // announce a malformed data attribute, and a calendar that renders an
+      // empty month because of a typo is the hardest kind of bug to see.
+      this.dispatchEvent(
+        new CustomEvent('e-error', {
+          detail: {
+            error: err instanceof Error ? err : new Error(String(err)),
+            source: 'events',
+          },
+          bubbles: true,
+        }),
+      );
     }
     this._eventMap.clear();
     for (const ev of this._events) {
@@ -211,7 +228,7 @@ export class ECalendar extends EpaperElement {
     prevBtn.type = 'button';
     prevBtn.className = 'ink-icon-btn ink-icon-btn--lg';
     prevBtn.dataset['step'] = '-1';
-    prevBtn.setAttribute('aria-label', 'Previous month');
+    prevBtn.setAttribute('aria-label', t(this, 'previousMonth'));
     const prevIcon = this._svgEl(iconSvg('chevL', 16));
     if (prevIcon) prevBtn.appendChild(prevIcon);
     head.appendChild(prevBtn);
@@ -232,7 +249,7 @@ export class ECalendar extends EpaperElement {
     nextBtn.type = 'button';
     nextBtn.className = 'ink-icon-btn ink-icon-btn--lg';
     nextBtn.dataset['step'] = '1';
-    nextBtn.setAttribute('aria-label', 'Next month');
+    nextBtn.setAttribute('aria-label', t(this, 'nextMonth'));
     const nextIcon = this._svgEl(iconSvg('chevR', 16));
     if (nextIcon) nextBtn.appendChild(nextIcon);
     head.appendChild(nextBtn);
@@ -337,7 +354,7 @@ export class ECalendar extends EpaperElement {
         delete btn.dataset['day'];
         patchAttr(btn, 'aria-selected', null);
         patchAttr(btn, 'aria-hidden', null);
-        patchAttr(btn, 'aria-label', 'Outside current month');
+        patchAttr(btn, 'aria-label', t(this, 'outsideMonth'));
         patchAttr(btn, 'data-today', null);
         evContainer.textContent = '';
       } else {

@@ -32,12 +32,17 @@ packages/epaper-components/  the library — the only npm-published package
     components/         83 components, each in its own <name>/ folder as
                         <name>.ts (ending with `define('e-tag', Class)`) +
                         README.md (auto-generated, don't edit by hand)
-      __tests__/        7 suites (cleanup, form-association, reactivity, security,
-                        data-display, new-components, screenshots)
-    core/               dom.ts, base-form-control.ts, icons.ts, date.ts, types.ts,
-                        format.ts (Intl wrappers), i18n.ts (string table)
+      __tests__/        15 suites (cleanup, form-association, reactivity, security,
+                        data-display, new-components, screenshots, refresh-budget,
+                        theme-packs and the five *-deep suites); core/ carries its
+                        own unit tests next to each module
+    core/               dom.ts (define, EpaperElement, patch*, observeItems,
+                        cleanup registry), base-form-control.ts, icons.ts, date.ts,
+                        types.ts, format.ts (Intl wrappers), i18n.ts (string table),
+                        tree.ts (shared tree model), data.ts, slug.ts
     styles/             tokens.css → base.css → components.css (cascade order matters)
-    stories/            Storybook docs (composite/, display/, inputs/, layout/, navigation/, primitives/, typography/)
+    stories/            Storybook docs (composite/, display/, feedback/, inputs/,
+                        layout/, navigation/, primitives/, typography/)
     demo/               Local dev demo (not shipped)
     index.ts            Barrel export — register every component as a side-effect import
   scripts/
@@ -48,7 +53,9 @@ apps/site/               docs/marketing site (epaper-components.dev)
 apps/storybook/           Storybook runner config (stories live in the library package)
 apps/sample-app/          Validates README.md's runtime + TS claims against
                           packages/epaper-components/dist/. Not shipped.
-.github/workflows/       ci.yml, deploy.yml, release.yml
+apps/bookstore/           Larger end-to-end example app. Not shipped.
+.github/workflows/       ci.yml, deploy.yml, preview.yml, release.yml,
+                         browserstack.yml, visual-baselines.yml
 reports/                 CI artifacts. Gitignored. Never commit.
 ```
 
@@ -196,12 +203,16 @@ lives here too) — the tool-specific stubs should rarely need touching.
 ## Event detail conventions
 
 Default: `{ value: T }`. Known exceptions to be aware of (do not
-"fix" without alignment — they are V1.0 contract):
+"fix" without alignment — they are released contract):
 
 - `e-checkbox`, `e-toggle` → `{ checked: boolean }`
 - `e-upload` → `{ files: File[] }`
 - `e-dropdown` → `{ index: number }` (event name `e-select`, not `e-change`)
+- `e-float-button` → `{ index: number, value: string }` (event name `e-select`)
+- `e-table` → `{ value: number[] }` (event name `e-select`, row selection)
 - `e-button` → `{ originalEvent: MouseEvent }` (event name `e-click`)
+- `e-back-top` → `{ value: number }` (event name `e-click`; `value` is the
+  scroll position at press time, not a DOM event)
 - `e-form` → `{ form: HTMLFormElement }` (event name `e-submit`)
 - `e-calendar` → `{ year: number, month: number }` (event name `e-month-change`,
   not `e-change`)
@@ -209,6 +220,10 @@ Default: `{ value: T }`. Known exceptions to be aware of (do not
   `e-invalid`, not `e-change`)
 - `e-meter` → `{ value: number, band: 'low'|'normal'|'high' }` (event name
   `e-change`, with an extra `band` key alongside `value`)
+- `e-dialog` → `{ value: false, reason: DialogCloseReason }` (event name
+  `e-close`; `e-popover` fires the same name with `{ value: false }` only)
+- `e-image`, `e-card-image` → `{ value: string }` (event name `e-error`; the
+  JSON-parse failures elsewhere use `{ error, source }` under the same name)
 
 If you write a new component, use `{ value: T }` and `e-change` unless
 there is a specific reason not to.
@@ -226,7 +241,8 @@ npm run type-check   # tsc --noEmit, must be clean
 npm run lint:check   # ESLint, max-warnings=0
 npm run format:check # Prettier check
 npm run build        # Vite + CSS + tsc + CEM analyze + tag-map gen
-npm run size         # size-limit check (40 KB barrel, 6 KB button, 8 KB input)
+npm run size         # size-limit check (66 KB barrel, 6 KB button, 8 KB input)
+npm run test:ssr     # every entry point imports in a bare Node process
 ```
 
 CI runs all of the above on every PR (`.github/workflows/ci.yml`).

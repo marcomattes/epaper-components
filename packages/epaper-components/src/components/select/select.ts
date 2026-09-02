@@ -11,6 +11,7 @@ import {
   runCleanups,
 } from '../../core/dom';
 import { ICONS, iconSvg } from '../../core/icons';
+import { t } from '../../core/i18n';
 import { BaseFormControl } from '../../core/base-form-control';
 
 /** Rendered `<li role="option">` plus the label span it patches. */
@@ -35,9 +36,9 @@ interface SelectRow {
  * unmatched value behaves.
  *
  * Because the items stay put they would otherwise render twice, so each one is
- * hidden with an inline `display:none` when it is first wired. The stable form
- * of that is a `e-option { display: none; }` rule in `components.css`; the
- * inline style is what guarantees it without one.
+ * hidden with an inline `display:none` when it is first wired. `components.css` carries the
+ * `e-option { display: none; }` rule that states it; the inline style is what
+ * holds even where that stylesheet is not loaded.
  *
  * Form-associated: participates in `<form>` submission and FormData.
  *
@@ -148,6 +149,8 @@ export class ESelect extends BaseFormControl {
     onGlobal(this, document, 'mousedown', (e) => {
       if (!this.contains(e.target as Node)) this._setOpen(false);
     });
+    this.addEventListener('focusout', this._onFocusOut);
+    addCleanup(this, () => this.removeEventListener('focusout', this._onFocusOut));
     onGlobal(this, document, 'keydown', (e) => {
       if (e.key === 'Escape' && !this._menu!.hidden && this.contains(document.activeElement)) {
         this._setOpen(false);
@@ -194,6 +197,25 @@ export class ESelect extends BaseFormControl {
   private _matchIndex(): number {
     return this._hasValue ? this._opts.findIndex((o) => o.value === this._value) : -1;
   }
+
+  /**
+   * Close on the way out of the component.
+   *
+   * Without this, tabbing past an open overlay left it on screen with no way
+   * to dismiss it from the keyboard: the Escape handler above only fires while
+   * focus is still inside. The decision is deferred by a microtask because not
+   * every `focusout` is the user leaving — removing a focused element fires one
+   * too, and at that moment the host still reports `isConnected`.
+   */
+  private readonly _onFocusOut = (e: FocusEvent): void => {
+    const next = e.relatedTarget as Node | null;
+    if (this._menu?.hidden !== false || (next && this.contains(next))) return;
+    queueMicrotask(() => {
+      if (!this.isConnected || this._menu?.hidden !== false) return;
+      if (this.contains(this.ownerDocument.activeElement)) return;
+      this._setOpen(false);
+    });
+  };
 
   private _setOpen(open: boolean): void {
     if (!this._menu || !this._trigger) return;
@@ -465,7 +487,7 @@ export class ESelect extends BaseFormControl {
     this.applyRequiredValidity(
       !!this._value,
       this._trigger ?? undefined,
-      'Please select an option.',
+      t(this, 'requiredSelect'),
     );
   }
 
@@ -477,6 +499,7 @@ define('e-select', ESelect);
 
 /**
  * @summary Single option entry inside an `<e-select>`.
+ * @since v1.0.1
  *
  * Acts as a data carrier; the parent renders the actual option row and hides
  * this element. Changing its attributes after mount updates the rendered

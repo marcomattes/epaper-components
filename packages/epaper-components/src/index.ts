@@ -19,6 +19,7 @@ export { setLocaleStrings, strings, t } from './core/i18n';
 export type { LocaleStrings } from './core/i18n';
 export type {
   EChangeDetail,
+  EChangeEvent,
   CascaderOption,
   TreeNode,
   CalendarEvent,

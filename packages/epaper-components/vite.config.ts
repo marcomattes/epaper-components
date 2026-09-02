@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
 import { existsSync, readdirSync } from 'node:fs';
 
-const componentsDir = resolve(__dirname, 'src/components');
+const componentsDir = resolve(import.meta.dirname, 'src/components');
 const componentEntries = Object.fromEntries(
   readdirSync(componentsDir, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
@@ -16,13 +16,13 @@ const componentEntries = Object.fromEntries(
 // dist file the build never writes. `apps/sample-app`'s validator is what
 // catches that, by resolving every declared subpath against the built output.
 const coreEntries = {
-  'core/dom': resolve(__dirname, 'src/core/dom.ts'),
-  'core/icons': resolve(__dirname, 'src/core/icons.ts'),
-  'core/types': resolve(__dirname, 'src/core/types.ts'),
-  'core/date': resolve(__dirname, 'src/core/date.ts'),
-  'core/format': resolve(__dirname, 'src/core/format.ts'),
-  'core/i18n': resolve(__dirname, 'src/core/i18n.ts'),
-  'core/base-form-control': resolve(__dirname, 'src/core/base-form-control.ts'),
+  'core/dom': resolve(import.meta.dirname, 'src/core/dom.ts'),
+  'core/icons': resolve(import.meta.dirname, 'src/core/icons.ts'),
+  'core/types': resolve(import.meta.dirname, 'src/core/types.ts'),
+  'core/date': resolve(import.meta.dirname, 'src/core/date.ts'),
+  'core/format': resolve(import.meta.dirname, 'src/core/format.ts'),
+  'core/i18n': resolve(import.meta.dirname, 'src/core/i18n.ts'),
+  'core/base-form-control': resolve(import.meta.dirname, 'src/core/base-form-control.ts'),
 };
 
 export default defineConfig(({ command }) => ({
@@ -35,7 +35,7 @@ export default defineConfig(({ command }) => ({
       ? {
           lib: {
             entry: {
-              index: resolve(__dirname, 'src/index.ts'),
+              index: resolve(import.meta.dirname, 'src/index.ts'),
               ...coreEntries,
               ...componentEntries,
             },

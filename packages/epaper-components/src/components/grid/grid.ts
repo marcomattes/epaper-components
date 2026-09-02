@@ -39,9 +39,13 @@ define('e-grid', EGrid);
 
 /**
  * @summary Single cell inside an `<e-grid>` with explicit column or row span.
+ * @since v1.0.1
  *
  * @attr {string} [col] - `grid-column` value (e.g. `span 6`).
  * @attr {string} [row] - `grid-row` value.
+ *
+ * @example
+ * <e-grid-item span="6">Half width</e-grid-item>
  */
 export class EGridItem extends EpaperElement {
   static readonly observedAttributes = ['col', 'row'];

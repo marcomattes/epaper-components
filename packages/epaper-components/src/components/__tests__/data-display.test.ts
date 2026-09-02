@@ -1411,3 +1411,25 @@ describe('e-price', () => {
     expect(parts(el).note).toBe('<script>alert(1)</script>');
   });
 });
+
+describe('e-event-log · unparsable timestamps · v2.0.0', () => {
+  it('sorts entries with an unreadable ts to the end and keeps a total order', () => {
+    const el = mount(`<e-event-log data='[
+      {"id":"1","ts":"not a date","message":"broken"},
+      {"id":"2","ts":"2026-05-01T10:00:00Z","message":"second"},
+      {"id":"3","ts":"also not a date","message":"alsoBroken"},
+      {"id":"4","ts":"2026-05-01T09:00:00Z","message":"first"}
+    ]'></e-event-log>`);
+
+    // Returning 0 for an unreadable value is not a total order: the sort then
+    // depends on the engine's algorithm and the rest of the log moves with it.
+    const messages = [...el.querySelectorAll('.ink-event-log__message')].map((n) =>
+      n.textContent?.trim(),
+    );
+    // Newest first is the default direction; what matters is that the
+    // unreadable entry lands at one end and the readable ones keep their
+    // order relative to each other whatever the engine's sort does.
+    expect(messages.slice(0, 2)).toEqual(['second', 'first']);
+    expect(messages.slice(2).sort()).toEqual(['alsoBroken', 'broken']);
+  });
+});
