@@ -2,6 +2,7 @@ import {
   addCleanup,
   define,
   EpaperElement,
+  observeItems,
   patchAttr,
   patchBoolAttr,
   patchClassModifier,
@@ -16,6 +17,8 @@ interface MenuItem {
   icon: string | null;
   badge: string | null;
   children: MenuItem[];
+  /** The authored `<e-menu-item>` this row was read from. */
+  carrier: HTMLElement;
 }
 
 interface RenderedItem {
@@ -52,6 +55,7 @@ export class EMenu extends EpaperElement {
   private _items: MenuItem[] = [];
   private readonly _byValue = new Map<string, RenderedItem>();
   private _rootUl: HTMLUListElement | null = null;
+  private _nav: HTMLElement | null = null;
 
   connectedCallback() {
     if (!this._wired) {
@@ -63,7 +67,39 @@ export class EMenu extends EpaperElement {
     this.addEventListener('keydown', this._onKeydown);
     addCleanup(this, () => this.removeEventListener('click', this._onClick));
     addCleanup(this, () => this.removeEventListener('keydown', this._onKeydown));
+    // The `<e-menu-item>` tree is the source of truth and stays in the light
+    // DOM, hidden. Reading it once at connect froze the menu: an entry added,
+    // relabelled or removed afterwards was invisible until the host re-mounted
+    // the element — the full repaint this library exists to avoid.
+    observeItems(this, this._sync, {
+      attributeFilter: ['value', 'label', 'icon', 'badge'],
+      isOutput: (n) => this._nav?.contains(n) ?? false,
+    });
   }
+
+  /**
+   * Re-render from the authored items, keeping which branches are open.
+   *
+   * A menu is structural content: its rows nest, so there is no single value to
+   * patch. Rebuilding the one component's subtree on an items change is the
+   * same trade `<e-table>` and `<e-select>` make, and it happens only when the
+   * authored tree actually changes — `value` and `mode` keep their surgical
+   * paths.
+   */
+  private readonly _sync = (): void => {
+    const wasOpen = [...this._byValue]
+      .filter(([, rendered]) => rendered.open)
+      .map(([value]) => value);
+    this._items = this._collectItems(this);
+    this._build();
+    for (const value of wasOpen) {
+      const rendered = this._byValue.get(value);
+      if (rendered?.hasKids && !rendered.open) {
+        rendered.open = true;
+        this._applyOpen(rendered);
+      }
+    }
+  };
 
   disconnectedCallback() {
     runCleanups(this);
@@ -171,12 +207,13 @@ export class EMenu extends EpaperElement {
   }
 
   private _collectItems(host: Element): MenuItem[] {
-    return [...host.querySelectorAll(':scope > e-menu-item')].map((it) => ({
+    return [...host.querySelectorAll<HTMLElement>(':scope > e-menu-item')].map((it) => ({
       value: it.getAttribute('value') ?? '',
       label: it.getAttribute('label'),
       icon: it.getAttribute('icon'),
       badge: it.getAttribute('badge'),
       children: this._collectItems(it),
+      carrier: it,
     }));
   }
 
@@ -192,7 +229,19 @@ export class EMenu extends EpaperElement {
 
     for (const it of this._items) ul.appendChild(this._buildItem(it, value));
     nav.appendChild(ul);
-    this.replaceChildren(nav);
+    // Replace only the previous render, never the authored items beside it.
+    this._nav?.remove();
+    this.appendChild(nav);
+    this._nav = nav;
+    EMenu._hideCarriers(this._items);
+  }
+
+  /** Keep the data carriers out of the visual flow without removing them. */
+  private static _hideCarriers(items: MenuItem[]): void {
+    for (const item of items) {
+      if (item.carrier.style.display !== 'none') item.carrier.style.display = 'none';
+      EMenu._hideCarriers(item.children);
+    }
   }
 
   private _buildItem(item: MenuItem, value: string | null): HTMLLIElement {
@@ -217,6 +266,7 @@ export class EMenu extends EpaperElement {
     const badgeEl = this._appendBadge(btn, item.badge, on);
 
     const isOpen = hasKids && item.children.some((c) => c.value === value);
+    if (hasKids) btn.setAttribute('aria-expanded', String(isOpen));
     const chevron = hasKids ? this._appendChevron(btn, isOpen) : null;
 
     li.appendChild(btn);
@@ -314,6 +364,9 @@ export class EMenu extends EpaperElement {
   private _applyOpen(ri: RenderedItem): void {
     if (!ri.childUl) return;
     patchBoolAttr(ri.childUl, 'hidden', !ri.open);
+    // The disclosure state was carried by `hidden` and a chevron glyph alone,
+    // so a screen reader could not tell an open branch from a closed one.
+    patchAttr(ri.btn, 'aria-expanded', String(ri.open));
     if (ri.chevron) {
       const next = this._svgFromString(iconSvg(ri.open ? 'chevU' : 'chevD', 14));
       if (next) {
@@ -333,11 +386,15 @@ define('e-menu', EMenu);
 
 /**
  * @summary Single entry inside an `<e-menu>`. Can nest further `<e-menu-item>` children.
+ * @since v1.0.1
  *
  * @attr {string} value - Identifier emitted by the parent's `e-change` event.
  * @attr {string} [label] - Visible label.
  * @attr {string} [icon] - Icon name displayed before the label.
  * @attr {string} [badge] - Badge text shown trailing the label.
+ *
+ * @example
+ * <e-menu-item value="docs" label="Docs"></e-menu-item>
  */
 export class EMenuItem extends EpaperElement {}
 define('e-menu-item', EMenuItem);

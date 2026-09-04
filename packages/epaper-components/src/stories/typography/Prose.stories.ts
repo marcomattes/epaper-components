@@ -8,7 +8,7 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
-      subtitle: 'Since v1.3.0',
+      subtitle: 'Since v2.0.0',
       description: {
         component:
           'Typographic container for document bodies. Slotted `<h2>`, `<p>`, `<ul>`/`<ol>`, `<blockquote>`, `<figure>` and `<table>` markup is styled through child selectors — the component itself renders nothing.',

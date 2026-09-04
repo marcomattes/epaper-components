@@ -11,8 +11,7 @@ function dataUrlToFile(dataUrl: string, name: string): File | null {
   if (!dataUrl.startsWith('data:') || comma === -1) return null;
   try {
     const binary = atob(dataUrl.slice(comma + 1));
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const bytes = Uint8Array.from(binary, (char) => char.codePointAt(0) ?? 0);
     return new File([bytes], name, { type: 'image/png' });
   } catch {
     return null;
@@ -21,7 +20,7 @@ function dataUrlToFile(dataUrl: string, name: string): File | null {
 
 /**
  * @summary Handwritten signature captured on a canvas and submitted as a PNG file.
- * @since v1.3.0
+ * @since v2.0.0
  *
  * Form-associated: the drawn signature is submitted as a `File`, so a
  * `<form>` posts it as `multipart/form-data` exactly like an `<input
@@ -139,6 +138,10 @@ export class ESignature extends BaseFormControl {
   attributeChangedCallback(name: string) {
     if (!this._wired) return;
     if (name === 'width' || name === 'height') {
+      // Writing `canvas.width`/`height` resets the backing store even when the
+      // number is unchanged, so a same-value write would silently wipe a
+      // signature the user had already drawn. Only a real change may do that.
+      if (!this._canvasSizeChanged()) return;
       this._syncCanvas();
       this._paintSurface();
       // Resizing the backing store wipes it — the held value goes with it.
@@ -312,10 +315,26 @@ export class ESignature extends BaseFormControl {
     this._dirty = false;
   }
 
+  /** True when the attributes ask for a size the canvas does not already have. */
+  private _canvasSizeChanged(): boolean {
+    if (!this._canvas) return false;
+    const { width, height } = this._canvasSize();
+    return this._canvas.width !== width || this._canvas.height !== height;
+  }
+
+  /** The clamped backing-store size the attributes ask for. */
+  private _canvasSize(): { width: number; height: number } {
+    return {
+      width: Math.max(64, Math.min(2048, intAttr(this, 'width', 480))),
+      height: Math.max(48, Math.min(1024, intAttr(this, 'height', 180))),
+    };
+  }
+
   private _syncCanvas(): void {
     if (!this._canvas) return;
-    this._canvas.width = Math.max(64, Math.min(2048, intAttr(this, 'width', 480)));
-    this._canvas.height = Math.max(48, Math.min(1024, intAttr(this, 'height', 180)));
+    const { width, height } = this._canvasSize();
+    this._canvas.width = width;
+    this._canvas.height = height;
     this._paintSurface();
   }
 

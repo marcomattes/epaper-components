@@ -86,9 +86,15 @@ export class ETimeline extends EpaperElement {
     this._list.classList.add(`ink-timeline--time-${pos}`);
   }
 
-  /** Authored items, excluding anything cloned into the rendered list. */
+  /**
+   * Authored items, excluding anything cloned into the rendered list.
+   *
+   * `:scope >` rather than a deep query: a nested `<e-timeline>` inside an
+   * item body has items of its own, and the outer list used to collect —
+   * and hide — those too.
+   */
   private _items(): HTMLElement[] {
-    return [...this.querySelectorAll<HTMLElement>('e-timeline-item')].filter(
+    return [...this.querySelectorAll<HTMLElement>(':scope > e-timeline-item')].filter(
       (it) => !this._list?.contains(it),
     );
   }
@@ -177,6 +183,7 @@ define('e-timeline', ETimeline);
 
 /**
  * @summary Single entry inside an `<e-timeline>`.
+ * @since v1.0.1
  *
  * Acts as a data carrier; the parent timeline renders the actual row and hides
  * this element. The default slot is rendered as the entry body and may contain

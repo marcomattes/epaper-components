@@ -10,6 +10,7 @@ import {
 } from '../../core/dom';
 import { formatDate, formatNumber, type NumberFormatOptions } from '../../core/format';
 import { iconSvg } from '../../core/icons';
+import { label as labelOf, t } from '../../core/i18n';
 
 type CellFormat = 'number' | 'currency' | 'date';
 
@@ -436,7 +437,7 @@ export class ETable extends EpaperElement {
     const cb = document.createElement('input');
     cb.type = 'checkbox';
     cb.className = 'ink-table__cb';
-    cb.setAttribute('aria-label', 'Select all rows');
+    cb.setAttribute('aria-label', t(this, 'selectAllRows'));
     th.appendChild(cb);
     this._headerCb = cb;
     return th;
@@ -551,7 +552,7 @@ export class ETable extends EpaperElement {
   private _patchRow(entry: RowEntry, row: Row, index: number): void {
     if (entry.cb) {
       patchAttr(entry.cb, 'data-row-index', String(index));
-      patchAttr(entry.cb, 'aria-label', `Select row ${index + 1}`);
+      patchAttr(entry.cb, 'aria-label', t(this, 'selectRow', { index: index + 1 }));
     }
     for (let c = 0; c < this._columns.length; c++) {
       const col = this._columns[c];
@@ -578,7 +579,7 @@ export class ETable extends EpaperElement {
     // colSpan is clamped to >= 1 by the IDL, so a column-less table shows 1.
     const span = Math.max(1, this._columns.length + (selectable ? 1 : 0));
     if (td.colSpan !== span) td.colSpan = span;
-    patchText(td, this.getAttribute('empty-text') || 'No data');
+    patchText(td, labelOf(this, 'empty-text', 'noData'));
   }
 
   /**

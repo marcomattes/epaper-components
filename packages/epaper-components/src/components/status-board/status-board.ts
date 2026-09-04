@@ -1,4 +1,5 @@
-import { define, EpaperElement, intAttr, patchAttr, patchText } from '../../core/dom';
+import { boolAttr, define, EpaperElement, intAttr, patchAttr, patchText } from '../../core/dom';
+import { label as labelOf, t, type LocaleStrings } from '../../core/i18n';
 
 /** The built-in status vocabulary. `statuses` can add to it at runtime. */
 export type StatusBoardStatus = 'ok' | 'warning' | 'critical' | 'offline' | 'neutral';
@@ -33,6 +34,23 @@ const statusFrom = (value: unknown, known: ReadonlySet<string>): string =>
   typeof value === 'string' && value !== 'neutral' && known.has(value) ? value : 'neutral';
 
 /** Validates and normalizes one raw entry, deduping its key against `keys`. */
+/**
+ * A free cell key for `requested`.
+ *
+ * The suffixed candidate has to be re-checked, not assumed free: a board whose
+ * data already contains the disambiguated shape (`x-2` alongside two `x`
+ * entries) handed the same key to two different items, so the second one
+ * patched the first one's cell and the board silently rendered one fewer
+ * metric than it was given.
+ */
+function uniqueKey(requested: string, index: number, taken: ReadonlySet<string>): string {
+  if (!taken.has(requested)) return requested;
+  let candidate = `${requested}-${index}`;
+  let suffix = index;
+  while (taken.has(candidate)) candidate = `${requested}-${index}-${++suffix}`;
+  return candidate;
+}
+
 function parseStatusItem(
   entry: unknown,
   index: number,
@@ -45,7 +63,7 @@ function parseStatusItem(
   const label = typeof entry['label'] === 'string' ? entry['label'] : '';
   const requestedKey =
     typeof entry['key'] === 'string' && entry['key'] ? entry['key'] : String(index);
-  const key = keys.has(requestedKey) ? `${requestedKey}-${index}` : requestedKey;
+  const key = uniqueKey(requestedKey, index, keys);
   keys.add(key);
   const item: StatusBoardItem = { key, label, value, status: statusFrom(entry['status'], known) };
   if (typeof entry['detail'] === 'string') item.detail = entry['detail'];
@@ -69,13 +87,27 @@ const dataFrom = (raw: string | null, known: ReadonlySet<string>): StatusBoardIt
   }
 };
 
-const STATUS_META: Record<StatusBoardStatus, StatusMeta> = {
-  ok: { symbol: '✓', label: 'OK' },
-  warning: { symbol: '!', label: 'Warning' },
-  critical: { symbol: '×', label: 'Critical' },
-  offline: { symbol: '○', label: 'Offline' },
-  neutral: { symbol: '—', label: 'Neutral' },
+/**
+ * Built-in vocabulary, as string-table keys rather than English text — the
+ * same five `e-status-pill` uses, so a board and the pills beside it read
+ * consistently in whatever language the page is in.
+ */
+const BUILT_IN_KEYS: Record<StatusBoardStatus, { symbol: string; key: keyof LocaleStrings }> = {
+  ok: { symbol: '✓', key: 'statusOk' },
+  warning: { symbol: '!', key: 'statusWarning' },
+  critical: { symbol: '×', key: 'statusCritical' },
+  offline: { symbol: '○', key: 'statusOffline' },
+  neutral: { symbol: '—', key: 'statusNeutral' },
 };
+
+/** The built-in vocabulary resolved to the element's locale. */
+function builtInMeta(el: Element): Record<string, StatusMeta> {
+  const meta: Record<string, StatusMeta> = {};
+  for (const [status, { symbol, key }] of Object.entries(BUILT_IN_KEYS)) {
+    meta[status] = { symbol, label: t(el, key) };
+  }
+  return meta;
+}
 
 /**
  * Merge the author's `statuses` map over the built-ins. A board tracking room
@@ -84,12 +116,15 @@ const STATUS_META: Record<StatusBoardStatus, StatusMeta> = {
  * missing or non-string `symbol`/`label` are skipped rather than rendering
  * `undefined`, and the five built-ins can be relabelled but not removed.
  */
-function metaFrom(raw: string | null): Record<string, StatusMeta> {
-  if (!raw) return STATUS_META;
+function metaFrom(
+  raw: string | null,
+  builtIn: Record<string, StatusMeta>,
+): Record<string, StatusMeta> {
+  if (!raw) return builtIn;
   try {
     const parsed: unknown = JSON.parse(raw);
-    if (!isRecord(parsed)) return STATUS_META;
-    const merged: Record<string, StatusMeta> = { ...STATUS_META };
+    if (!isRecord(parsed)) return builtIn;
+    const merged: Record<string, StatusMeta> = { ...builtIn };
     for (const [key, value] of Object.entries(parsed)) {
       if (!key || !isRecord(value)) continue;
       const { symbol, label } = value;
@@ -98,7 +133,7 @@ function metaFrom(raw: string | null): Record<string, StatusMeta> {
     }
     return merged;
   } catch {
-    return STATUS_META;
+    return builtIn;
   }
 }
 
@@ -178,9 +213,10 @@ export class EStatusBoard extends EpaperElement {
     cell: StatusCell,
     item: StatusBoardItem,
     meta: Record<string, StatusMeta>,
+    fallback: StatusMeta,
   ): void {
     const status = item.status ?? 'neutral';
-    const cue = meta[status] ?? STATUS_META.neutral;
+    const cue = meta[status] ?? fallback;
     patchAttr(cell.root, 'data-status', status);
     patchText(cell.label, item.label);
     patchText(cell.value, String(item.value));
@@ -193,16 +229,17 @@ export class EStatusBoard extends EpaperElement {
 
   private _patch(): void {
     if (!this._heading || !this._grid || !this._empty) return;
-    const meta = metaFrom(this.getAttribute('statuses'));
+    const builtIn = builtInMeta(this);
+    const meta = metaFrom(this.getAttribute('statuses'), builtIn);
     const items = dataFrom(this.getAttribute('data'), new Set(Object.keys(meta)));
-    const label = this.getAttribute('label') || 'Status board';
+    const label = labelOf(this, 'label', 'statusBoardLabel');
     const columns = Math.max(1, Math.min(6, intAttr(this, 'columns', 3)));
     const liveKeys = new Set(items.map((item) => item.key));
 
     patchAttr(this, 'role', 'region');
     patchAttr(this, 'aria-label', label);
     patchText(this._heading, label);
-    patchAttr(this._heading, 'hidden', this.hasAttribute('hide-label') ? '' : null);
+    patchAttr(this._heading, 'hidden', boolAttr(this, 'hide-label') ? '' : null);
     if (this._grid.style.getPropertyValue('--ink-status-columns') !== String(columns)) {
       this._grid.style.setProperty('--ink-status-columns', String(columns));
     }
@@ -219,13 +256,13 @@ export class EStatusBoard extends EpaperElement {
         cell = this._makeCell(item.key);
         this._cells.set(item.key, cell);
       }
-      this._patchCell(cell, item, meta);
+      this._patchCell(cell, item, meta, builtIn['neutral']!);
       const current = this._grid.children[index] ?? null;
       if (current !== cell.root) this._grid.insertBefore(cell.root, current);
     }
 
     patchAttr(this._grid, 'hidden', items.length ? null : '');
-    patchText(this._empty, this.getAttribute('empty-text') || 'No metrics');
+    patchText(this._empty, labelOf(this, 'empty-text', 'noMetrics'));
     patchAttr(this._empty, 'hidden', items.length ? '' : null);
   }
 }

@@ -26,8 +26,10 @@ Everything else is a private, unpublished workspace that consumes it.
 ```
 packages/epaper-components/   the library
   src/
-    core/        # Cross-cutting helpers (dom, icons, base-form-control, types).
-    components/  # One web component per file. Each ends with `define(...)`.
+    core/        # Cross-cutting helpers (dom, base-form-control, icons, i18n,
+                 # format, date, tree, data, slug, types).
+    components/  # One directory per component, <name>/<name>.ts, each ending
+                 # with `define(...)`. Its tests live in components/__tests__/.
     styles/      # tokens.css, base.css, components.css. Public CSS surface.
     stories/     # Storybook documentation. Not shipped.
     demo/        # Demo HTML wiring. Not shipped.
@@ -37,7 +39,12 @@ apps/site/                     the docs/marketing site (epaper-components.dev)
 apps/storybook/                 the Storybook runner (config only — stories live
                                  in packages/epaper-components/src/stories)
 apps/sample-app/                validates README claims against a real build
+apps/bookstore/                 a larger end-to-end example app
 ```
+
+Core modules carry their unit tests beside them (`src/core/dom.test.ts`);
+component tests are grouped by concern in `src/components/__tests__/` rather
+than per component, so a new test usually joins an existing suite there.
 
 Root-level `npm run <script>` commands (`dev`, `build`, `test`, `lint`,
 `type-check`, `storybook`, …) delegate to the right workspace, so day-to-day
@@ -49,11 +56,12 @@ in.
 Every component file follows this shape:
 
 ```ts
-import { define, EpaperElement, esc } from '../core/dom';
-import { BaseFormControl } from '../core/base-form-control'; // for form inputs
+import { define, EpaperElement, esc } from '../../core/dom';
+import { BaseFormControl } from '../../core/base-form-control'; // for form inputs
 
 /**
  * @summary One-line description.
+ * @since v2.0.0
  *
  * @attr {string} [foo] - Attribute description.
  * @fires {CustomEvent<{value: string}>} e-change - Event description.
@@ -87,9 +95,11 @@ define('e-foo', EFoo);
 
 ### Required for every component
 
-1. **JSDoc** with `@summary`, `@attr`, `@fires`, `@slot`, `@example` where
-   applicable. The CEM analyzer reads this to produce IDE integrations. No
-   JSDoc → no autocomplete in VS Code or WebStorm.
+1. **JSDoc** with `@summary`, `@since`, `@attr`, `@fires`, `@slot` and at least
+   one `@example`. The CEM analyzer reads this to produce IDE integrations. No
+   JSDoc → no autocomplete in VS Code or WebStorm. `@since` carries the version
+   the element first shipped in and belongs on every exported class, including
+   the compound carriers a parent registers alongside itself.
 2. **Use `esc()`** from `core/dom.ts` for every interpolated user value.
    Skipping it is an XSS vector.
 3. **Form controls** must extend `BaseFormControl` and call
@@ -146,12 +156,11 @@ browser; put a test there (`src/**/__ssr__/`) only when it asserts what happens
 with no DOM, which is the one thing the browser projects cannot show.
 
 The thresholds in `vitest.config.ts` are a **regression floor, not a target**.
-They sit at or just below the measured numbers (currently 87.7% lines, 87.7%
-functions, 84.9% statements, 65.5% branches) so that a drop fails the run, and
-they are deliberately not set to where coverage ought to be. The ratchet is
-Sonar's quality gate on _new_ code, which holds every line a pull request
-touches to a high bar without blocking on the legacy tree. Branch coverage is
-the one with real room — raise the floor as you close the gap.
+They sit just below the measured numbers — 99% lines, 100% functions, 98%
+statements, 92% branches — so that a drop fails the run. The margin is thin by
+design and thin in practice: a handful of untested statements is enough to turn
+CI red, which is the point. The ratchet on top of it is Sonar's quality gate on
+_new_ code, which holds every line a pull request touches to a high bar.
 
 Two settings have to move together. `coverage.include` in `vitest.config.ts`
 decides which files are measured; `sonar.coverage.exclusions` in
@@ -255,7 +264,9 @@ them rather than coercing to `value`:
 - Boolean state (checkbox, toggle): `{ checked: boolean }`
 - File payloads (upload): `{ files: File[] }`
 - Pure-positional pickers (dropdown): `{ index: number }` on `e-select`
-- Wrapper events (button click, link click): `{ originalEvent: Event }`
+- Wrapper events (button click): `{ originalEvent: MouseEvent }` on `e-click`.
+  `<e-link>` is a styling wrapper around `<a>` and dispatches nothing of its
+  own — the native `click` is the event to listen for.
 
 If you introduce a new component, prefer `{ value: T }` unless one of the
 exceptions clearly applies.

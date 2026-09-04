@@ -39,7 +39,7 @@ const isImageCover = (v: string): boolean => {
  *    image extension) renders an `<img>` filling the cover. A value containing
  *    whitespace is never treated as a URL.
  * 3. **Text** — everything else is rendered as literal cover text, exactly as
- *    before v1.3.0.
+ *    before v2.0.0.
  *
  * When the image fails to load the cover falls back to the hatch pattern and
  * shows `cover-alt` as text, mirroring `<e-image>`'s placeholder behaviour.
@@ -47,9 +47,9 @@ const isImageCover = (v: string): boolean => {
  * @attr {string} [title] - Title rendered in the header.
  * @attr {string} [eyebrow] - Small label rendered above the title.
  * @attr {string} [cover] - Cover content: a hatch keyword, an image URL, or literal text. See above.
- * @attr {string} [cover-alt] - Alternative text for an image cover. Also shown as the fallback label when the image fails. @since v1.3.0
+ * @attr {string} [cover-alt] - Alternative text for an image cover. Also shown as the fallback label when the image fails. @since v2.0.0
  *
- * @fires {CustomEvent<{value: string}>} e-error - Fired when an image cover fails to load. `value` is the URL that failed. @since v1.3.0
+ * @fires {CustomEvent<{value: string}>} e-error - Fired when an image cover fails to load. `value` is the URL that failed. @since v2.0.0
  *
  * @slot - Default slot for the card body.
  * @slot footer - Footer area rendered below the body.

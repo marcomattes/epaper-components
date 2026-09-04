@@ -1519,13 +1519,51 @@ describe('e-cascader · pointer interaction', () => {
     expect(detail).toEqual([]);
     expect(casMenu(el).hidden).toBe(false);
     expect(casCols(el)).toHaveLength(2);
-    expect(casChain(el)).toEqual(['Europe']);
+    // The column marks where the user has browsed to, but the trigger keeps
+    // showing the committed value — browsing into a branch is not a choice.
+    expect(casChain(el)).toEqual(['Select…']);
     expect(casItems(el, 0).map((i) => i.getAttribute('aria-selected'))).toEqual([
       'true',
       'false',
       'false',
     ]);
     expect(el.getAttribute('value')).toBeNull();
+  });
+
+  it('discards an uncommitted drill-down when the menu closes', () => {
+    const el = mount<ECascader>(cascaderMarkup('value="eu,de"'));
+    expect(casChain(el)).toEqual(['Europe', '/', 'Germany']);
+
+    casTrigger(el).click();
+    casItems(el, 0)[1]!.click();
+    // Trigger and form value still agree on the committed answer.
+    expect(casChain(el)).toEqual(['Europe', '/', 'Germany']);
+    expect(el.value).toBe('eu,de');
+
+    clickOutside();
+    expect(casMenu(el).hidden).toBe(true);
+    expect(casChain(el)).toEqual(['Europe', '/', 'Germany']);
+    expect(el.value).toBe('eu,de');
+
+    // Reopening starts from the value again, not from the abandoned branch.
+    casTrigger(el).click();
+    expect(casCols(el)).toHaveLength(2);
+  });
+
+  it('re-syncs the trigger when the committed leaf is the one already set', () => {
+    const el = mount<ECascader>(cascaderMarkup('value="eu,de"'));
+    const detail = listen<{ value: string[] }>(el, 'e-change');
+    casTrigger(el).click();
+
+    // Browse away, then pick the value the attribute already carries: no
+    // attribute change, so nothing but the explicit re-sync repaints this.
+    casItems(el, 0)[1]!.click();
+    casItems(el, 0)[0]!.click();
+    casItems(el, 1)[0]!.click();
+
+    expect(detail.at(-1)?.value).toEqual(['eu', 'de']);
+    expect(el.getAttribute('value')).toBe('eu,de');
+    expect(casChain(el)).toEqual(['Europe', '/', 'Germany']);
   });
 
   it('commits a leaf, emits the whole path and closes', () => {
@@ -1626,7 +1664,8 @@ describe('e-cascader · keyboard interaction', () => {
     expect(right.defaultPrevented).toBe(true);
     expect(casCols(el)).toHaveLength(2);
     expect(document.activeElement).toBe(casItems(el, 1)[0]);
-    expect(casChain(el)).toEqual(['Europe']);
+    // Browsing does not commit, so the trigger still shows the placeholder.
+    expect(casChain(el)).toEqual(['Select…']);
 
     pressActive('ArrowLeft');
     expect(document.activeElement).toBe(casItems(el, 0)[0]);
@@ -3016,5 +3055,82 @@ describe('e-tree · checkable mode', () => {
 
     expect(checks).toEqual([{ value: ['readme'] }]);
     expect(rowFor(el, 'readme').getAttribute('aria-checked')).toBe('true');
+  });
+});
+
+/* ===================================================================== *
+ * v2.0.0 — upload constraints, and the date picker's locale
+ * ===================================================================== */
+
+describe('e-upload · a rejected file is visible, not only invalid (v2.0.0)', () => {
+  const drop = (el: HTMLElement): HTMLElement => el.querySelector('.ink-upload')!;
+
+  const files = (list: File[]): FileList => {
+    const transfer = new DataTransfer();
+    for (const file of list) transfer.items.add(file);
+    return transfer.files;
+  };
+
+  it('paints aria-invalid on the drop zone when a file is too large', () => {
+    const el = mount<EUpload>('<e-upload name="f" max-size="10"></e-upload>');
+    const input = el.querySelector('input[type="file"]')!;
+    Object.defineProperty(input, 'files', {
+      value: files([new File(['x'.repeat(64)], 'huge.bin')]),
+      configurable: true,
+    });
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+
+    expect(el.checkValidity()).toBe(false);
+    // The message alone left the user with an unchanged list and no cue.
+    expect(drop(el).getAttribute('aria-invalid')).toBe('true');
+    expect(el.validationMessage).toBe('File "huge.bin" exceeds maximum size of 10 bytes.');
+  });
+
+  it('reports the constraint in the element locale', () => {
+    const el = mount<EUpload>('<e-upload name="f" locale="de" multiple max-files="1"></e-upload>');
+    const input = el.querySelector('input[type="file"]')!;
+    Object.defineProperty(input, 'files', {
+      value: files([new File(['a'], 'a.txt'), new File(['b'], 'b.txt')]),
+      configurable: true,
+    });
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+
+    expect(el.validationMessage).toBe('Höchstens 1 Datei(en) erlaubt.');
+  });
+});
+
+describe('e-date-picker · localized grid (v2.0.0)', () => {
+  const dow = (el: HTMLElement): (string | null)[] =>
+    [...el.querySelectorAll('.ink-datepicker__dow')].map((cell) => cell.textContent);
+
+  it('renders weekday and month names for the element locale', () => {
+    const el = mount<EDatePicker>('<e-date-picker locale="de" value="2026-04-26"></e-date-picker>');
+    dpTrigger(el).click();
+    expect(dow(el)).toEqual(['S', 'M', 'D', 'M', 'D', 'F', 'S']);
+    expect(el.querySelector('.ink-datepicker__nav-title')?.textContent).toContain('April');
+  });
+
+  it('rotates the columns for week-start', () => {
+    const el = mount<EDatePicker>(
+      '<e-date-picker locale="en" week-start="1" value="2026-04-26"></e-date-picker>',
+    );
+    dpTrigger(el).click();
+    expect(dow(el)).toEqual(['M', 'T', 'W', 'T', 'F', 'S', 'S']);
+    // 2026-04-01 is a Wednesday: Monday-first puts it in the third column.
+    const first = [...el.querySelectorAll<HTMLButtonElement>('.ink-datepicker__cell')].findIndex(
+      (cell) => cell.dataset['day'] === '1',
+    );
+    expect(first).toBe(2);
+  });
+
+  it('survives a malformed lang instead of throwing on upgrade', () => {
+    const el = mount<EDatePicker>(
+      '<e-date-picker lang="en_US" value="2026-04-26"></e-date-picker>',
+    );
+    dpTrigger(el).click();
+    // `Intl` rejects `en_US`; the formatter falls back rather than taking the
+    // element down mid-upgrade.
+    expect(dow(el)).toHaveLength(7);
+    expect(el.querySelectorAll('.ink-datepicker__cell')).toHaveLength(42);
   });
 });

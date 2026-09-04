@@ -131,11 +131,14 @@ license to change anything else in it.
 
 Default to `{ value: T }` on an `e-change` event unless the component is a
 close match for one of the documented exceptions (`e-checkbox`/`e-toggle`
-→ `{ checked }`, `e-upload` → `{ files }`, `e-dropdown` → `e-select`/
-`{ index }`, `e-button` → `e-click`/`{ originalEvent }`, `e-form` →
-`e-submit`/`{ form }`). Don't invent a new shape without a concrete reason
-— check `AGENTS.md` first, it's a V1.0 contract other components and
-consumers rely on.
+→ `{ checked }`, `e-upload` → `{ files }`, `e-meter` → `{ value, band }`,
+`e-dropdown` → `e-select`/`{ index }`, `e-float-button` → `e-select`/
+`{ index, value }`, `e-table` → `e-select`/`{ value: number[] }`,
+`e-button` → `e-click`/`{ originalEvent }`, `e-back-top` → `e-click`/
+`{ value: number }`, `e-form` → `e-submit`/`{ form }` and `e-invalid`/
+`{ controls, form }`, `e-calendar` → `e-month-change`/`{ year, month }`).
+Don't invent a new shape without a concrete reason — check `AGENTS.md`
+first, it's released contract other components and consumers rely on.
 
 ## Before handing this off for review
 

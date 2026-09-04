@@ -3,8 +3,14 @@ name: CI
 on:
   push:
     branches: [main]
+  # `release/**` alongside `main`: a release branch collects the work for a
+  # major, and with `main` alone every pull request into one merged without a
+  # single check having run. The tag is cut from that branch, so a PR into it
+  # is the last point at which CI still can run. Only the pull-request trigger
+  # is widened — a push to a release branch does not deploy anything, so
+  # gating what goes in is what matters.
   pull_request:
-    branches: [main]
+    branches: [main, 'release/**']
   # Called as the checks stage of release.yml, so the release gate and the PR
   # gate are the same definition rather than two copies that drift apart.
   workflow_call:

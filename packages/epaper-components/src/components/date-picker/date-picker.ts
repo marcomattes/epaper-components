@@ -1,6 +1,7 @@
 import {
   addCleanup,
   define,
+  intAttr,
   onGlobal,
   patchAttr,
   patchBoolAttr,
@@ -10,9 +11,11 @@ import {
 } from '../../core/dom';
 import { iconSvg } from '../../core/icons';
 import { parseYMD, ymd } from '../../core/date';
+import { formatDate, monthLabel, weekdayLabels } from '../../core/format';
+import { t } from '../../core/i18n';
 import { BaseFormControl } from '../../core/base-form-control';
 
-const DOW_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const DAYS_PER_WEEK = 7;
 const CELL_COUNT = 42;
 
 /**
@@ -30,6 +33,9 @@ const CELL_COUNT = 42;
  *   Also applied by a surrounding `<fieldset disabled>`.
  * @attr {boolean} [required] - Requires a selected date.
  * @attr {string} [required-message] - Message reported when no required date is selected.
+ * @attr {string} [locale] - BCP-47 tag for the weekday, month and day-cell names. Falls back to the
+ *   nearest `lang`, then the document language. @since v2.0.0
+ * @attr {number} [week-start=0] - First column's weekday: 0 = Sunday, 1 = Monday. @since v2.0.0
  *
  * @fires {CustomEvent<{value: string}>} e-change - Fired when a day is picked. `value` is `YYYY-MM-DD`.
  *
@@ -43,6 +49,8 @@ export class EDatePicker extends BaseFormControl {
     'disabled',
     'required',
     'required-message',
+    'locale',
+    'week-start',
   ];
 
   private _wired = false;
@@ -55,6 +63,7 @@ export class EDatePicker extends BaseFormControl {
   private _pop: HTMLElement | null = null;
   private _navTitle: HTMLElement | null = null;
   private _cells: HTMLButtonElement[] = [];
+  private _dowCells: HTMLElement[] = [];
   private _placeholderHtml = '';
 
   connectedCallback() {
@@ -83,6 +92,8 @@ export class EDatePicker extends BaseFormControl {
     onGlobal(this, document, 'mousedown', (e) => {
       if (!this.contains(e.target as Node)) this._setOpen(false);
     });
+    this.addEventListener('focusout', this._onFocusOut);
+    addCleanup(this, () => this.removeEventListener('focusout', this._onFocusOut));
     onGlobal(this, document, 'keydown', (e) => {
       if (
         e.key === 'Escape' &&
@@ -287,6 +298,25 @@ export class EDatePicker extends BaseFormControl {
     target?.focus();
   }
 
+  /**
+   * Close on the way out of the component.
+   *
+   * Without this, tabbing past an open overlay left it on screen with no way
+   * to dismiss it from the keyboard: the Escape handler above only fires while
+   * focus is still inside. The decision is deferred by a microtask because not
+   * every `focusout` is the user leaving — removing a focused element fires one
+   * too, and at that moment the host still reports `isConnected`.
+   */
+  private readonly _onFocusOut = (e: FocusEvent): void => {
+    const next = e.relatedTarget as Node | null;
+    if (this._pop?.hidden !== false || (next && this.contains(next))) return;
+    queueMicrotask(() => {
+      if (!this.isConnected || this._pop?.hidden !== false) return;
+      if (this.contains(this.ownerDocument.activeElement)) return;
+      this._setOpen(false);
+    });
+  };
+
   private _setOpen(open: boolean): void {
     if (!this._pop || !this._trigger) return;
     if (open && this._disabled) return;
@@ -343,7 +373,7 @@ export class EDatePicker extends BaseFormControl {
     prevBtn.type = 'button';
     prevBtn.className = 'ink-icon-btn';
     prevBtn.dataset['step'] = '-1';
-    prevBtn.setAttribute('aria-label', 'Previous month');
+    prevBtn.setAttribute('aria-label', t(this, 'previousMonth'));
     const prevIcon = this._svgEl(iconSvg('chevL', 16));
     if (prevIcon) prevBtn.appendChild(prevIcon);
     nav.appendChild(prevBtn);
@@ -357,7 +387,7 @@ export class EDatePicker extends BaseFormControl {
     nextBtn.type = 'button';
     nextBtn.className = 'ink-icon-btn';
     nextBtn.dataset['step'] = '1';
-    nextBtn.setAttribute('aria-label', 'Next month');
+    nextBtn.setAttribute('aria-label', t(this, 'nextMonth'));
     const nextIcon = this._svgEl(iconSvg('chevR', 16));
     if (nextIcon) nextBtn.appendChild(nextIcon);
     nav.appendChild(nextBtn);
@@ -371,21 +401,22 @@ export class EDatePicker extends BaseFormControl {
     const headerRow = document.createElement('div');
     headerRow.className = 'ink-datepicker__row';
     headerRow.setAttribute('role', 'row');
-    for (const d of DOW_LABELS) {
+    this._dowCells = [];
+    for (let i = 0; i < DAYS_PER_WEEK; i++) {
       const dow = document.createElement('div');
       dow.className = 'ink-datepicker__dow';
       dow.setAttribute('role', 'columnheader');
-      dow.textContent = d;
       headerRow.appendChild(dow);
+      this._dowCells.push(dow);
     }
     grid.appendChild(headerRow);
 
     this._cells = [];
-    for (let row = 0; row < CELL_COUNT / DOW_LABELS.length; row++) {
+    for (let row = 0; row < CELL_COUNT / DAYS_PER_WEEK; row++) {
       const weekRow = document.createElement('div');
       weekRow.className = 'ink-datepicker__row';
       weekRow.setAttribute('role', 'row');
-      for (const _dow of DOW_LABELS) {
+      for (let col = 0; col < DAYS_PER_WEEK; col++) {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'ink-datepicker__cell';
@@ -418,16 +449,24 @@ export class EDatePicker extends BaseFormControl {
     }
   }
 
+  /** First column's weekday, clamped like `<e-calendar>`'s. */
+  private _weekStart(): number {
+    return Math.max(0, Math.min(6, intAttr(this, 'week-start', 0)));
+  }
+
   private _patchGrid(): void {
     const { y, m } = this._view;
+    const weekStart = this._weekStart();
+
+    /* Column headers */
+    const labels = weekdayLabels(this, weekStart);
+    this._dowCells.forEach((cell, i) => patchText(cell, labels[i] ?? ''));
 
     /* Nav title */
-    const locale = this.lang || document.documentElement.lang || undefined;
-    const monthName = new Date(y, m, 1).toLocaleString(locale, { month: 'long' });
-    if (this._navTitle) patchText(this._navTitle, `${monthName} ${y}`);
+    if (this._navTitle) patchText(this._navTitle, `${monthLabel(this, m, y, 'long')} ${y}`);
 
     /* Compute cells */
-    const firstDow = new Date(y, m, 1).getDay();
+    const firstDow = (new Date(y, m, 1).getDay() - weekStart + DAYS_PER_WEEK) % DAYS_PER_WEEK;
     const daysInMonth = new Date(y, m + 1, 0).getDate();
     const sel = parseYMD(this._value);
     const today = new Date();
@@ -452,8 +491,10 @@ export class EDatePicker extends BaseFormControl {
         const isToday =
           today.getFullYear() === y && today.getMonth() === m && today.getDate() === dayNum;
         patchAttr(btn, 'data-today', String(isToday));
-        const locale = this.lang || document.documentElement.lang || undefined;
-        patchAttr(btn, 'aria-label', new Date(y, m, dayNum).toLocaleDateString(locale));
+        // `{}` rather than the helper's `dateStyle: 'medium'` default: this is
+        // the numeric form `toLocaleDateString()` produced before, and it is
+        // what the shipped suites pin.
+        patchAttr(btn, 'aria-label', formatDate(this, new Date(y, m, dayNum), {}));
       }
     }
 
@@ -505,7 +546,7 @@ export class EDatePicker extends BaseFormControl {
 
   private _syncValidity(): void {
     this._trigger?.setAttribute('aria-required', String(this.hasAttribute('required')));
-    this.applyRequiredValidity(!!this._value, this._trigger ?? undefined, 'Please select a date.');
+    this.applyRequiredValidity(!!this._value, this._trigger ?? undefined, t(this, 'requiredDate'));
   }
 }
 

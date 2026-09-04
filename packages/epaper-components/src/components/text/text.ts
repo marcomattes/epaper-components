@@ -25,8 +25,8 @@ const ALIGNMENTS = ['start', 'center', 'end', 'justify'] as const;
  *
  * @attr {'body'|'prose'|'small'|'mono'|'label'|'caption'|'strike'} [kind='body'] - Visual style.
  *   `caption` is the small, muted figure/table caption size (`--ink-text-caption`);
- *   `strike` renders `line-through` for a superseded price or a withdrawn line item. @since v1.3.0 (`caption`, `strike`)
- * @attr {'start'|'center'|'end'|'justify'} [align] - Horizontal alignment, applied as `data-align` on the wrapper. Unknown values are ignored. @since v1.3.0
+ *   `strike` renders `line-through` for a superseded price or a withdrawn line item. @since v2.0.0 (`caption`, `strike`)
+ * @attr {'start'|'center'|'end'|'justify'} [align] - Horizontal alignment, applied as `data-align` on the wrapper. Unknown values are ignored. @since v2.0.0
  * @attr {'p'|'span'|'div'} [as='span'] - Wrapping element tag name. Changes to `as` after
  *   mount rebuild the wrapper and carry its classes over. A value that is not a valid
  *   element name is ignored: the mounted wrapper is kept, and at mount time `span` is used.

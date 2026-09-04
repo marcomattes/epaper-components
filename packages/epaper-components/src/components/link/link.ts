@@ -22,9 +22,9 @@ const BLANK_REL = 'noopener noreferrer';
  * Children are used as the link text.
  *
  * @attr {string} [href='#'] - Target URL.
- * @attr {string} [target] - Browsing context for the link (`_blank`, `_self`, a frame name). @since v1.3.0
- * @attr {string} [rel] - Link relationship. When `target="_blank"` and no `rel` is authored, `noopener noreferrer` is applied automatically. @since v1.3.0
- * @attr {boolean} [external] - Marks the link as leaving the site. Sets `data-external` on the anchor for the outward marker. @since v1.3.0
+ * @attr {string} [target] - Browsing context for the link (`_blank`, `_self`, a frame name). @since v2.0.0
+ * @attr {string} [rel] - Link relationship. When `target="_blank"` and no `rel` is authored, `noopener noreferrer` is applied automatically. @since v2.0.0
+ * @attr {boolean} [external] - Marks the link as leaving the site. Sets `data-external` on the anchor for the outward marker. @since v2.0.0
  *
  * @example
  * <e-link href="/about">About</e-link>

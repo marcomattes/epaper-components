@@ -98,3 +98,21 @@ describe('hm', () => {
     expect(parseHM(hm(613))).toBe(613);
   });
 });
+
+describe('years below 100 (v2.0.0)', () => {
+  it('parses a two-digit year as itself, not as 19xx', () => {
+    const parsed = parseYMD('0050-03-01');
+    expect(parsed).not.toBeNull();
+    expect(parsed!.getFullYear()).toBe(50);
+    expect(parsed!.getMonth()).toBe(2);
+  });
+
+  it('round-trips such a date through ymd', () => {
+    expect(ymd(parseYMD('0050-03-01')!)).toBe('0050-03-01');
+  });
+
+  it('still rejects a day that does not exist', () => {
+    expect(parseYMD('2023-02-29')).toBeNull();
+    expect(parseYMD('2024-02-29')).not.toBeNull();
+  });
+});

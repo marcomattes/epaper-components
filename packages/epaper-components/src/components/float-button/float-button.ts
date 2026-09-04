@@ -1,5 +1,29 @@
-import { define, EpaperElement, patchAttr } from '../../core/dom';
+import { define, EpaperElement, observeItems, patchAttr, runCleanups } from '../../core/dom';
 import { iconSvg } from '../../core/icons';
+
+/**
+ * Both elements here build their subtree once on first connect and never
+ * rebuild it — a re-connect must not throw the rendered buttons away. Only
+ * `_build` differs between them.
+ */
+abstract class BuildOnce extends EpaperElement {
+  protected _wired = false;
+
+  connectedCallback() {
+    if (!this._wired) {
+      this._wired = true;
+      this._build();
+    }
+    // Runs on every connect, not only the first: anything registered through
+    // the cleanup registry was torn down by the last disconnect.
+    this._connected();
+  }
+
+  protected abstract _build(): void;
+
+  /** Optional per-connect wiring for subclasses that observe or listen. */
+  protected _connected(): void {}
+}
 
 /**
  * @summary Standalone floating action button.
@@ -12,18 +36,11 @@ import { iconSvg } from '../../core/icons';
  * @example
  * <e-float-button icon="plus" label="Add"></e-float-button>
  */
-export class EFloatButton extends EpaperElement {
+export class EFloatButton extends BuildOnce {
   static readonly observedAttributes = ['icon', 'label', 'primary'];
 
-  private _wired = false;
   private _btn: HTMLButtonElement | null = null;
   private _icon = '';
-
-  connectedCallback() {
-    if (this._wired) return;
-    this._wired = true;
-    this._build();
-  }
 
   attributeChangedCallback(name: string) {
     if (!this._wired) return;
@@ -50,7 +67,7 @@ export class EFloatButton extends EpaperElement {
     return !this.hasAttribute('primary') || this.getAttribute('primary') !== 'false';
   }
 
-  private _build(): void {
+  protected _build(): void {
     const icon = this.getAttribute('icon') || 'plus';
     const label = this.getAttribute('label');
     const primary = this._isPrimary();
@@ -69,6 +86,7 @@ define('e-float-button', EFloatButton);
 
 /**
  * @summary Cluster of floating action buttons rendered from `<e-fab-item>` children.
+ * @since v1.0.1
  *
  * @attr {'horizontal'|'vertical'} [orientation='vertical'] - Stacking direction.
  * @fires {CustomEvent<{index: number, value: string}>} e-select - Fired when a group action is activated.
@@ -79,17 +97,10 @@ define('e-float-button', EFloatButton);
  *   <e-fab-item icon="trash" label="Delete"></e-fab-item>
  * </e-float-button-group>
  */
-export class EFloatButtonGroup extends EpaperElement {
+export class EFloatButtonGroup extends BuildOnce {
   static readonly observedAttributes = ['orientation'];
 
-  private _wired = false;
   private _group: HTMLElement | null = null;
-
-  connectedCallback() {
-    if (this._wired) return;
-    this._wired = true;
-    this._build();
-  }
 
   attributeChangedCallback() {
     if (!this._wired) return;
@@ -97,28 +108,65 @@ export class EFloatButtonGroup extends EpaperElement {
     this._group!.classList.toggle('ink-fab-group--horizontal', horiz);
   }
 
-  private _build(): void {
+  protected override _connected(): void {
+    // The items are read from the light DOM, so they have to stay watched:
+    // reading them once at connect froze the group, and a host adding an
+    // action later had to re-mount the whole element to see it.
+    observeItems(this, this._sync, {
+      attributeFilter: ['icon', 'label', 'value'],
+      isOutput: (n) => this._group?.contains(n) ?? false,
+    });
+  }
+
+  disconnectedCallback() {
+    runCleanups(this);
+  }
+
+  /** Authored items, excluding anything inside the rendered group. */
+  private _items(): HTMLElement[] {
+    return [...this.querySelectorAll<HTMLElement>('e-fab-item')].filter(
+      (item) => !this._group?.contains(item),
+    );
+  }
+
+  private readonly _sync = (): void => {
+    const group = this._group;
+    if (!group) return;
+    const items = this._items();
+    const buttons = [...group.querySelectorAll<HTMLButtonElement>('button')];
+
+    while (buttons.length > items.length) buttons.pop()!.remove();
+
+    items.forEach((item, index) => {
+      if (item.style.display !== 'none') item.style.display = 'none';
+      const icon = item.getAttribute('icon') || 'plus';
+      const label = item.getAttribute('label');
+      const value = item.getAttribute('value') || label || '';
+      let btn = buttons[index];
+      if (!btn) {
+        btn = document.createElement('button');
+        btn.type = 'button';
+        group.appendChild(btn);
+      }
+      patchAttr(btn, 'aria-label', label || icon);
+      patchAttr(btn, 'data-index', String(index));
+      patchAttr(btn, 'data-value', value);
+      if (btn.dataset['icon'] !== icon) {
+        btn.dataset['icon'] = icon;
+        btn.innerHTML = iconSvg(icon, 22);
+      }
+    });
+  };
+
+  protected _build(): void {
     const horiz = this.getAttribute('orientation') === 'horizontal';
-    const items = [...this.querySelectorAll('e-fab-item')].map((it) => ({
-      icon: it.getAttribute('icon') || 'plus',
-      label: it.getAttribute('label'),
-      value: it.getAttribute('value') || it.getAttribute('label') || '',
-    }));
 
     const group = document.createElement('div');
     group.className = 'ink-fab-group' + (horiz ? ' ink-fab-group--horizontal' : '');
-    for (const it of items) {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.setAttribute('aria-label', it.label || it.icon);
-      btn.dataset['index'] = String(group.children.length);
-      btn.dataset['value'] = it.value;
-      btn.innerHTML = iconSvg(it.icon, 22);
-      group.appendChild(btn);
-    }
 
     this._group = group;
     this.appendChild(group);
+    this._sync();
     group.addEventListener('click', (event) => {
       const button = (event.target as Element).closest<HTMLButtonElement>('button[data-index]');
       if (!button) return;
@@ -135,6 +183,7 @@ define('e-float-button-group', EFloatButtonGroup);
 
 /**
  * @summary Single action entry inside an `<e-float-button-group>`.
+ * @since v1.0.1
  *
  * Acts as a data carrier; the parent renders the actual button.
  *

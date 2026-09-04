@@ -29,13 +29,13 @@ interface AnchorEntry {
  * scroll-spy never rebuilds the nav underneath itself.
  *
  * Because the items stay put they would otherwise render twice, so each one is
- * hidden with an inline `display:none` when it is wired. The stable form of
- * that is a `e-anchor-item { display: none; }` rule in `components.css`; the
- * inline style is what guarantees it without one.
+ * hidden with an inline `display:none` when it is wired. `components.css` carries the
+ * `e-anchor-item { display: none; }` rule that states it; the inline style is what
+ * holds even where that stylesheet is not loaded.
  *
  * @attr {number} [offset-top=80] - Pixels from the viewport top where a section is considered active. Reactive.
  *
- * @fires {CustomEvent<{value: string}>} e-change - Fired when scrolling, an item change or a new `offset-top` moves the highlight to a different entry. Not fired for the first highlight after mount. @since v1.3.0
+ * @fires {CustomEvent<{value: string}>} e-change - Fired when scrolling, an item change or a new `offset-top` moves the highlight to a different entry. Not fired for the first highlight after mount. @since v2.0.0
  *
  * @slot - Default slot for `<e-anchor-item>` children.
  *
@@ -192,6 +192,7 @@ define('e-anchor', EAnchor);
 
 /**
  * @summary Single navigation entry inside an `<e-anchor>` list.
+ * @since v1.0.1
  *
  * Acts as a data carrier; the parent `<e-anchor>` reads its attributes,
  * renders the actual link and hides this element. Changing its attributes

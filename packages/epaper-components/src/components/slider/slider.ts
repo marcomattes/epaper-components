@@ -16,7 +16,7 @@ const MAX_TICKS = 21;
 
 /**
  * @summary Range slider with a wide grip, printed scale and optional tick marks.
- * @since v1.3.0
+ * @since v2.0.0
  *
  * Form-associated: participates in `<form>` submission and FormData.
  *
@@ -60,6 +60,10 @@ export class ESlider extends BaseFormControl<number> {
     'disabled',
   ];
 
+  // `BaseFormControl` seeds `_value` with `''` because it cannot know `T`; for a
+  // numeric control that leaks a string out of a `number`-typed getter until the
+  // first connect. Seeding it here keeps `.value` honest from construction.
+  protected override _value = 0;
   private _wired = false;
   private _input: HTMLInputElement | null = null;
   private _labelEl: HTMLLabelElement | null = null;
@@ -149,9 +153,8 @@ export class ESlider extends BaseFormControl<number> {
     this._syncReadout();
   }
 
-  protected serialize(v: number): string {
-    return String(v);
-  }
+  /** The value is always a clamped finite number, which is all `String` needs. */
+  protected serialize = String;
   protected parse(s: string): number {
     const parsed = Number(s);
     return this._clamp(Number.isFinite(parsed) ? parsed : this._bounds().min);

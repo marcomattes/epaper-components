@@ -27,10 +27,10 @@ interface PageCell {
  * @attr {number} [current=1] - Current page (1-indexed). Reflected on user navigation.
  * @attr {number} [total=1] - Total number of pages.
  * @attr {number} [sibling-count=1] - Number of sibling pages shown around the current page.
- * @attr {string} [prev-label] - Accessible name of the previous-page button, overriding the locale table. (since v1.3.0)
- * @attr {string} [next-label] - Accessible name of the next-page button, overriding the locale table. (since v1.3.0)
- * @attr {boolean} [show-summary] - Appends a "Page X of Y" summary after the pager. (since v1.3.0)
- * @attr {string} [locale] - BCP-47 tag for the control labels and the summary. Falls back to the nearest `lang`, then the document language. (since v1.3.0)
+ * @attr {string} [prev-label] - Accessible name of the previous-page button, overriding the locale table. (since v2.0.0)
+ * @attr {string} [next-label] - Accessible name of the next-page button, overriding the locale table. (since v2.0.0)
+ * @attr {boolean} [show-summary] - Appends a "Page X of Y" summary after the pager. (since v2.0.0)
+ * @attr {string} [locale] - BCP-47 tag for the control labels and the summary. Falls back to the nearest `lang`, then the document language. (since v2.0.0)
  *
  * @fires {CustomEvent<{value: number}>} e-change - Fired when the user navigates to a different page. `value` is the new 1-indexed page.
  *
@@ -135,7 +135,7 @@ export class EPagination extends EpaperElement {
 
     const nav = document.createElement('nav');
     nav.className = 'ink-pagination';
-    nav.setAttribute('aria-label', 'Pagination');
+    nav.setAttribute('aria-label', t(this, 'paginationLabel'));
     this._nav = nav;
 
     // Prev button

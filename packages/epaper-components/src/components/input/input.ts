@@ -1,5 +1,6 @@
 import { boolAttr, define, esc, randId } from '../../core/dom';
 import { BaseFormControl } from '../../core/base-form-control';
+import { t } from '../../core/i18n';
 
 /**
  * @summary Single-line text input with label, hint and error states.
@@ -76,7 +77,9 @@ export class EInput extends BaseFormControl {
     const hint = this.getAttribute('hint');
     const type = this.getAttribute('type') || 'text';
     const placeholder = this.getAttribute('placeholder') || '';
-    const value = this.getAttribute('value') || this.getAttribute('default-value') || '';
+    // `??`, not `||`: an explicit `value=""` is a value — the author saying
+    // "start empty" — and must not fall through to `default-value`.
+    const value = this.getAttribute('value') ?? this.getAttribute('default-value') ?? '';
     const ariaLabel = this.getAttribute('aria-label') || '';
     const error = boolAttr(this, 'error');
     // The HTML spec, not the library's `x="false"` convention, governs
@@ -229,7 +232,7 @@ export class EInput extends BaseFormControl {
     if (!this._input) return;
     this._input.required = boolAttr(this, 'required');
     const customMessage = boolAttr(this, 'error')
-      ? (this.getAttribute('error-message') ?? 'Invalid value.')
+      ? (this.getAttribute('error-message') ?? t(this, 'invalidValue'))
       : undefined;
     if (!customMessage && this._input.validity.valueMissing) {
       const message = this.getAttribute('required-message');

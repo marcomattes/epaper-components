@@ -58,15 +58,15 @@ function isStatusBand(value: string): value is StatusBand {
  * @attr {string} [prefix] - Inline prefix rendered before the value (e.g. `$`).
  * @attr {string} [suffix] - Inline suffix rendered after the value (e.g. `%`).
  * @attr {number} [precision] - Decimal places when `value` is numeric.
- * @attr {string} [currency] - ISO-4217 code. Renders the value as a currency amount, with grouping. (since v1.3.0)
- * @attr {boolean} [percent] - Renders the value as a percentage of 1 (`0.42` → "42%"). (since v1.3.0)
- * @attr {boolean} [grouping] - Adds locale thousands separators to a plain number. (since v1.3.0)
- * @attr {number} [low] - Values below this threshold report `data-status="low"`. (since v1.3.0)
- * @attr {number} [high] - Values above this threshold report `data-status="high"`. (since v1.3.0)
- * @attr {'low'|'normal'|'high'|string} [status] - Explicit status, overriding `low` / `high`. Unknown values are shown verbatim. (since v1.3.0)
+ * @attr {string} [currency] - ISO-4217 code. Renders the value as a currency amount, with grouping. (since v2.0.0)
+ * @attr {boolean} [percent] - Renders the value as a percentage of 1 (`0.42` → "42%"). (since v2.0.0)
+ * @attr {boolean} [grouping] - Adds locale thousands separators to a plain number. (since v2.0.0)
+ * @attr {number} [low] - Values below this threshold report `data-status="low"`. (since v2.0.0)
+ * @attr {number} [high] - Values above this threshold report `data-status="high"`. (since v2.0.0)
+ * @attr {'low'|'normal'|'high'|string} [status] - Explicit status, overriding `low` / `high`. Unknown values are shown verbatim. (since v2.0.0)
  * @attr {'up'|'down'|'flat'} [trend] - Direction marker shown next to the delta.
  * @attr {string|number} [delta] - Secondary value rendered next to the trend arrow.
- * @attr {string} [locale] - BCP-47 tag for the number format and the trend wording. Falls back to the nearest `lang`, then the document language. (since v1.3.0)
+ * @attr {string} [locale] - BCP-47 tag for the number format and the trend wording. Falls back to the nearest `lang`, then the document language. (since v2.0.0)
  *
  * @example
  * <e-statistic label="Revenue" value="12480" prefix="$" trend="up" delta="8.4%"></e-statistic>
@@ -139,7 +139,7 @@ export class EStatistic extends EpaperElement {
   /**
    * The `Intl` options this instance asks for, or `null` when no formatting
    * attribute is present — in that case the value is passed through verbatim,
-   * which is what every `<e-statistic>` written before v1.3.0 expects.
+   * which is what every `<e-statistic>` written before v2.0.0 expects.
    */
   private _numberOptions(): NumberFormatOptions | null {
     const currency = this.getAttribute('currency');

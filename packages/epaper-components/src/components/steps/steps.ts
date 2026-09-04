@@ -33,8 +33,8 @@ function stepStatusLabel(
 ): string {
   if (status === 'error') return t(host, 'severityError').toUpperCase();
   if (status === 'warning') return t(host, 'severityWarning').toUpperCase();
-  if (done) return 'DONE';
-  return active ? 'IN PROGRESS' : 'PENDING';
+  if (done) return t(host, 'stepDone').toUpperCase();
+  return t(host, active ? 'stepInProgress' : 'stepPending').toUpperCase();
 }
 
 /** Bubble content: a status glyph outranks the check mark, which outranks the ordinal. */
@@ -67,9 +67,9 @@ interface StepRow {
  * identity, the same convention `e-segmented` uses for its buttons.
  *
  * Because the items stay put they would otherwise render twice, so each one is
- * hidden with an inline `display:none` when it is first wired. The stable form
- * of that is a `e-step { display: none; }` rule in `components.css`; the
- * inline style is what guarantees it without one.
+ * hidden with an inline `display:none` when it is first wired. `components.css` carries the
+ * `e-step { display: none; }` rule that states it; the inline style is what
+ * holds even where that stylesheet is not loaded.
  *
  * The active step carries `aria-current="step"`, so assistive technology can
  * report where in the sequence the reader is without inferring it from styling.
@@ -253,7 +253,7 @@ define('e-steps', ESteps);
  *
  * @attr {string} title - Step title.
  * @attr {string} [description] - Optional secondary line below the title.
- * @attr {'error'|'warning'} [status] - Marks the step's outcome. Renders the matching glyph in the bubble instead of the ordinal or check mark, sets `data-status` on the item, and replaces the vertical status label. Unknown values are ignored. @since v1.3.0
+ * @attr {'error'|'warning'} [status] - Marks the step's outcome. Renders the matching glyph in the bubble instead of the ordinal or check mark, sets `data-status` on the item, and replaces the vertical status label. Unknown values are ignored. @since v2.0.0
  *
  * @example
  * <e-step title="Prüfung" status="error" description="Prüfsumme fehlgeschlagen"></e-step>

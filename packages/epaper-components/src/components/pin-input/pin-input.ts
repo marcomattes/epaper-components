@@ -6,7 +6,7 @@ const MAX_LENGTH = 12;
 
 /**
  * @summary Fixed-length code entry as separate digit boxes, with auto-advance.
- * @since v1.3.0
+ * @since v2.0.0
  *
  * Form-associated: participates in `<form>` submission and FormData.
  *
@@ -182,7 +182,14 @@ export class EPinInput extends BaseFormControl {
     const index = Number(box.dataset['index']);
     const digits = box.value.replaceAll(/\D/g, '');
     if (!digits) {
-      this._commit(this._removeAt(index), false);
+      // Typing a letter over a filled box is a rejected keystroke, not a
+      // deletion: dropping the digit and shifting the rest left turned one
+      // mistyped character into a mangled code.
+      if (box.value === '') {
+        this._commit(this._removeAt(index), false);
+      } else {
+        this._paint();
+      }
       return;
     }
     // The value has no holes, so an entry never lands further right than the

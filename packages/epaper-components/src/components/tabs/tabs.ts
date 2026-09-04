@@ -20,6 +20,11 @@ interface TabRow {
   iconWrap: HTMLElement | null;
   iconName: string | null;
   badge: HTMLElement | null;
+  /**
+   * The badge's own text node, kept so a count change patches the text inside
+   * `<e-badge>`'s wrapper span rather than replacing the wrapper itself.
+   */
+  badgeText: Text | null;
   /** Content is moved into the panel once, at row creation, and never revisited — see class doc. */
   contentMoved: boolean;
 }
@@ -45,12 +50,12 @@ interface TabRow {
  * are still built once per tab and toggled with `hidden` on tab switch.
  *
  * Because the items stay put they would otherwise render twice, so each one is
- * hidden with an inline `display:none` when it is first wired. The stable form
- * of that is a `e-tab { display: none; }` rule in `components.css`; the
- * inline style is what guarantees it without one.
+ * hidden with an inline `display:none` when it is first wired. `components.css` carries the
+ * `e-tab { display: none; }` rule that states it; the inline style is what
+ * holds even where that stylesheet is not loaded.
  *
  * @attr {string} [default-value] - Key of the tab active on first render. Defaults to the first tab when absent, empty or matching no tab.
- * @attr {string} [value] - Key of the active tab. Reactive: setting it after mount switches tabs without emitting `e-change`, which is what a wizard or a multi-section form host needs. Wins over `default-value` at mount. A key matching no tab is ignored. Not reflected — read the `value` property for the live key. @since v1.3.0
+ * @attr {string} [value] - Key of the active tab. Reactive: setting it after mount switches tabs without emitting `e-change`, which is what a wizard or a multi-section form host needs. Wins over `default-value` at mount. A key matching no tab is ignored. Not reflected — read the `value` property for the live key. @since v2.0.0
  *
  * @fires {CustomEvent<{value: string}>} e-change - Fired when the user activates a different tab. `value` is the activated tab's `key`. Programmatic switches via the `value` attribute or property stay silent.
  *
@@ -77,7 +82,7 @@ export class ETabs extends EpaperElement {
   private _keys: HTMLElement[] = [];
   private _byKey = new Map<string, TabRow>();
 
-  /** Key of the active tab. Assigning switches tabs without emitting `e-change`. @since v1.3.0 */
+  /** Key of the active tab. Assigning switches tabs without emitting `e-change`. @since v2.0.0 */
   get value(): string {
     return this._active;
   }
@@ -201,6 +206,7 @@ export class ETabs extends EpaperElement {
       iconWrap: null,
       iconName: null,
       badge: null,
+      badgeText: null,
       contentMoved: false,
     };
   }
@@ -231,12 +237,18 @@ export class ETabs extends EpaperElement {
     if (count != null) {
       if (!row.badge) {
         row.badge = document.createElement('e-badge');
+        row.badgeText = document.createTextNode('');
+        row.badge.appendChild(row.badgeText);
         row.btn.appendChild(row.badge);
       }
-      patchText(row.badge, count);
+      // The text node, not the host: `<e-badge>` moves its children into a
+      // wrapper span on connect, and writing to the host replaces that wrapper
+      // with plain text — the badge loses its styling and never gets it back.
+      patchText(row.badgeText!, count);
     } else if (row.badge) {
       row.badge.remove();
       row.badge = null;
+      row.badgeText = null;
     }
 
     if (!row.contentMoved) {
@@ -295,6 +307,7 @@ define('e-tabs', ETabs);
 
 /**
  * @summary Single tab entry inside an `<e-tabs>`. Children are used as the panel content.
+ * @since v1.0.1
  *
  * Acts as a data carrier; the parent renders the actual tab button and panel
  * and hides this element. Changing `key`, `label`, `icon` or `count` after

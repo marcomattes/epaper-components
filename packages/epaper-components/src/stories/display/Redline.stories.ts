@@ -18,7 +18,7 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
-      subtitle: 'Since v1.3.0',
+      subtitle: 'Since v2.0.0',
       description: {
         component:
           'Word-level diff between two text versions, with `<ins>`/`<del>` markup, a changed-paragraph summary and a "changes only" view.',

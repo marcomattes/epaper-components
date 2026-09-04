@@ -8,7 +8,7 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
-      subtitle: 'Since v1.3.0',
+      subtitle: 'Since v2.0.0',
       description: {
         component:
           'Fixed-length code entry as separate digit boxes. Typing advances, `Backspace` on an empty box steps back, and pasting a code fills every box at once. `inputmode="numeric"` brings up the numeric soft keyboard; `masked` hides the digits.',

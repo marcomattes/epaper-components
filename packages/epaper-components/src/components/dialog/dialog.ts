@@ -10,6 +10,7 @@ import {
   runCleanups,
 } from '../../core/dom';
 import { iconSvg } from '../../core/icons';
+import { t } from '../../core/i18n';
 
 type Size = 'small' | 'medium' | 'large' | 'full';
 
@@ -57,6 +58,7 @@ export type DialogCloseReason = 'close-button' | 'escape' | 'backdrop' | 'api';
  * @attr {'small'|'medium'|'large'|'full'} [size='medium'] - Width preset. `full` fills the viewport, which suits small panels.
  * @attr {boolean} [no-close] - Hides the header close button.
  * @attr {boolean} [static] - Prevents dismissal via `Escape` or a backdrop click. Use for a decision the user must make.
+ * @attr {string} [aria-label] - Accessible name for a dialog with no `heading`. Observed, so it can be set after mount.
  *
  * @slot - Dialog body.
  * @slot footer - Trailing action area (typically one or two `<e-button>`s).
@@ -182,7 +184,7 @@ export class EDialog extends EpaperElement {
     dialog.dataset.size = this._size();
     dialog.innerHTML = `<header class="ink-dialog__header">
         <h2 class="ink-dialog__title" id="${esc(titleId)}">${esc(heading)}</h2>
-        <button type="button" class="ink-dialog__close" aria-label="Close">${iconSvg('close', 18)}</button>
+        <button type="button" class="ink-dialog__close" aria-label="${esc(t(this, 'close'))}">${iconSvg('close', 18)}</button>
       </header>
       <div class="ink-dialog__body"></div>
       <footer class="ink-dialog__footer"></footer>`;

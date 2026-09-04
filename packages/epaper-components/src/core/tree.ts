@@ -12,6 +12,7 @@
 
 import { patchAttr, patchBoolAttr } from './dom';
 import { iconSvg } from './icons';
+import { t } from './i18n';
 import { isTreeData } from './data';
 import type { TreeNode } from './types';
 
@@ -231,7 +232,7 @@ export class TreeView {
       btn.className = 'ink-tree__expand';
       btn.dataset['expand'] = node.value;
       btn.tabIndex = -1;
-      btn.setAttribute('aria-label', `${isOpen ? 'Collapse' : 'Expand'} ${node.label}`);
+      btn.setAttribute('aria-label', this._toggleLabel(isOpen, node.label));
       btn.innerHTML = iconSvg(isOpen ? 'minus' : 'plus', 12);
       row.appendChild(btn);
       this._toggles.set(node.value, btn);
@@ -337,7 +338,16 @@ export class TreeView {
     if (!btn) return;
     const node = this._nodes.get(value);
     btn.innerHTML = iconSvg(open ? 'minus' : 'plus', 12);
-    btn.setAttribute('aria-label', `${open ? 'Collapse' : 'Expand'} ${node?.label ?? value}`);
+    btn.setAttribute('aria-label', this._toggleLabel(open, node?.label ?? value));
+  }
+
+  /**
+   * Accessible name of a branch toggle. Built from the locale table rather than
+   * concatenated in English: the word order differs between languages, so the
+   * label is one template per language with the node name substituted in.
+   */
+  private _toggleLabel(open: boolean, label: string): string {
+    return t(this.host, open ? 'collapseItem' : 'expandItem', { label });
   }
 
   /**
@@ -419,7 +429,8 @@ export class TreeView {
         this.focusRow(visible.at(-1));
         return true;
       case 'ArrowRight':
-        return this._arrowRight(e, value);
+        this._arrowRight(e, value);
+        return true;
       case 'ArrowLeft':
         return this._arrowLeft(e, value, row);
       case 'Enter':
@@ -432,9 +443,9 @@ export class TreeView {
     }
   }
 
-  /** Right opens a closed branch, or steps into an open one. */
-  private _arrowRight(e: KeyboardEvent, value: string): boolean {
-    if (!hasChildren(this._nodes.get(value))) return true;
+  /** Right opens a closed branch, or steps into an open one. A leaf is a no-op. */
+  private _arrowRight(e: KeyboardEvent, value: string): void {
+    if (!hasChildren(this._nodes.get(value))) return;
     e.preventDefault();
     if (this._expanded.has(value)) {
       const first = this._groups.get(value)?.querySelector<HTMLElement>('.ink-tree__row');
@@ -442,7 +453,6 @@ export class TreeView {
     } else {
       this.toggleExpand(value);
     }
-    return true;
   }
 
   /** Left closes an open branch, or steps out to the parent row. */

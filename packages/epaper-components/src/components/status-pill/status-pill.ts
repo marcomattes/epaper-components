@@ -62,7 +62,7 @@ function metaFrom(
 
 /**
  * @summary Single-value status pill with a symbol-and-text cue.
- * @since v1.3.0
+ * @since v2.0.0
  *
  * The one-value counterpart to `e-status-board`: the "free / busy",
  * "in stock / sold out", "running / stopped" marker that a door sign, shelf

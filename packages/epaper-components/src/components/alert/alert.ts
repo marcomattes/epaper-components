@@ -13,7 +13,7 @@ import { iconSvg } from '../../core/icons';
 type Variant = 'info' | 'success' | 'warning' | 'error';
 
 /**
- * One glyph per severity. Before v1.3.0 the map borrowed unrelated icons —
+ * One glyph per severity. Before v2.0.0 the map borrowed unrelated icons —
  * `bell` for a warning, `close` for an error, `doc` for an info note — because
  * the registry had no status set. It does now, so each severity uses the glyph
  * that means it: a wrong glyph is not a cosmetic issue here, it is the only
@@ -49,7 +49,7 @@ const roleFor = (variant: Variant): string => (variant === 'error' ? 'alert' : '
  * Use `<e-result>` instead when the message *is* the page rather than a note
  * inside it.
  *
- * @attr {'info'|'success'|'warning'|'error'} [variant='info'] - Severity preset; controls icon and border treatment. Since v1.3.0 the icons are `info`, `check`, `warning` and `error` — previously `doc`, `check`, `bell` and `close`.
+ * @attr {'info'|'success'|'warning'|'error'} [variant='info'] - Severity preset; controls icon and border treatment. Since v2.0.0 the icons are `info`, `check`, `warning` and `error` — previously `doc`, `check`, `bell` and `close`.
  * @attr {string} [heading] - Bold leading line. Omit for a single-line banner.
  * @attr {boolean} [closable] - Renders a dismiss button.
  * @attr {boolean} [no-icon] - Suppresses the leading status icon.

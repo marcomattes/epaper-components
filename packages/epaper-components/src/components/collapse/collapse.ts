@@ -1,18 +1,33 @@
-import { addCleanup, boolAttr, define, EpaperElement, runCleanups } from '../../core/dom';
+import {
+  addCleanup,
+  boolAttr,
+  cloneItemBody,
+  define,
+  EpaperElement,
+  observeItems,
+  patchAttr,
+  patchText,
+  runCleanups,
+} from '../../core/dom';
 
-interface PanelDef {
-  key: string;
-  heading: string;
-  disabled: boolean;
-  open: boolean;
-  body: ChildNode[];
+/** The rendered parts of one panel, kept so a re-sync patches instead of rebuilds. */
+interface PanelParts {
+  details: HTMLDetailsElement;
+  summary: HTMLElement;
+  heading: HTMLElement;
+  body: HTMLElement;
+  item: HTMLElement;
+  /** Last body markup copied across, so an unchanged body is never re-cloned. */
+  bodySignature: string | null;
 }
 
 /**
  * @summary Stack of expandable sections built on native `<details>`/`<summary>`.
  * @since v1.1.0
  *
- * Reads its panels from child `<e-collapse-panel>` elements at connect time.
+ * Reads its panels from child `<e-collapse-panel>` elements, which stay in the
+ * light DOM (hidden) as the component's source of truth, so a panel added,
+ * retitled or removed after mount renders without re-mounting the collapse.
  * Expanding a section mutates one `open` attribute, so the EPDC repaints only
  * the section that changed instead of reflowing the page — which is what makes
  * a collapse a better fit than a scrolling wall of text on e-paper.
@@ -39,6 +54,9 @@ export class ECollapse extends EpaperElement {
   private _wired = false;
   private _root: HTMLElement | null = null;
   private readonly _panels = new Map<string, HTMLDetailsElement>();
+  private readonly _parts = new Map<string, PanelParts>();
+  /** Panels the current sync created, so their initial state stays silent. */
+  private _syncing = false;
   /**
    * Panels whose next `toggle` we caused ourselves. `toggle` is dispatched
    * asynchronously, so a synchronous "am I syncing" flag would already be back
@@ -53,6 +71,12 @@ export class ECollapse extends EpaperElement {
       this._build();
     }
     this._bind();
+    observeItems(this, this._sync, {
+      // `true`, not a name list: a panel body can hold anything, and an edit
+      // worth re-rendering can land on any attribute inside it.
+      attributeFilter: true,
+      isOutput: (n) => this._root?.contains(n) ?? false,
+    });
   }
 
   disconnectedCallback() {
@@ -103,70 +127,117 @@ export class ECollapse extends EpaperElement {
     }
   }
 
+  /** Authored panels, excluding anything inside the rendered output. */
+  private _items(): HTMLElement[] {
+    return [...this.querySelectorAll<HTMLElement>('e-collapse-panel')].filter(
+      (item) => !this._root?.contains(item),
+    );
+  }
+
   private _build(): void {
+    const root = document.createElement('div');
+    root.className = 'ink-collapse';
+    this.appendChild(root);
+    this._root = root;
+    this._sync();
+  }
+
+  /**
+   * Bring the rendered panels in line with the authored ones.
+   *
+   * Keyed by the panel's `key`, so an edit patches the `<details>` that is
+   * already on screen — the open/closed state, and any focus inside it,
+   * survive. Only a panel that has genuinely appeared or disappeared changes
+   * the DOM structure.
+   */
+  private readonly _sync = (): void => {
+    const root = this._root;
+    if (!root) return;
+    this._syncing = true;
     const accordion = boolAttr(this, 'accordion');
     const defaultOpen = new Set(
       (this.getAttribute('default-open') || '').split(',').filter(Boolean),
     );
+    const items = this._items();
+    const seen = new Set<string>();
+    let openTaken = [...this._panels.values()].some((details) => details.open);
 
-    const defs: PanelDef[] = [...this.querySelectorAll('e-collapse-panel')].map((el, i) => {
-      const key = el.getAttribute('key') || `panel-${i + 1}`;
-      return {
-        key,
-        heading: el.getAttribute('heading') || '',
-        disabled: el.hasAttribute('disabled'),
-        open: defaultOpen.has(key) || el.hasAttribute('open'),
-        body: [...el.childNodes],
-      };
+    items.forEach((item, index) => {
+      if (item.style.display !== 'none') item.style.display = 'none';
+      const key = item.getAttribute('key') || `panel-${index + 1}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      const heading = item.getAttribute('heading') || '';
+      const disabled = item.hasAttribute('disabled');
+
+      let parts = this._parts.get(key);
+      const created = !parts;
+      if (!parts) {
+        parts = ECollapse._makePanel(key);
+        parts.details.addEventListener('toggle', this._onToggle);
+        addCleanup(this, () => parts!.details.removeEventListener('toggle', this._onToggle));
+        this._parts.set(key, parts);
+        this._panels.set(key, parts.details);
+      }
+      parts.item = item;
+
+      patchText(parts.heading, heading);
+      patchAttr(parts.summary, 'aria-disabled', disabled ? 'true' : null);
+      patchAttr(parts.details, 'data-disabled', disabled ? '' : null);
+      // The body is cloned rather than moved: the carrier stays the source of
+      // truth and has to keep its own content to re-sync from.
+      if (parts.bodySignature !== item.innerHTML) {
+        parts.bodySignature = item.innerHTML;
+        cloneItemBody(item, parts.body);
+      }
+
+      // In accordion mode more than one declared-open panel is a
+      // contradiction; the first one wins rather than rendering a state the
+      // mode forbids.
+      if (created) {
+        const open = (defaultOpen.has(key) || item.hasAttribute('open')) && !disabled;
+        if (open && !(accordion && openTaken)) {
+          this._setOpen(parts.details, true);
+          openTaken = true;
+        }
+      }
+
+      const current = root.children[index] ?? null;
+      if (current !== parts.details) root.insertBefore(parts.details, current);
     });
 
-    const root = document.createElement('div');
-    root.className = 'ink-collapse';
-
-    let openTaken = false;
-    for (const def of defs) {
-      const details = document.createElement('details');
-      details.className = 'ink-collapse__panel';
-      details.dataset['key'] = def.key;
-      // In accordion mode more than one declared-open panel is a contradiction;
-      // the first one wins rather than rendering a state the mode forbids.
-      // Opening a panel queues a `toggle` even while the element is still
-      // detached, so the initial state has to be suppressed too — otherwise
-      // every declared-open panel would report an `e-change` nobody caused.
-      if (def.open && !def.disabled && !(accordion && openTaken)) {
-        this._setOpen(details, true);
-        openTaken = true;
-      }
-
-      const summary = document.createElement('summary');
-      summary.className = 'ink-collapse__summary';
-      if (def.disabled) {
-        summary.setAttribute('aria-disabled', 'true');
-        details.dataset['disabled'] = '';
-      }
-
-      const marker = document.createElement('span');
-      marker.className = 'ink-collapse__marker';
-      marker.setAttribute('aria-hidden', 'true');
-
-      const label = document.createElement('span');
-      label.className = 'ink-collapse__heading';
-      label.textContent = def.heading;
-
-      summary.append(marker, label);
-      details.appendChild(summary);
-
-      const body = document.createElement('div');
-      body.className = 'ink-collapse__body';
-      body.append(...def.body);
-      details.appendChild(body);
-
-      root.appendChild(details);
-      this._panels.set(def.key, details);
+    for (const [key, parts] of this._parts) {
+      if (seen.has(key)) continue;
+      parts.details.remove();
+      this._parts.delete(key);
+      this._panels.delete(key);
     }
+    this._syncing = false;
+  };
 
-    this.replaceChildren(root);
-    this._root = root;
+  private static _makePanel(key: string): PanelParts {
+    const details = document.createElement('details');
+    details.className = 'ink-collapse__panel';
+    details.dataset['key'] = key;
+
+    const summary = document.createElement('summary');
+    summary.className = 'ink-collapse__summary';
+
+    const marker = document.createElement('span');
+    marker.className = 'ink-collapse__marker';
+    marker.setAttribute('aria-hidden', 'true');
+
+    const heading = document.createElement('span');
+    heading.className = 'ink-collapse__heading';
+
+    summary.append(marker, heading);
+    details.appendChild(summary);
+
+    const body = document.createElement('div');
+    body.className = 'ink-collapse__body';
+    details.appendChild(body);
+
+    return { details, summary, heading, body, item: details, bodySignature: null };
   }
 
   private _bind(): void {
@@ -175,7 +246,8 @@ export class ECollapse extends EpaperElement {
     root.addEventListener('click', this._onClick);
     addCleanup(this, () => root.removeEventListener('click', this._onClick));
 
-    // `toggle` does not bubble, so each panel needs its own listener.
+    // `toggle` does not bubble, so each panel needs its own listener. Panels
+    // created by a later sync get theirs there.
     for (const details of this._panels.values()) {
       details.addEventListener('toggle', this._onToggle);
       addCleanup(this, () => details.removeEventListener('toggle', this._onToggle));
@@ -190,7 +262,7 @@ export class ECollapse extends EpaperElement {
 
   private readonly _onToggle = (e: Event): void => {
     const details = e.target as HTMLDetailsElement;
-    if (this._suppressed.delete(details)) return;
+    if (this._suppressed.delete(details) || this._syncing) return;
 
     if (details.open && boolAttr(this, 'accordion')) {
       for (const other of this._panels.values()) {
@@ -208,9 +280,11 @@ define('e-collapse', ECollapse);
 
 /**
  * @summary Single section inside an `<e-collapse>`.
+ * @since v1.1.0
  *
  * Acts as a data carrier; the parent renders the actual `<details>` panel and
- * adopts this element's children as the panel body.
+ * clones this element's children into the panel body. The carrier stays in the
+ * light DOM, hidden, so later edits to it re-render the panel.
  *
  * @attr {string} [key] - Identifier reported in `e-change` and matched by the parent's `default-open`. Defaults to the 1-based panel position.
  * @attr {string} [heading] - Summary line, always visible.

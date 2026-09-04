@@ -7,7 +7,7 @@
 ## Testing
 
 - [ ] `npm run format:check`
-- [ ] `npm run typecheck`
+- [ ] `npm run type-check`
 - [ ] `npm run build`
 
 ## Notes

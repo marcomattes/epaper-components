@@ -7,7 +7,7 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
-      subtitle: 'Since v1.3.0',
+      subtitle: 'Since v2.0.0',
       description: {
         component:
           "Auto-generated table of contents. Scans a document's headings and mirrors them into an `<e-anchor>` it builds itself — no hand-written `<e-anchor-item>` list required.",

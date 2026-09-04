@@ -1,6 +1,7 @@
 import { addCleanup, define, esc, patchAttr, runCleanups } from '../../core/dom';
 import { iconSvg } from '../../core/icons';
 import { BaseFormControl } from '../../core/base-form-control';
+import { t } from '../../core/i18n';
 
 /**
  * @summary Numeric input with increment/decrement buttons.
@@ -51,9 +52,9 @@ export class EInputNumber extends BaseFormControl<string> {
       const ariaLabel = this.getAttribute('aria-label');
       this.innerHTML = `
       <div class="ink-number">
-        <button type="button" class="ink-number__btn" data-step="-1" aria-label="Decrement">${iconSvg('minus', 18)}</button>
+        <button type="button" class="ink-number__btn" data-step="-1" aria-label="${esc(t(this, 'decrement'))}">${iconSvg('minus', 18)}</button>
         <input class="ink-number__input" type="number"${ariaLabel ? ` aria-label="${esc(ariaLabel)}"` : ''}/>
-        <button type="button" class="ink-number__btn" data-step="1" aria-label="Increment">${iconSvg('plus', 18)}</button>
+        <button type="button" class="ink-number__btn" data-step="1" aria-label="${esc(t(this, 'increment'))}">${iconSvg('plus', 18)}</button>
       </div>`;
       this._input = this.querySelector('input');
       this._btns = [...this.querySelectorAll<HTMLButtonElement>('.ink-number__btn')];

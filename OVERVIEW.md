@@ -31,9 +31,10 @@ other design decision follows from that constraint, not from taste.
 **It is _not_:**
 
 - ❗ **Lit-based.** Lit is a `devDependency` for Storybook templating
-  only. Components extend `HTMLElement` or `BaseFormControl` directly,
-  with zero Lit at runtime. Earlier versions listed `"lit"` as a
-  `package.json` keyword; that has been removed in V1.0.
+  only. Components extend `EpaperElement` — a thin `HTMLElement` subclass
+  that stands in for it when there is no DOM, so every entry point imports
+  in a bare Node process — or `BaseFormControl`, with zero Lit at runtime. Earlier versions listed `"lit"` as a
+  `package.json` keyword; that has been removed.
 - A reactivity framework. Most updates are explicit, surgical DOM mutations
   via the `patch*` helpers in `core/dom.ts`; components with structural
   content (`<e-table>` rows, `<e-calendar>`'s grid, `<e-select>`'s options)
@@ -61,12 +62,18 @@ other design decision follows from that constraint, not from taste.
         ▼
 ┌──────────────────────────────────────────────────────────────┐
 │  src/core/                                                   │
-│  ├── dom.ts                — define(), patch*, esc(),        │
+│  ├── dom.ts                — define(), EpaperElement,        │
+│  │                           patch*, esc(), observeItems(),  │
 │  │                           onGlobal(), addCleanup()        │
 │  ├── base-form-control.ts  — abstract<T> form-associated     │
 │  │                           class with serialize/parse      │
 │  ├── icons.ts              — SVG icon registry               │
-│  ├── date.ts               — date utilities (+ tests)        │
+│  ├── i18n.ts               — string table, t(), label()      │
+│  ├── format.ts             — Intl wrappers with fallbacks    │
+│  ├── date.ts               — date utilities                  │
+│  ├── tree.ts               — shared tree model               │
+│  ├── data.ts               — JSON attribute parsing          │
+│  ├── slug.ts               — id/anchor slugs                 │
 │  └── types.ts              — shared event detail types       │
 └──────────────────────────────────────────────────────────────┘
 ```
@@ -121,25 +128,43 @@ The default `e-change` payload is `{ value: T }`. The exceptions below
 are **intentional** — each follows the native HTML semantic type for
 its underlying control. They are not bugs to be unified away.
 
-| Event      | Fires on                              | `detail` shape                         |
-| ---------- | ------------------------------------- | -------------------------------------- |
-| `e-change` | Form-control commit (default)         | `{ value: T }`                         |
-|            | …semantic exceptions:                 |                                        |
-|            | `<e-checkbox>`, `<e-toggle>`          | `{ checked: boolean }`                 |
-|            | `<e-upload>`                          | `{ files: File[] }`                    |
-| `e-input`  | Live edit (before `e-change`)         | `{ value: string }` (input / textarea) |
-| `e-click`  | Button activation                     | `{ originalEvent: MouseEvent }`        |
-| `e-select` | Dropdown item activation (positional) | `{ index: number }`                    |
-| `e-submit` | Form submission                       | `{ form: HTMLFormElement }`            |
+| Event            | Fires on                                          | `detail` shape                                         |
+| ---------------- | ------------------------------------------------- | ------------------------------------------------------ |
+| `e-change`       | Form-control commit (default)                     | `{ value: T }`                                         |
+|                  | …semantic exceptions:                             |                                                        |
+|                  | `<e-checkbox>`, `<e-toggle>`                      | `{ checked: boolean }`                                 |
+|                  | `<e-upload>`                                      | `{ files: File[] }`                                    |
+|                  | `<e-meter>`                                       | `{ value: number, band: 'low'\|'normal'\|'high' }`     |
+| `e-input`        | Live edit (before `e-change`)                     | `{ value: string }`                                    |
+| `e-click`        | Button activation                                 | `{ originalEvent: MouseEvent }`                        |
+|                  | `<e-back-top>` (scroll position, not a DOM event) | `{ value: number }`                                    |
+| `e-select`       | Dropdown item activation (positional)             | `{ index: number }`                                    |
+|                  | `<e-float-button>` (positional + value)           | `{ index: number, value: string }`                     |
+|                  | `<e-table>` (row selection)                       | `{ value: number[] }`                                  |
+| `e-open`         | Overlay opened                                    | `{ value: true }`                                      |
+| `e-close`        | Overlay closed                                    | `{ value: false }`, `<e-dialog>` adds `reason`         |
+|                  | `<e-tag>`, `<e-alert>` dismissed                  | `{ value: string }`                                    |
+| `e-submit`       | Form submission                                   | `{ form: HTMLFormElement }`                            |
+| `e-invalid`      | Submission blocked by constraint validation       | `{ controls: HTMLElement[], form: HTMLFormElement }`   |
+| `e-error`        | Malformed JSON attribute                          | `{ error: Error, source: string }`                     |
+|                  | Image source failed                               | `{ value: string }`                                    |
+| `e-month-change` | `<e-calendar>` moved to another month             | `{ year: number, month: number }` (`month` zero-based) |
+
+README.md carries the full table, including which components fire each one.
 
 The library exports an `EChangeDetail<T>` type alias for the common
 shape:
 
+`'e-change'` is not a key of `HTMLElementEventMap`, so `addEventListener`
+resolves to its untyped overload and `strict` mode rejects a listener declared
+to take `CustomEvent<…>`. Type the parameter as `Event` and narrow in the body:
+
 ```ts
 import type { EChangeDetail } from '@marcomattes/epaper-components';
 
-el.addEventListener('e-change', (e: CustomEvent<EChangeDetail<string>>) => {
-  console.log(e.detail.value);
+el.addEventListener('e-change', (e: Event) => {
+  const { value } = (e as CustomEvent<EChangeDetail<string>>).detail;
+  console.log(value);
 });
 ```
 
@@ -161,7 +186,7 @@ Form controls behave like native ones:
 - `formResetCallback` (Reset button) → re-applies `default-value`.
 - `formStateRestoreCallback` → BFCache and autofill restore.
 
-> **Validation note.** All thirteen `BaseFormControl` subclasses participate in
+> **Validation note.** All 18 `BaseFormControl` subclasses participate in
 > constraint validation through `ElementInternals`. Text and number controls
 > mirror the validity flags of their native inner control; selection, boolean
 > and file controls report `valueMissing` from their component-level
@@ -204,16 +229,31 @@ your own components.
 
 ## 5 · Testing model
 
-| Test suite                           | Verifies                                       | Coverage          |
-| ------------------------------------ | ---------------------------------------------- | ----------------- |
-| `__tests__/cleanup.test.ts`          | `onGlobal` / `runCleanups` memory-leak pattern | 9 components      |
-| `__tests__/form-association.test.ts` | `FormData`, reset/restore, constraint validity | 14 form controls  |
-| `__tests__/reactivity.test.ts`       | `attributeChangedCallback` updates             | 7 components      |
-| `__tests__/security.test.ts`         | XSS injection through `esc()` paths            | 12 components     |
-| `__tests__/screenshots.test.ts`      | Pixel visual regression                        | all story modules |
-| `__tests__/refresh-budget.test.ts`   | Mutation, node-churn and dirty-area budgets    | key interactions  |
-| `core/date.test.ts`                  | `parseYMD`, `ymd`, `pad2`                      | core utility      |
-| Storybook + `@storybook/addon-a11y`  | axe-core (WCAG 2A + 2AA + best practice)       | all 79 components |
+| Test suite                             | Verifies                                                         | Tests |
+| -------------------------------------- | ---------------------------------------------------------------- | ----- |
+| `__tests__/structural-deep.test.ts`    | Layout, form, list and page-structure components end to end      | 393   |
+| `__tests__/data-media-deep.test.ts`    | Table, media, code and chart components                          | 273   |
+| `__tests__/form-pickers-deep.test.ts`  | Date, time, cascader, tree-select and upload pickers             | 216   |
+| `__tests__/security.test.ts`           | XSS injection through every `esc()` path                         | 202   |
+| `__tests__/display-deep.test.ts`       | Read-only display components and their formatters                | 178   |
+| `__tests__/overlays-nav-deep.test.ts`  | Dialogs, popovers, menus, tabs and the rest of the nav surface   | 169   |
+| `__tests__/form-controls-deep.test.ts` | Text, number, boolean and choice controls                        | 163   |
+| `__tests__/form-association.test.ts`   | `FormData`, reset/restore and constraint validity                | 147   |
+| `__tests__/data-display.test.ts`       | Data-driven rendering from JSON attributes                       | 129   |
+| `__tests__/screenshots.test.ts`        | Pixel visual regression, one story per story module              | 80    |
+| `__tests__/new-components.test.ts`     | The components added in this major                               | 59    |
+| `__tests__/reactivity.test.ts`         | `attributeChangedCallback` updates after mount                   | 55    |
+| `__tests__/cleanup.test.ts`            | The `onGlobal` / `runCleanups` memory-leak pattern               | 28    |
+| `__tests__/refresh-budget.test.ts`     | Mutation, node-churn and dirty-area budgets                      | 14    |
+| `__tests__/theme-packs.test.ts`        | The shipped theme packs against the token registry               | 6     |
+| `core/dom.test.ts`                     | `patch*`, `observeItems`, cleanup registry, `cloneItemBody`      | 98    |
+| `core/tree.test.ts`                    | Shared tree model: checking, expansion, keyboard traversal       | 77    |
+| `core/base-form-control.test.ts`       | The form-associated base, including the paths no component hits  | 63    |
+| `core/format.test.ts`                  | `Intl` wrappers and their non-`Intl` fallbacks                   | 48    |
+| `core/i18n.test.ts`                    | String-table resolution, overrides and interpolation             | 20    |
+| `core/date.test.ts`                    | `parseYMD`, `ymd`, `pad2`                                        | 16    |
+| `core/__ssr__/dom.test.ts`             | Importing every entry point with no DOM globals present          | 4     |
+| Storybook + `@storybook/addon-a11y`    | axe-core (WCAG 2A + 2AA + best practice) over all 84 story files | 361   |
 
 Visual regression, keyboard navigation and refresh budgets run in CI. Physical
 panel ghosting and waveform selection remain hardware checks because browser
@@ -242,23 +282,34 @@ before any release. The `files` whitelist in `package.json` ships only
 
 ---
 
-## 7 · Known V1.0 limitations
+## 7 · Known limitations
 
-These are intentional V1.0 trade-offs. They are tracked in
-`CHANGELOG.md` under "Known limitations" and slated for V1.1.
+These are intentional trade-offs, tracked in `CHANGELOG.md` under
+"Known limitations".
 
 1. **`<e-kaleido>`** is a hardware-fingerprint visualisation tool
    kept in the public API for demo purposes; it is not a
    general-purpose layout primitive.
 2. **`tsconfig` is missing `noUncheckedIndexedAccess`.** Enabling it
-   surfaces ~90 latent index-access cases in pickers, calendar and
+   surfaces a long tail of latent index-access cases in pickers, calendar and
    stories. They are runtime-safe by construction but deserve precise
-   typing rather than blanket non-null assertions. Tracked for V1.1.
-3. **Test coverage is thematic, not per-component.** Cross-cutting
-   suites cover form-association (14 controls), reactivity (7
-   components), cleanup (9 components) and security (12 components).
-   Display-only components rely on the Storybook a11y addon (axe-core),
-   visual baselines and the refresh-budget suite for regression coverage.
+   typing rather than blanket non-null assertions.
+3. **Test coverage is thematic, not per-component.** The suites in §5 are
+   organised by concern rather than by component, so a given component's
+   behaviour is spread across several files. Display-only components lean on
+   the Storybook a11y addon (axe-core), the visual baselines and the
+   refresh-budget suite for regression coverage.
+4. **The visual baselines are browser-build specific.** `__screenshots__/`
+   holds the `<category>-<name>-<story>-chromium-linux.png` baselines recorded
+   by CI's pinned Playwright Chromium. Text antialiasing differs between
+   Chromium builds, so a local run on a different revision reports diffs CI
+   does not see. Regenerate baselines only from the pinned revision.
+5. **`__screenshots__/` has a second population with a different consumer.**
+   The `<category>-<name>--<story>.png` files — double dash, no browser suffix
+   — are not baselines and are never compared. They are the images embedded in
+   the generated component READMEs: `scripts/gen-readmes.mjs` matches them by
+   that exact shape, so the `-chromium-linux` files cannot stand in for them.
+   Deleting one because "nothing compares it" breaks a README.
 
 ---
 
@@ -266,7 +317,8 @@ These are intentional V1.0 trade-offs. They are tracked in
 
 | Browser           | Minimum version | Reason                                                |
 | ----------------- | --------------- | ----------------------------------------------------- |
-| Chrome / Edge     | 90+             | `attachInternals` since 90, evergreen                 |
+| Chrome            | 77+             | `attachInternals` and form-associated custom elements |
+| Edge              | 79+             | First Chromium Edge; same engine floor as Chrome      |
 | Firefox           | 98+             | `attachInternals` since 98                            |
 | Safari            | 16.4+           | `formAssociated` and `ElementInternals` support       |
 | Node (build only) | 20+             | LTS through 2026, ES2022 features used in build chain |
@@ -342,7 +394,7 @@ No configuration needed — Svelte detects custom elements automatically.
 | What does `patchAttr` / `patchClassModifier` do? | `src/core/dom.ts` (inline JSDoc)                       |
 | What does `BaseFormControl` look like?           | `src/core/base-form-control.ts`                        |
 | Which component fires which event?               | § 3 here, or `dist/custom-elements.json`               |
-| Known V1.0 limitations?                          | § 7 here, also `CHANGELOG.md`                          |
+| Known limitations?                               | § 7 here, also `CHANGELOG.md`                          |
 | Browser support?                                 | § 8 here                                               |
 | React / Vue / Angular setup?                     | § 9 here, full snippets in `README.md`                 |
 | Working with Claude Code in this repo?           | `AGENTS.md`                                            |

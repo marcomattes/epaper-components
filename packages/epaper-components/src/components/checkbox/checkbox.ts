@@ -1,4 +1,5 @@
 import { boolAttr, define, esc, patchText, randId } from '../../core/dom';
+import { t } from '../../core/i18n';
 import { BaseFormControl } from '../../core/base-form-control';
 
 /**
@@ -40,7 +41,7 @@ export class ECheckbox extends BaseFormControl {
     this.internals.setFormValue(checked ? v : null, checked ? 'checked' : 'unchecked');
     if (this._cb) {
       this._cb.required = boolAttr(this, 'required');
-      this.applyRequiredValidity(checked, this._cb, 'Please check this box.');
+      this.applyRequiredValidity(checked, this._cb, t(this, 'requiredCheck'));
     }
   }
 
@@ -76,9 +77,27 @@ export class ECheckbox extends BaseFormControl {
     });
   }
 
-  /** Reflects the checked state to the `checked` attribute (present/absent). */
+  /**
+   * Write the checked state to both places that hold it: the host attribute
+   * and the native input.
+   *
+   * Going through the attribute alone was not enough. `toggleAttribute` is a
+   * no-op when the attribute already matches, so `attributeChangedCallback`
+   * never ran and the input kept whatever the browser had just put there —
+   * which is exactly the situation `form.reset()` creates, since it resets the
+   * inner input to its *rendered* `checked` before this callback runs. The
+   * result was a box drawn checked while the form submitted nothing. The same
+   * mismatch reached `checked="false"`, where the attribute is present but
+   * false, so `toggleAttribute(…, true)` left it saying the opposite of the
+   * state it was setting.
+   */
   private _reflectChecked(v: boolean): void {
-    this.toggleAttribute('checked', v);
+    if (v) this.setAttribute('checked', '');
+    else this.removeAttribute('checked');
+    if (this._cb && this._cb.checked !== v) {
+      this._cb.checked = v;
+      this._syncFormValue();
+    }
   }
 
   attributeChangedCallback(name: string) {
@@ -134,7 +153,12 @@ export class ECheckbox extends BaseFormControl {
 
   protected override resetValue(): void {
     const dflt = this.hasAttribute('default-checked');
-    this.checked = dflt;
+    this._reflectChecked(dflt);
+    // Unconditional: a reset back to the state the attribute already names
+    // still has to re-assert the input and the form value, because the native
+    // reset of the inner input just moved them.
+    if (this._cb) this._cb.checked = dflt;
+    this._syncFormValue();
   }
 
   /** Restore the checked state from the back-forward cache. */

@@ -40,7 +40,7 @@ const meta: Meta = {
   tags: ['autodocs'],
   parameters: {
     docs: {
-      subtitle: 'Since v1.3.0',
+      subtitle: 'Since v2.0.0',
       description: {
         component:
           'Keyed, append-only event and alarm list. Rows are identified by `id`: a new event is inserted as a single node and an existing row is patched in place, so a live log costs a partial refresh of one row instead of a full-page flash. Use `appendEntries()` to push, `acknowledge(id)` to mark one row, `clear()` to empty it.',

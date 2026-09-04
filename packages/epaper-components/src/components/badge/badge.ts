@@ -3,8 +3,10 @@ import {
   captureWrap,
   define,
   EpaperElement,
+  observeItems,
   patchAttr,
   patchClassModifier,
+  runCleanups,
 } from '../../core/dom';
 
 const VARIANTS = new Set(['outline', 'solid', 'dashed']);
@@ -35,11 +37,32 @@ export class EBadge extends EpaperElement {
   private _wrap: HTMLElement | null = null;
 
   connectedCallback() {
-    if (!this._wrap) {
-      this._wrap = captureWrap(this, 'span');
-      this._wrap.classList.add('ink-badge');
-    }
+    this._ensureWrap();
     this._render();
+    // A badge is the one component routinely written to from outside — a host
+    // that keeps a count on it reaches for `textContent`, which replaces the
+    // wrapper span with a bare text node and strips every `.ink-badge` style
+    // for good. Re-wrapping on a child change makes that assignment work the
+    // way a caller expects instead of quietly unstyling the badge.
+    observeItems(this, this._resync, { isOutput: (n) => n !== this });
+  }
+
+  disconnectedCallback() {
+    runCleanups(this);
+  }
+
+  private readonly _resync = (): void => {
+    if (this._ensureWrap()) this._render();
+  };
+
+  /** True when the wrapper had to be (re-)created. */
+  private _ensureWrap(): boolean {
+    if (this._wrap && this._wrap.parentElement === this && this.childNodes.length === 1) {
+      return false;
+    }
+    this._wrap = captureWrap(this, 'span');
+    this._wrap.classList.add('ink-badge');
+    return true;
   }
 
   attributeChangedCallback() {

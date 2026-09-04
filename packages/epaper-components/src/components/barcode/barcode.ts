@@ -220,7 +220,7 @@ const isDigits = (value: string): boolean => /^\d+$/.test(value);
 export function checkDigit(payload: string): number {
   let sum = 0;
   for (let i = 0; i < payload.length; i++) {
-    const digit = payload.charCodeAt(payload.length - 1 - i) - 48;
+    const digit = Number(payload[payload.length - 1 - i]);
     sum += digit * (i % 2 === 0 ? 3 : 1);
   }
   return (10 - (sum % 10)) % 10;
@@ -230,28 +230,28 @@ export function checkDigit(payload: string): number {
 function widthsToBits(widths: string): string {
   let bits = '';
   for (let i = 0; i < widths.length; i++) {
-    bits += (i % 2 === 0 ? '1' : '0').repeat(widths.charCodeAt(i) - 48);
+    bits += (i % 2 === 0 ? '1' : '0').repeat(Number(widths[i]));
   }
   return bits;
 }
 
 function encodeEan13(digits: string): string {
-  const parity = PARITY[digits.charCodeAt(0) - 48];
+  const parity = PARITY[Number(digits[0])];
   let bits = GUARD;
   for (let i = 1; i <= 6; i++) {
-    const digit = digits.charCodeAt(i) - 48;
+    const digit = Number(digits[i]);
     bits += parity[i - 1] === 'L' ? L_CODES[digit] : G_CODES[digit];
   }
   bits += CENTER;
-  for (let i = 7; i <= 12; i++) bits += R_CODES[digits.charCodeAt(i) - 48];
+  for (let i = 7; i <= 12; i++) bits += R_CODES[Number(digits[i])];
   return bits + GUARD;
 }
 
 function encodeEan8(digits: string): string {
   let bits = GUARD;
-  for (let i = 0; i < 4; i++) bits += L_CODES[digits.charCodeAt(i) - 48];
+  for (let i = 0; i < 4; i++) bits += L_CODES[Number(digits[i])];
   bits += CENTER;
-  for (let i = 4; i < 8; i++) bits += R_CODES[digits.charCodeAt(i) - 48];
+  for (let i = 4; i < 8; i++) bits += R_CODES[Number(digits[i])];
   return bits + GUARD;
 }
 
@@ -269,7 +269,7 @@ function encodeCode128(value: string): string {
   } else {
     values.push(CODE128_START_B);
     for (const char of value) {
-      const code = char.charCodeAt(0);
+      const code = char.codePointAt(0) ?? 0;
       if (code < 32 || code > 126) {
         throw new BarcodeEncodeError(
           `Code 128 cannot encode character "${char}".`,
@@ -387,7 +387,7 @@ function barsToSvg(bits: string, moduleWidth: number, height: number, quietZone:
 
 /**
  * @summary Linear barcode (EAN-13, EAN-8, UPC-A, Code 128) rendered as inline SVG.
- * @since v1.3.0
+ * @since v2.0.0
  *
  * Built the same way as `<e-qrcode>`: a self-contained encoder, zero runtime
  * dependencies, and output of exactly two shapes — a white background and one

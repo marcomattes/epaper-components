@@ -11,6 +11,7 @@
 // `super()`.
 import { describe, it, expect, beforeAll } from 'vitest';
 import { BaseFormControl } from './base-form-control';
+import { t } from './i18n';
 
 /* --------------------------------------------------------------------- *
  * Throwaway subclasses
@@ -628,19 +629,29 @@ describe('applyRequiredValidity', () => {
     expect(el.validationMessage).toBe('Pick something.');
   });
 
-  it('falls back to the caller default when required-message is empty', () => {
+  it('falls back to the caller message when required-message is empty', () => {
     const { el } = inForm(make<RequiredControl>('x-bfc-required'), 'r');
     el.setAttribute('required', '');
     el.setAttribute('required-message', '');
-    expect(el.sync('Caller default.')).toBe(false);
-    expect(el.validationMessage).toBe('Caller default.');
+    expect(el.sync('Please select a date.')).toBe(false);
+    expect(el.validationMessage).toBe('Please select a date.');
   });
 
-  it('accepts a caller-supplied default message', () => {
+  it('accepts a caller-supplied message', () => {
     const { el } = inForm(make<RequiredControl>('x-bfc-required'), 'r');
     el.setAttribute('required', '');
-    expect(el.sync('Choose a date.')).toBe(false);
-    expect(el.validationMessage).toBe('Choose a date.');
+    expect(el.sync('Please select an option.')).toBe(false);
+    expect(el.validationMessage).toBe('Please select an option.');
+  });
+
+  // Callers pass `t(this, key)` rather than a literal, so the reported message
+  // follows the element's locale even though this module never reads it.
+  it('reports the locale-resolved message a caller passes in', () => {
+    const { el } = inForm(make<RequiredControl>('x-bfc-required'), 'r');
+    el.setAttribute('required', '');
+    el.setAttribute('locale', 'de');
+    expect(el.sync(t(el, 'requiredDate'))).toBe(false);
+    expect(el.validationMessage).toBe('Bitte wählen Sie ein Datum.');
   });
 });
 

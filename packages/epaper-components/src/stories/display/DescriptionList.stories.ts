@@ -41,7 +41,7 @@ export const Default: Story = {
   args: { columns: 1, layout: 'horizontal', bordered: true },
   play: async ({ canvasElement }) => {
     await checkA11y(canvasElement);
-    // Since v1.3.0 the authored <e-desc-item> children stay in the light DOM
+    // Since v2.0.0 the authored <e-desc-item> children stay in the light DOM
     // as the list's data source, so a detail's text is in the document twice:
     // once on the hidden item, once in the rendered <dd> clone. Scope the
     // queries to the rendered <dl> so they still describe one element.

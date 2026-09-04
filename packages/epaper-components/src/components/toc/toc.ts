@@ -16,7 +16,7 @@ import '../anchor/anchor';
 
 /**
  * @summary Auto-generated table of contents, mirrored into an `<e-anchor>`.
- * @since v1.3.0
+ * @since v2.0.0
  *
  * Scans `for`'s heading elements between `min-level` and `max-level` — plain
  * `<h2>`/`<h3>` inside an `<e-prose>` document as much as an `<e-title>`'s
@@ -148,8 +148,12 @@ export class EToc extends EpaperElement {
       queued = true;
       queueMicrotask(() => {
         queued = false;
-        observer.takeRecords();
         this._sync();
+        // Drained *after* the sync, not before: `_sync()` writes ids onto the
+        // scanned headings and rebuilds the `<e-anchor>` inside this same
+        // subtree, and those self-caused records would otherwise come back as
+        // a fresh mutation and schedule another scan of the whole document.
+        observer.takeRecords();
       });
     });
     observer.observe(root, { childList: true, subtree: true, characterData: true });

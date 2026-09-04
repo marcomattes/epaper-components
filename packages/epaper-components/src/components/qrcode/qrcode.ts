@@ -515,10 +515,10 @@ function qrToSvg(qr: QrCode, scale: number, border: number): string {
  * @attr {number} [scale=4] - Module pixel size. Ignored when `width` is set.
  * @attr {number} [width] - Target edge length in px. The module size is the largest whole number of
  *   pixels that fits, so the rendered code is never wider than `width` and every module stays on a
- *   pixel boundary — a fractional module size dithers into mush on an EPDC panel. @since v1.3.0
+ *   pixel boundary — a fractional module size dithers into mush on an EPDC panel. @since v2.0.0
  * @attr {number} [border=2] - Quiet-zone width in modules.
  * @attr {string} [label] - Accessible name for the code. Defaults to `QR code for <value>`, which
- *   otherwise reads a raw URL out character by character. @since v1.3.0
+ *   otherwise reads a raw URL out character by character. @since v2.0.0
  *
  * @example
  * <e-qrcode value="https://epaper.example.com" level="M" scale="4"></e-qrcode>

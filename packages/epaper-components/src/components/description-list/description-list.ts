@@ -28,9 +28,9 @@ interface DescPair {
  * identity across a sync — only what actually changed is patched.
  *
  * Because the items stay put they would otherwise render twice, so each one is
- * hidden with an inline `display:none` when it is first wired. The stable form
- * of that is a `e-desc-item { display: none; }` rule in `components.css`; the
- * inline style is what guarantees it without one.
+ * hidden with an inline `display:none` when it is first wired. `components.css` carries the
+ * `e-desc-item { display: none; }` rule that states it; the inline style is what
+ * holds even where that stylesheet is not loaded.
  *
  * Each item contributes a term/detail pair; the detail is a *clone* of the
  * item's child nodes, re-cloned only when the item's own markup changes. The
@@ -94,9 +94,15 @@ export class EDescriptionList extends EpaperElement {
     dl.style.gridTemplateColumns = `repeat(${cols},minmax(0,1fr))`;
   }
 
-  /** Authored items, excluding anything cloned into the rendered list. */
+  /**
+   * Authored items, excluding anything cloned into the rendered list.
+   *
+   * `:scope >` rather than a deep query: a nested `<e-description-list>` inside an
+   * item body has items of its own, and the outer list used to collect —
+   * and hide — those too.
+   */
   private _items(): HTMLElement[] {
-    return [...this.querySelectorAll<HTMLElement>('e-desc-item')].filter(
+    return [...this.querySelectorAll<HTMLElement>(':scope > e-desc-item')].filter(
       (it) => !this._dl?.contains(it),
     );
   }
@@ -150,6 +156,7 @@ define('e-description-list', EDescriptionList);
 
 /**
  * @summary Single key/value pair inside an `<e-description-list>`.
+ * @since v1.0.1
  *
  * Acts as a data carrier; the parent renders the actual `<dt>`/`<dd>` and hides
  * this element. The default slot is rendered as the detail and may contain

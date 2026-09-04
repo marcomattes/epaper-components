@@ -1,4 +1,5 @@
 import { boolAttr, define, esc, patchText, randId } from '../../core/dom';
+import { t } from '../../core/i18n';
 import { BaseFormControl } from '../../core/base-form-control';
 
 /**
@@ -40,7 +41,7 @@ export class EToggle extends BaseFormControl {
     this.internals.setFormValue(checked ? v : null, checked ? 'checked' : 'unchecked');
     if (this._cb) {
       this._cb.required = boolAttr(this, 'required');
-      this.applyRequiredValidity(checked, this._cb, 'Please turn on this switch.');
+      this.applyRequiredValidity(checked, this._cb, t(this, 'requiredToggle'));
     }
   }
 
@@ -64,14 +65,14 @@ export class EToggle extends BaseFormControl {
           </span>
         </span>
         ${label ? `<span>${esc(label)}</span>` : ''}
-        <span class="ink-toggle__state" aria-hidden="true">${checked ? 'ON' : 'OFF'}</span>
+        <span class="ink-toggle__state" aria-hidden="true">${esc(checked ? t(this, 'stateOn') : t(this, 'stateOff'))}</span>
       </label>`;
     this._cb = this.querySelector('input');
     this._state = this.querySelector('.ink-toggle__state');
     this._syncFormValue();
     this._cb!.addEventListener('change', (e) => {
       const v = (e.target as HTMLInputElement).checked;
-      this._state!.textContent = v ? 'ON' : 'OFF';
+      this._state!.textContent = v ? t(this, 'stateOn') : t(this, 'stateOff');
       if (v) this.setAttribute('checked', '');
       else this.removeAttribute('checked');
       this._syncFormValue();
@@ -92,8 +93,8 @@ export class EToggle extends BaseFormControl {
 
   private _syncChecked(): void {
     const v = boolAttr(this, 'checked');
-    this._cb!.checked = v;
-    if (this._state) patchText(this._state, v ? 'ON' : 'OFF');
+    if (this._cb!.checked !== v) this._cb!.checked = v;
+    if (this._state) patchText(this._state, v ? t(this, 'stateOn') : t(this, 'stateOff'));
     this._syncFormValue();
   }
 
@@ -126,7 +127,27 @@ export class EToggle extends BaseFormControl {
     return this._cb?.checked || false;
   }
   set checked(v: boolean) {
-    this.toggleAttribute('checked', v);
+    this._reflectChecked(v);
+  }
+
+  /**
+   * Write the checked state to both places that hold it: the host attribute
+   * and the native input.
+   *
+   * Going through the attribute alone was not enough. `toggleAttribute` is a
+   * no-op when the attribute already matches, so `attributeChangedCallback`
+   * never ran and the input kept whatever the browser had just put there —
+   * which is exactly the situation `form.reset()` creates, since it resets the
+   * inner input to its *rendered* `checked` before this callback runs. The
+   * result was a box drawn checked while the form submitted nothing. The same
+   * mismatch reached `checked="false"`, where the attribute is present but
+   * false, so `toggleAttribute(…, true)` left it saying the opposite of the
+   * state it was setting.
+   */
+  private _reflectChecked(v: boolean): void {
+    if (v) this.setAttribute('checked', '');
+    else this.removeAttribute('checked');
+    if (this._cb && this._cb.checked !== v) this._syncChecked();
   }
 
   override get value(): string {
@@ -145,7 +166,11 @@ export class EToggle extends BaseFormControl {
   }
 
   protected override resetValue(): void {
-    this.checked = this.hasAttribute('default-checked');
+    this._reflectChecked(this.hasAttribute('default-checked'));
+    // Unconditional: a reset back to the state the attribute already names
+    // still has to re-assert the input and the form value, because the native
+    // reset of the inner input just moved them.
+    this._syncChecked();
   }
 
   /** Restore the checked state from the back-forward cache. */

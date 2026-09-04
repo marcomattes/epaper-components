@@ -3,6 +3,7 @@ import {
   boolAttr,
   define,
   intAttr,
+  numAttr,
   patchAttr,
   randId,
   runCleanups,
@@ -18,7 +19,7 @@ const SMILEY = {
 
 /**
  * @summary Star or smiley rating with touch-sized targets and full keyboard control.
- * @since v1.3.0
+ * @since v2.0.0
  *
  * Form-associated: participates in `<form>` submission and FormData. An
  * unrated control submits an empty value, so `required` behaves the way it
@@ -60,6 +61,10 @@ export class ERating extends BaseFormControl<number> {
     'allow-clear',
   ];
 
+  // `BaseFormControl` seeds `_value` with `''` because it cannot know `T`; for a
+  // numeric control that leaks a string out of a `number`-typed getter until the
+  // first connect. Seeding it here keeps `.value` honest from construction.
+  protected override _value = 0;
   private _wired = false;
   private _group: HTMLElement | null = null;
   private _labelEl: HTMLElement | null = null;
@@ -69,7 +74,7 @@ export class ERating extends BaseFormControl<number> {
   connectedCallback() {
     if (!this._wired) {
       this._wired = true;
-      this._value = this._clamp(intAttr(this, 'value', intAttr(this, 'default-value', 0)));
+      this._value = this._clamp(this._readValue('value', this._readValue('default-value', 0)));
       this.internals.setFormValue(this.serialize(this._value));
       this._build();
       this._syncSymbols();
@@ -102,7 +107,7 @@ export class ERating extends BaseFormControl<number> {
       return;
     }
     if (name === 'value') {
-      const next = this._clamp(intAttr(this, 'value', 0));
+      const next = this._clamp(this._readValue('value', 0));
       if (next !== this._value) {
         this._value = next;
         this.internals.setFormValue(this.serialize(next));
@@ -291,6 +296,18 @@ export class ERating extends BaseFormControl<number> {
     );
   }
 
+  /**
+   * Read a rating attribute, rounding a fraction rather than discarding it.
+   *
+   * `intAttr` falls back to the default for anything non-integer, so
+   * `value="3.7"` used to read as 0 while the property setter rounded the same
+   * number to 4 — the attribute and the property disagreed about the same
+   * input.
+   */
+  private _readValue(name: string, fallback: number): number {
+    return Math.round(numAttr(this, name, fallback));
+  }
+
   private _syncSymbols(): void {
     if (!this._group) return;
     const interactive = this._interactive();
@@ -300,8 +317,11 @@ export class ERating extends BaseFormControl<number> {
       'data-glyph',
       this.getAttribute('glyph') === 'smiley' ? 'smiley' : 'star',
     );
-    patchAttr(this._group, 'aria-readonly', boolAttr(this, 'readonly') ? 'true' : null);
-    patchAttr(this._group, 'aria-disabled', interactive ? null : 'true');
+    const readonly = boolAttr(this, 'readonly');
+    patchAttr(this._group, 'aria-readonly', readonly ? 'true' : null);
+    // `readonly` is not `disabled`: a read-only rating is still a value worth
+    // announcing, and marking it disabled told screen readers to skip it.
+    patchAttr(this._group, 'aria-disabled', interactive || readonly ? null : 'true');
     this._buttons.forEach((button, index) => {
       const step = index + 1;
       const on = step <= this._value;

@@ -32,8 +32,19 @@ export interface LocaleStrings {
   next: string;
   /** Pager summary; `{page}` and `{total}` are substituted. */
   pageOf: string;
-  /** Generic required-field message shared by the composite form controls. */
+  /**
+   * Required-field messages. `required` is the generic one; the rest are what
+   * each composite control reports in place of the native message a `<select>`
+   * or `<input type=file>` would have produced.
+   */
   required: string;
+  requiredSelect: string;
+  requiredOneOption: string;
+  requiredCheck: string;
+  requiredToggle: string;
+  requiredDate: string;
+  requiredTime: string;
+  requiredFile: string;
   /** `e-agenda` axis and entry labels. */
   agendaDay: string;
   agendaWeek: string;
@@ -104,6 +115,86 @@ export interface LocaleStrings {
   redlineNoChanges: string;
   redlineChangesOnly: string;
   redlineShowAll: string;
+  /** `e-tree` branch toggles; `{label}` is substituted. */
+  expandItem: string;
+  collapseItem: string;
+  /** `e-dialog` dismiss control. */
+  close: string;
+  /** Landmark names for the two navigation components that render a `<nav>`. */
+  paginationLabel: string;
+  breadcrumbLabel: string;
+  /** `e-steps` status words. Rendered upper-case by the component. */
+  stepDone: string;
+  stepInProgress: string;
+  stepPending: string;
+  /** `e-popover` / `e-dropdown` fallback trigger, and the `e-popconfirm` buttons. */
+  openTrigger: string;
+  confirm: string;
+  cancel: string;
+  /** `e-back-top`. */
+  backToTop: string;
+  /** `e-toggle` state pip. */
+  stateOn: string;
+  stateOff: string;
+  /** `e-input-number` stepper buttons. */
+  increment: string;
+  decrement: string;
+  /** `e-form-item` required marker: the pill text and its accessible name. */
+  requiredShort: string;
+  requiredMarker: string;
+  /** `e-input` / `e-textarea` fallback message for an author-set `error`. */
+  invalidValue: string;
+  /**
+   * `e-upload` drop zone and constraint messages; `{types}`, `{name}` and
+   * `{max}` are substituted.
+   */
+  chooseFiles: string;
+  uploadPrompt: string;
+  uploadAccepts: string;
+  uploadTooLarge: string;
+  uploadTooMany: string;
+  /** `e-status-board`. */
+  statusBoardLabel: string;
+  noMetrics: string;
+  /** `e-diff` headings and the change cue. */
+  diffLabel: string;
+  diffBefore: string;
+  diffAfter: string;
+  /** `e-sparkline` trend words. */
+  trendRising: string;
+  trendFalling: string;
+  trendFlat: string;
+  /** Shared empty state for `e-sparkline` and `e-table`. */
+  noData: string;
+  /** `e-calendar` and `e-date-picker` month steppers and padding cells. */
+  previousMonth: string;
+  nextMonth: string;
+  outsideMonth: string;
+  /** `e-table` selection controls; `{index}` is substituted. */
+  selectAllRows: string;
+  selectRow: string;
+  /** `e-cascader` column names; `{label}` and `{level}` are substituted. */
+  cascaderLevel: string;
+  /** `e-last-updated` label and the two states with no age to word. */
+  updatedLabel: string;
+  unknown: string;
+  unknownTime: string;
+  /**
+   * `e-last-updated` relative age. English keeps its own wording here rather
+   * than `Intl.RelativeTimeFormat` (see the component), so the words live in
+   * the table like every other string instead of as literals in the render.
+   * `{count}` and `{age}` are substituted.
+   */
+  ageJustNow: string;
+  ageUnderMinute: string;
+  agePast: string;
+  ageFuture: string;
+  ageMinute: string;
+  ageMinutes: string;
+  ageHour: string;
+  ageHours: string;
+  ageDay: string;
+  ageDays: string;
 }
 
 /** The languages shipped in the library itself; authors can register more via `setLocaleStrings`. */
@@ -135,6 +226,22 @@ const BUILT_IN = {
   pageOf: { en: 'Page {page} of {total}', de: 'Seite {page} von {total}' },
   // Generic required-field message shared by the composite form controls.
   required: { en: 'Please fill out this field.', de: 'Bitte füllen Sie dieses Feld aus.' },
+  requiredSelect: { en: 'Please select an option.', de: 'Bitte wählen Sie eine Option.' },
+  requiredOneOption: {
+    en: 'Please select at least one option.',
+    de: 'Bitte wählen Sie mindestens eine Option.',
+  },
+  requiredCheck: {
+    en: 'Please check this box.',
+    de: 'Bitte aktivieren Sie dieses Kontrollkästchen.',
+  },
+  requiredToggle: {
+    en: 'Please turn on this switch.',
+    de: 'Bitte schalten Sie diesen Schalter ein.',
+  },
+  requiredDate: { en: 'Please select a date.', de: 'Bitte wählen Sie ein Datum.' },
+  requiredTime: { en: 'Please select a time.', de: 'Bitte wählen Sie eine Uhrzeit.' },
+  requiredFile: { en: 'Please select a file.', de: 'Bitte wählen Sie eine Datei.' },
   // `e-agenda` axis and entry labels.
   agendaDay: { en: 'Agenda · Day', de: 'Agenda · Tag' },
   agendaWeek: { en: 'Agenda · Week', de: 'Agenda · Woche' },
@@ -227,6 +334,89 @@ const BUILT_IN = {
   redlineNoChanges: { en: 'No changes', de: 'Keine Änderungen' },
   redlineChangesOnly: { en: 'Changes only', de: 'Nur Änderungen' },
   redlineShowAll: { en: 'Show all', de: 'Alle anzeigen' },
+  // `e-tree` branch toggles; `{label}` is substituted.
+  expandItem: { en: 'Expand {label}', de: '{label} aufklappen' },
+  collapseItem: { en: 'Collapse {label}', de: '{label} zuklappen' },
+  // `e-dialog` dismiss control.
+  close: { en: 'Close', de: 'Schließen' },
+  // Landmark names for the two navigation components that render a `<nav>`.
+  paginationLabel: { en: 'Pagination', de: 'Seitennavigation' },
+  breadcrumbLabel: { en: 'Breadcrumb', de: 'Navigationspfad' },
+  // `e-steps` status words, rendered in caps by the component.
+  // Normal case here, upper-cased by the component like the severity words
+  // beside them, so a locale table never has to shout to match the design.
+  stepDone: { en: 'Done', de: 'Fertig' },
+  stepInProgress: { en: 'In progress', de: 'Läuft' },
+  stepPending: { en: 'Pending', de: 'Offen' },
+  // `e-popover` / `e-dropdown` fallback trigger, and the `e-popconfirm` buttons.
+  openTrigger: { en: 'Open', de: 'Öffnen' },
+  confirm: { en: 'OK', de: 'OK' },
+  cancel: { en: 'Cancel', de: 'Abbrechen' },
+  // `e-back-top`.
+  backToTop: { en: 'Back to top', de: 'Nach oben' },
+  // `e-toggle` state pip.
+  stateOn: { en: 'ON', de: 'AN' },
+  stateOff: { en: 'OFF', de: 'AUS' },
+  // `e-input-number` stepper buttons.
+  increment: { en: 'Increment', de: 'Erhöhen' },
+  decrement: { en: 'Decrement', de: 'Verringern' },
+  // `e-form-item` required marker: the pill text and its accessible name.
+  requiredShort: { en: 'REQ', de: 'PFL' },
+  requiredMarker: { en: 'required', de: 'Pflichtfeld' },
+  // `e-input` / `e-textarea` fallback message for an author-set `error`.
+  invalidValue: { en: 'Invalid value.', de: 'Ungültiger Wert.' },
+  // `e-upload` drop zone; `{types}` is substituted.
+  chooseFiles: { en: 'Choose files', de: 'Dateien auswählen' },
+  uploadPrompt: {
+    en: 'Drop files here or click to upload',
+    de: 'Dateien hierher ziehen oder zum Hochladen klicken',
+  },
+  uploadAccepts: { en: 'ACCEPTS · {types}', de: 'AKZEPTIERT · {types}' },
+  uploadTooLarge: {
+    en: 'File "{name}" exceeds maximum size of {max} bytes.',
+    de: 'Die Datei „{name}“ überschreitet die Maximalgröße von {max} Bytes.',
+  },
+  uploadTooMany: {
+    en: 'At most {max} file(s) allowed.',
+    de: 'Höchstens {max} Datei(en) erlaubt.',
+  },
+  // `e-status-board`.
+  statusBoardLabel: { en: 'Status board', de: 'Statustafel' },
+  noMetrics: { en: 'No metrics', de: 'Keine Kennzahlen' },
+  // `e-diff` headings and the change cue.
+  diffLabel: { en: 'Value comparison', de: 'Wertevergleich' },
+  diffBefore: { en: 'Previous', de: 'Vorher' },
+  diffAfter: { en: 'Current', de: 'Jetzt' },
+  // `e-sparkline` trend words.
+  trendRising: { en: 'Rising', de: 'Steigend' },
+  trendFalling: { en: 'Falling', de: 'Fallend' },
+  trendFlat: { en: 'Flat', de: 'Gleichbleibend' },
+  // Shared empty state for `e-sparkline` and `e-table`.
+  noData: { en: 'No data', de: 'Keine Daten' },
+  // `e-calendar` and `e-date-picker` month steppers and padding cells.
+  previousMonth: { en: 'Previous month', de: 'Voriger Monat' },
+  nextMonth: { en: 'Next month', de: 'Nächster Monat' },
+  outsideMonth: { en: 'Outside current month', de: 'Außerhalb des aktuellen Monats' },
+  // `e-table` selection controls; `{index}` is substituted.
+  selectAllRows: { en: 'Select all rows', de: 'Alle Zeilen auswählen' },
+  selectRow: { en: 'Select row {index}', de: 'Zeile {index} auswählen' },
+  // `e-cascader` column names; `{label}` and `{level}` are substituted.
+  cascaderLevel: { en: '{label} level {level}', de: '{label} Ebene {level}' },
+  // `e-last-updated` label and the two states with no age to word.
+  updatedLabel: { en: 'Updated', de: 'Aktualisiert' },
+  unknown: { en: 'Unknown', de: 'Unbekannt' },
+  unknownTime: { en: 'Unknown time', de: 'Unbekannte Zeit' },
+  // `e-last-updated` relative age; `{count}` and `{age}` are substituted.
+  ageJustNow: { en: 'just now', de: 'gerade eben' },
+  ageUnderMinute: { en: 'in less than a minute', de: 'in weniger als einer Minute' },
+  agePast: { en: '{age} ago', de: 'vor {age}' },
+  ageFuture: { en: 'in {age}', de: 'in {age}' },
+  ageMinute: { en: '{count} minute', de: '{count} Minute' },
+  ageMinutes: { en: '{count} minutes', de: '{count} Minuten' },
+  ageHour: { en: '{count} hour', de: '{count} Stunde' },
+  ageHours: { en: '{count} hours', de: '{count} Stunden' },
+  ageDay: { en: '{count} day', de: '{count} Tag' },
+  ageDays: { en: '{count} days', de: '{count} Tagen' },
 } satisfies Record<keyof LocaleStrings, Record<BuiltInLocale, string>>;
 
 /** Every key of `LocaleStrings`, used to project `BUILT_IN` down to one language. */
@@ -247,10 +437,25 @@ function builtInTable(locale: BuiltInLocale): LocaleStrings {
 const EN: LocaleStrings = builtInTable('en');
 const DE: LocaleStrings = builtInTable('de');
 
-const REGISTRY = new Map<string, LocaleStrings>([
+const BUILT_IN_TABLES = new Map<string, LocaleStrings>([
   ['en', EN],
   ['de', DE],
 ]);
+
+/**
+ * Author overrides, kept as the partials they were registered as rather than
+ * as finished tables.
+ *
+ * Storing the merged result instead made a region tag a snapshot: registering
+ * `de-CH` and *then* correcting a word in `de` left the Swiss table on the old
+ * wording forever, because it had already copied the base. Resolving the chain
+ * on read — built-in language, then the language override, then the region
+ * override — means a later edit to any level reaches every tag below it.
+ */
+const OVERRIDES = new Map<string, Partial<LocaleStrings>>();
+
+/** Memoized resolution, dropped whenever an override changes. */
+const RESOLVED = new Map<string, LocaleStrings>();
 
 /**
  * Register or extend the strings for a locale. Partial overrides are merged
@@ -263,15 +468,28 @@ const REGISTRY = new Map<string, LocaleStrings>([
  */
 export function setLocaleStrings(locale: string, strings: Partial<LocaleStrings>): void {
   const key = locale.toLowerCase();
-  const base = REGISTRY.get(key) ?? REGISTRY.get(key.split('-')[0]!) ?? EN;
-  REGISTRY.set(key, { ...base, ...strings });
+  OVERRIDES.set(key, { ...OVERRIDES.get(key), ...strings });
+  RESOLVED.clear();
+}
+
+/** Resolve one locale tag through the built-in table and both override levels. */
+function tableFor(locale: string): LocaleStrings {
+  const cached = RESOLVED.get(locale);
+  if (cached) return cached;
+  const base = locale.split('-')[0]!;
+  const table: LocaleStrings = {
+    ...(BUILT_IN_TABLES.get(base) ?? EN),
+    ...OVERRIDES.get(base),
+    ...(base === locale ? undefined : OVERRIDES.get(locale)),
+  };
+  RESOLVED.set(locale, table);
+  return table;
 }
 
 /** The full string table for an element's resolved locale. */
 export function strings(el: Element): LocaleStrings {
   const locale = resolveLocale(el)?.toLowerCase();
-  if (!locale) return EN;
-  return REGISTRY.get(locale) ?? REGISTRY.get(locale.split('-')[0]!) ?? EN;
+  return locale ? tableFor(locale) : tableFor('en');
 }
 
 /**
@@ -285,8 +503,10 @@ export function t(
 ): string {
   const value = strings(el)[key];
   if (!vars) return value;
+  // `Object.hasOwn`, not `in`: `{constructor}` in a string would otherwise
+  // resolve against `Object.prototype` and interpolate a function body.
   return value.replaceAll(/\{(\w+)\}/g, (match, name: string) =>
-    name in vars ? String(vars[name]) : match,
+    Object.hasOwn(vars, name) ? String(vars[name]) : match,
   );
 }
 

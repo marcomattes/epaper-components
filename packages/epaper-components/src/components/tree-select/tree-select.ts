@@ -1,4 +1,5 @@
 import { define, addCleanup, patchAttr, runCleanups } from '../../core/dom';
+import { t } from '../../core/i18n';
 import { BaseFormControl } from '../../core/base-form-control';
 import { TreeView, parseTreeAttr } from '../../core/tree';
 
@@ -162,7 +163,7 @@ export class ETreeSelect extends BaseFormControl {
   private _syncValidity(): void {
     const tree = this.querySelector<HTMLElement>('[role="tree"]') ?? undefined;
     tree?.setAttribute('aria-required', String(this.hasAttribute('required')));
-    this.applyRequiredValidity(!!this._value, tree, 'Please select an option.');
+    this.applyRequiredValidity(!!this._value, tree, t(this, 'requiredSelect'));
   }
 }
 
