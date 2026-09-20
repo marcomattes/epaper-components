@@ -110,7 +110,7 @@ jobs:
           exit 1
 
       - name: Start BrowserStack Local
-        uses: browserstack/github-actions/setup-local@93aebce225b754566349151c0676b26b005e591b # v1.0.4
+        uses: browserstack/github-actions/setup-local@1092dd1bd7e4f19f66f907a3e2d83a6bcee0dd2b # v1.0.5
         with:
           local-testing: start
           local-identifier: random
@@ -133,7 +133,7 @@ jobs:
 
       - name: Stop BrowserStack Local
         if: always()
-        uses: browserstack/github-actions/setup-local@93aebce225b754566349151c0676b26b005e591b # v1.0.4
+        uses: browserstack/github-actions/setup-local@1092dd1bd7e4f19f66f907a3e2d83a6bcee0dd2b # v1.0.5
         with:
           local-testing: stop
 
